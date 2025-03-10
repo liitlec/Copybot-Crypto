@@ -38,7 +38,7 @@ Extract the archive – everything is ready, the executable is included.
 Run the executable (Raven.exe) and configure your settings directly via the interface.
     
 
-For more details, visit the # GitHub: https://raven-bot-1.gitbook.io/raven-bot-swift-and-smart-copy-trading
+For more details, visit the GitHub: https://raven-bot-1.gitbook.io/raven-bot-swift-and-smart-copy-trading
 
 
 
