@@ -13,19 +13,30 @@ Compatible with multiple DEXs (Raydium, Jupiter, Pump, Orca, Meteora), TradeRave
 # Key Features
 
 Trading Bot → Proprietary algorithms ensuring unmatched execution speed and accuracy.
+
 Real-time Copy Trading → Track specific addresses and execute trades automatically.
+
 Sniper Bot → Detect and instantly buy new tokens on Raydium or Pump.fun with automatic sale migration.
+
 Risk Management → Take Profit (static/dynamic/safe), Stop Loss, and customizable slippage (buy/sell).
+
 Advanced Automation → Cyclic SOL/WSOL conversions, secure auto-sell management, and transaction simulations.
+
 Multi-DEX Support → Integrated with Raydium, Jupiter, Pump, Orca, and Meteora for maximum flexibility.
+
 Custom Interface → Modern GUI with Solana key management, QR code payments, and Telegram notifications (coming soon).
+
 Optimized for Solana → Adjustable Jito fees, lamports management, and custom RPC/GRPC connections.
+
 
 # Installation
 
-    Download the file from the GitHub repository.
-    Extract the archive – everything is ready, the executable is included.
-    Run the executable (Raven.exe) and configure your settings directly via the interface.
+Download the file from the GitHub repository.
+    
+Extract the archive – everything is ready, the executable is included.
+    
+Run the executable (Raven.exe) and configure your settings directly via the interface.
+    
 
 For more details, visit the # GitHub: https://raven-bot-1.gitbook.io/raven-bot-swift-and-smart-copy-trading
 
