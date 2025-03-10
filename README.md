@@ -8,7 +8,7 @@ Raven is a revolutionary  application designed to automate crypto copy trading o
 
 The bot supports advanced features such as token sniping (Raydium/Pump), dynamic profit management (Take Profit/Stop Loss), automatic SOL/WSOL conversions, and enhanced security through audited smart contracts.
 
-Compatible with multiple DEXs (Raydium, Jupiter, Pump, Orca, Meteora), TradeRaven offers an intuitive user interface and extensive customization options via a detailed configuration file. Users can adjust slippage, Jito fees, buy/sell iterations, and much more.
+Compatible with multiple DEXs (Raydium, Jupiter, Pump, Orca, Meteora), Raven offers an intuitive user interface and extensive customization options via a detailed configuration file. Users can adjust slippage, Jito fees, buy/sell iterations, and much more.
 
 # Key Features
 
