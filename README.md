@@ -1,10 +1,10 @@
 # Raven Bot
 
-The most advanced crypto copy trading DApp, powered by the best bot on the market for automated trading on Solana.
+The most advanced crypto copy trading App, powered by the best bot on the market for automated trading on Solana.
 
 # Description
 
-Raven is a revolutionary decentralized application (DApp) designed to automate crypto copy trading on the Solana blockchain. With an ultra-performant trading bot, it allows users to replicate top traders' strategies in real time with unmatched precision and optimized execution.
+Raven is a revolutionary  application designed to automate crypto copy trading on the Solana blockchain. With an ultra-performant trading bot, it allows users to replicate top traders' strategies in real time with unmatched precision and optimized execution.
 
 The bot supports advanced features such as token sniping (Raydium/Pump), dynamic profit management (Take Profit/Stop Loss), automatic SOL/WSOL conversions, and enhanced security through audited smart contracts.
 
