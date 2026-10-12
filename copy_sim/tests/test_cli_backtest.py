@@ -54,6 +54,7 @@ def test_backtest_cli(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("CS_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("SOLANA_RPC_URL", "http://rpc.invalid")
+    monkeypatch.delenv("SOLANATRACKER_API_KEY", raising=False)
     (tmp_path / "leaders.txt").write_text(f"# top 1\n{W}\n")
     cli.main(["backtest", "--leaders", "leaders.txt", "--days", "1"])
     data = json.loads((tmp_path / "reports" / "backtest.json").read_text())

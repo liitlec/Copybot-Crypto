@@ -73,7 +73,7 @@ def cmd_backtest(s: Settings, args) -> None:
     events = leaders_swaps(rpc, leaders, args.days)
     if not events:
         sys.exit("aucun swap trouvé (RPC limité ? adresses correctes ?)")
-    candles = GeckoCandles(s.cache_dir)
+    candles = GeckoCandles(s.cache_dir, os.getenv("SOLANATRACKER_API_KEY") or None)
     end_ts = max(e.block_time for e in events) + 60
     candles.load(WSOL, min(e.block_time for e in events) - 3600, end_ts + 3600)
     n_usd = sum(e.quote == "USD" for e in events)
@@ -82,7 +82,7 @@ def cmd_backtest(s: Settings, args) -> None:
     span: dict[str, list[int]] = defaultdict(list)
     for e in events:
         span[e.mint].append(e.block_time)
-    print(f"Bougies GeckoTerminal pour {len(span)} tokens (≈30 req/min, mis en cache)…")
+    print(f"Bougies 1 min pour {len(span)} tokens ({'Solana Tracker' if candles.st_key else 'GeckoTerminal, ≈30 req/min'}, mis en cache)…")
     for i, (mint, ts) in enumerate(span.items(), 1):
         try:  # seulement autour des trades du leader (+15 min)
             candles.load(mint, min(ts) - 300, max(ts) + 900)

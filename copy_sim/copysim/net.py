@@ -36,7 +36,7 @@ def _cache_path(cache_dir: Path | None, key: str) -> Path | None:
 
 
 _LAST_CALL: dict[str, float] = {}
-MIN_INTERVAL = {"api.geckoterminal.com": 2.1}  # ~30 req/min sur l'API publique
+MIN_INTERVAL = {"api.geckoterminal.com": 2.1, "data.solanatracker.io": 0.5}  # limites des API gratuites
 
 
 def _throttle(url: str) -> None:

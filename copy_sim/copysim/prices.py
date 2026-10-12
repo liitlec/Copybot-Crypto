@@ -12,6 +12,7 @@ pour notre taille). Rien n'est signé ni envoyé.
 from __future__ import annotations
 
 import bisect
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,6 +21,7 @@ from .config import GECKO_URL, LAMPORTS, USDC, WSOL
 from .swaps import SwapEvent
 
 GECKO_HEADERS = {"Accept": "application/json;version=20230302"}
+ST_CHART = "https://data.solanatracker.io/chart"
 
 
 @dataclass
@@ -33,8 +35,9 @@ class GeckoCandles:
     """Bougies minute par mint. Récupérées en USD sur le pool le plus liquide (quelle que soit la
     cotation : SOL, USDC…), puis converties en SOL avec la bougie SOL/USD de la même minute."""
 
-    def __init__(self, cache_dir: Path | None = None):
+    def __init__(self, cache_dir: Path | None = None, st_key: str | None = None):
         self.cache_dir = cache_dir
+        self.st_key = st_key  # Solana Tracker : 1 requête par token et par fenêtre, bien plus rapide
         self._pools: dict[str, list[tuple[str, str]]] = {}
         self._usd: dict[str, tuple[list[int], list[list[float]]]] = {}
         self._sol_unit: dict[str, tuple[list[int], list[list[float]]]] = {}
@@ -56,10 +59,30 @@ class GeckoCandles:
             self._pools[mint] = [(a, side) for _, a, side in sorted(rows, reverse=True)]
         return self._pools[mint]
 
+    def _load_solanatracker(self, mint: str, start_ts: int, end_ts: int) -> dict[int, list[float]]:
+        out: dict[int, list[float]] = {}
+        chunk = 900 * 60  # ≤ 1000 bougies par requête
+        t0 = int(start_ts)
+        while t0 < end_ts:
+            t1 = min(t0 + chunk, int(end_ts))
+            data = net.get_json(f"{ST_CHART}/{mint}", {"type": "1m", "time_from": t0, "time_to": t1},
+                                headers={"x-api-key": self.st_key},
+                                cache_dir=self.cache_dir if t1 < time.time() - 300 else None)
+            for c in data.get("oclhv", []):
+                if c.get("close") is not None:
+                    out[int(c["time"])] = [float(c["open"]), float(c["high"]), float(c["low"]), float(c["close"])]
+            t0 = t1
+        return out
+
     def load(self, mint: str, start_ts: int, end_ts: int, max_pools: int = 2) -> None:
-        """Charge les bougies USD [start, end] (pagination par 1000 minutes)."""
+        """Charge les bougies USD [start, end] : Solana Tracker si clé, sinon GeckoTerminal (pagination)."""
         ts_all: dict[int, list[float]] = {}
-        for addr, side in self.pools(mint)[:max_pools]:
+        if self.st_key:
+            try:
+                ts_all = self._load_solanatracker(mint, start_ts, end_ts)
+            except RuntimeError:
+                ts_all = {}
+        for addr, side in ([] if ts_all else self.pools(mint)[:max_pools]):
             before = end_ts + 60
             while before > start_ts:
                 data = net.get_json(
