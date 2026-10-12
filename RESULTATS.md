@@ -126,3 +126,26 @@ Hypothèse optimiste : en pratique, le taux d'emprunt monte justement quand les 
 | Extended | +11,4 % | +8,8 % | instantané |
 | Variational | ≈ +8,3 % | ≈ +6,9 % | instantané, affiché annualisé |
 | Repère Hyperliquid | +6,5 % | +5,8 % | moyenne 7 j |
+
+## Levier qui s'adapte et rotation rapide (12/10/2026)
+
+Base : BTC + ETH permanents, plus 2 altcoins à plus de 20 % (moyenne 14 j), frais maker, 95 % couvert, ETH stakée.
+
+**Rotation plus rapide des altcoins** (tous les 1 à 3 jours) : pas mieux que la rotation hebdomadaire.
+- Hyperliquid : +21,5 à +23,1 %/an, contre +23,9 % en hebdomadaire.
+
+**Levier qui s'adapte** : emprunt seulement quand le taux moyen 14 j de BTC/ETH dépasse le coût de l'emprunt ; taille revue chaque semaine ; emprunt supposé fixe à 6 %/an.
+
+| Règle | Hyperliquid | Binance |
+|---|---|---|
+| Sans emprunt | +23,9 % (pire chute −0,4 %) | +14,2 % (−0,7 %) |
+| 1,5x si taux > emprunt + 5 pts | +31,1 % (−0,6 %) | +18,2 % (−0,7 %) |
+| 1,5x / 2x si > +5 / +10 pts | **+37,1 %** (−0,8 %) | **+21,8 %** (−0,7 %) |
+| 2x / 3x si > +5 / +10 pts | +51,7 % (−1,2 %) | +30,0 % (−1,0 %) |
+| 2x en permanence | +44,5 % (−1,3 %) | +22,8 % (−1,9 %) |
+
+Part du temps avec emprunt : 38 % sur Hyperliquid, 21 % sur Binance. Les gains en plus viennent surtout de 2021 et 2024 ; en 2026, presque rien (taux trop bas).
+
+**Hypothèses optimistes :**
+- Le taux d'emprunt est fixé à 6 %, alors qu'en pratique il monte quand le financement est haut (souvent 10 à 20 % en 2021 et 2024).
+- Le risque de liquidation n'est pas modélisé, et il augmente nettement à 2x et 3x.
