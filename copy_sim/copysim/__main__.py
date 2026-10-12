@@ -19,7 +19,8 @@ from .history import leaders_swaps
 from .net import SolanaRPC
 from .prices import BacktestPrices, GeckoCandles, JupiterPrices
 from .report import leader_baseline, render, stats
-from .swaps import SwapEvent, parse_swap
+from .config import WSOL
+from .swaps import SwapEvent, convert_usd, parse_swap
 
 
 def build_leaders(s: Settings, out: str, source: str = "auto", top: int = 10, check: bool = True) -> None:
@@ -73,33 +74,50 @@ def cmd_backtest(s: Settings, args) -> None:
     if not events:
         sys.exit("aucun swap trouvé (RPC limité ? adresses correctes ?)")
     candles = GeckoCandles(s.cache_dir)
+    end_ts = max(e.block_time for e in events) + 60
+    candles.load(WSOL, min(e.block_time for e in events) - 3600, end_ts + 3600)
+    n_usd = sum(e.quote == "USD" for e in events)
+    events = convert_usd(events, candles.sol_usd_at)
+    print(f"{len(events)} swaps ({n_usd} cotés en USDC/USDT, convertis en SOL)")
     span: dict[str, list[int]] = defaultdict(list)
     for e in events:
         span[e.mint].append(e.block_time)
-    end_ts = max(e.block_time for e in events) + 60
     print(f"Bougies GeckoTerminal pour {len(span)} tokens (≈30 req/min, mis en cache)…")
     for i, (mint, ts) in enumerate(span.items(), 1):
-        try:
-            candles.load(mint, min(ts) - 300, end_ts + 600)
+        try:  # seulement autour des trades du leader (+15 min)
+            candles.load(mint, min(ts) - 300, max(ts) + 900)
         except RuntimeError as exc:
             print(f"  {mint[:6]}…: pas de bougies ({exc})")
         if i % 25 == 0:
             print(f"  {i}/{len(span)}")
-        time.sleep(args.gecko_sleep)
 
     scenarios = {
         "neutral": (s, "neutral"),
         "pessimistic": (s, "pessimistic"),
         "neutral, sans rotation": (replace(s, rotate_after_losses=0), "neutral"),
     }
-    results, states = {}, {}
-    for name, (cfg, mode) in scenarios.items():
-        eng = CopyEngine(cfg, BacktestPrices(candles, mode, cfg.slippage_bps), leaders)
-        for e in events:
-            eng.on_event(e)
-        eng.finalize(end_ts)
-        results[name] = stats(eng.st, cfg.bankroll_sol)
-        states[name] = asdict(eng.st)
+
+    def run_all():
+        res, sts, still_open = {}, {}, set()
+        for name, (cfg, mode) in scenarios.items():
+            eng = CopyEngine(cfg, BacktestPrices(candles, mode, cfg.slippage_bps), leaders)
+            for e in events:
+                eng.on_event(e)
+            still_open |= {p["mint"] for p in eng.st.positions.values()}
+            eng.finalize(end_ts)
+            res[name] = stats(eng.st, cfg.bankroll_sol)
+            sts[name] = asdict(eng.st)
+        return res, sts, still_open
+
+    results, states, still_open = run_all()
+    if still_open:  # positions jamais revendues : prix jusqu'à la fin de la fenêtre pour les valoriser
+        print(f"Prolongation des bougies pour {len(still_open)} positions encore ouvertes…")
+        for mint in still_open:
+            try:
+                candles.load(mint, max(span[mint]) + 900, end_ts + 600)
+            except RuntimeError as exc:
+                print(f"  {mint[:6]}…: {exc}")
+        results, states, _ = run_all()
     md = render(results, leader_baseline(events),
                 {"title": f"backtest {args.days} j, {len(leaders)} leaders, {len(events)} swaps",
                  "assumptions": assumptions(s)})
@@ -124,8 +142,8 @@ def cmd_live(s: Settings, args) -> None:
     rpc = SolanaRPC(s.rpc_url)
     s.data_dir.mkdir(parents=True, exist_ok=True)
     state_path, log_path = s.data_dir / "live_state.json", s.data_dir / "live_events.jsonl"
-    eng = CopyEngine(s, JupiterPrices(s.jup_quote_url, s.slippage_bps), leaders,
-                     _load_state(state_path, s), live=True)
+    prices = JupiterPrices(s.jup_quote_url, s.slippage_bps)
+    eng = CopyEngine(s, prices, leaders, _load_state(state_path, s), live=True)
     last_sig: dict[str, str | None] = {}
     for w in leaders:  # on part de maintenant : pas de rattrapage de l'historique
         page = rpc.signatures(w, limit=1)
@@ -147,6 +165,11 @@ def cmd_live(s: Settings, args) -> None:
                 ev = parse_swap(tx, w, sig)
                 if not ev:
                     continue
+                if ev.quote == "USD":
+                    px = prices.sol_usd()
+                    if not px:
+                        continue
+                    ev.sol_amount = ev.quote_amount / px
                 res = eng.on_event(ev, now_ts=time.time())
                 if res:
                     res["ts"] = time.time()
@@ -180,7 +203,6 @@ def main(argv=None) -> None:
     p = sub.add_parser("backtest", help="rejoue les N derniers jours des leaders")
     p.add_argument("--leaders", default="leaders.txt", help="1 adresse par ligne, dans l'ordre du classement")
     p.add_argument("--days", type=float, default=3)
-    p.add_argument("--gecko-sleep", type=float, default=2.1, help="pause entre tokens (limite GeckoTerminal)")
     p = sub.add_parser("live", help="paper trading en temps réel (cotations Jupiter)")
     p.add_argument("--leaders", default="leaders.txt")
     sub.add_parser("report", help="rapport du paper trading live")

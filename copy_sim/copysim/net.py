@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,20 @@ def _cache_path(cache_dir: Path | None, key: str) -> Path | None:
     return Path(cache_dir) / f"{hashlib.sha256(key.encode()).hexdigest()}.json"
 
 
+_LAST_CALL: dict[str, float] = {}
+MIN_INTERVAL = {"api.geckoterminal.com": 2.1}  # ~30 req/min sur l'API publique
+
+
+def _throttle(url: str) -> None:
+    host = url.split("/")[2] if "://" in url else url
+    gap = MIN_INTERVAL.get(host)
+    if gap:
+        wait = _LAST_CALL.get(host, 0) + gap - time.time()
+        if wait > 0:
+            time.sleep(wait)
+        _LAST_CALL[host] = time.time()
+
+
 def get_json(url: str, params: dict | None = None, *, headers: dict | None = None,
              cache_dir: Path | None = None, timeout: float = 30) -> Any:
     cp = _cache_path(cache_dir, url + json.dumps(params, sort_keys=True))
@@ -41,6 +56,7 @@ def get_json(url: str, params: dict | None = None, *, headers: dict | None = Non
         return json.loads(cp.read_text())
 
     def call():
+        _throttle(url)
         r = _S.get(url, params=params, headers=headers, timeout=timeout)
         if r.status_code == 429 or r.status_code >= 500:
             raise requests.HTTPError(f"HTTP {r.status_code}", response=None)
@@ -87,7 +103,7 @@ class SolanaRPC:
             opts["until"] = until
         return self.call("getSignaturesForAddress", [address, opts])
 
-    def transactions(self, sigs: list[str], batch: int = 20) -> list[dict | None]:
+    def transactions(self, sigs: list[str], batch: int = 10, workers: int = 4) -> list[dict | None]:
         """getTransaction en batch JSON-RPC (repli unitaire si le fournisseur refuse le batch).
         Les transactions finalisées sont immuables : mises en cache disque."""
         out: dict[str, dict | None] = {}
@@ -99,8 +115,8 @@ class SolanaRPC:
             else:
                 todo.append(s)
         opts = {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0, "commitment": "confirmed"}
-        for i in range(0, len(todo), batch):
-            chunk = todo[i:i + batch]
+
+        def fetch(chunk: list[str]) -> list[dict | None]:
             try:
                 payload = [{"jsonrpc": "2.0", "id": j, "method": "getTransaction", "params": [s, opts]}
                            for j, s in enumerate(chunk)]
@@ -108,13 +124,17 @@ class SolanaRPC:
                 if not isinstance(res, list):
                     raise RuntimeError("batch non supporté")
                 by_id = {r.get("id"): r.get("result") for r in res}
-                results = [by_id.get(j) for j in range(len(chunk))]
+                return [by_id.get(j) for j in range(len(chunk))]
             except RuntimeError:
-                results = [self.call("getTransaction", [s, opts]) for s in chunk]
-            for s, tx in zip(chunk, results):
-                out[s] = tx
-                cp = _cache_path(self.cache_dir, "tx:" + s)
-                if cp and tx is not None:
-                    cp.parent.mkdir(parents=True, exist_ok=True)
-                    cp.write_text(json.dumps(tx))
+                return [self.call("getTransaction", [s, opts]) for s in chunk]
+
+        chunks = [todo[i:i + batch] for i in range(0, len(todo), batch)]
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for chunk, results in zip(chunks, pool.map(fetch, chunks)):
+                for s, tx in zip(chunk, results):
+                    out[s] = tx
+                    cp = _cache_path(self.cache_dir, "tx:" + s)
+                    if cp and tx is not None:
+                        cp.parent.mkdir(parents=True, exist_ok=True)
+                        cp.write_text(json.dumps(tx))
         return [out.get(s) for s in sigs]

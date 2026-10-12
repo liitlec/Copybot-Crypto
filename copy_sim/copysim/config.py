@@ -13,6 +13,9 @@ except ImportError:  # pragma: no cover
     pass
 
 WSOL = "So11111111111111111111111111111111111111112"
+USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+USDT = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+USD_MINTS = {USDC, USDT}
 LAMPORTS = 1_000_000_000
 GECKO_URL = "https://api.geckoterminal.com/api/v2"
 

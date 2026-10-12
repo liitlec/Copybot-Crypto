@@ -1,6 +1,6 @@
 """Prix d'exécution simulés.
 
-Backtest : bougies 1 minute GeckoTerminal (prix en SOL), avec deux hypothèses qui encadrent la réalité :
+Backtest : bougies 1 minute GeckoTerminal (converties en SOL), avec deux hypothèses qui encadrent la réalité :
   * neutral     : clôture de la minute où arrive la copie
   * pessimistic : plus haut de la minute à l'achat, plus bas à la vente, et jamais mieux que le leader
     (le copieur arrive après lui : sur un memecoin qui pompe, il achète forcément plus cher)
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import net
-from .config import GECKO_URL, LAMPORTS, WSOL
+from .config import GECKO_URL, LAMPORTS, USDC, WSOL
 from .swaps import SwapEvent
 
 GECKO_HEADERS = {"Accept": "application/json;version=20230302"}
@@ -30,15 +30,17 @@ class Fill:
 
 
 class GeckoCandles:
-    """Bougies minute par mint, prix exprimé en SOL (pools contre SOL uniquement)."""
+    """Bougies minute par mint. Récupérées en USD sur le pool le plus liquide (quelle que soit la
+    cotation : SOL, USDC…), puis converties en SOL avec la bougie SOL/USD de la même minute."""
 
     def __init__(self, cache_dir: Path | None = None):
         self.cache_dir = cache_dir
         self._pools: dict[str, list[tuple[str, str]]] = {}
-        self._candles: dict[str, tuple[list[int], list[list[float]]]] = {}
+        self._usd: dict[str, tuple[list[int], list[list[float]]]] = {}
+        self._sol_unit: dict[str, tuple[list[int], list[list[float]]]] = {}
 
     def pools(self, mint: str) -> list[tuple[str, str]]:
-        """-> [(adresse pool, 'base'|'quote')] contre SOL, triés par liquidité."""
+        """-> [(adresse pool, 'base'|'quote')] triés par liquidité."""
         if mint not in self._pools:
             data = net.get_json(f"{GECKO_URL}/networks/solana/tokens/{mint}/pools", {"page": 1},
                                 headers=GECKO_HEADERS, cache_dir=self.cache_dir)
@@ -47,22 +49,22 @@ class GeckoCandles:
                 rel = p.get("relationships", {})
                 base = rel.get("base_token", {}).get("data", {}).get("id", "").removeprefix("solana_")
                 quote = rel.get("quote_token", {}).get("data", {}).get("id", "").removeprefix("solana_")
-                if {base, quote} != {mint, WSOL}:
+                if mint not in (base, quote):
                     continue
                 reserve = float(p.get("attributes", {}).get("reserve_in_usd") or 0)
                 rows.append((reserve, p["attributes"]["address"], "base" if base == mint else "quote"))
             self._pools[mint] = [(a, side) for _, a, side in sorted(rows, reverse=True)]
         return self._pools[mint]
 
-    def load(self, mint: str, start_ts: int, end_ts: int) -> None:
-        """Charge les bougies [start, end] (pagination par 1000 minutes)."""
+    def load(self, mint: str, start_ts: int, end_ts: int, max_pools: int = 2) -> None:
+        """Charge les bougies USD [start, end] (pagination par 1000 minutes)."""
         ts_all: dict[int, list[float]] = {}
-        for addr, side in self.pools(mint)[:3]:
+        for addr, side in self.pools(mint)[:max_pools]:
             before = end_ts + 60
             while before > start_ts:
                 data = net.get_json(
                     f"{GECKO_URL}/networks/solana/pools/{addr}/ohlcv/minute",
-                    {"aggregate": 1, "before_timestamp": before, "limit": 1000, "currency": "token",
+                    {"aggregate": 1, "before_timestamp": before, "limit": 1000, "currency": "usd",
                      "token": side},
                     headers=GECKO_HEADERS, cache_dir=self.cache_dir)
                 rows = data.get("data", {}).get("attributes", {}).get("ohlcv_list", [])
@@ -74,16 +76,22 @@ class GeckoCandles:
                 if oldest >= before:
                     break
                 before = oldest
+            if ts_all:
+                break  # le pool le plus liquide suffit ; le suivant seulement s'il n'a rien
+        if mint in self._usd:  # fusion avec une fenêtre déjà chargée
+            for k, v in zip(*self._usd[mint]):
+                ts_all.setdefault(k, v)
         keys = sorted(ts_all)
-        self._candles[mint] = (keys, [ts_all[k] for k in keys])
+        self._usd[mint] = (keys, [ts_all[k] for k in keys])
 
-    def set_candles(self, mint: str, candles: dict[int, list[float]]) -> None:  # tests
+    def set_candles(self, mint: str, candles: dict[int, list[float]]) -> None:
+        """Tests : bougies directement en SOL."""
         keys = sorted(candles)
-        self._candles[mint] = (keys, [candles[k] for k in keys])
+        self._sol_unit[mint] = (keys, [candles[k] for k in keys])
 
-    def at(self, mint: str, ts: float, max_gap_s: int = 600) -> tuple[list[float], bool] | None:
-        """-> (o,h,l,c de la minute contenant ts, exact?) ; repli sur la dernière bougie < 10 min."""
-        keys, vals = self._candles.get(mint, ([], []))
+    @staticmethod
+    def _find(series, ts: float, max_gap_s: int):
+        keys, vals = series
         i = bisect.bisect_right(keys, int(ts)) - 1
         if i < 0:
             return None
@@ -93,6 +101,20 @@ class GeckoCandles:
             c = vals[i][3]
             return [c, c, c, c], False  # pas de trade dans la minute : prix figé
         return None
+
+    def sol_usd_at(self, ts: float) -> float | None:
+        k = self._find(self._usd.get(WSOL, ([], [])), ts, 3600)
+        return k[0][3] if k else None
+
+    def at(self, mint: str, ts: float, max_gap_s: int = 600) -> tuple[list[float], bool] | None:
+        """-> (o,h,l,c en SOL de la minute contenant ts, exact?) ; repli sur la dernière bougie < 10 min."""
+        if mint in self._sol_unit:
+            return self._find(self._sol_unit[mint], ts, max_gap_s)
+        k = self._find(self._usd.get(mint, ([], [])), ts, max_gap_s)
+        sol = self.sol_usd_at(ts)
+        if not k or not sol:
+            return None
+        return [x / sol for x in k[0]], k[1]
 
 
 class BacktestPrices:
@@ -156,3 +178,8 @@ class JupiterPrices:
     def mark(self, mint: str, decimals: int, tokens: float, ts: float) -> float | None:
         f = self.sell(mint, decimals, tokens, ts, None)
         return f.amount_out if f else None
+
+    def sol_usd(self) -> float | None:
+        """Cours SOL/USD actuel (cotation 1 SOL -> USDC), pour convertir les swaps des leaders en USDC."""
+        q = self._quote(WSOL, USDC, LAMPORTS)
+        return int(q["outAmount"]) / 1e6 if q else None

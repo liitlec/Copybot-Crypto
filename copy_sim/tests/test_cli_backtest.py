@@ -27,6 +27,15 @@ def test_backtest_cli(tmp_path, monkeypatch, capsys):
         raise AssertionError(payload)
 
     def fake_get(url, params=None, **kw):
+        if url.endswith(f"/tokens/{WSOL}/pools"):
+            return {"data": [{"attributes": {"address": "SOLPOOL", "reserve_in_usd": "9e9"},
+                              "relationships": {"base_token": {"data": {"id": f"solana_{WSOL}"}},
+                                                "quote_token": {"data": {"id": "solana_USDC"}}}}]}
+        if "/pools/SOLPOOL/ohlcv/minute" in url:
+            if params["before_timestamp"] < t_buy - 4000:
+                return {"data": {"attributes": {"ohlcv_list": []}}}
+            rows = [[t, 150, 150, 150, 150, 1] for t in range(t_buy - 7200 - t_buy % 60, now + 120, 60)]
+            return {"data": {"attributes": {"ohlcv_list": sorted(rows, reverse=True)}}}
         if url.endswith(f"/tokens/{MINT}/pools"):
             return {"data": [{"attributes": {"address": "POOL", "reserve_in_usd": "50000"},
                               "relationships": {"base_token": {"data": {"id": f"solana_{MINT}"}},
@@ -34,17 +43,19 @@ def test_backtest_cli(tmp_path, monkeypatch, capsys):
         if "/pools/POOL/ohlcv/minute" in url:
             if params["before_timestamp"] < t_buy - 600:
                 return {"data": {"attributes": {"ohlcv_list": []}}}
-            rows = [[t, 0.001, 0.0011, 0.0009, 0.001, 1] for t in range(t_buy - 300 - t_buy % 60, t_sell - 120, 60)]
-            rows += [[t, 0.0015, 0.0016, 0.0014, 0.0015, 1] for t in range(t_sell - 120 - t_sell % 60, now + 60, 60)]
+            rows = [[t, 0.15, 0.165, 0.135, 0.15, 1] for t in range(t_buy - 300 - t_buy % 60, t_sell - 120, 60)]
+            rows += [[t, 0.225, 0.24, 0.21, 0.225, 1] for t in range(t_sell - 120 - t_sell % 60, now + 60, 60)]
             return {"data": {"attributes": {"ohlcv_list": sorted(rows, reverse=True)}}}
         raise AssertionError(url)
 
     monkeypatch.setattr(net.SolanaRPC, "_post", fake_post)
     monkeypatch.setattr(net, "get_json", fake_get)
+    monkeypatch.setattr(net, "MIN_INTERVAL", {})
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("CS_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("SOLANA_RPC_URL", "http://rpc.invalid")
     (tmp_path / "leaders.txt").write_text(f"# top 1\n{W}\n")
-    cli.main(["backtest", "--leaders", "leaders.txt", "--days", "1", "--gecko-sleep", "0"])
+    cli.main(["backtest", "--leaders", "leaders.txt", "--days", "1"])
     data = json.loads((tmp_path / "reports" / "backtest.json").read_text())
     neutral = data["results"]["neutral"]
     assert neutral["n_closed"] == 1 and neutral["win_rate"] == 1.0

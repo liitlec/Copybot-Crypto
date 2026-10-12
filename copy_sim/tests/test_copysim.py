@@ -6,11 +6,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from copysim.config import LAMPORTS, WSOL, Settings  # noqa: E402
+from copysim.config import LAMPORTS, USDC, WSOL, Settings  # noqa: E402
 from copysim.engine import CopyEngine  # noqa: E402
 from copysim.prices import BacktestPrices, GeckoCandles  # noqa: E402
 from copysim.report import leader_baseline, render, stats  # noqa: E402
-from copysim.swaps import SwapEvent, parse_swap  # noqa: E402
+from copysim.swaps import SwapEvent, convert_usd, fill_pre_balances, parse_enhanced, parse_swap  # noqa: E402
 
 W = "LeaderWallet111111111111111111111111111111111"
 MINT = "MemeMint11111111111111111111111111111111111"
@@ -21,15 +21,18 @@ def tb(idx, mint, owner, amount_raw, dec=6):
             "uiTokenAmount": {"amount": str(amount_raw), "decimals": dec}}
 
 
-def tx(sol_pre, sol_post, pre_tok, post_tok, fee=5000, wsol=None, err=None):
+def tx(sol_pre, sol_post, pre_tok, post_tok, fee=5000, wsol=None, err=None, usdc=None, signer=True):
     pre_tb = [tb(1, MINT, W, pre_tok)] if pre_tok is not None else []
     post_tb = [tb(1, MINT, W, post_tok)] if post_tok is not None else []
     if wsol:
         pre_tb.append(tb(2, WSOL, W, wsol[0], 9))
         post_tb.append(tb(2, WSOL, W, wsol[1], 9))
+    if usdc:
+        pre_tb.append(tb(2, USDC, W, usdc[0], 6))
+        post_tb.append(tb(2, USDC, W, usdc[1], 6))
     return {"slot": 1, "blockTime": 1_700_000_000,
             "transaction": {"signatures": ["sig1"], "message": {"accountKeys": [
-                {"pubkey": W, "signer": True}, {"pubkey": "ata"}, {"pubkey": "wsolata"}]}},
+                {"pubkey": W, "signer": signer}, {"pubkey": "ata"}, {"pubkey": "wsolata"}]}},
             "meta": {"err": err, "fee": fee, "preBalances": [int(sol_pre * LAMPORTS), 0, 0],
                      "postBalances": [int(sol_post * LAMPORTS), 0, 0],
                      "preTokenBalances": pre_tb, "postTokenBalances": post_tb}}
@@ -132,7 +135,7 @@ def test_open_position_without_price_counts_zero(s):
     c = candles_flat(MINT, {0: 0.001})
     eng = CopyEngine(s, BacktestPrices(c, "neutral", 0), [W])
     eng.on_event(ev("BUY", 10, 1, 1000))
-    eng.p.c._candles[MINT] = ([], [])  # rug : plus aucune donnée
+    eng.p.c._sol_unit[MINT] = ([], [])  # rug : plus aucune donnée
     eng.finalize(10_000)
     r = stats(eng.st, 1.0)
     assert r["open_no_price"] == 1 and r["final_equity"] == pytest.approx(0.5)
@@ -156,3 +159,52 @@ def test_duplicate_events_ignored(s):
     e = ev("BUY", 10, 1, 1000)
     eng.on_event(e)
     assert eng.on_event(e) is None and len(eng.st.positions) == 1
+
+
+def test_parse_usdc_swap_and_conversion():
+    # Achat de 1000 tokens pour 300 USDC, le SOL ne bouge que des frais
+    e = parse_swap(tx(1.0, 1.0 - 5000 / LAMPORTS, None, 1_000_000_000, usdc=(500_000_000, 200_000_000)), W)
+    assert e.side == "BUY" and e.quote == "USD" and e.quote_amount == pytest.approx(300)
+    [e] = convert_usd([e], lambda ts: 150.0)
+    assert e.sol_amount == pytest.approx(2.0) and e.price_sol == pytest.approx(0.002)
+    assert convert_usd([parse_swap(tx(1.0, 1.0, None, 10**9, usdc=(10**8, 0)), W)], lambda ts: None) == []
+
+
+def test_unsigned_tx_ignored():
+    # Distribution reçue d'un autre wallet : le leader n'a pas signé
+    assert parse_swap(tx(10.0, 8.0, None, 1_000_000_000, signer=False), W) is None
+
+
+def test_usd_candles_converted_to_sol():
+    c = GeckoCandles()
+    c._usd[WSOL] = ([0], [[150.0] * 4])
+    c._usd[MINT] = ([0], [[0.3, 0.45, 0.15, 0.3]])
+    (o, h, l, cl), exact = c.at(MINT, 30)
+    assert exact and cl == pytest.approx(0.002) and h == pytest.approx(0.003)
+
+
+def enh(native, tok, fee=5000, payer=W, usdc=None, err=None):
+    changes = [{"userAccount": W, "mint": MINT, "rawTokenAmount": {"tokenAmount": str(tok), "decimals": 6}}]
+    if usdc:
+        changes.append({"userAccount": W, "mint": USDC, "rawTokenAmount": {"tokenAmount": str(usdc), "decimals": 6}})
+    return {"signature": "s", "slot": 1, "timestamp": 100, "fee": fee, "feePayer": payer, "transactionError": err,
+            "accountData": [{"account": W, "nativeBalanceChange": native, "tokenBalanceChanges": []},
+                            {"account": "ata", "nativeBalanceChange": 0, "tokenBalanceChanges": changes}]}
+
+
+def test_parse_enhanced_buy_sell_usd():
+    b = parse_enhanced(enh(-2 * LAMPORTS - 5000, 1_000_000_000), W)
+    assert b.side == "BUY" and b.sol_amount == pytest.approx(2.0) and b.token_amount == pytest.approx(1000)
+    s_ = parse_enhanced(enh(3 * LAMPORTS - 5000, -400_000_000), W)
+    assert s_.side == "SELL" and s_.sol_amount == pytest.approx(3.0)
+    u = parse_enhanced(enh(-5000, 1_000_000, usdc=-50_000_000), W)
+    assert u.quote == "USD" and u.quote_amount == pytest.approx(50)
+    assert parse_enhanced(enh(0, 5_000_000, payer="other"), W) is None  # airdrop reçu
+    assert parse_enhanced(enh(-LAMPORTS, 10**6, err={"x": 1}), W) is None
+
+
+def test_fill_pre_balances():
+    evs = [ev("BUY", 1, 1, 1000), ev("SELL", 2, 1, 400, pre=-1.0), ev("SELL", 3, 1, 600, pre=-1.0),
+           ev("SELL", 4, 1, 50, pre=-1.0, mint="OTHER")]
+    fill_pre_balances(evs)
+    assert [e.leader_pre_tokens for e in evs[1:]] == [1000, 600, 50]
