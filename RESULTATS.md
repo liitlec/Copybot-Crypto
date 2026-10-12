@@ -171,3 +171,49 @@ Robustesse : avec la moyenne 100 jours, la tendance seule fait +23,7 %/an (pire 
 - 52 cryptos, seuils de −30 à −300 %/an, détention de 3 à 14 jours.
 - Médiane négative partout, et moins de 50 % de trades gagnants.
 - Aucun avantage fiable.
+
+## Tout sur Hyperliquid : arbitrage + emprunt quand ça paie + tendance (01/07/2023 → 11/10/2026)
+
+Commande : `python -m tendance.algo backtest --exchange hyperliquid --start 2023-07-01 --borrow 0.06`
+
+| Stratégie | Rendement/an | Pire chute | Mois négatifs | 2023 (dès juillet) | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|---|---|
+| BTC + ETH achetés et gardés | +23,8 % | −59,9 % | 18/40 | +29 % | +83 % | −6 % | −9 % |
+| Arbitrage optimisé, sans emprunt | +23,9 % | −0,4 % | 1/40 | +15 % | +38 % | +16 % | +10 % |
+| Arbitrage + emprunt quand ça paie (6 %) | +37,1 % | −0,8 % | 1/40 | +26 % | +71 % | +19 % | +10 % |
+| Tendance seule (SMA50) | +45,9 % | −21,4 % | 17/40 | +34 % | +61 % | +30 % | +23 % |
+| **80 % arbitrage+emprunt / 20 % tendance** | **+39,7 %** | **−2,9 %** | 5/40 | +28 % | +70 % | +22 % | +13 % |
+| **70 % / 30 %** | **+40,8 %** | **−4,6 %** | 9/40 | +29 % | +69 % | +23 % | +15 % |
+| 50 % / 50 % | +42,8 % | −8,1 % | 14/40 | +30 % | +68 % | +25 % | +18 % |
+
+L'emprunt est actif 39 % du temps (1,5x : 11 %, 2x : 28 %).
+
+**Sensibilité :**
+- Emprunt à 9 % : 80/20 → +37,6 %/an, 70/30 → +38,9 %/an.
+- Moyenne 100 jours : 80/20 → +36,5 %/an (pire chute −2,6 %), 70/30 → +36,1 % (−4,0 %).
+
+**1 000 € du 01/01 au 11/10/2026 sur Hyperliquid :**
+
+| Stratégie | Résultat | Pire mois |
+|---|---|---|
+| Arbitrage sans emprunt | 1 097 € | – |
+| Arbitrage + emprunt | 1 098 € (l'emprunt ne s'est presque pas déclenché) | – |
+| 80/20 | 1 130 € | −1,1 % |
+| 70/30 | 1 145 € | −1,8 % |
+| 50/50 | 1 173 € | −3,2 % |
+| Tendance seule | 1 234 € | −6,7 % |
+
+**Scénario krach** (même montage sur Binance, qui couvre 2022) :
+
+| Stratégie | 2022 | Pire chute |
+|---|---|---|
+| 80/20 | −3,6 % | −5,8 % |
+| 70/30 | −7,2 % | −10,6 % |
+| 50/50 | −14,0 % | −20,3 % |
+| Tendance seule | −29,7 % | −40,8 % |
+
+**Limites :**
+- La période Hyperliquid ne contient pas de krach.
+- L'emprunt est supposé à taux fixe, et la liquidation n'est pas modélisée.
+- Les altcoins se couvrent au comptant hors d'Hyperliquid.
+- La moyenne 50 jours est un peu optimiste.
