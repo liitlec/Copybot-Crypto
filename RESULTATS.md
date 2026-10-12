@@ -89,3 +89,20 @@ Grille de 36 réglages : 34/36 rentables, médiane +11,6 %/an, mais pire chute m
 | KuCoin (33 j) | +3,9 % | +4,7 % |
 | Gate (30 j) | +3,5 % | +3,3 % |
 | dYdX | +0,3 % | −0,9 % |
+
+## Pistes pour augmenter le gain (12/10/2026)
+
+**Écart de taux entre Hyperliquid et Binance** (vendre le perpétuel là où le taux est haut, l'acheter là où il est bas ; 27 cryptos communes, 07/2023 → 09/2026) :
+- 3 meilleurs écarts au-dessus de 10 %/an, levier 3 par jambe : +15,4 %/an, pire chute −4,1 %.
+- Par année : 2023 +27,5 %, 2024 +25,6 %, 2025 +0,6 %, 2026 −1,1 %.
+- L'écart a disparu depuis 2025.
+
+**Arbitrage avec emprunt** (BTC + ETH + altcoins à plus de 20 %, Hyperliquid ; calcul simplifié, coût d'emprunt fixe) :
+
+| Exposition | Taux d'emprunt | Rendement/an | Pire chute | 2024 | 2026 |
+|---|---|---|---|---|---|
+| 1,5 fois le capital | 6 %/an | +29,0 % | −1,4 % | +53,0 % | +9,5 % |
+| 2 fois le capital | 6 %/an | +37,6 % | −2,1 % | +72,8 % | +11,1 % |
+| 2 fois le capital | 9 %/an | +33,5 % | −3,6 % | – | – |
+
+Hypothèse optimiste : en pratique, le taux d'emprunt monte justement quand les taux de financement sont hauts, et le risque de liquidation augmente avec l'emprunt.
