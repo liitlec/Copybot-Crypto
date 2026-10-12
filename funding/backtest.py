@@ -38,6 +38,10 @@ class Params:
     spot_fee: float = 0.001
     perp_fee: float = 0.0005
     slip: float = 0.0005          # par jambe, a chaque ordre
+    core: tuple = ()              # cryptos de base, gardees en permanence (ex. ("BTC", "ETH"))
+    core_exit_apr: float = None   # si defini : sortir d'une crypto de base quand sa moyenne passe sous ce taux
+    cash_yield: float = 0.0       # rendement annuel du capital non investi (ex. stablecoins)
+    eth_stake: float = 0.0        # rendement annuel en plus si l'ETH au comptant est detenu en version stakee
 
 
 def download(exchange, top, start):
@@ -92,12 +96,17 @@ def run(daily, prm=Params()):
     first = max(first, prm.lookback)
     notional = prm.lev / (1 + prm.lev)
     leg_cost = prm.spot_fee + prm.perp_fee + 2 * prm.slip
+    cols = list(daily.columns)
+    core = [cols.index(c) for c in prm.core if c in cols]
+    eth = cols.index("ETH") if "ETH" in cols else None
     w = np.zeros(f.shape[1])
     held, rets = [], []
     for i in range(first, len(daily)):
         if (i - first) % prm.rebalance == 0:
             sc = np.where(np.isfinite(score[i - 1]), score[i - 1], -np.inf)
-            pick = [j for j in np.argsort(-sc)[: prm.top_n] if sc[j] >= prm.min_apr]
+            keep = [j for j in core if prm.core_exit_apr is None or sc[j] >= prm.core_exit_apr]
+            others = [j for j in np.argsort(-sc) if j not in core and sc[j] >= prm.min_apr]
+            pick = keep + others[: prm.top_n]
             new = np.zeros_like(w)
             if pick:
                 new[pick] = notional / len(pick)
@@ -107,6 +116,9 @@ def run(daily, prm=Params()):
             cost = 0.0
         # Une crypto sans reglement ce jour-la (retiree, pas encore cotee) rapporte 0.
         r = float(np.nansum(w * np.nan_to_num(f[i], nan=0.0))) - cost
+        r += (1 - w.sum() / notional) * prm.cash_yield / 365        # capital en attente
+        if eth is not None:
+            r += w[eth] * prm.eth_stake / 365                         # ETH stake au comptant
         rets.append(r)
         held.append(int((w > 0).sum()))
     idx = daily.index[first:]
@@ -175,7 +187,11 @@ def main():
     ap.add_argument("--start", default="2022-01-01")
     ap.add_argument("--end")
     for k, v in Params.__dataclass_fields__.items():
-        ap.add_argument("--" + k.replace("_", "-"), type=v.type, default=v.default)
+        if k == "core":
+            ap.add_argument("--core", type=lambda x: tuple(c for c in x.split(",") if c), default=(),
+                            help="cryptos de base gardees en permanence, ex. BTC,ETH")
+        else:
+            ap.add_argument("--" + k.replace("_", "-"), type=float if k == "core_exit_apr" else v.type, default=v.default)
     a = ap.parse_args()
     if a.action == "download":
         download(a.exchange, a.top, a.start)

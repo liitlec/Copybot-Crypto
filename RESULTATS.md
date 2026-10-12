@@ -50,3 +50,42 @@ Par année, bot puis BTC acheté et gardé :
 Grille de 36 réglages : 34/36 rentables, médiane +11,6 %/an, mais pire chute médiane −56 %. La meilleure variante (stop suiveur 4 ATR, filtre BTC 100 j, risque 1 %) fait +12,4 %/an pour une pire chute de −30 %.
 
 **Conclusion :** pas assez bon tel quel. Le bot protège en 2022 mais rate la plupart des hausses, et il demande d'encaisser des chutes de 30 à 60 %.
+
+## Variantes de l'arbitrage (12/10/2026)
+
+**Règle de sortie quand le taux moyen devient négatif : moins bien que rester en permanence**, à cause des frais et des taux qui remontent vite.
+- Binance, BTC + ETH : +6,7 à +6,9 %/an avec la règle, contre +8,4 % en permanence.
+- Hyperliquid, BTC + ETH : +9,6 à +10,3 %/an, contre +11,1 %.
+
+**Base BTC + ETH permanente, plus 2 altcoins seulement si leur taux moyen sur 14 jours dépasse 20 %/an** (contrôle chaque semaine) :
+
+| | Binance | Hyperliquid |
+|---|---|---|
+| Rendement/an | +8,9 % | **+15,3 %** |
+| Pire chute | −0,6 % | −0,4 % |
+
+**Leviers de gain** (sur la base BTC + ETH + 2 altcoins à plus de 20 %) :
+
+| Levier | Binance | Hyperliquid |
+|---|---|---|
+| Référence : levier 3, 75 % couvert, frais taker | +8,9 % | +15,3 % |
+| Levier 5, 83 % couvert | +9,9 % | +17,1 % |
+| Comptant servant de marge, ~95 % couvert | +11,4 % | +19,8 % |
+| Frais maker | +10,0 % | +17,6 % |
+| ETH stakée au comptant (+3 %/an) | +9,9 % | +16,1 % |
+| **Tout combiné** | **+14,2 %** | **+23,9 %** |
+
+**Taux bruts BTC / ETH, 90 derniers jours** (par an, sur le notionnel, avant frais) :
+
+| Plateforme | BTC | ETH |
+|---|---|---|
+| Hyperliquid | +8,4 % | +9,1 % |
+| Binance (78 j) | +6,4 % | +4,9 % |
+| BingX | +5,9 % | +5,7 % |
+| MEXC | +5,8 % | +4,5 % |
+| Aster | +5,7 % | +5,4 % |
+| Bitget | +5,6 % | +6,4 % |
+| OKX | +5,3 % | +4,2 % |
+| KuCoin (33 j) | +3,9 % | +4,7 % |
+| Gate (30 j) | +3,5 % | +3,3 % |
+| dYdX | +0,3 % | −0,9 % |
