@@ -190,7 +190,7 @@ def binance_spot_volumes():
 def binance_archive_symbols():
     """Tous les perpetuels USDT ayant un historique de financement archive (y compris retires de la cote)."""
     xml = requests.get(BINANCE_LIST, params={"delimiter": "/", "prefix": "data/futures/um/monthly/fundingRate/"}, timeout=60).text
-    return sorted(m[:-4] for m in re.findall(r"fundingRate/([A-Z0-9]+)/</Prefix>", xml) if m.endswith("USDT"))
+    return sorted(m for m in re.findall(r"fundingRate/([A-Z0-9]+)/</Prefix>", xml) if m.endswith("USDT"))
 
 
 def binance_archive_history(base, start_ms, end_ms):
