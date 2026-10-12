@@ -114,7 +114,7 @@ class SolanaRPC:
                 out[s] = json.loads(cp.read_text())
             else:
                 todo.append(s)
-        opts = {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0, "commitment": "confirmed"}
+        opts = {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 1, "commitment": "confirmed"}
 
         def fetch(chunk: list[str]) -> list[dict | None]:
             try:
