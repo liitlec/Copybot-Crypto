@@ -3,14 +3,20 @@
 Convention : `rate` est le taux par periode de financement. Positif = les acheteurs paient les vendeurs,
 donc une position VENDEUSE sur le perpetuel encaisse `rate` x notionnel a chaque reglement.
 """
+import io
 import re
 import time
+import zipfile
 from dataclasses import dataclass
+
+import pandas as pd
 
 import requests
 
 BINANCE_F = "https://fapi.binance.com"
-BINANCE_S = "https://api.binance.com"
+BINANCE_S = "https://data-api.binance.vision"  # miroir public des donnees comptant
+BINANCE_ARCHIVE = "https://data.binance.vision/data/futures/um/monthly/fundingRate"
+BINANCE_LIST = "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision"
 BYBIT = "https://api.bybit.com"
 HL = "https://api.hyperliquid.xyz/info"
 EXCHANGES = ("binance", "bybit", "hyperliquid")
@@ -175,4 +181,36 @@ def hyperliquid_history(base, start_ms, end_ms):
     return rows
 
 
-HISTORY = {"binance": binance_history, "bybit": bybit_history, "hyperliquid": hyperliquid_history}
+def binance_spot_volumes():
+    """Volume 24 h des paires comptant USDT (miroir public), pour choisir les cryptos les plus liquides."""
+    return {d["symbol"][:-4]: float(d["quoteVolume"]) for d in _get(BINANCE_S + "/api/v3/ticker/24hr")
+            if d["symbol"].endswith("USDT")}
+
+
+def binance_archive_symbols():
+    """Tous les perpetuels USDT ayant un historique de financement archive (y compris retires de la cote)."""
+    xml = requests.get(BINANCE_LIST, params={"delimiter": "/", "prefix": "data/futures/um/monthly/fundingRate/"}, timeout=60).text
+    return sorted(m[:-4] for m in re.findall(r"fundingRate/([A-Z0-9]+)/</Prefix>", xml) if m.endswith("USDT"))
+
+
+def binance_archive_history(base, start_ms, end_ms):
+    """Historique mensuel depuis data.binance.vision (accessible sans l'API futures)."""
+    rows = []
+    months = pd.period_range(pd.Timestamp(start_ms, unit="ms"), pd.Timestamp(end_ms, unit="ms"), freq="M")
+    for m in months:
+        sym = base + "USDT"
+        r = requests.get(f"{BINANCE_ARCHIVE}/{sym}/{sym}-fundingRate-{m.year}-{m.month:02d}.zip", timeout=60)
+        if r.status_code == 404:
+            continue
+        r.raise_for_status()
+        with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+            raw = z.read(z.namelist()[0])
+        has_header = not raw[:1].isdigit()  # certains fichiers anciens n'ont pas d'en-tete
+        df = pd.read_csv(io.BytesIO(raw), header=0 if has_header else None,
+                         names=None if has_header else ["calc_time", "funding_interval_hours", "last_funding_rate"])
+        rows += [(int(t), float(v)) for t, v in zip(df["calc_time"], df["last_funding_rate"]) if start_ms <= int(t) <= end_ms]
+    return rows
+
+
+HISTORY = {"binance": binance_history, "binance_archive": binance_archive_history, "bybit": bybit_history,
+           "hyperliquid": hyperliquid_history}

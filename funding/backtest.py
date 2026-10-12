@@ -23,7 +23,7 @@ from dataclasses import dataclass, replace
 import numpy as np
 import pandas as pd
 
-from funding.exchanges import HISTORY, SNAPSHOT
+from funding.exchanges import HISTORY, SNAPSHOT, binance_archive_symbols, binance_spot_volumes
 
 DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "funding")
 
@@ -43,18 +43,25 @@ class Params:
 def download(exchange, top, start):
     folder = os.path.join(DATA, exchange)
     os.makedirs(folder, exist_ok=True)
-    rates = [r for r in SNAPSHOT[exchange]() if exchange == "hyperliquid" or r.has_spot]
-    rates.sort(key=lambda r: -r.volume_usd)
+    if exchange == "binance":
+        # Archives publiques data.binance.vision : marche meme la ou l'API futures est bloquee.
+        vol = binance_spot_volumes()
+        bases = sorted((s[:-4] for s in binance_archive_symbols() if s[:-4] in vol), key=lambda b: -vol[b])[:top]
+        fetch = HISTORY["binance_archive"]
+    else:
+        rates = [r for r in SNAPSHOT[exchange]() if exchange == "hyperliquid" or r.has_spot]
+        bases = [r.base for r in sorted(rates, key=lambda r: -r.volume_usd)[:top]]
+        fetch = HISTORY[exchange]
     start_ms = int(pd.Timestamp(start).timestamp() * 1000)
     end_ms = int(time.time() * 1000)
-    for n, r in enumerate(rates[:top], 1):
-        path = os.path.join(folder, f"{r.base}.csv")
+    for n, base in enumerate(bases, 1):
+        path = os.path.join(folder, f"{base}.csv")
         old = pd.read_csv(path) if os.path.exists(path) else pd.DataFrame(columns=["time", "rate"])
         since = int(old["time"].max()) + 1 if len(old) else start_ms
-        rows = HISTORY[exchange](r.base, since, end_ms)
+        rows = fetch(base, since, end_ms)
         df = pd.concat([old, pd.DataFrame(rows, columns=["time", "rate"])]).drop_duplicates("time").sort_values("time")
         df.to_csv(path, index=False)
-        print(f"[{n}/{top}] {r.base} : {len(df)} reglements")
+        print(f"[{n}/{len(bases)}] {base} : {len(df)} reglements")
 
 
 def load_daily(exchange, start=None, end=None, folder=None):
@@ -163,7 +170,7 @@ def grid(daily, base):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("action", choices=("download", "run", "grid"))
-    ap.add_argument("--exchange", default="binance", choices=sorted(HISTORY))
+    ap.add_argument("--exchange", default="binance", choices=("binance", "bybit", "hyperliquid"))
     ap.add_argument("--top", type=int, default=40, help="download : nombre de cryptos (plus gros volumes)")
     ap.add_argument("--start", default="2022-01-01")
     ap.add_argument("--end")

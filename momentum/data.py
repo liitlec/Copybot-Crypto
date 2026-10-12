@@ -13,7 +13,8 @@ import time
 import pandas as pd
 import requests
 
-BASE = "https://api.binance.com"
+# Miroir public des donnees de marche Binance : meme API, accessible depuis les pays ou api.binance.com est bloque.
+BASE = os.environ.get("BINANCE_SPOT_URL", "https://data-api.binance.vision")
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time", "quote_volume"]
 
