@@ -149,3 +149,25 @@ Part du temps avec emprunt : 38 % sur Hyperliquid, 21 % sur Binance. Les gains e
 **Hypothèses optimistes :**
 - Le taux d'emprunt est fixé à 6 %, alors qu'en pratique il monte quand le financement est haut (souvent 10 à 20 % en 2021 et 2024).
 - Le risque de liquidation n'est pas modélisé, et il augmente nettement à 2x et 3x.
+
+## Deuxième algo : tendance BTC/ETH (12/10/2026, Binance, 15/01/2021 → 30/09/2026)
+
+Règle : BTC et ETH détenus sans couverture quand la clôture dépasse la moyenne 50 jours, avec une taille réduite si la volatilité 20 j dépasse 40 %/an. Sinon, arbitrage neutre. Mélanges rééquilibrés chaque jour.
+
+| Stratégie | Rendement/an | Pire chute | Mois négatifs | 2021 | 2022 | 2023 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|---|---|---|---|
+| BTC + ETH achetés et gardés | +17,1 % | −76,3 % | 31/69 | +97 % | −65 % | +123 % | +83 % | −6 % | −6 % |
+| Arbitrage optimisé | +14,2 % | −0,7 % | 4/69 | +45 % | +4 % | +10 % | +18 % | +7 % | +2 % |
+| Tendance seule (SMA50) | +34,2 % | −40,8 % | 31/69 | +62 % | −30 % | +87 % | +55 % | +27 % | +27 % |
+| 80 % arbitrage + 20 % tendance | +18,7 % | −5,8 % | 19/69 | +49 % | −4 % | +23 % | +25 % | +11 % | +7 % |
+| **70 % arbitrage + 30 % tendance** | **+20,8 %** | **−11,0 %** | 24/69 | +51 % | −7 % | +30 % | +29 % | +13 % | +10 % |
+| 50 % arbitrage + 50 % tendance | +25,0 % | −20,6 % | 25/69 | +55 % | −14 % | +45 % | +37 % | +18 % | +15 % |
+
+Corrélation journalière tendance/arbitrage : 0,08.
+
+Robustesse : avec la moyenne 100 jours, la tendance seule fait +23,7 %/an (pire chute −36,5 %), et le mélange 70/30 +17,9 % (−9,2 %). La moyenne 50 jours est la meilleure des trois testées (50, 100, 200), donc un peu optimiste.
+
+**Piste écartée : acheter quand le taux de financement est très négatif.**
+- 52 cryptos, seuils de −30 à −300 %/an, détention de 3 à 14 jours.
+- Médiane négative partout, et moins de 50 % de trades gagnants.
+- Aucun avantage fiable.

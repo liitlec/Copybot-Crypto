@@ -2,7 +2,10 @@
 
 Projets crypto séparés des EA MT5 :
 1. **Arbitrage des taux de financement** (`funding/`) : encaisser le financement des perpétuels sans parier sur le prix.
-2. **Bot momentum altcoins** (`momentum/`) : suivi de tendance agressif, avec backtest et simulation en direct.
+2. **Tendance BTC/ETH** (`tendance/`) : détenir BTC et ETH quand ils sont au-dessus de leur moyenne 50 jours (taille réduite si la volatilité est forte), et repasser en arbitrage sinon. Il se combine avec le n° 1.
+3. **Bot momentum altcoins** (`momentum/`) : suivi de tendance agressif, avec backtest et simulation en direct. Résultats décevants, voir `RESULTATS.md`.
+
+Résultats détaillés de tous les tests : `RESULTATS.md`.
 
 Rien ne passe d'ordre réel : scanner, backtests et simulation uniquement.
 
@@ -32,6 +35,12 @@ python -m funding.levier --every 360     # vérifie toutes les 6 h, alerte Teleg
 Règle testée : chaque semaine, on garde les 5 cryptos au financement moyen le plus haut sur 7 jours, à poids égaux, avec un levier de 3 sur le perpétuel (75 % du capital couvert).
 
 Limites : l'écart entre le prix comptant et le prix du perpétuel n'est pas modélisé, et la liste des cryptos vient des volumes actuels.
+
+## Tendance BTC/ETH
+```
+python -m tendance.algo backtest     # seul, et mélangé à l'arbitrage (80/20, 70/30, 50/50)
+python -m tendance.algo signal       # quoi détenir aujourd'hui (+ Telegram)
+```
 
 ## 2. Bot momentum altcoins
 Suivi de tendance **agressif** sur les altcoins, testé sur les données Binance journalières.
