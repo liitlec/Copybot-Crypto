@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from collections import defaultdict
@@ -21,7 +22,32 @@ from .report import leader_baseline, render, stats
 from .swaps import SwapEvent, parse_swap
 
 
+def build_leaders(s: Settings, out: str, source: str = "auto", top: int = 10, check: bool = True) -> None:
+    from .leaders import filter_active, from_gecko, from_solanatracker, write_leaders
+    key = os.getenv("SOLANATRACKER_API_KEY", "")
+    if source == "auto":
+        source = "solanatracker" if key else "gecko"
+    print(f"Recherche des leaders via {source}…")
+    if source == "solanatracker":
+        if not key:
+            sys.exit("SOLANATRACKER_API_KEY manquante dans .env")
+        cands = from_solanatracker(key, "7d", limit=max(30, top * 3))
+    else:
+        cands = from_gecko()
+    print(f"  {len(cands)} candidats")
+    if check:
+        cands = filter_active(SolanaRPC(s.rpc_url), cands[: top * 3])
+    cands = cands[:top]
+    if not cands:
+        sys.exit("aucun leader retenu")
+    write_leaders(out, cands)
+    print(Path(out).read_text(encoding="utf-8"))
+
+
 def read_leaders(path: str) -> list[str]:
+    if not Path(path).exists():
+        print(f"{path} absent : génération automatique du classement.")
+        build_leaders(Settings(), path)
     out = []
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         line = line.split("#")[0].strip()
@@ -132,6 +158,10 @@ def cmd_live(s: Settings, args) -> None:
         time.sleep(s.poll_s)
 
 
+def cmd_leaders(s: Settings, args) -> None:
+    build_leaders(s, args.out, args.source, args.top, not args.no_check)
+
+
 def cmd_report(s: Settings, args) -> None:
     state_path = s.data_dir / "live_state.json"
     if not state_path.exists():
@@ -154,9 +184,14 @@ def main(argv=None) -> None:
     p = sub.add_parser("live", help="paper trading en temps réel (cotations Jupiter)")
     p.add_argument("--leaders", default="leaders.txt")
     sub.add_parser("report", help="rapport du paper trading live")
+    p = sub.add_parser("leaders", help="génère leaders.txt (classement 7 jours) automatiquement")
+    p.add_argument("--source", choices=["auto", "solanatracker", "gecko"], default="auto")
+    p.add_argument("--top", type=int, default=10)
+    p.add_argument("--out", default="leaders.txt")
+    p.add_argument("--no-check", action="store_true", help="ne pas vérifier l'activité on-chain")
     args = ap.parse_args(argv)
     s = Settings()
-    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report}[args.cmd](s, args)
+    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders}[args.cmd](s, args)
 
 
 if __name__ == "__main__":

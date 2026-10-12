@@ -20,25 +20,30 @@ cd copy_sim
 uv venv
 uv pip install -r requirements.txt
 copy .env.example .env
-uv run pytest -q      # 12 tests hors-ligne
+uv run pytest -q      # 16 tests hors-ligne
 ```
 
 **RPC Solana** : le RPC public est trop limité. Crée un endpoint gratuit (Helius, QuickNode, ou Chainstack
 Solana : tu as déjà un compte Chainstack) et mets son URL dans `SOLANA_RPC_URL` du `.env`.
 C'est une URL de lecture : elle ne donne accès à aucun wallet.
 
-## Liste des leaders
+## Liste des leaders (automatique)
 
-`leaders.txt` : une adresse de wallet Solana par ligne, **dans l'ordre du classement** (n° 1 en premier).
-
-```
-# top hebdo FOMO, relevé le 12/10
-7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU   # n°1
-...
+```powershell
+uv run python -m copysim leaders --top 10      # écrit leaders.txt, dans l'ordre du classement
 ```
 
-Où trouver les adresses : profils du classement de l'app FOMO (l'adresse du wallet apparaît sur le profil),
-ou classements de traders sur GMGN, Kolscan ou Birdeye. Mets-en 5 à 10.
+- **Avec `SOLANATRACKER_API_KEY`** (clé gratuite sur solanatracker.io, à mettre dans `.env`) : classement KOL
+  des 7 derniers jours par gains réalisés, c'est-à-dire le même classement que Kolscan. Wallets publics et
+  identifiés (nom, Twitter).
+- **Sans clé** : repli sur GeckoTerminal. Le classement est reconstruit à partir des derniers trades des pools
+  Solana en tendance. Il ne couvre que quelques heures, donc il est plus grossier.
+- Ensuite, vérification on-chain : on garde les wallets actifs dans les dernières 24 h et on écarte les bots
+  (≥ 1000 tx/jour). Chaque adresse est validée (base58, 32 octets).
+- Si `leaders.txt` est absent, `backtest` et `live` le génèrent tout seuls.
+
+Le classement de l'app FOMO elle-même n'est pas public (il est dans l'app). Pour l'utiliser, colle ses
+adresses dans `leaders.txt`, une par ligne.
 
 **Biais à connaître** : un classement de la semaine liste ceux qui ont *eu de la chance cette semaine*.
 Le backtest sur ces mêmes jours est donc optimiste (on copie des gagnants connus d'avance). Le test honnête
