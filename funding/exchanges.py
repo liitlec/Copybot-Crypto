@@ -212,5 +212,22 @@ def binance_archive_history(base, start_ms, end_ms):
     return rows
 
 
+def okx_history(base, start_ms, end_ms):
+    """Historique OKX (perpetuels USDT) : l'API publique sert environ 3 mois."""
+    rows, after = [], ""
+    while True:
+        params = {"instId": f"{base}-USDT-SWAP", "limit": 100}
+        if after:
+            params["after"] = after
+        batch = _get("https://www.okx.com/api/v5/public/funding-rate-history", params)["data"]
+        if not batch:
+            break
+        rows += [(int(d["fundingTime"]), float(d.get("realizedRate") or d["fundingRate"])) for d in batch]
+        after = batch[-1]["fundingTime"]
+        if int(after) < start_ms:
+            break
+    return sorted(r for r in set(rows) if start_ms <= r[0] <= end_ms)
+
+
 HISTORY = {"binance": binance_history, "binance_archive": binance_archive_history, "bybit": bybit_history,
-           "hyperliquid": hyperliquid_history}
+           "hyperliquid": hyperliquid_history, "okx": okx_history}

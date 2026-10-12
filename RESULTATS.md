@@ -106,3 +106,23 @@ Grille de 36 réglages : 34/36 rentables, médiane +11,6 %/an, mais pire chute m
 | 2 fois le capital | 9 %/an | +33,5 % | −3,6 % | – | – |
 
 Hypothèse optimiste : en pratique, le taux d'emprunt monte justement quand les taux de financement sont hauts, et le risque de liquidation augmente avec l'emprunt.
+
+## Plateformes qui distribuent des points (état au 12/10/2026)
+
+**Token déjà lancé, plus d'airdrop à attendre :** Hyperliquid, Lighter, Aster, edgeX (03/2026), Paradex (05/03/2026), GRVT (30/07/2026).
+
+**Points en cours, token pas encore lancé :**
+- Variational : 32 % de l'offre prévue en airdrop, lancement visé T4 2026.
+- PERPTools : saison 2 depuis le 02/10/2026, lancement visé fin T4 2026.
+- Backpack : saison 4, 25 % prévus pour la communauté.
+- Pacifica et Extended : informations récentes non vérifiées.
+
+**Taux BTC / ETH relevés le 12/10/2026, par an :**
+
+| Plateforme | BTC | ETH | Type de mesure |
+|---|---|---|---|
+| Backpack | +7,4 % | +9,8 % | moyenne 30 j |
+| Pacifica | +11,0 % | +11,0 % | instantané |
+| Extended | +11,4 % | +8,8 % | instantané |
+| Variational | ≈ +8,3 % | ≈ +6,9 % | instantané, affiché annualisé |
+| Repère Hyperliquid | +6,5 % | +5,8 % | moyenne 7 j |

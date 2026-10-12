@@ -23,6 +23,12 @@ python -m funding.backtest download --exchange binance --top 40 --start 2022-01-
 python -m funding.backtest run --exchange binance  # rendement par année, vs BTC/ETH gardés en permanence
 python -m funding.backtest grid --exchange binance # robustesse : 36 combinaisons
 ```
+**Faut-il emprunter pour agrandir la position ?** Le script compare le financement moyen de BTC et ETH au coût d'un emprunt en dollars (Aave, OKX) :
+```
+python -m funding.levier                 # état du jour : rembourser, pas la peine, 1,5x ou 2x
+python -m funding.levier --every 360     # vérifie toutes les 6 h, alerte Telegram quand l'état change
+```
+
 Règle testée : chaque semaine, on garde les 5 cryptos au financement moyen le plus haut sur 7 jours, à poids égaux, avec un levier de 3 sur le perpétuel (75 % du capital couvert).
 
 Limites : l'écart entre le prix comptant et le prix du perpétuel n'est pas modélisé, et la liste des cryptos vient des volumes actuels.
