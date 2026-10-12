@@ -132,6 +132,9 @@ class Result:
     equity: pd.Series
     trades: pd.DataFrame
     params: Params = field(default_factory=Params)
+    open_positions: list = field(default_factory=list)  # etat a la derniere cloture (avant cloture fictive)
+    pending: list = field(default_factory=list)         # achats prevus a la prochaine ouverture
+    exit_all: bool = False                              # sortie de regime prevue a la prochaine ouverture
 
 
 def run(p, prm=Params(), capital=10_000.0):
@@ -226,14 +229,18 @@ def run(p, prm=Params(), capital=10_000.0):
         cand.sort(key=lambda j: -np.nan_to_num(ind["mom"][i, j], nan=-1e9))
         pending = cand[: max(0, prm.max_pos - len(pos))]
 
-    # Positions encore ouvertes : valorisees a la derniere cloture.
+    # Positions encore ouvertes : etat conserve pour le mode direct, puis valorisation a la derniere cloture.
     last = p.last_trade
+    snapshot = [{"sym": p.syms[ps.j], "entry_date": p.dates[ps.entry_i], "entry": ps.entry, "qty": ps.qty,
+                 "stop": ps.stop, "last": ps.last, "partial_done": ps.partial_done,
+                 "r_open": (ps.pnl + ps.qty * (ps.last - ps.entry)) / ps.risk_unit if ps.risk_unit > 0 else 0.0}
+                for ps in pos.values()]
     for j, ps in list(pos.items()):
         px = p.c[last, j] if np.isfinite(p.c[last, j]) else ps.last
         close_part(ps, ps.qty, px, last, "ouverte", True)
 
     equity = pd.Series(eq[p.first_trade:p.last_trade + 1], index=p.dates[p.first_trade:p.last_trade + 1]).ffill()
-    return Result(equity, pd.DataFrame(trades), prm)
+    return Result(equity, pd.DataFrame(trades), prm, snapshot, [p.syms[j] for j in pending], exit_all)
 
 
 def stats(res):

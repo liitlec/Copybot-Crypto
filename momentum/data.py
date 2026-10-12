@@ -67,6 +67,7 @@ def klines(symbol, interval, start_ms):
     for c in COLS[1:6] + ["quote_volume"]:
         df[c] = df[c].astype(float)
     df["date"] = pd.to_datetime(df["open_time"], unit="ms")
+    df = df[df["close_time"] < time.time() * 1000]  # la bougie du jour n'est pas terminee : on l'ignore
     return df[["date", "open", "high", "low", "close", "volume", "quote_volume"]]
 
 
