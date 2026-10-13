@@ -282,3 +282,20 @@ def test_scout_round_trips_and_profile():
           "pessimistic": {"return": 0.0}}, "crash_rate": 0.05}
     assert verdict(ok).startswith("✅")
     assert verdict(dict(ok, copier_h2={"neutral": {"return": -0.1}, "pessimistic": {"return": -0.2}})).startswith("❌ ne tient")
+
+
+def test_pump_curve_and_snipe_simulation():
+    from copysim.sniper import Rule, buy_tokens, sell_sol, simulate, snipe_report
+    v_sol, v_tok = 30.0, 1_073_000_000.0
+    t = buy_tokens(1.0, v_sol, v_tok, 0.0)
+    assert sell_sol(t, v_sol + 1.0, v_tok - t, 0.0) == pytest.approx(1.0)  # aller-retour sans frais = neutre
+    # Le prix double (réserves SOL ×√2 environ) après notre entrée
+    rec = {"states": [[0.0, 30.0, 1.073e9, "c", 0, 1], [0.3, 31.0, 1.073e9 * 30 / 31, "b", 1, 0],
+                      [5.0, 45.0, 1.073e9 * 30 / 45, "b", 14, 0], [20.0, 25.0, 1.073e9 * 30 / 25, "s", 20, 1]]}
+    up = simulate(rec, Rule(0.5, 0.5, None, 60), 0.5, 0.0125, 0.002)
+    assert up > 0.5  # TP touché à t=5 s
+    hold = simulate(rec, Rule(0.5, None, None, 60), 0.5, 0.0125, 0.002)
+    assert hold < 0  # sans TP, on sort au dernier état (le dev a vendu)
+    recs = [dict(rec, t0=i, dev_buy_sol=0) for i in range(60)]
+    md = snipe_report(recs, 0.5, 0.0125, 0.002)
+    assert "Meilleure règle" in md and "| entrée 0.5s" in md

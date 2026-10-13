@@ -36,7 +36,7 @@ uv pip install -r requirements.txt
 Write-Host "4/6 Lancement automatique a chaque ouverture de session..."
 $startup = [Environment]::GetFolderPath("Startup")
 $shell = New-Object -ComObject WScript.Shell
-foreach ($bat in @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat")) {
+foreach ($bat in @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat", "start_sniper.bat")) {
   $lnk = $shell.CreateShortcut((Join-Path $startup ("copysim_" + $bat + ".lnk")))
   $lnk.TargetPath = Join-Path $dest $bat
   $lnk.WorkingDirectory = $dest
@@ -47,9 +47,9 @@ foreach ($bat in @("start_live.bat", "start_live_filtre.bat", "start_live_raven.
 Write-Host "5/6 Desactivation de la mise en veille sur secteur..."
 try { powercfg /change standby-timeout-ac 0 } catch { Write-Host "  (a faire a la main : Parametres > Alimentation > Veille : Jamais)" }
 
-Write-Host "6/6 Demarrage des 3 tests (temoin, base + anti-rug, Raven + anti-rug)..."
-foreach ($bat in @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat")) {
+Write-Host "6/6 Demarrage des 3 tests (temoin, base + anti-rug, Raven + anti-rug) et de l'enregistreur sniper..."
+foreach ($bat in @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat", "start_sniper.bat")) {
   Start-Process -FilePath (Join-Path $dest $bat) -WorkingDirectory $dest -WindowStyle Minimized
 }
 Write-Host ""
-Write-Host "OK. Suivi (mis a jour chaque minute) : $dest\reports\live_temoin.md, live_filtre.md, live_raven.md"
+Write-Host "OK. Suivi (mis a jour chaque minute) : $dest\reports\live_temoin.md, live_filtre.md, live_raven.md ; sniper : uv run python -m copysim snipe-report"

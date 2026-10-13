@@ -296,6 +296,23 @@ def cmd_scout(s: Settings, args) -> None:
     print(f"-> reports/scout.md ; {len(good)} candidat(s) dans {args.out}")
 
 
+def cmd_snipe_record(s: Settings, args) -> None:
+    from .sniper import SnipeRecorder
+    print(f"Enregistrement des nouveaux tokens Pump.fun ({args.horizon:.0f} s chacun) dans {args.dir}/", flush=True)
+    SnipeRecorder(Path(args.dir), s.rpc_url, args.horizon, log=lambda m: print(m, flush=True)).run_forever()
+
+
+def cmd_snipe_report(s: Settings, args) -> None:
+    from .sniper import load_snipes, snipe_report
+    recs = load_snipes(Path(args.dir))
+    if len(recs) < 50:
+        sys.exit(f"seulement {len(recs)} tokens enregistrés : attendre d'en avoir au moins 50")
+    md = snipe_report(recs, args.size, args.fee, args.tx_fee)
+    Path("reports").mkdir(exist_ok=True)
+    Path("reports/sniper.md").write_text(md, encoding="utf-8")
+    print(md)
+
+
 def cmd_report(s: Settings, args) -> None:
     state_path = s.data_dir / "live_state.json"
     if not state_path.exists():
@@ -323,6 +340,14 @@ def main(argv=None) -> None:
                         "(data/price_paths.jsonl, data/token_info.jsonl)")
     p = sub.add_parser("report", help="rapport du paper trading live")
     p.add_argument("--report", default="live")
+    p = sub.add_parser("snipe-record", help="enregistre les premières minutes des nouveaux tokens Pump.fun")
+    p.add_argument("--dir", default="data_sniper")
+    p.add_argument("--horizon", type=float, default=120)
+    p = sub.add_parser("snipe-report", help="rejoue un sniper sur les tokens enregistrés")
+    p.add_argument("--dir", default="data_sniper")
+    p.add_argument("--size", type=float, default=0.5, help="taille d'achat en SOL")
+    p.add_argument("--fee", type=float, default=0.0125, help="frais Pump.fun par côté")
+    p.add_argument("--tx-fee", type=float, default=0.002, help="priority fee/Jito par transaction (SOL)")
     p = sub.add_parser("scout", help="cherche des leaders copiables (backtest copieur, validation hors échantillon)")
     p.add_argument("--days", type=float, default=7)
     p.add_argument("--top", type=int, default=40)
@@ -336,7 +361,8 @@ def main(argv=None) -> None:
     p.add_argument("--no-check", action="store_true", help="ne pas vérifier l'activité on-chain")
     args = ap.parse_args(argv)
     s = Settings()
-    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout}[args.cmd](s, args)
+    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout,
+     "snipe-record": cmd_snipe_record, "snipe-report": cmd_snipe_report}[args.cmd](s, args)
 
 
 if __name__ == "__main__":
