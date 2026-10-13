@@ -198,10 +198,13 @@ def cmd_live(s: Settings, args) -> None:
             stream = SignatureStream(s.rpc_url, leaders).start()
         except RuntimeError as exc:
             print(f"  temps réel indisponible ({exc}) : interrogation toutes les {s.poll_s}s")
-    mode = "websocket temps réel + contrôle toutes les 30 s" if stream else f"interrogation toutes les {s.poll_s}s"
+    # filet de sécurité espacé : chaque contrôle coûte une requête par leader (crédits Helius limités)
+    safety_s = float(os.getenv("CS_SAFETY_POLL_S", 120))
+    mode = (f"websocket temps réel + contrôle toutes les {safety_s:.0f} s" if stream
+            else f"interrogation toutes les {s.poll_s}s")
     print(f"Paper trading live sur {len(leaders)} leaders ({mode}). Ctrl+C pour arrêter. Leader actif : "
           f"{eng.active_leader or 'tous'}", flush=True)
-    poll_every = 30.0 if stream else s.poll_s
+    poll_every = safety_s if stream else s.poll_s
     while True:
         if stream:  # 1) signatures poussées en temps réel
             try:
