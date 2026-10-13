@@ -336,3 +336,12 @@ def test_copy_rules_deltas():
     assert r["R1"]["delta"] == 0.5 and r["R1"]["touches"] == 1          # t1 évité
     assert abs(r["R2"]["delta"] - 0.8) < 1e-9                            # moitié vendue à 1,6 au lieu de 0
     assert abs(r["R3"]["delta"] - (-1.0 + 0.2)) < 1e-9                   # t2 et t3 doublés
+
+
+def test_rugfilter_unknown_curve_liquidity_not_refused():
+    from copysim.rugfilter import RugFilter
+    f = RugFilter(None)
+    base = {"mint_authority": None, "freeze_authority": None, "pool_age_s": 300}
+    assert f.reasons({**base, "liquidity_usd": None, "liquidity_unknown": True}) == []
+    assert f.reasons({**base, "liquidity_usd": None}) == ["liquidité < 2000 $"]
+    assert f.reasons({**base, "liquidity_usd": 500.0}) == ["liquidité < 2000 $"]
