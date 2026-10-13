@@ -43,7 +43,11 @@ Limites : l'écart entre le prix comptant et le prix du perpétuel n'est pas mod
 python -m pilote.bot replay --since 2026-01-01 --capital 1000   # rejoue la période jour par jour
 python -m pilote.bot run --reset --capital 1000                 # démarre la simulation en direct
 python -m pilote.bot run                                        # à lancer chaque jour vers 00:15 UTC
+python -m pilote.bot run --profil agressif                      # profil agressif, état séparé
 ```
+Profils :
+- **équilibre** (par défaut) : 70 % arbitrage / 30 % tendance, emprunt 1,5x/2x, tendance sans levier.
+- **agressif** : 50/50, emprunt 2x/3x, tendance jusqu'à 1,5x (volatilité cible 60 %).
 Le message du jour (aussi sur Telegram) donne : capital fictif, gain du jour (prix, financement, staking, emprunt, frais), emprunt ou non, exposition de la tendance, altcoins en arbitrage, et positions à tenir (comptant et perpétuel).
 
 Windows, tous les jours à 02:15 (heure de Paris) : `schtasks /create /tn PiloteCrypto /sc daily /st 02:15 /tr "cmd /c cd /d C:\chemin\Copybot-Crypto && py -m pilote.bot run"`

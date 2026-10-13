@@ -12,6 +12,10 @@ staking, cout d'emprunt, frais) et envoie le point du jour.
     python -m pilote.bot replay --since 2026-01-01       # rejoue la periode jour par jour avec les donnees locales
     python -m pilote.bot run --capital 10000             # simulation en direct (etat dans resultats/pilote/)
     python -m pilote.bot run --reset --capital 10000     # repartir de zero
+    python -m pilote.bot run --profil agressif           # profil agressif (etat separe)
+
+Profils : « equilibre » = 70 % arbitrage / 30 % tendance, emprunt 1,5x/2x, tendance sans levier.
+« agressif » = 50/50, emprunt 2x/3x, tendance jusqu'a 1,5x (volatilite cible 60 %).
 
 A planifier chaque jour vers 00:15 UTC.
 """
@@ -30,11 +34,11 @@ from common.notify import telegram
 from funding.exchanges import HL, hyperliquid_history, norm_base
 from momentum.data import BASE as BINANCE_SPOT
 from momentum.data import DATA_DIR
-from tendance.algo import exposure
+from tendance.algo import ENSEMBLE, trend_up
 
 CORE = ("BTC", "ETH")
 DAY = pd.Timedelta(days=1)
-STATE = os.path.join(os.path.dirname(DATA_DIR), "resultats", "pilote", "state.json")
+STATE = os.path.join(os.path.dirname(DATA_DIR), "resultats", "pilote", "state_{}.json")
 
 
 @dataclass
@@ -51,6 +55,14 @@ class Config:
     eth_stake: float = 0.03
     default_borrow: float = 0.06
     vol_target: float = 0.4
+    trend_cap: float = 1.0                      # exposition max de la part tendance (1,5 = levier 1,5x)
+    borrow_steps: tuple = ((0.10, 2.0), (0.05, 1.5))  # (ecart financement - emprunt, taille de la part arbitrage)
+
+
+PROFILS = {
+    "equilibre": {},
+    "agressif": {"w_trend": 0.5, "vol_target": 0.6, "trend_cap": 1.5, "borrow_steps": ((0.10, 3.0), (0.05, 2.0))},
+}
 
 
 # ---------- sources de donnees ----------
@@ -151,7 +163,7 @@ class LiveSource:
 def weekly_choices(src, t, cfg):
     borrow = src.borrow_rate(t, cfg.default_borrow)
     core_apr = np.nanmean([src.funding_apr(c, t, cfg.lookback) for c in CORE])
-    k = 2.0 if core_apr > borrow + 0.10 else 1.5 if core_apr > borrow + 0.05 else 1.0
+    k = next((m for gap, m in cfg.borrow_steps if core_apr > borrow + gap), 1.0)
     cands = []
     for c in src.coins(t):
         if c in CORE or np.isnan(src.price(c, t)):
@@ -178,11 +190,15 @@ def targets(src, t, cfg, equity, weekly):
         add(c, n, -n)
     expo = {}
     for c in CORE:
-        e = float(exposure(src.trend_closes(c, t), 50, cfg.vol_target, ensemble=True).iloc[-1])
+        closes = src.trend_closes(c, t)
+        # part des signaux haussiers x taille selon la volatilite, plafonnee a trend_cap (1,5 = levier 1,5x)
+        share = sum(float(trend_up(closes, k, n).iloc[-1]) for k, n in ENSEMBLE) / len(ENSEMBLE)
+        vol = closes.pct_change().rolling(20).std().iloc[-1] * np.sqrt(365)
+        e = share * min(cfg.trend_cap, cfg.vol_target / vol) if vol > 0 else 0.0
         expo[c] = e
         half = cfg.w_trend * equity / len(CORE)
         add(c, e * half, 0.0)
-        n = (1 - e) * half * cfg.notional
+        n = max(0.0, 1 - e) * half * cfg.notional
         add(c, n, -n)
     return spot, perp, expo
 
@@ -208,7 +224,9 @@ def step(src, state, t, cfg):
         if c == "ETH":
             pnl["staking"] += s * cfg.eth_stake / 365 * days
     if state["weekly"]:
+        # emprunt de la part arbitrage + comptant tendance au-dela de la part (levier tendance)
         borrowed = (state["weekly"]["k"] - 1) * (1 - cfg.w_trend) * state["equity"]
+        borrowed += sum(max(0.0, e - 1) for e in state.get("expo", {}).values()) * cfg.w_trend * state["equity"] / len(CORE)
         pnl["emprunt"] = -borrowed * state["weekly"]["borrow"] / 365 * days
     equity = state["equity"] + sum(pnl.values())
 
@@ -220,7 +238,7 @@ def step(src, state, t, cfg):
     pnl["frais"] = -fees
     equity -= fees
     old_spot = dict(state["spot"])
-    state.update(time=t.isoformat(), equity=equity, spot=spot, perp=perp,
+    state.update(time=t.isoformat(), equity=equity, spot=spot, perp=perp, expo=expo,
                  prices={c: src.price(c, t) for c in spot})
     state["history"].append({"time": t.isoformat(), "equity": equity, **pnl})
     return {"pnl": pnl, "expo": expo, "old_spot": old_spot}
@@ -272,18 +290,21 @@ def run(a, cfg):
     src = LiveSource()
     src.min_volume, src.sat_apr = cfg.min_volume, cfg.sat_apr
     t = pd.Timestamp.now(tz="UTC").tz_localize(None)
-    if a.reset or not os.path.exists(STATE):
+    path = STATE.format(a.profil)
+    if a.reset or not os.path.exists(path):
         state = new_state(cfg, t)
     else:
-        with open(STATE) as f:
+        with open(path) as f:
             state = json.load(f)
-        cfg = Config(**state["config"])
+        conf = state["config"]
+        conf["borrow_steps"] = tuple(tuple(x) for x in conf["borrow_steps"])
+        cfg = Config(**conf)
     day = step(src, state, t, cfg)
-    msg = report(state, day, cfg)
+    msg = f"[profil {a.profil}] " + report(state, day, cfg)
     print(msg)
     telegram(msg)
-    os.makedirs(os.path.dirname(STATE), exist_ok=True)
-    with open(STATE, "w") as f:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
         json.dump(state, f, indent=1, default=float)
 
 
@@ -293,10 +314,10 @@ def main():
     ap.add_argument("--since", default="2026-01-01")
     ap.add_argument("--until")
     ap.add_argument("--capital", type=float, default=10_000)
-    ap.add_argument("--w-trend", type=float, default=0.3)
+    ap.add_argument("--profil", choices=sorted(PROFILS), default="equilibre")
     ap.add_argument("--reset", action="store_true")
     a = ap.parse_args()
-    cfg = Config(capital=a.capital, w_trend=a.w_trend)
+    cfg = Config(capital=a.capital, **PROFILS[a.profil])
     (replay if a.action == "replay" else run)(a, cfg)
 
 

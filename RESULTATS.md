@@ -265,3 +265,16 @@ La SMA50 est la meilleure des 8 : son résultat est probablement en partie dû �
 - **Cohérence :** même ordre de grandeur que le backtest 70/30 ensemble pour 2026 (+11 %).
 
 Simulation en direct démarrée le 13/10/2026 avec 1 000 $ fictifs.
+
+## Profils du pilote (13/10/2026)
+
+| Profil | Hyperliquid 2023-26 | Binance 2021-26 | 2026 | Pire jour | Pire chute | 2022 |
+|---|---|---|---|---|---|---|
+| Équilibre (70/30, emprunt 1,5x/2x) | +36,8 %/an | +23,6 %/an | +6 à +11 % | −2 % | −3,5 à −7,4 % | −5 % |
+| **Agressif** (50/50, emprunt 2x/3x, tendance ≤ 1,5x) | **+49,7 %/an** | **+32,5 %/an** | +11 à +14 % | −6 % | −14 à −24 % | −16 % |
+| Très agressif (30/70, emprunt 2x/3x, tendance ≤ 2x) | +56,2 %/an | +36,8 %/an | +17 à +18 % | −11 % | −28 à −44 % | −31 % |
+
+**Rejeu 2026 du pilote agressif :** 1 000 $ → 1 138 $ (+13,8 %), pire chute −6,8 %.
+- Détail : prix +90 $, financement +51 $, staking +10 $, emprunt −2 $, frais −11 $.
+
+Simulations en direct démarrées le 13/10/2026 (1 000 $ fictifs) pour les deux profils.

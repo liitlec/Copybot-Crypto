@@ -55,3 +55,17 @@ def test_emprunt_quand_ca_paie_et_tendance():
     assert expo > 0                                                                       # part tendance exposee au prix
     day = step(src, state, t + pd.Timedelta(days=1), cfg)
     assert day["pnl"]["emprunt"] < 0
+
+
+def test_profil_agressif():
+    from pilote.bot import PROFILS
+    cfg = Config(capital=1000, eth_stake=0.0, spot_fee=0, perp_fee=0, **PROFILS["agressif"])
+    src = FakeSource({"BTC": 100.0, "ETH": 10.0, "ALT": 1.0}, rate=0.00003, trend_up=True)
+    t = pd.Timestamp("2026-01-01")
+    state = new_state(cfg, t)
+    day = step(src, state, t, cfg)
+    assert state["weekly"]["k"] == 3.0
+    assert all(abs(e - 1.5) < 1e-9 for e in day["expo"].values())          # hausse calme : levier 1,5x
+    day = step(src, state, t + pd.Timedelta(days=1), cfg)
+    borrowed = 2.0 * 0.5 * 1000 + 2 * 0.5 * 0.5 * 1000 / 2                   # arbitrage 3x + tendance au-dela de 1x
+    assert abs(day["pnl"]["emprunt"] + borrowed * 0.06 / 365) < 0.01
