@@ -299,3 +299,9 @@ def test_pump_curve_and_snipe_simulation():
     recs = [dict(rec, t0=i, dev_buy_sol=0) for i in range(60)]
     md = snipe_report(recs, 0.5, 0.0125, 0.002)
     assert "Meilleure règle" in md and "| entrée 0.5s" in md
+
+
+def test_sniper_drops_bad_curves():
+    from copysim.sniper import valid_curve
+    assert valid_curve({"states": [[0.0, 30, 1.073e9, "c", 0, 0], [1.0, 80, 4e8, "b", 50, 0]]})
+    assert not valid_curve({"states": [[0.0, 30, 1.073e9, "c", 0, 0], [2.4, 295047.06, 1.0e9, "b", 295017, 0]]})

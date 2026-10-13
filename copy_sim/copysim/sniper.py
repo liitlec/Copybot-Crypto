@@ -229,11 +229,20 @@ def simulate(rec: dict, rule: Rule, size_sol: float, fee: float, tx_fee_sol: flo
     return exit_sol / cost - 1
 
 
+MAX_VIRTUAL_SOL = 1000.0  # une courbe Pump.fun migre vers ~115 SOL virtuels : au-delà, mauvais décodage
+
+
+def valid_curve(rec: dict) -> bool:
+    """Écarte les comptes dont le format ne correspond pas à la courbe standard (états absurdes)."""
+    return all(s[1] <= MAX_VIRTUAL_SOL for s in rec.get("states", []) if s[1])
+
+
 def load_snipes(data_dir: Path) -> list[dict]:
     recs = []
     for p in sorted(Path(data_dir).glob("snipes-*.jsonl.gz")):
         with gzip.open(p, "rt", encoding="utf-8") as fh:
             recs += [json.loads(l) for l in fh if l.strip()]
+    recs = [r for r in recs if valid_curve(r)]
     recs.sort(key=lambda r: r["t0"])
     return recs
 
