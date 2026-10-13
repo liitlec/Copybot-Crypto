@@ -27,7 +27,7 @@ def _f(name: str, default: float) -> float:
 @dataclass
 class Settings:
     rpc_url: str = field(default_factory=lambda: os.getenv("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"))
-    jup_quote_url: str = field(default_factory=lambda: os.getenv("JUP_QUOTE_URL", "https://lite-api.jup.ag/swap/v1/quote"))
+    jup_quote_url: str = field(default_factory=lambda: os.getenv("JUP_QUOTE_URL", "https://api.jup.ag/swap/v1/quote"))
     data_dir: Path = field(default_factory=lambda: Path(os.getenv("CS_DATA_DIR", "data")))
     bankroll_sol: float = field(default_factory=lambda: _f("CS_BANKROLL_SOL", 1.0))
     size_mode: str = field(default_factory=lambda: os.getenv("CS_SIZE_MODE", "fraction"))
