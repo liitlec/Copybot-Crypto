@@ -78,6 +78,17 @@ cotation Jupiter** prise à ce moment-là (impact de prix pour notre taille incl
 après slippage). Rien n'est signé ni envoyé. Le retard réel de détection est enregistré. L'état est sauvegardé
 dans `data/live_state.json` : on peut arrêter et relancer.
 
+### Laisser tourner en continu (Windows)
+
+Double-clic sur `start_live.bat` : il crée l'environnement au premier lancement, demande les clés
+(`.env`) si besoin, puis relance le simulateur tout seul en cas de plantage. Le suivi est dans
+`reports/live.md` (rafraîchi chaque minute).
+
+- **L'ordinateur ne doit pas se mettre en veille** : Paramètres → Système → Alimentation → Mise en veille :
+  *Jamais*, ou `powercfg /change standby-timeout-ac 0` dans un terminal administrateur.
+- **Mieux : sur le VPS qui fait tourner ton EA**, s'il est sous Windows, ça tourne 24 h/24.
+- **Lancement au démarrage** : `Win+R` → `shell:startup` → place un raccourci vers `start_live.bat`.
+
 ## Réglages (`.env`)
 
 | variable | défaut | rôle |
