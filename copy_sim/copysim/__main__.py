@@ -313,6 +313,41 @@ def cmd_snipe_report(s: Settings, args) -> None:
     print(md)
 
 
+def cmd_snipe_check(s: Settings, args) -> None:
+    """Évalue la règle pré-enregistrée uniquement sur les tokens postérieurs à son enregistrement."""
+    from .sniper import Rule, evaluate, load_snipes
+    pre = json.loads(Path(args.rule).read_text(encoding="utf-8"))
+    r, c = pre["regle"], pre["hypotheses_de_cout"]
+    rule = Rule(0.5, r["take_profit"], r["stop_loss"], r["duree_max_s"])
+    recs = [x for x in load_snipes(Path(args.dir)) if x["t0"] > pre["fixee_ts"]]
+    sel = [x for x in recs if (x.get("dev_buy_sol") or 0) > 1]
+    ev = lambda xs: evaluate(xs, rule, c["taille_sol"], c["frais_pumpfun_par_cote"], c["priority_fee_sol_par_tx"])
+    half = len(sel) // 2
+    rows = [("règle (dev > 1 SOL)", ev(sel)), ("  1re moitié", ev(sel[:half])), ("  2e moitié", ev(sel[half:])),
+            ("témoin : même règle, tous tokens", ev(recs))]
+    k = pre["criteres_de_reussite"]
+    a, h1, h2 = rows[0][1], rows[1][1], rows[2][1]
+    ok = (a.get("n", 0) >= k["tokens_filtres_min"] and (a.get("mean") or -1) > k["rendement_moyen_net_min"]
+          and (a.get("pf") or 0) >= k["profit_factor_min"] and (h1.get("mean") or -1) > 0 and (h2.get("mean") or -1) > 0)
+    md = [f"# Règle pré-enregistrée : {pre['nom']}", "", f"Fixée le {pre['fixee_le_utc']} UTC. "
+          f"Évaluée sur {len(recs)} tokens enregistrés depuis.", "",
+          "| | tokens | moyenne nette | médiane | gagnants | profit factor |", "|---|---|---|---|---|---|"]
+    for name, e in rows:
+        if e.get("n"):
+            pf = "-" if e["pf"] is None else f"{e['pf']:.2f}"
+            md.append(f"| {name} | {e['n']} | {e['mean']:+.1%} | {e['median']:+.1%} | {e['win_rate']:.0%} | {pf} |")
+        else:
+            md.append(f"| {name} | 0 | - | - | - | - |")
+    verdict = ("✅ critères atteints" if ok else
+               f"⏳ pas encore assez de tokens filtrés ({a.get('n', 0)}/{k['tokens_filtres_min']})"
+               if a.get("n", 0) < k["tokens_filtres_min"] else "❌ critères non atteints")
+    md += ["", f"Critères : ≥ {k['tokens_filtres_min']} tokens filtrés, moyenne > 0, profit factor ≥ "
+           f"{k['profit_factor_min']}, positif sur chaque moitié. **Verdict : {verdict}**", ""]
+    Path("reports").mkdir(exist_ok=True)
+    Path("reports/sniper_prereg.md").write_text("\n".join(md), encoding="utf-8")
+    print("\n".join(md))
+
+
 def cmd_report(s: Settings, args) -> None:
     state_path = s.data_dir / "live_state.json"
     if not state_path.exists():
@@ -348,6 +383,9 @@ def main(argv=None) -> None:
     p.add_argument("--size", type=float, default=0.5, help="taille d'achat en SOL")
     p.add_argument("--fee", type=float, default=0.0125, help="frais Pump.fun par côté")
     p.add_argument("--tx-fee", type=float, default=0.002, help="priority fee/Jito par transaction (SOL)")
+    p = sub.add_parser("snipe-check", help="évalue la règle sniper pré-enregistrée sur les données postérieures")
+    p.add_argument("--dir", default="data_sniper")
+    p.add_argument("--rule", default="prereg/sniper_rule.json")
     p = sub.add_parser("scout", help="cherche des leaders copiables (backtest copieur, validation hors échantillon)")
     p.add_argument("--days", type=float, default=7)
     p.add_argument("--top", type=int, default=40)
@@ -362,7 +400,7 @@ def main(argv=None) -> None:
     args = ap.parse_args(argv)
     s = Settings()
     {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout,
-     "snipe-record": cmd_snipe_record, "snipe-report": cmd_snipe_report}[args.cmd](s, args)
+     "snipe-record": cmd_snipe_record, "snipe-report": cmd_snipe_report, "snipe-check": cmd_snipe_check}[args.cmd](s, args)
 
 
 if __name__ == "__main__":

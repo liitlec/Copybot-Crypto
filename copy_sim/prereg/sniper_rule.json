@@ -1,0 +1,25 @@
+{
+  "nom": "sniper dev > 1 SOL",
+  "fixee_le_utc": "2026-10-13 13:46:06",
+  "fixee_ts": 1791899166,
+  "regle": {
+    "filtre": "le dev achète strictement plus de 1 SOL dans la transaction de création (dev_buy_sol > 1)",
+    "entree": "0,5 s après la création",
+    "take_profit": null,
+    "stop_loss": -0.2,
+    "duree_max_s": 60
+  },
+  "hypotheses_de_cout": {
+    "taille_sol": 0.5,
+    "frais_pumpfun_par_cote": 0.0125,
+    "priority_fee_sol_par_tx": 0.002
+  },
+  "evaluation": "uniquement sur les tokens dont t0 > fixee_ts ; témoin = même règle sans filtre",
+  "criteres_de_reussite": {
+    "tokens_filtres_min": 200,
+    "rendement_moyen_net_min": 0.0,
+    "profit_factor_min": 1.3,
+    "et": "rendement positif sur chacune des deux moitiés (chronologiques) de la période d'évaluation"
+  },
+  "origine": "meilleure règle et filtre observés sur les 209 premiers tokens (13/10, 13:15-13:38 UTC) ; non validés"
+}
