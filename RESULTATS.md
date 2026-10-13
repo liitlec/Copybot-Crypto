@@ -254,3 +254,14 @@ La SMA50 est la meilleure des 8 : son résultat est probablement en partie dû �
 | **70/30 avec arbitrage + emprunt** | **+36,8 % / −3,5 %** | **+23,6 % / −7,4 %** (2022 : −5 %) |
 | 50/50 | +36,3 % / −8,1 % | +24,4 % / −15,5 % |
 | Pour comparer, 70/30 avec SMA50 | +40,8 % / −4,6 % | +26,4 % / −10,6 % (2022 : −7 %) |
+
+## Pilote : rejeu de 2026 jour par jour (13/10/2026)
+
+`python -m pilote.bot replay --since 2026-01-01 --capital 1000` : 70 % arbitrage + emprunt quand ça paie, 30 % tendance (ensemble de signaux). Chaque décision utilise uniquement les données disponibles à sa date.
+
+- **Résultat :** 1 000 $ → 1 102 $ (+10,2 %), pire chute −2,3 %.
+- **Par mois :** janvier −0,6 %, février +0,3 %, mars −0,5 %, avril +0,9 %, mai +0,8 %, juin +0,8 %, juillet +1,2 %, août +5,2 %, septembre +2,3 %, octobre −0,5 %.
+- **D'où vient le gain :** prix (part tendance) +37 $, financement +65 $, staking +9 $, emprunt 0 $ (jamais déclenché), frais −10 $.
+- **Cohérence :** même ordre de grandeur que le backtest 70/30 ensemble pour 2026 (+11 %).
+
+Simulation en direct démarrée le 13/10/2026 avec 1 000 $ fictifs.

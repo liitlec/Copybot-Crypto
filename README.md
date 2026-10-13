@@ -5,6 +5,8 @@ Projets crypto séparés des EA MT5 :
 2. **Tendance BTC/ETH** (`tendance/`) : détenir BTC et ETH quand ils sont au-dessus de leur moyenne 50 jours (taille réduite si la volatilité est forte), et repasser en arbitrage sinon. Il se combine avec le n° 1.
 3. **Bot momentum altcoins** (`momentum/`) : suivi de tendance agressif, avec backtest et simulation en direct. Résultats décevants, voir `RESULTATS.md`.
 
+**Le pilote** (`pilote/`) réunit les n° 1 et 2 sur Hyperliquid : arbitrage + emprunt quand ça paie (70 %) et tendance (30 %). Chaque jour, il indique quoi détenir et tient un portefeuille fictif.
+
 Résultats détaillés de tous les tests : `RESULTATS.md`.
 
 Rien ne passe d'ordre réel : scanner, backtests et simulation uniquement.
@@ -35,6 +37,16 @@ python -m funding.levier --every 360     # vérifie toutes les 6 h, alerte Teleg
 Règle testée : chaque semaine, on garde les 5 cryptos au financement moyen le plus haut sur 7 jours, à poids égaux, avec un levier de 3 sur le perpétuel (75 % du capital couvert).
 
 Limites : l'écart entre le prix comptant et le prix du perpétuel n'est pas modélisé, et la liste des cryptos vient des volumes actuels.
+
+## Pilote (tout-en-un, simulation)
+```
+python -m pilote.bot replay --since 2026-01-01 --capital 1000   # rejoue la période jour par jour
+python -m pilote.bot run --reset --capital 1000                 # démarre la simulation en direct
+python -m pilote.bot run                                        # à lancer chaque jour vers 00:15 UTC
+```
+Le message du jour (aussi sur Telegram) donne : capital fictif, gain du jour (prix, financement, staking, emprunt, frais), emprunt ou non, exposition de la tendance, altcoins en arbitrage, et positions à tenir (comptant et perpétuel).
+
+Windows, tous les jours à 02:15 (heure de Paris) : `schtasks /create /tn PiloteCrypto /sc daily /st 02:15 /tr "cmd /c cd /d C:\chemin\Copybot-Crypto && py -m pilote.bot run"`
 
 ## Tendance BTC/ETH
 ```
