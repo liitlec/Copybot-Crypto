@@ -20,8 +20,8 @@ def _f(name: str, default: float) -> float:
 class RugFilter:
     def __init__(self, api_key: str | None, log_path: Path | None = None, timeout_s: float = 2.0):
         self.key, self.log_path, self.timeout = api_key, Path(log_path) if log_path else None, timeout_s
-        self.min_liq_usd = _f("RF_MIN_LIQUIDITY_USD", 5000)
-        self.min_pool_age_s = _f("RF_MIN_POOL_AGE_S", 120)
+        self.min_liq_usd = _f("RF_MIN_LIQUIDITY_USD", 2000)
+        self.min_pool_age_s = _f("RF_MIN_POOL_AGE_S", 60)
         self.max_top10 = _f("RF_MAX_TOP10_PCT", 60)
         self.max_dev = _f("RF_MAX_DEV_PCT", 15)
         self.max_bundlers = _f("RF_MAX_BUNDLERS_PCT", 40)
