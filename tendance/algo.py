@@ -9,7 +9,7 @@ Pour chaque crypto (moitie du capital chacune), signal a la cloture de la veille
     python -m tendance.algo backtest                    # 2021 -> fin des donnees, seul et melange a l'arbitrage
     python -m tendance.algo backtest --sma 100 --vol-target 0.6
     python -m tendance.algo backtest --exchange hyperliquid --borrow 0.06   # tout sur Hyperliquid, emprunt quand ca paie
-    python -m tendance.algo signal                      # position a tenir aujourd'hui (+ Telegram)
+    python -m tendance.algo signal --ensemble           # position a tenir aujourd'hui (+ Telegram)
 
 Emprunt quand ca paie (option --borrow) : la part arbitrage passe a 1,5x le capital quand le financement moyen
 14 j de BTC/ETH depasse le cout d'emprunt + 5 points, a 2x au-dela de + 10 points ; taille revue chaque semaine.
@@ -34,18 +34,34 @@ def prices(coin):
     return pd.read_csv(os.path.join(DATA_DIR, "1d", f"{coin}USDT.csv"), parse_dates=["date"]).set_index("date")["close"]
 
 
-def exposure(p, sma, vol_target):
-    """Part du capital detenue sans couverture, decidee a la cloture (a appliquer le lendemain)."""
+# Ensemble de signaux : moins dependant d'un reglage chanceux que la seule moyenne 50 jours.
+ENSEMBLE = (("sma", 30), ("sma", 50), ("sma", 100), ("sma", 200), ("breakout", 20), ("breakout", 50))
+
+
+def trend_up(p, kind, n):
+    if kind == "sma":
+        return (p > p.rolling(n).mean()).astype(float)
+    # cassure : haussier au-dessus du plus haut de n jours, jusqu'a passer sous le plus bas de n/2 jours
+    state = pd.Series(np.nan, index=p.index)
+    state[p > p.rolling(n).max().shift(1)] = 1.0
+    state[p < p.rolling(n // 2).min().shift(1)] = 0.0
+    return state.ffill().fillna(0.0)
+
+
+def exposure(p, sma, vol_target, ensemble=False):
+    """Part du capital detenue sans couverture, decidee a la cloture (a appliquer le lendemain).
+    Avec `ensemble`, la part vaut la proportion des signaux haussiers parmi ENSEMBLE."""
     r = p.pct_change()
-    up = (p > p.rolling(sma).mean()).astype(float)
+    signals = ENSEMBLE if ensemble else (("sma", sma),)
+    up = sum(trend_up(p, k, n) for k, n in signals) / len(signals)
     vol = r.rolling(20).std() * np.sqrt(365)
     return (up * (vol_target / vol).clip(upper=1.0)).fillna(0.0)
 
 
-def daily_returns(coin, funding, sma=50, vol_target=0.4, carry_notional=0.95):
+def daily_returns(coin, funding, sma=50, vol_target=0.4, carry_notional=0.95, ensemble=False):
     p = prices(coin)
     f = funding[coin].reindex(p.index).fillna(0.0) if coin in funding else pd.Series(0.0, index=p.index)
-    ex = exposure(p, sma, vol_target).shift(1).fillna(0.0)
+    ex = exposure(p, sma, vol_target, ensemble).shift(1).fillna(0.0)
     return ex * p.pct_change().fillna(0) + (1 - ex) * carry_notional * f - ex.diff().abs().fillna(0) * SWITCH_COST
 
 
@@ -72,7 +88,7 @@ def summary(r, name):
 
 def backtest(a):
     fd = load_daily(a.exchange, a.start)
-    tr = sum(daily_returns(c, fd, a.sma, a.vol_target) for c in COINS) / len(COINS)
+    tr = sum(daily_returns(c, fd, a.sma, a.vol_target, ensemble=a.ensemble) for c in COINS) / len(COINS)
     carry, _ = run(fd, Params(core=COINS, top_n=2, min_apr=0.20, lookback=14, rebalance=7, lev=19, eth_stake=0.03,
                               spot_fee=0.00075, perp_fee=0.0002, slip=0.0))
     rc = carry.pct_change().fillna(carry.iloc[0] - 1)
@@ -88,19 +104,19 @@ def backtest(a):
     print(f"Periode {idx[0]:%d/%m/%Y} -> {idx[-1]:%d/%m/%Y}, correlation tendance/arbitrage {np.corrcoef(rc, tr)[0, 1]:.2f}")
     summary(hold, "BTC+ETH achetes et gardes")
     summary(rc, "Arbitrage optimise" + (" avec emprunt" if a.borrow is not None else ""))
-    summary(tr, f"Tendance (SMA{a.sma}, volatilite {a.vol_target:.0%})")
+    summary(tr, f"Tendance ({'ensemble' if a.ensemble else f'SMA{a.sma}'}, volatilite {a.vol_target:.0%})")
     for w in (0.2, 0.3, 0.5):
         summary((1 - w) * rc + w * tr, f"{1 - w:.0%} arbitrage + {w:.0%} tendance")
 
 
 def signal(a):
     import requests
-    lines = [f"Tendance BTC/ETH (SMA{a.sma}, volatilite cible {a.vol_target:.0%})"]
+    lines = [f"Tendance BTC/ETH ({'ensemble de signaux' if a.ensemble else f'SMA{a.sma}'}, volatilite cible {a.vol_target:.0%})"]
     for coin in COINS:
-        kl = requests.get(BASE + "/api/v3/klines", params={"symbol": coin + "USDT", "interval": "1d", "limit": a.sma + 40},
+        kl = requests.get(BASE + "/api/v3/klines", params={"symbol": coin + "USDT", "interval": "1d", "limit": 260},
                           timeout=30).json()[:-1]  # la bougie du jour n'est pas terminee
         p = pd.Series([float(k[4]) for k in kl], index=pd.to_datetime([k[0] for k in kl], unit="ms"))
-        ex = exposure(p, a.sma, a.vol_target).iloc[-1]
+        ex = exposure(p, a.sma, a.vol_target, a.ensemble).iloc[-1]
         sma = p.rolling(a.sma).mean().iloc[-1]
         state = "HAUSSE" if p.iloc[-1] > sma else "baisse"
         lines.append(f"  {coin} : {p.iloc[-1]:,.0f} $ ({state}, moyenne {sma:,.0f} $) -> detenir {ex:.0%} sans couverture, "
@@ -117,6 +133,7 @@ def main():
     ap.add_argument("--vol-target", type=float, default=0.4)
     ap.add_argument("--start", default="2021-01-01")
     ap.add_argument("--exchange", default="binance", choices=("binance", "hyperliquid"))
+    ap.add_argument("--ensemble", action="store_true", help="moyenne de 6 signaux de tendance (plus robuste)")
     ap.add_argument("--borrow", type=float, help="cout d'emprunt annuel : active l'emprunt quand ca paie (ex. 0.06)")
     a = ap.parse_args()
     (backtest if a.action == "backtest" else signal)(a)

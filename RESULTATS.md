@@ -217,3 +217,40 @@ L'emprunt est actif 39 % du temps (1,5x : 11 %, 2x : 28 %).
 - L'emprunt est supposé à taux fixe, et la liquidation n'est pas modélisée.
 - Les altcoins se couvrent au comptant hors d'Hyperliquid.
 - La moyenne 50 jours est un peu optimiste.
+
+## Encore plus de gain ? Tests de robustesse (13/10/2026)
+
+Chaque idée est testée sur deux périodes : Hyperliquid 07/2023 → 10/2026, et Binance 2021 → 09/2026, qui contient le krach de 2022. Tendance BTC + ETH, volatilité cible 40 %, sauf mention contraire.
+
+| Variante de la tendance | Hyperliquid : rendement / pire chute | Binance 2021-26 : rendement / pire chute |
+|---|---|---|
+| Référence : BTC + ETH, SMA50 | +45,9 % / −21,4 % | +34,2 % / −40,8 % |
+| + SOL | +46,0 % / −25,2 % | +38,4 % / −42,2 % |
+| + SOL + XRP (+ BNB) | +40,0 % / −24,3 % | +33,0 à +36,3 % / −39 à −40 % |
+| Volatilité cible 60 % | +49,1 % / −27,3 % | +36,9 % / −50,6 % |
+| Volatilité 60 %, jusqu'à 1,5x | +62,9 % / −33,9 % | +44,1 % / −56,3 % |
+| Volatilité 80 %, jusqu'à 2x | +80,0 % / −44,5 % | +52,3 % / −68,3 % |
+
+**Plus de cryptos :** pas mieux. **Levier sur la tendance :** plus de gain, mais la pire chute augmente autant ; c'est du risque en plus, pas un avantage.
+
+**Robustesse du signal** (8 signaux testés) :
+
+| Signal | Hyperliquid | Binance 2021-26 |
+|---|---|---|
+| SMA30 | +33,9 % | +23,4 % |
+| **SMA50** | **+45,9 %** | **+34,2 %** |
+| SMA100 | +30,5 % | +23,7 % |
+| SMA200 | +29,0 % | +25,8 % |
+| EMA 20/50 | +30,0 % | +22,7 % |
+| EMA 20/100 | +25,3 % | +19,6 % |
+| Cassure 20 j | +25,0 % | +21,4 % |
+| Cassure 50 j | +32,9 % | +18,0 % |
+
+La SMA50 est la meilleure des 8 : son résultat est probablement en partie dû à la chance. Option plus robuste, `--ensemble` (moyenne de 6 signaux : SMA 30/50/100/200 et cassures 20/50 j) :
+
+| | Hyperliquid | Binance 2021-26 |
+|---|---|---|
+| Tendance ensemble seule | +33,6 % / −21,7 % | +25,2 % / −33,3 % |
+| **70/30 avec arbitrage + emprunt** | **+36,8 % / −3,5 %** | **+23,6 % / −7,4 %** (2022 : −5 %) |
+| 50/50 | +36,3 % / −8,1 % | +24,4 % / −15,5 % |
+| Pour comparer, 70/30 avec SMA50 | +40,8 % / −4,6 % | +26,4 % / −10,6 % (2022 : −7 %) |
