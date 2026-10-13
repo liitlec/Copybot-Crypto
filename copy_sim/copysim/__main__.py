@@ -148,6 +148,7 @@ def cmd_live(s: Settings, args) -> None:
     for w in leaders:  # on part de maintenant : pas de rattrapage de l'historique
         page = rpc.signatures(w, limit=1)
         last_sig[w] = page[0]["signature"] if page else None
+    started, last_report = time.time(), 0.0
     print(f"Paper trading live sur {len(leaders)} leaders (Ctrl+C pour arrêter). Leader actif : "
           f"{eng.active_leader or 'tous'}")
     while True:
@@ -178,6 +179,9 @@ def cmd_live(s: Settings, args) -> None:
                     print(f"  {res['type']:4s} {w[:6]}… {ev.mint[:6]}… {res['sol']:+.4f} SOL "
                           f"retard {res['delay_s']}s  capital≈{eng.equity_at_cost():.3f}")
         state_path.write_text(json.dumps(asdict(eng.st), default=str))
+        if time.time() - last_report > 60:
+            write_live_report(s, eng.st, log_path, started)
+            last_report = time.time()
         time.sleep(s.poll_s)
 
 
@@ -185,16 +189,46 @@ def cmd_leaders(s: Settings, args) -> None:
     build_leaders(s, args.out, args.source, args.top, not args.no_check)
 
 
+def write_live_report(s: Settings, st: EngineState, log_path: Path, started: float | None = None) -> Path:
+    """reports/live.md : synthèse + positions ouvertes + derniers trades (rafraîchi chaque minute)."""
+    from .report import short
+    md = render({"live (cotations Jupiter réelles)": stats(st, s.bankroll_sol)}, None,
+                {"title": "paper trading live", "assumptions": assumptions(s)})
+    head = [f"_Mis à jour : {time.strftime('%Y-%m-%d %H:%M:%S')} UTC"
+            + (f" — en cours depuis {(time.time() - started) / 3600:.1f} h" if started else "") + "_", "",
+            f"**Capital ≈ {st.cash + sum(p['cost_sol'] - p['proceeds_sol'] for p in st.positions.values()):.4f} SOL** "
+            f"(départ {s.bankroll_sol} SOL, cash {st.cash:.4f}, positions au coût d'achat)", "",
+            "## Positions ouvertes", ""]
+    if st.positions:
+        head += ["| token | depuis | engagé SOL | prix d'entrée vs leader |", "|---|---|---|---|"]
+        for p in st.positions.values():
+            slip = p["entry_price"] / p["leader_entry_price"] - 1 if p["leader_entry_price"] else 0
+            head.append(f"| {short(p['mint'])} | {time.strftime('%H:%M:%S', time.gmtime(p['opened_ts']))} | "
+                        f"{p['cost_sol']:.4f} | {slip:+.1%} |")
+    else:
+        head.append("Aucune.")
+    rows = [json.loads(l) for l in log_path.read_text(encoding="utf-8").splitlines()[-15:]] if log_path.exists() else []
+    head += ["", "## 15 derniers événements", ""]
+    if rows:
+        head += ["| heure UTC | type | token | SOL | prix vs leader | retard |", "|---|---|---|---|---|---|"]
+        for r in reversed(rows):
+            vs = r["price"] / r["leader_price"] - 1 if r.get("leader_price") else 0
+            head.append(f"| {time.strftime('%H:%M:%S', time.gmtime(r['ts']))} | {r['type']} | {short(r['mint'])} | "
+                        f"{r['sol']:+.4f} | {vs:+.1%} | {r['delay_s']} s |")
+    else:
+        head.append("Aucun pour l'instant.")
+    out = Path("reports") / "live.md"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text("\n".join(head) + "\n\n" + md, encoding="utf-8")
+    return out
+
+
 def cmd_report(s: Settings, args) -> None:
     state_path = s.data_dir / "live_state.json"
     if not state_path.exists():
         sys.exit("pas d'état live (lance d'abord `live`)")
     st = _load_state(state_path, s)
-    md = render({"live (cotations Jupiter réelles)": stats(st, s.bankroll_sol)}, None,
-                {"title": "paper trading live", "assumptions": assumptions(s)})
-    Path("reports").mkdir(exist_ok=True)
-    Path("reports/live.md").write_text(md, encoding="utf-8")
-    print(md)
+    print(write_live_report(s, st, s.data_dir / "live_events.jsonl").read_text(encoding="utf-8"))
 
 
 def main(argv=None) -> None:
