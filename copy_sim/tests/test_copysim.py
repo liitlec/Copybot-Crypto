@@ -305,3 +305,18 @@ def test_sniper_drops_bad_curves():
     from copysim.sniper import valid_curve
     assert valid_curve({"states": [[0.0, 30, 1.073e9, "c", 0, 0], [1.0, 80, 4e8, "b", 50, 0]]})
     assert not valid_curve({"states": [[0.0, 30, 1.073e9, "c", 0, 0], [2.4, 295047.06, 1.0e9, "b", 295017, 0]]})
+
+
+def test_stream_single_connection_routing():
+    from copysim.stream import SignatureStream
+    st = SignatureStream.__new__(SignatureStream)
+    import queue
+    st.q, st.log = queue.Queue(), lambda *_: None
+    subs, pending = {}, {1: "WA", 2: "WB"}
+    st.handle('{"jsonrpc":"2.0","result":777,"id":2}', subs, pending)
+    st.handle('{"jsonrpc":"2.0","result":555,"id":1}', subs, pending)
+    assert subs == {777: "WB", 555: "WA"} and not pending
+    st.handle('{"method":"logsNotification","params":{"subscription":777,"result":{"value":{"signature":"S1","err":null}}}}', subs, pending)
+    st.handle('{"method":"logsNotification","params":{"subscription":555,"result":{"value":{"signature":"S2","err":{"x":1}}}}}', subs, pending)
+    w, sig, _ = st.q.get_nowait()
+    assert (w, sig) == ("WB", "S1") and st.q.empty()
