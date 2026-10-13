@@ -35,7 +35,7 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
   powershell -ExecutionPolicy ByPass -NoProfile -Command "irm https://astral.sh/uv/install.ps1 | iex"
   $env:Path = (Join-Path $env:USERPROFILE ".local\bin") + ";" + $env:Path
 }
-uv venv --python 3.12
+if (-not (Test-Path ".venv")) { uv venv --python 3.12 }
 uv pip install -r requirements.txt
 
 Write-Host "4/6 Lancement automatique a chaque ouverture de session..."
