@@ -148,7 +148,13 @@ def cmd_live(s: Settings, args) -> None:
     s.data_dir.mkdir(parents=True, exist_ok=True)
     state_path, log_path = s.data_dir / "live_state.json", s.data_dir / "live_events.jsonl"
     prices = JupiterPrices(s.jup_quote_url, s.slippage_bps)
-    eng = CopyEngine(s, prices, leaders, _load_state(state_path, s), live=True)
+    check, max_impact = None, None
+    if args.rug_filter:
+        from .rugfilter import RugFilter
+        rf = RugFilter(os.getenv("SOLANATRACKER_API_KEY") or None, s.data_dir / "rug_checks.jsonl")
+        check, max_impact = rf.check, rf.max_impact
+    eng = CopyEngine(s, prices, leaders, _load_state(state_path, s), live=True,
+                     pre_buy_check=check, max_impact=max_impact)
     last_sig: dict[str, str | None] = {}
     for w in leaders:  # on part de maintenant : pas de rattrapage de l'historique
         page = rpc.signatures(w, limit=1)
@@ -295,6 +301,8 @@ def main(argv=None) -> None:
     p.add_argument("--leaders", default="leaders.txt")
     p.add_argument("--poll", action="store_true", help="sans websocket : interrogation toutes les CS_POLL_S s")
     p.add_argument("--report", default="live", help="nom du rapport dans reports/ (plusieurs tests en parallèle)")
+    p.add_argument("--rug-filter", action="store_true",
+                   help="filtre anti-rug avant chaque achat (seuils RF_* dans .env, journal data/rug_checks.jsonl)")
     p.add_argument("--record-paths", action="store_true",
                    help="enregistre le prix de sortie des positions ouvertes (~1,5 s) et la fiche de chaque token acheté "
                         "(data/price_paths.jsonl, data/token_info.jsonl)")

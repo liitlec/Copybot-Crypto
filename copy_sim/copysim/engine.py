@@ -8,6 +8,7 @@ Règles reproduisant le post :
 """
 from __future__ import annotations
 
+import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 
@@ -44,8 +45,10 @@ class EngineState:
 
 class CopyEngine:
     def __init__(self, s: Settings, prices, leaders: list[str], state: EngineState | None = None,
-                 live: bool = False):
+                 live: bool = False, pre_buy_check=None, max_impact: float | None = None):
         self.s, self.p, self.leaders, self.live = s, prices, leaders, live
+        self.pre_buy_check = pre_buy_check  # ev -> motif de refus ou None (filtre anti-rug)
+        self.max_impact = max_impact        # refuse l'achat si notre impact de prix dépasse ce seuil
         self.st = state or EngineState(cash=s.bankroll_sol)
         self._seen = set(self.st.seen)
 
@@ -96,10 +99,22 @@ class CopyEngine:
         size = min(size, self.st.cash - s.tx_fee_sol)
         if size < s.min_trade_sol:
             return self._skip("capital insuffisant")
+        if self.pre_buy_check:
+            reason = self.pre_buy_check(ev)
+            if reason:
+                return self._skip(reason)
+            if self.live:
+                ts = time.time()  # la vérification a pris du temps : on cote maintenant
         bot_fee = size * s.bot_fee_pct / 100
         fill = self.p.buy(ev, size - bot_fee, ts)
         if not fill or fill.amount_out <= 0:
             return self._skip("pas de prix / pas de route à l'achat")
+        if self.max_impact is not None and fill.note.startswith("impact="):
+            try:
+                if float(fill.note.split("=", 1)[1] or 0) > self.max_impact:
+                    return self._skip(f"impact de notre achat > {self.max_impact:.0%}")
+            except ValueError:
+                pass
         self.st.cash -= size + s.tx_fee_sol
         pos = Position(ev.wallet, ev.mint, ev.decimals, fill.amount_out, size + s.tx_fee_sol, 0.0, ts,
                        fill.price_sol, ev.price_sol, ev.signature)

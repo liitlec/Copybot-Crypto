@@ -245,3 +245,24 @@ def test_token_info_summary():
     assert s["token_age_s"] == 100 and s["pool_age_s"] == 50 and s["liquidity_usd"] == 5000
     assert s["liquidity_usd_all_pools"] == 5100 and s["bundlers_pct"] == 5.0 and s["insiders_pct"] is None
     assert s["risks"] == ["No social media"] and s["lp_burn_pct"] == 100
+
+
+def test_rug_filter_reasons_and_engine_hook(s):
+    from copysim.prices import Fill
+    from copysim.rugfilter import RugFilter
+    rf = RugFilter(None)
+    good = {"mint_authority": None, "freeze_authority": None, "rugged_flag": False, "liquidity_usd": 20000,
+            "pool_age_s": 600, "top10_pct": 30, "dev_pct": 2, "bundlers_pct": 5, "insiders_pct": 0}
+    assert rf.reasons(good) == []
+    bad = dict(good, freeze_authority="X", liquidity_usd=1000, pool_age_s=30, top10_pct=80)
+    assert len(rf.reasons(bad)) == 4
+    assert rf.check(ev("BUY", 1, 1, 1000)) == "anti-rug : fiche token indisponible"  # pas de clé -> refus
+
+    class P:
+        def buy(self, e, sol, ts): return Fill(sol / 0.001, 0.001, "impact=0.08")
+    eng = CopyEngine(s, P(), [W], pre_buy_check=lambda e: None, max_impact=0.03)
+    eng.on_event(ev("BUY", 10, 1, 1000))
+    assert not eng.st.positions and eng.st.skips == {"impact de notre achat > 3%": 1}
+    eng2 = CopyEngine(s, P(), [W], pre_buy_check=lambda e: "anti-rug : test")
+    eng2.on_event(ev("BUY", 10, 1, 1000, sig="x2"))
+    assert eng2.st.skips == {"anti-rug : test": 1}

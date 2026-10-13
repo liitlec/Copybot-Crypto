@@ -1,4 +1,4 @@
-# Installe et lance les 2 paper tests live (lecture seule, aucun ordre reel, aucune cle privee).
+# Installe et lance les 3 paper tests live (lecture seule, aucun ordre reel, aucune cle privee).
 # Usage (PowerShell) :
 #   irm https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/copy_sim/install_live.ps1 | iex
 $ErrorActionPreference = "Stop"
@@ -20,7 +20,7 @@ Write-Host "2/6 Configuration (.env reste sur ce PC, jamais envoye sur GitHub)..
 if (-not (Test-Path ".env")) {
   $rpc = Read-Host "URL RPC Helius (https://mainnet.helius-rpc.com/?api-key=...)"
   $st = Read-Host "Cle API Solana Tracker"
-  @("SOLANA_RPC_URL=$rpc", "SOLANATRACKER_API_KEY=$st", "CS_POLL_S=1", "CS_BANKROLL_SOL=6.2") |
+  @("SOLANA_RPC_URL=$rpc", "SOLANATRACKER_API_KEY=$st", "CS_POLL_S=1", "CS_BANKROLL_SOL=6.2", "CS_SIZE=0.1") |
     Set-Content ".env" -Encoding ascii
 }
 "515vh1DrPuwMATt9Zoq9kP4sJL9fyojA1dHJu4DQpNRp  # 515vh1" | Set-Content "leaders_live.txt" -Encoding ascii
@@ -36,7 +36,7 @@ uv pip install -r requirements.txt
 Write-Host "4/6 Lancement automatique a chaque ouverture de session..."
 $startup = [Environment]::GetFolderPath("Startup")
 $shell = New-Object -ComObject WScript.Shell
-foreach ($bat in @("start_live.bat", "start_live_raven.bat")) {
+foreach ($bat in @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat")) {
   $lnk = $shell.CreateShortcut((Join-Path $startup ("copysim_" + $bat + ".lnk")))
   $lnk.TargetPath = Join-Path $dest $bat
   $lnk.WorkingDirectory = $dest
@@ -47,8 +47,9 @@ foreach ($bat in @("start_live.bat", "start_live_raven.bat")) {
 Write-Host "5/6 Desactivation de la mise en veille sur secteur..."
 try { powercfg /change standby-timeout-ac 0 } catch { Write-Host "  (a faire a la main : Parametres > Alimentation > Veille : Jamais)" }
 
-Write-Host "6/6 Demarrage des 2 tests..."
-Start-Process -FilePath (Join-Path $dest "start_live.bat") -WorkingDirectory $dest -WindowStyle Minimized
-Start-Process -FilePath (Join-Path $dest "start_live_raven.bat") -WorkingDirectory $dest -WindowStyle Minimized
+Write-Host "6/6 Demarrage des 3 tests (temoin, base + anti-rug, Raven + anti-rug)..."
+foreach ($bat in @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat")) {
+  Start-Process -FilePath (Join-Path $dest $bat) -WorkingDirectory $dest -WindowStyle Minimized
+}
 Write-Host ""
-Write-Host "OK. Suivi : $dest\reports\live.md (base) et $dest\reports\live_raven.md (Raven), mis a jour chaque minute."
+Write-Host "OK. Suivi (mis a jour chaque minute) : $dest\reports\live_temoin.md, live_filtre.md, live_raven.md"
