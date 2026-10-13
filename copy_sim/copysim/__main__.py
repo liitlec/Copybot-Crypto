@@ -11,6 +11,7 @@ import queue
 import sys
 import time
 from collections import defaultdict
+from datetime import datetime, timezone
 from dataclasses import asdict, replace
 from pathlib import Path
 
@@ -70,8 +71,11 @@ def assumptions(s: Settings) -> dict:
 def cmd_backtest(s: Settings, args) -> None:
     leaders = read_leaders(args.leaders)
     rpc = SolanaRPC(s.rpc_url, s.cache_dir)
-    print(f"Historique de {len(leaders)} leaders sur {args.days} j…")
-    events = leaders_swaps(rpc, leaders, args.days)
+    end = None
+    if args.end:
+        end = int(datetime.strptime(args.end, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()) + 86399
+    print(f"Historique de {len(leaders)} leaders sur {args.days} j" + (f" jusqu'au {args.end}" if end else "") + "…")
+    events = leaders_swaps(rpc, leaders, args.days, end_ts=end)
     if not events:
         sys.exit("aucun swap trouvé (RPC limité ? adresses correctes ?)")
     candles = GeckoCandles(s.cache_dir, os.getenv("SOLANATRACKER_API_KEY") or None)
@@ -124,10 +128,10 @@ def cmd_backtest(s: Settings, args) -> None:
                  "assumptions": assumptions(s)})
     out = Path("reports")
     out.mkdir(exist_ok=True)
-    (out / "backtest.md").write_text(md, encoding="utf-8")
-    (out / "backtest.json").write_text(json.dumps({"results": results, "states": states}, default=str, indent=1))
+    (out / f"{args.out}.md").write_text(md, encoding="utf-8")
+    (out / f"{args.out}.json").write_text(json.dumps({"results": results, "states": states}, default=str, indent=1))
     print(md)
-    print(f"-> {out / 'backtest.md'}")
+    print(f"-> {out / (args.out + '.md')}")
 
 
 def _load_state(path: Path, s: Settings) -> EngineState:
@@ -274,6 +278,8 @@ def main(argv=None) -> None:
     p = sub.add_parser("backtest", help="rejoue les N derniers jours des leaders")
     p.add_argument("--leaders", default="leaders.txt", help="1 adresse par ligne, dans l'ordre du classement")
     p.add_argument("--days", type=float, default=3)
+    p.add_argument("--end", help="date de fin AAAA-MM-JJ (UTC) pour rejouer une période passée")
+    p.add_argument("--out", default="backtest", help="nom du rapport dans reports/")
     p = sub.add_parser("live", help="paper trading en temps réel (cotations Jupiter)")
     p.add_argument("--leaders", default="leaders.txt")
     p.add_argument("--poll", action="store_true", help="sans websocket : interrogation toutes les CS_POLL_S s")

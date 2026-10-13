@@ -77,8 +77,9 @@ def wallet_swaps(rpc: SolanaRPC, wallet: str, since_ts: int, until_ts: int | Non
     return events
 
 
-def leaders_swaps(rpc: SolanaRPC, wallets: list[str], days: float, log=print) -> list[SwapEvent]:
-    now = int(time.time())
+def leaders_swaps(rpc: SolanaRPC, wallets: list[str], days: float, log=print,
+                  end_ts: int | None = None) -> list[SwapEvent]:
+    now = int(end_ts or time.time())
     since = now - int(days * 86400)
     key = helius_key(rpc.url)
     out: list[SwapEvent] = []
