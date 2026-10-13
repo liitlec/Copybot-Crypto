@@ -112,7 +112,7 @@ def scout(s: Settings, st_key: str, days: float = 7, top: int = 40, min_hold_s: 
           shortlist: int = 12, log=print, sources: list[str] | None = None,
           exclude: set[str] | None = None) -> dict:
     # Bridage : ne pas gêner les tests live qui partagent les mêmes clés.
-    net.MIN_INTERVAL.update({"api.helius.xyz": 1.0, "data.solanatracker.io": 1.0})
+    net.MIN_INTERVAL.update({"api.helius.xyz": 0.3, "data.solanatracker.io": 1.0})
     hkey = helius_key(s.rpc_url)
     if not hkey:
         raise RuntimeError("scout utilise l'API Enhanced de Helius : SOLANA_RPC_URL doit être une URL Helius")
