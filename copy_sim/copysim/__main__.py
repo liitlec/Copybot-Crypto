@@ -220,7 +220,7 @@ def cmd_live(s: Settings, args) -> None:
                     handle(w, sig, tx)
             state_path.write_text(json.dumps(asdict(eng.st), default=str))
         if time.time() - last_report > 60:
-            write_live_report(s, eng.st, log_path, started)
+            write_live_report(s, eng.st, log_path, started, args.report)
             last_report = time.time()
         if not stream:
             time.sleep(s.poll_s)
@@ -230,7 +230,8 @@ def cmd_leaders(s: Settings, args) -> None:
     build_leaders(s, args.out, args.source, args.top, not args.no_check)
 
 
-def write_live_report(s: Settings, st: EngineState, log_path: Path, started: float | None = None) -> Path:
+def write_live_report(s: Settings, st: EngineState, log_path: Path, started: float | None = None,
+                      name: str = "live") -> Path:
     """reports/live.md : synthèse + positions ouvertes + derniers trades (rafraîchi chaque minute)."""
     from .report import short
     md = render({"live (cotations Jupiter réelles)": stats(st, s.bankroll_sol)}, None,
@@ -258,7 +259,7 @@ def write_live_report(s: Settings, st: EngineState, log_path: Path, started: flo
                         f"{r['sol']:+.4f} | {vs:+.1%} | {r['delay_s']} s |")
     else:
         head.append("Aucun pour l'instant.")
-    out = Path("reports") / "live.md"
+    out = Path("reports") / f"{name}.md"
     out.parent.mkdir(exist_ok=True)
     out.write_text("\n".join(head) + "\n\n" + md, encoding="utf-8")
     return out
@@ -269,7 +270,7 @@ def cmd_report(s: Settings, args) -> None:
     if not state_path.exists():
         sys.exit("pas d'état live (lance d'abord `live`)")
     st = _load_state(state_path, s)
-    print(write_live_report(s, st, s.data_dir / "live_events.jsonl").read_text(encoding="utf-8"))
+    print(write_live_report(s, st, s.data_dir / "live_events.jsonl", name=args.report).read_text(encoding="utf-8"))
 
 
 def main(argv=None) -> None:
@@ -283,7 +284,9 @@ def main(argv=None) -> None:
     p = sub.add_parser("live", help="paper trading en temps réel (cotations Jupiter)")
     p.add_argument("--leaders", default="leaders.txt")
     p.add_argument("--poll", action="store_true", help="sans websocket : interrogation toutes les CS_POLL_S s")
-    sub.add_parser("report", help="rapport du paper trading live")
+    p.add_argument("--report", default="live", help="nom du rapport dans reports/ (plusieurs tests en parallèle)")
+    p = sub.add_parser("report", help="rapport du paper trading live")
+    p.add_argument("--report", default="live")
     p = sub.add_parser("leaders", help="génère leaders.txt (classement 7 jours) automatiquement")
     p.add_argument("--source", choices=["auto", "solanatracker", "gecko"], default="auto")
     p.add_argument("--top", type=int, default=10)
