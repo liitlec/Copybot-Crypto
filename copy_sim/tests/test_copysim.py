@@ -266,3 +266,19 @@ def test_rug_filter_reasons_and_engine_hook(s):
     eng2 = CopyEngine(s, P(), [W], pre_buy_check=lambda e: "anti-rug : test")
     eng2.on_event(ev("BUY", 10, 1, 1000, sig="x2"))
     assert eng2.st.skips == {"anti-rug : test": 1}
+
+
+def test_scout_round_trips_and_profile():
+    from copysim.scout import leader_profile, round_trips, verdict
+    evs = [ev("BUY", 0, 1.0, 100, mint="A"), ev("SELL", 300, 1.5, 100, pre=100, mint="A"),
+           ev("BUY", 10, 1.0, 100, mint="B"), ev("SELL", 20, 0.5, 100, pre=100, mint="B"),
+           ev("BUY", 30, 1.0, 100, mint="C")]  # C jamais revendu
+    rts = round_trips(evs)
+    assert sorted(r["mint"] for r in rts) == ["A", "B"]
+    p = leader_profile(evs)
+    assert p["n_round_trips"] == 2 and p["median_hold_s"] == 155 and p["share_under_30s"] == 0.5
+    assert p["leader_pnl"] == pytest.approx(0.0) and p["n_tokens"] == 3
+    ok = {"copier_h1": {"neutral": {"return": 0.1}}, "copier_h2": {"neutral": {"return": 0.05},
+          "pessimistic": {"return": 0.0}}, "crash_rate": 0.05}
+    assert verdict(ok).startswith("✅")
+    assert verdict(dict(ok, copier_h2={"neutral": {"return": -0.1}, "pessimistic": {"return": -0.2}})).startswith("❌ ne tient")

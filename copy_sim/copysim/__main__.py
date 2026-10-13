@@ -281,6 +281,21 @@ def write_live_report(s: Settings, st: EngineState, log_path: Path, started: flo
     return out
 
 
+def cmd_scout(s: Settings, args) -> None:
+    from .scout import render_scout, scout, verdict
+    key = os.getenv("SOLANATRACKER_API_KEY")
+    if not key:
+        sys.exit("SOLANATRACKER_API_KEY manquante dans .env")
+    res = scout(s, key, args.days, args.top, args.min_hold, args.shortlist)
+    Path("reports").mkdir(exist_ok=True)
+    Path("reports/scout.md").write_text(render_scout(res), encoding="utf-8")
+    Path("reports/scout.json").write_text(json.dumps(res, default=str, indent=1), encoding="utf-8")
+    good = [p for p in res["profiles"] if p["wallet"] in res["chosen"] and verdict(p).startswith("✅")]
+    Path(args.out).write_text("".join(f"{p['wallet']}  # {p['label']} (scout)\n" for p in good), encoding="utf-8")
+    print(render_scout(res))
+    print(f"-> reports/scout.md ; {len(good)} candidat(s) dans {args.out}")
+
+
 def cmd_report(s: Settings, args) -> None:
     state_path = s.data_dir / "live_state.json"
     if not state_path.exists():
@@ -308,6 +323,12 @@ def main(argv=None) -> None:
                         "(data/price_paths.jsonl, data/token_info.jsonl)")
     p = sub.add_parser("report", help="rapport du paper trading live")
     p.add_argument("--report", default="live")
+    p = sub.add_parser("scout", help="cherche des leaders copiables (backtest copieur, validation hors échantillon)")
+    p.add_argument("--days", type=float, default=7)
+    p.add_argument("--top", type=int, default=40)
+    p.add_argument("--min-hold", type=float, default=120, help="détention médiane minimale (s)")
+    p.add_argument("--shortlist", type=int, default=12)
+    p.add_argument("--out", default="leaders_scout.txt")
     p = sub.add_parser("leaders", help="génère leaders.txt (classement 7 jours) automatiquement")
     p.add_argument("--source", choices=["auto", "solanatracker", "gecko"], default="auto")
     p.add_argument("--top", type=int, default=10)
@@ -315,7 +336,7 @@ def main(argv=None) -> None:
     p.add_argument("--no-check", action="store_true", help="ne pas vérifier l'activité on-chain")
     args = ap.parse_args(argv)
     s = Settings()
-    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders}[args.cmd](s, args)
+    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout}[args.cmd](s, args)
 
 
 if __name__ == "__main__":
