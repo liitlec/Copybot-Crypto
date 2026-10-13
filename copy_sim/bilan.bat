@@ -7,8 +7,9 @@ set CS_DATA_DIR=data_filtre& uv run python -m copysim report --report live_filtr
 set CS_DATA_DIR=data_raven& set CS_BOT_FEE_PCT=0& set CS_TX_FEE_SOL=0.0027& uv run python -m copysim report --report live_raven
 set CS_BOT_FEE_PCT=& set CS_TX_FEE_SOL=
 set CS_DATA_DIR=data_cands& set CS_SIZE=0.05& uv run python -m copysim report --report live_candidats
+set CS_DATA_DIR=data_top& set CS_SIZE=0.1& uv run python -m copysim report --report live_top
 set CS_DATA_DIR=& set CS_SIZE=
-uv run python -m copysim copy-check --dirs data data_filtre data_raven data_cands
+uv run python -m copysim copy-check --dirs data data_filtre data_raven data_cands data_top
 echo.
 echo Rapports dans %~dp0reports : live_*.md et copy_rules.md
 start "" "%~dp0reports"

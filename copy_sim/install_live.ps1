@@ -1,4 +1,4 @@
-# Installe et lance les 4 paper tests live (lecture seule, aucun ordre reel, aucune cle privee).
+# Installe et lance les 5 paper tests live (lecture seule, aucun ordre reel, aucune cle privee).
 # Relancer ce script met a jour le simulateur sans toucher a .env ni aux donnees des tests.
 # Usage (PowerShell) :
 #   irm https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/copy_sim/install_live.ps1 | iex
@@ -41,7 +41,7 @@ uv pip install -r requirements.txt
 Write-Host "4/6 Lancement automatique a chaque ouverture de session..."
 $startup = [Environment]::GetFolderPath("Startup")
 $shell = New-Object -ComObject WScript.Shell
-$tests = @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat", "start_live_candidats.bat")
+$tests = @("start_live.bat", "start_live_filtre.bat", "start_live_raven.bat", "start_live_candidats.bat", "start_live_top.bat")
 # l'enregistreur sniper n'est plus lance (regle rejetee le 13/10) ; start_sniper.bat reste disponible a la main
 Remove-Item (Join-Path $startup "copysim_start_sniper.bat.lnk") -ErrorAction SilentlyContinue
 foreach ($bat in $tests) {
@@ -60,9 +60,9 @@ $lnk.Save()
 Write-Host "5/6 Desactivation de la mise en veille sur secteur..."
 try { powercfg /change standby-timeout-ac 0 } catch { Write-Host "  (a faire a la main : Parametres > Alimentation > Veille : Jamais)" }
 
-Write-Host "6/6 Demarrage des 4 tests (515vh1 temoin, 515vh1 + anti-rug, 515vh1 Raven, leaders candidats)..."
+Write-Host "6/6 Demarrage des 5 tests (515vh1 temoin, 515vh1 + anti-rug, 515vh1 Raven, leaders candidats, top wallets)..."
 foreach ($bat in $tests) {
   Start-Process -FilePath (Join-Path $dest $bat) -WorkingDirectory $dest -WindowStyle Minimized
 }
 Write-Host ""
-Write-Host "OK. Suivi (mis a jour chaque minute) : $dest\reports\live_temoin.md, live_filtre.md, live_raven.md, live_candidats.md ; bilan + regles : raccourci 'Bilan copysim' sur le Bureau"
+Write-Host "OK. Suivi (mis a jour chaque minute) : $dest\reports\live_temoin.md, live_filtre.md, live_raven.md, live_candidats.md, live_top.md ; bilan + regles : raccourci 'Bilan copysim' sur le Bureau"
