@@ -17,7 +17,7 @@ from . import net
 from .config import WSOL, Settings
 from .engine import CopyEngine
 from .history import helius_key, wallet_swaps_helius
-from .leaders import from_solanatracker
+from .leaders import from_solanatracker, from_st_top_traders
 from .prices import BacktestPrices, GeckoCandles
 from .report import short, stats
 from .swaps import SwapEvent, convert_usd
@@ -93,8 +93,24 @@ def copier_backtest(events: list[SwapEvent], wallet: str, candles: GeckoCandles,
     return out
 
 
+def candidates(st_key: str, sources: list[str], top: int, exclude: set[str], log=print) -> list:
+    """Union des sources (kol7d, kol30d, kol1d, top), sans doublons ni wallets déjà étudiés."""
+    out, seen = [], set(exclude)
+    for src in sources:
+        if src == "top":
+            got = from_st_top_traders(st_key, pages=max(1, top // 25))
+        else:
+            got = from_solanatracker(st_key, src.removeprefix("kol"), limit=top)
+        new = [c for c in got if c.wallet not in seen]
+        seen.update(c.wallet for c in new)
+        log(f"  source {src} : {len(got)} wallets, {len(new)} nouveaux")
+        out += new
+    return out
+
+
 def scout(s: Settings, st_key: str, days: float = 7, top: int = 40, min_hold_s: float = 120,
-          shortlist: int = 12, log=print) -> dict:
+          shortlist: int = 12, log=print, sources: list[str] | None = None,
+          exclude: set[str] | None = None) -> dict:
     # Bridage : ne pas gêner les tests live qui partagent les mêmes clés.
     net.MIN_INTERVAL.update({"api.helius.xyz": 1.0, "data.solanatracker.io": 1.0})
     hkey = helius_key(s.rpc_url)
@@ -102,21 +118,32 @@ def scout(s: Settings, st_key: str, days: float = 7, top: int = 40, min_hold_s: 
         raise RuntimeError("scout utilise l'API Enhanced de Helius : SOLANA_RPC_URL doit être une URL Helius")
     now = int(time.time())
     since, mid = now - int(days * 86400), now - int(days * 86400 / 2)
-    cands = from_solanatracker(st_key, "7d", limit=top)
-    log(f"{len(cands)} candidats (classement 7 j)")
+    sources = sources or ["kol7d"]
+    cands = candidates(st_key, sources, top, exclude or set(), log)
+    log(f"{len(cands)} candidats ({', '.join(sources)})")
     candles = GeckoCandles(s.cache_dir, st_key)
     candles.load(WSOL, since - 3600, now + 60)
 
     profiles = []
     for i, c in enumerate(cands, 1):
         try:
+            # pré-tri sur 3 pages : un scalpeur se voit tout de suite, inutile de charger tout l'historique
+            ev = wallet_swaps_helius(hkey, c.wallet, since, now, max_pages=3, cache_dir=s.cache_dir,
+                                     log=lambda *_: None)
+            pre = leader_profile(ev)
+            if pre["n_round_trips"] >= 8 and (pre["median_hold_s"] or 0) < min_hold_s / 2:
+                profiles.append({"wallet": c.wallet, "label": c.label, "rank_pnl_7d": c.pnl, **pre,
+                                 "source": c.source, "precheck_only": True})
+                log(f"  {i}/{len(cands)} {c.label[:18]:18s} scalpeur (pré-tri, médiane {pre['median_hold_s']:.0f}s)")
+                continue
             ev = wallet_swaps_helius(hkey, c.wallet, since, now, max_pages=60, cache_dir=s.cache_dir,
                                      log=lambda *_: None)
         except RuntimeError as exc:
             log(f"  {i}/{len(cands)} {c.label}: échec ({exc})")
             continue
         ev = convert_usd(ev, candles.sol_usd_at)
-        p = {"wallet": c.wallet, "label": c.label, "rank_pnl_7d": c.pnl, **leader_profile(ev), "_events": ev}
+        p = {"wallet": c.wallet, "label": c.label, "rank_pnl_7d": c.pnl, **leader_profile(ev), "_events": ev,
+             "source": c.source}
         profiles.append(p)
         mh = p["median_hold_s"]
         log(f"  {i}/{len(cands)} {c.label[:18]:18s} {p['n_round_trips']:4d} A/R, détention médiane "
@@ -150,7 +177,7 @@ def scout(s: Settings, st_key: str, days: float = 7, top: int = 40, min_hold_s: 
             f" | 2e moitié {r2 if r2 is None else f'{r2:+.1%}'} | crash {p['crash_rate']}")
     for p in profiles:
         p.pop("_events", None)
-    return {"generated": now, "days": days, "min_hold_s": min_hold_s, "profiles": profiles,
+    return {"generated": now, "days": days, "min_hold_s": min_hold_s, "profiles": profiles, "sources": sources,
             "chosen": [p["wallet"] for p in chosen]}
 
 

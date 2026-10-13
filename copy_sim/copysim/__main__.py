@@ -286,14 +286,19 @@ def cmd_scout(s: Settings, args) -> None:
     key = os.getenv("SOLANATRACKER_API_KEY")
     if not key:
         sys.exit("SOLANATRACKER_API_KEY manquante dans .env")
-    res = scout(s, key, args.days, args.top, args.min_hold, args.shortlist)
+    exclude: set[str] = set()
+    for f in args.exclude or []:
+        if Path(f).exists():
+            exclude |= {p["wallet"] for p in json.loads(Path(f).read_text(encoding="utf-8"))["profiles"]}
+    res = scout(s, key, args.days, args.top, args.min_hold, args.shortlist,
+                sources=args.sources.split(","), exclude=exclude)
     Path("reports").mkdir(exist_ok=True)
-    Path("reports/scout.md").write_text(render_scout(res), encoding="utf-8")
-    Path("reports/scout.json").write_text(json.dumps(res, default=str, indent=1), encoding="utf-8")
+    Path(f"reports/{args.name}.md").write_text(render_scout(res), encoding="utf-8")
+    Path(f"reports/{args.name}.json").write_text(json.dumps(res, default=str, indent=1), encoding="utf-8")
     good = [p for p in res["profiles"] if p["wallet"] in res["chosen"] and verdict(p).startswith("✅")]
     Path(args.out).write_text("".join(f"{p['wallet']}  # {p['label']} (scout)\n" for p in good), encoding="utf-8")
     print(render_scout(res))
-    print(f"-> reports/scout.md ; {len(good)} candidat(s) dans {args.out}")
+    print(f"-> reports/{args.name}.md ; {len(good)} candidat(s) dans {args.out}")
 
 
 def cmd_snipe_record(s: Settings, args) -> None:
@@ -392,6 +397,9 @@ def main(argv=None) -> None:
     p.add_argument("--min-hold", type=float, default=120, help="détention médiane minimale (s)")
     p.add_argument("--shortlist", type=int, default=12)
     p.add_argument("--out", default="leaders_scout.txt")
+    p.add_argument("--sources", default="kol7d", help="kol7d,kol30d,kol1d,top (séparés par des virgules)")
+    p.add_argument("--exclude", nargs="*", help="scout.json précédents : wallets déjà étudiés à sauter")
+    p.add_argument("--name", default="scout", help="nom du rapport dans reports/")
     p = sub.add_parser("leaders", help="génère leaders.txt (classement 7 jours) automatiquement")
     p.add_argument("--source", choices=["auto", "solanatracker", "gecko"], default="auto")
     p.add_argument("--top", type=int, default=10)

@@ -64,7 +64,26 @@ def from_solanatracker(api_key: str, period: str = "7d", limit: int = 30) -> lis
             continue
         name = _first(r, "identity.name", "identity.twitter", "name", default="?")
         pnl = float(_first(r, "period.realized", "period.realizedPnl", "realized", "pnl.realized", default=0) or 0)
-        out.append(Candidate(w, str(name), pnl, None, "solanatracker 7j"))
+        out.append(Candidate(w, str(name), pnl, None, f"KOL {period}"))
+    return out
+
+
+ST_TOP = "https://data.solanatracker.io/top-traders/all/{}"
+
+
+def from_st_top_traders(api_key: str, pages: int = 3) -> list[Candidate]:
+    """Meilleurs traders toutes catégories (pas seulement les KOL, donc moins copiés)."""
+    out = []
+    for page in range(1, pages + 1):
+        data = net.get_json(ST_TOP.format(page), {"expandPnl": "false", "sortBy": "total"},
+                            headers={"x-api-key": api_key})
+        for r in data.get("wallets") or []:
+            w = r.get("wallet")
+            if is_solana_address(w):
+                out.append(Candidate(w, "top " + w[:6], float((r.get("summary") or {}).get("realized") or 0),
+                                     None, "top traders"))
+        if not data.get("hasNext"):
+            break
     return out
 
 
