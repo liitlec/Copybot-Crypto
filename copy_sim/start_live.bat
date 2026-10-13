@@ -16,7 +16,7 @@ if not exist .venv (
 )
 :loop
 echo [%date% %time%] demarrage du paper trading live...
-uv run python -m copysim live --leaders leaders_live.txt
+uv run python -m copysim live --leaders leaders_live.txt --record-paths
 echo [%date% %time%] arret inattendu, redemarrage dans 15 s (Ctrl+C pour quitter)
 timeout /t 15 >nul
 goto loop

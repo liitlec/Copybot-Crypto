@@ -175,6 +175,10 @@ def cmd_live(s: Settings, args) -> None:
                   f"retard {res['delay_s']}s  capital≈{eng.equity_at_cost():.3f}", flush=True)
             state_path.write_text(json.dumps(asdict(eng.st), default=str))
 
+    if args.record_paths:  # prix de sortie seconde par seconde des positions ouvertes
+        from .paths import PathRecorder
+        PathRecorder(eng.st, s.jup_quote_url, s.data_dir / "price_paths.jsonl").start()
+
     stream = None
     if not args.poll:
         try:
@@ -285,6 +289,8 @@ def main(argv=None) -> None:
     p.add_argument("--leaders", default="leaders.txt")
     p.add_argument("--poll", action="store_true", help="sans websocket : interrogation toutes les CS_POLL_S s")
     p.add_argument("--report", default="live", help="nom du rapport dans reports/ (plusieurs tests en parallèle)")
+    p.add_argument("--record-paths", action="store_true",
+                   help="enregistre le prix de sortie des positions ouvertes toutes les ~1,5 s (data/price_paths.jsonl)")
     p = sub.add_parser("report", help="rapport du paper trading live")
     p.add_argument("--report", default="live")
     p = sub.add_parser("leaders", help="génère leaders.txt (classement 7 jours) automatiquement")

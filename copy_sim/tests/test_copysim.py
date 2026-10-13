@@ -214,3 +214,18 @@ def test_ws_url():
     from copysim.stream import ws_url
     assert ws_url("https://mainnet.helius-rpc.com/?api-key=k") == "wss://mainnet.helius-rpc.com/?api-key=k"
     assert ws_url("http://localhost:8899") == "ws://localhost:8899"
+
+
+def test_path_recorder_writes_rows(tmp_path, monkeypatch):
+    import time as _t
+    from copysim.engine import EngineState
+    from copysim.paths import PathRecorder
+    st = EngineState(cash=1.0, positions={"L:M": {"mint": "M", "leader": "L", "decimals": 6, "tokens": 1000.0,
+                                                  "cost_sol": 0.2, "opened_ts": _t.time() - 5}})
+    rec = PathRecorder(st, "http://q", tmp_path / "p.jsonl", interval_s=0.01)
+    monkeypatch.setattr(rec, "_quote_sell", lambda mint, raw: {"outAmount": str(int(0.22 * LAMPORTS)), "priceImpactPct": "0.01"})
+    rec.start()
+    _t.sleep(0.1)
+    import json as _j
+    rows = [_j.loads(l) for l in (tmp_path / "p.jsonl").read_text().splitlines()]
+    assert rows and rows[0]["ret_vs_cost"] == pytest.approx(0.1) and rows[0]["age_s"] >= 5
