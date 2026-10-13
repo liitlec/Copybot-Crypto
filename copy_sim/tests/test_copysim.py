@@ -229,3 +229,19 @@ def test_path_recorder_writes_rows(tmp_path, monkeypatch):
     import json as _j
     rows = [_j.loads(l) for l in (tmp_path / "p.jsonl").read_text().splitlines()]
     assert rows and rows[0]["ret_vs_cost"] == pytest.approx(0.1) and rows[0]["age_s"] >= 5
+
+
+def test_token_info_summary():
+    from copysim.tokeninfo import summarize
+    d = {"token": {"creation": {"creator": "C", "created_time": 900}},
+         "pools": [{"market": "pumpfun", "liquidity": {"usd": 5000}, "lpBurn": 100, "createdAt": 950_000,
+                    "security": {"mintAuthority": None, "freezeAuthority": None}, "deployer": "D",
+                    "txns": {"buys": 10, "sells": 4}},
+                   {"market": "x", "liquidity": {"usd": 100}}],
+         "risk": {"score": 3, "rugged": False, "top10": 30.5, "dev": {"percentage": 2.0},
+                  "bundlers": {"totalPercentage": 5.0}, "snipers": {"totalPercentage": 1.0},
+                  "risks": [{"name": "No social media"}]}}
+    s = summarize(d, now=1000)
+    assert s["token_age_s"] == 100 and s["pool_age_s"] == 50 and s["liquidity_usd"] == 5000
+    assert s["liquidity_usd_all_pools"] == 5100 and s["bundlers_pct"] == 5.0 and s["insiders_pct"] is None
+    assert s["risks"] == ["No social media"] and s["lp_burn_pct"] == 100

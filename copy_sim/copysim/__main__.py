@@ -169,15 +169,21 @@ def cmd_live(s: Settings, args) -> None:
         res = eng.on_event(ev, now_ts=time.time())
         if res:
             res["ts"] = time.time()
+            if token_rec and res["type"] == "BUY":
+                token_rec.submit(ev, res)
             with log_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(res) + "\n")
             print(f"  {res['type']:4s} {w[:6]}… {ev.mint[:6]}… {res['sol']:+.4f} SOL "
                   f"retard {res['delay_s']}s  capital≈{eng.equity_at_cost():.3f}", flush=True)
             state_path.write_text(json.dumps(asdict(eng.st), default=str))
 
-    if args.record_paths:  # prix de sortie seconde par seconde des positions ouvertes
+    token_rec = None
+    if args.record_paths:  # données pour tester plus tard sorties et filtres anti-rug
         from .paths import PathRecorder
+        from .tokeninfo import TokenInfoRecorder
         PathRecorder(eng.st, s.jup_quote_url, s.data_dir / "price_paths.jsonl").start()
+        token_rec = TokenInfoRecorder(os.getenv("SOLANATRACKER_API_KEY") or None, s.data_dir / "token_info.jsonl")
+        token_rec.start()
 
     stream = None
     if not args.poll:
@@ -290,7 +296,8 @@ def main(argv=None) -> None:
     p.add_argument("--poll", action="store_true", help="sans websocket : interrogation toutes les CS_POLL_S s")
     p.add_argument("--report", default="live", help="nom du rapport dans reports/ (plusieurs tests en parallèle)")
     p.add_argument("--record-paths", action="store_true",
-                   help="enregistre le prix de sortie des positions ouvertes toutes les ~1,5 s (data/price_paths.jsonl)")
+                   help="enregistre le prix de sortie des positions ouvertes (~1,5 s) et la fiche de chaque token acheté "
+                        "(data/price_paths.jsonl, data/token_info.jsonl)")
     p = sub.add_parser("report", help="rapport du paper trading live")
     p.add_argument("--report", default="live")
     p = sub.add_parser("leaders", help="génère leaders.txt (classement 7 jours) automatiquement")
