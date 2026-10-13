@@ -78,6 +78,18 @@ cotation Jupiter** prise à ce moment-là (impact de prix pour notre taille incl
 après slippage). Rien n'est signé ni envoyé. Le retard réel de détection est enregistré. L'état est sauvegardé
 dans `data/live_state.json` : on peut arrêter et relancer.
 
+### Installation en une commande (Windows)
+
+Dans PowerShell :
+
+```powershell
+irm https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/copy_sim/install_live.ps1 | iex
+```
+
+Le script télécharge le simulateur dans `%USERPROFILE%\copysim`, demande la clé RPC Helius et la clé Solana
+Tracker (gardées dans `.env` sur le PC), installe Python/uv si besoin, ajoute les deux tests (base et
+réglages Raven, capital simulé 6,2 SOL ≈ 600 €) au démarrage de Windows, coupe la mise en veille et les lance.
+
 ### Laisser tourner en continu (Windows)
 
 Double-clic sur `start_live.bat` : il crée l'environnement au premier lancement, demande les clés
