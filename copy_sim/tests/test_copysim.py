@@ -320,3 +320,19 @@ def test_stream_single_connection_routing():
     st.handle('{"method":"logsNotification","params":{"subscription":555,"result":{"value":{"signature":"S2","err":{"x":1}}}}}', subs, pending)
     w, sig, _ = st.q.get_nowait()
     assert (w, sig) == ("WB", "S1") and st.q.empty()
+
+
+def test_copy_rules_deltas():
+    from copysim.rules import evaluate
+    pre = {"regles": {"R1_prix_entree_max": {"seuil_entry_slippage": 0.2},
+                      "R2_moitie_a_plus_50": {"seuil_ret_vs_cost": 0.5, "fraction_vendue": 0.5},
+                      "R3_confluence": {"fenetre_s": 600, "multiplicateur": 2.0}}}
+    t1 = {"leader": "A", "mint": "M1", "opened_ts": 100.0, "pnl_sol": -0.5, "proceeds_sol": 0.5, "entry_slippage": 0.5}
+    t2 = {"leader": "B", "mint": "M2", "opened_ts": 200.0, "pnl_sol": -1.0, "proceeds_sol": 0.0, "entry_slippage": 0.0}
+    t3 = {"leader": "C", "mint": "M2", "opened_ts": 300.0, "pnl_sol": 0.2, "proceeds_sol": 1.2, "entry_slippage": 0.1}
+    paths = {("B", "M2", 200): [(5.0, 0.1, 1.1), (9.0, 0.6, 1.6), (20.0, -1.0, 0.0)]}
+    r = evaluate([t1, t2, t3], paths, pre, bot_fee_pct=0.0, tx_fee=0.0)
+    assert r["base"] == -1.3
+    assert r["R1"]["delta"] == 0.5 and r["R1"]["touches"] == 1          # t1 évité
+    assert abs(r["R2"]["delta"] - 0.8) < 1e-9                            # moitié vendue à 1,6 au lieu de 0
+    assert abs(r["R3"]["delta"] - (-1.0 + 0.2)) < 1e-9                   # t2 et t3 doublés

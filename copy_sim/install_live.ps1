@@ -52,6 +52,11 @@ foreach ($bat in $tests) {
   $lnk.Save()
 }
 
+$lnk = $shell.CreateShortcut((Join-Path ([Environment]::GetFolderPath("Desktop")) "Bilan copysim.lnk"))
+$lnk.TargetPath = Join-Path $dest "bilan.bat"
+$lnk.WorkingDirectory = $dest
+$lnk.Save()
+
 Write-Host "5/6 Desactivation de la mise en veille sur secteur..."
 try { powercfg /change standby-timeout-ac 0 } catch { Write-Host "  (a faire a la main : Parametres > Alimentation > Veille : Jamais)" }
 
@@ -60,4 +65,4 @@ foreach ($bat in $tests) {
   Start-Process -FilePath (Join-Path $dest $bat) -WorkingDirectory $dest -WindowStyle Minimized
 }
 Write-Host ""
-Write-Host "OK. Suivi (mis a jour chaque minute) : $dest\reports\live_temoin.md, live_filtre.md, live_raven.md, live_candidats.md"
+Write-Host "OK. Suivi (mis a jour chaque minute) : $dest\reports\live_temoin.md, live_filtre.md, live_raven.md, live_candidats.md ; bilan + regles : raccourci 'Bilan copysim' sur le Bureau"

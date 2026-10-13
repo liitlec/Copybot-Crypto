@@ -1,9 +1,10 @@
 """Enregistre le prix de sortie réel de chaque position ouverte (cotation Jupiter de vente de toute la
-ligne), toutes les ~1,5 s, pour tester plus tard des règles de sortie (take profit, stop, durée max)
+ligne), une cotation toutes les CS_PATH_INTERVAL_S secondes (3 par défaut) à tour de rôle, pour tester plus tard des règles de sortie (take profit, stop, durée max)
 sans relancer de test live. Lecture seule : aucune transaction n'est construite."""
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 from pathlib import Path
@@ -14,15 +15,20 @@ from .config import LAMPORTS, WSOL
 
 
 class PathRecorder(threading.Thread):
-    def __init__(self, state, quote_url: str, out_path: Path, interval_s: float = 1.5):
+    def __init__(self, state, quote_url: str, out_path: Path, interval_s: float | None = None):
         super().__init__(daemon=True)
+        if interval_s is None:
+            interval_s = float(os.getenv("CS_PATH_INTERVAL_S", 3))
         self.state, self.url, self.out, self.interval = state, quote_url, Path(out_path), interval_s
         self._session = requests.Session()
+        self.backoff_until = 0.0
 
     def _quote_sell(self, mint: str, raw_amount: int) -> dict | None:
         try:  # pas de retry : une cotation manquée vaut mieux que retarder les vrais trades
             r = self._session.get(self.url, params={"inputMint": mint, "outputMint": WSOL, "amount": raw_amount,
                                                     "slippageBps": 100}, timeout=5)
+            if r.status_code == 429:  # limite Jupiter : on laisse la priorité aux cotations des vrais trades
+                self.backoff_until = time.time() + 15
             return r.json() if r.status_code == 200 else None
         except (requests.RequestException, ValueError):
             return None
@@ -34,7 +40,7 @@ class PathRecorder(threading.Thread):
                 positions = list(self.state.positions.values())
             except RuntimeError:  # dict modifié pendant la lecture
                 positions = []
-            if positions:
+            if positions and time.time() >= self.backoff_until:
                 p = positions[i % len(positions)]  # une cotation par intervalle, à tour de rôle
                 i += 1
                 raw = int(p["tokens"] * 10 ** p["decimals"])

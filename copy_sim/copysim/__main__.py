@@ -318,6 +318,22 @@ def cmd_snipe_report(s: Settings, args) -> None:
     print(md)
 
 
+def cmd_copy_check(s: Settings, args) -> None:
+    """Évalue les règles de copie pré-enregistrées sur chaque dossier de test présent."""
+    from .rules import closed_trades, evaluate, load_paths, render
+    pre = json.loads(Path(args.rule).read_text(encoding="utf-8"))
+    results = {}
+    for d in args.dirs:
+        st = Path(d) / "live_state.json"
+        if st.exists():
+            trades = closed_trades(st, pre["fixee_ts"])
+            results[d] = evaluate(trades, load_paths(Path(d) / "price_paths.jsonl"), pre, s.bot_fee_pct, s.tx_fee_sol)
+    md = render(results, pre)
+    Path("reports").mkdir(exist_ok=True)
+    Path("reports/copy_rules.md").write_text(md, encoding="utf-8")
+    print(md)
+
+
 def cmd_snipe_check(s: Settings, args) -> None:
     """Évalue la règle pré-enregistrée uniquement sur les tokens postérieurs à son enregistrement."""
     from .sniper import Rule, evaluate, load_snipes
@@ -391,6 +407,9 @@ def main(argv=None) -> None:
     p = sub.add_parser("snipe-check", help="évalue la règle sniper pré-enregistrée sur les données postérieures")
     p.add_argument("--dir", default="data_sniper")
     p.add_argument("--rule", default="prereg/sniper_rule.json")
+    p = sub.add_parser("copy-check", help="évalue les règles de copie pré-enregistrées (prereg/copy_rules.json)")
+    p.add_argument("--rule", default="prereg/copy_rules.json")
+    p.add_argument("--dirs", nargs="*", default=["data", "data_filtre", "data_raven", "data_cands", "data_scalp"])
     p = sub.add_parser("scout", help="cherche des leaders copiables (backtest copieur, validation hors échantillon)")
     p.add_argument("--days", type=float, default=7)
     p.add_argument("--top", type=int, default=40)
@@ -407,7 +426,7 @@ def main(argv=None) -> None:
     p.add_argument("--no-check", action="store_true", help="ne pas vérifier l'activité on-chain")
     args = ap.parse_args(argv)
     s = Settings()
-    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout,
+    {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout, "copy-check": cmd_copy_check,
      "snipe-record": cmd_snipe_record, "snipe-report": cmd_snipe_report, "snipe-check": cmd_snipe_check}[args.cmd](s, args)
 
 

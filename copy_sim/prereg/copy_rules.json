@@ -1,0 +1,27 @@
+{
+  "nom": "règles de copie v1 : prix d'entrée max, vente de la moitié à +50 %, confluence",
+  "fixee_le_utc": "2026-10-13 16:00:36",
+  "fixee_ts": 1791907236,
+  "regles": {
+    "R1_prix_entree_max": {
+      "description": "ne pas copier l'achat si notre prix d'entrée dépasse celui du leader de plus de 20 %",
+      "seuil_entry_slippage": 0.20
+    },
+    "R2_moitie_a_plus_50": {
+      "description": "vendre la moitié de la position dès qu'une cotation de vente complète montre ≥ +50 % sur le coût ; l'autre moitié suit le leader",
+      "seuil_ret_vs_cost": 0.50,
+      "fraction_vendue": 0.5
+    },
+    "R3_confluence": {
+      "description": "doubler la mise quand au moins 2 leaders du même test achètent le même token à moins de 10 min d'écart",
+      "fenetre_s": 600,
+      "multiplicateur": 2.0
+    }
+  },
+  "evaluation": "trades fermés (sortie du leader) ouverts après fixee_ts, test par test, en comparant à la copie simple ; R2 utilise price_paths.jsonl (cotations Jupiter réelles)",
+  "criteres_de_reussite": {
+    "trades_min": 50,
+    "et": "la règle améliore le PnL total en SOL ET sur chacune des deux moitiés chronologiques"
+  },
+  "origine": "idées tirées des tests du 13/10 (Raven AF1KHh acheté +157 %, scalpeurs +14-18 %, FCVohF acheté par Dior et Idontpaytaxes) ; non validées"
+}
