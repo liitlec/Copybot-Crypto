@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import queue
 import sys
 import time
 from collections import defaultdict
@@ -148,41 +149,77 @@ def cmd_live(s: Settings, args) -> None:
     for w in leaders:  # on part de maintenant : pas de rattrapage de l'historique
         page = rpc.signatures(w, limit=1)
         last_sig[w] = page[0]["signature"] if page else None
-    started, last_report = time.time(), 0.0
-    print(f"Paper trading live sur {len(leaders)} leaders (Ctrl+C pour arrêter). Leader actif : "
-          f"{eng.active_leader or 'tous'}")
+    started, last_report, last_poll = time.time(), 0.0, 0.0
+    processed: set[str] = set()
+
+    def handle(w: str, sig: str, tx: dict | None) -> None:
+        processed.add(sig)
+        ev = parse_swap(tx, w, sig)
+        if not ev:
+            return
+        if ev.quote == "USD":
+            px = prices.sol_usd()
+            if not px:
+                return
+            ev.sol_amount = ev.quote_amount / px
+        res = eng.on_event(ev, now_ts=time.time())
+        if res:
+            res["ts"] = time.time()
+            with log_path.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(res) + "\n")
+            print(f"  {res['type']:4s} {w[:6]}… {ev.mint[:6]}… {res['sol']:+.4f} SOL "
+                  f"retard {res['delay_s']}s  capital≈{eng.equity_at_cost():.3f}", flush=True)
+            state_path.write_text(json.dumps(asdict(eng.st), default=str))
+
+    stream = None
+    if not args.poll:
+        try:
+            from .stream import SignatureStream
+            stream = SignatureStream(s.rpc_url, leaders).start()
+        except RuntimeError as exc:
+            print(f"  temps réel indisponible ({exc}) : interrogation toutes les {s.poll_s}s")
+    mode = "websocket temps réel + contrôle toutes les 30 s" if stream else f"interrogation toutes les {s.poll_s}s"
+    print(f"Paper trading live sur {len(leaders)} leaders ({mode}). Ctrl+C pour arrêter. Leader actif : "
+          f"{eng.active_leader or 'tous'}", flush=True)
+    poll_every = 30.0 if stream else s.poll_s
     while True:
-        for w in leaders:
+        if stream:  # 1) signatures poussées en temps réel
             try:
-                new = rpc.signatures(w, until=last_sig[w], limit=50)
-            except RuntimeError as exc:
-                print(f"  RPC {w[:6]}…: {exc}", file=sys.stderr)
-                continue
-            if not new:
-                continue
-            last_sig[w] = new[0]["signature"]
-            ok = [x["signature"] for x in reversed(new) if x.get("err") is None]
-            for sig, tx in zip(ok, rpc.transactions(ok)):
-                ev = parse_swap(tx, w, sig)
-                if not ev:
+                w, sig, _ = stream.q.get(timeout=0.5)
+            except queue.Empty:
+                w = None
+            if w and sig not in processed:
+                tx = None
+                for _ in range(25):  # la tx peut ne pas être encore servie par getTransaction
+                    try:
+                        tx = rpc.call("getTransaction", [sig, {"encoding": "jsonParsed", "commitment": "confirmed",
+                                                               "maxSupportedTransactionVersion": 1}])
+                    except RuntimeError:
+                        tx = None
+                    if tx:
+                        break
+                    time.sleep(0.2)
+                handle(w, sig, tx)
+        if time.time() - last_poll >= poll_every:  # 2) filet de sécurité : rien n'est raté
+            last_poll = time.time()
+            for w in leaders:
+                try:
+                    new = rpc.signatures(w, until=last_sig[w], limit=50)
+                except RuntimeError as exc:
+                    print(f"  RPC {w[:6]}…: {exc}", file=sys.stderr)
                     continue
-                if ev.quote == "USD":
-                    px = prices.sol_usd()
-                    if not px:
-                        continue
-                    ev.sol_amount = ev.quote_amount / px
-                res = eng.on_event(ev, now_ts=time.time())
-                if res:
-                    res["ts"] = time.time()
-                    with log_path.open("a", encoding="utf-8") as fh:
-                        fh.write(json.dumps(res) + "\n")
-                    print(f"  {res['type']:4s} {w[:6]}… {ev.mint[:6]}… {res['sol']:+.4f} SOL "
-                          f"retard {res['delay_s']}s  capital≈{eng.equity_at_cost():.3f}")
-        state_path.write_text(json.dumps(asdict(eng.st), default=str))
+                if not new:
+                    continue
+                last_sig[w] = new[0]["signature"]
+                ok = [x["signature"] for x in reversed(new) if x.get("err") is None and x["signature"] not in processed]
+                for sig, tx in zip(ok, rpc.transactions(ok)):
+                    handle(w, sig, tx)
+            state_path.write_text(json.dumps(asdict(eng.st), default=str))
         if time.time() - last_report > 60:
             write_live_report(s, eng.st, log_path, started)
             last_report = time.time()
-        time.sleep(s.poll_s)
+        if not stream:
+            time.sleep(s.poll_s)
 
 
 def cmd_leaders(s: Settings, args) -> None:
@@ -239,6 +276,7 @@ def main(argv=None) -> None:
     p.add_argument("--days", type=float, default=3)
     p = sub.add_parser("live", help="paper trading en temps réel (cotations Jupiter)")
     p.add_argument("--leaders", default="leaders.txt")
+    p.add_argument("--poll", action="store_true", help="sans websocket : interrogation toutes les CS_POLL_S s")
     sub.add_parser("report", help="rapport du paper trading live")
     p = sub.add_parser("leaders", help="génère leaders.txt (classement 7 jours) automatiquement")
     p.add_argument("--source", choices=["auto", "solanatracker", "gecko"], default="auto")

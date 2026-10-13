@@ -208,3 +208,9 @@ def test_fill_pre_balances():
            ev("SELL", 4, 1, 50, pre=-1.0, mint="OTHER")]
     fill_pre_balances(evs)
     assert [e.leader_pre_tokens for e in evs[1:]] == [1000, 600, 50]
+
+
+def test_ws_url():
+    from copysim.stream import ws_url
+    assert ws_url("https://mainnet.helius-rpc.com/?api-key=k") == "wss://mainnet.helius-rpc.com/?api-key=k"
+    assert ws_url("http://localhost:8899") == "ws://localhost:8899"

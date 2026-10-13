@@ -1,3 +1,4 @@
 requests>=2.31
+websocket-client>=1.6  # flux temps réel (mode live)
 python-dotenv>=1.0   # optionnel
 pytest>=8            # tests uniquement
