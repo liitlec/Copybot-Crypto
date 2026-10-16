@@ -1,0 +1,11 @@
+{
+  "nom": "G et H : F et E seulement pendant les vagues (trades B des 30 dernières minutes positifs en moyenne)",
+  "debut_ts": 1792150915,
+  "debut": "2026-10-16 13:41 (heure de Paris)",
+  "filtre_vague": "au moment d'un lancement (création t), on prend les trades B lancés entre t − 30 min − 65 s et t − 65 s (donc déjà revendus à t) ; on trade seulement s'il y en a au moins 10 et que leur moyenne est > 0",
+  "regle_G": "F (sélection du score + sortie de E) avec le filtre vague",
+  "regle_H": "E (entrée de B + sortie de E) avec le filtre vague",
+  "evaluation": "lancements créés après debut_ts uniquement ; G comparé à F et H à E sur la même période",
+  "verdict": "G après au moins 200 trades, H après au moins 600 : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, reste positive sans les 3 meilleurs trades, a une moyenne par trade meilleure que sa référence ET un total en SOL au moins égal (le filtre ne doit pas faire rater plus de gains qu'il n'évite de pertes)",
+  "origine": "16/10 après-midi : sur la journée, les trades F/E/B après 30 min où B était négatif ont perdu (F −0,8 %, E −1,2 %), après 30 min où B était au-dessus de +2 % ils ont gagné (F +11,9 %, E +4,8 %). Sur ces données déjà vues : F 416 trades +4,7 % (+1,96 SOL) -> avec filtre 255 trades +8,5 % (+2,17 SOL) ; E 1 857 trades +1,9 % (+3,52 SOL) -> avec filtre 1 156 trades +3,7 % (+4,25 SOL). Une seule journée, 1 à 2 vraies vagues : à confirmer."
+}

@@ -393,3 +393,14 @@ def test_scalp_rule_e_exit():
     y = evaluate_scale(c, pump, 5.0, 2.5)
     assert y > 0.4  # moitié vendue au ×2 (et plus), reste coupé par le stop −40 %
     assert V_TOK0 > tokens_for(V_TOK0, 0.1) > 0
+
+
+def test_scalp_wave_filter():
+    from copysim.scalpgrpc import wave_ok
+    b = [(1000.0 + i, "m", 0.05) for i in range(20)]
+    bt = [t for t, _, _ in b]
+    assert wave_ok(b, bt, 1100.0)  # 20 trades B positifs terminés
+    assert not wave_ok(b, bt, 1070.0)  # trop peu de trades B déjà revendus à t
+    neg = [(t, m, -0.02) for t, m, _ in b]
+    assert not wave_ok(neg, bt, 1100.0)
+    assert not wave_ok(b, bt, 1000.0 + 1800 + 65 + 30)  # hors de la fenêtre de 30 min

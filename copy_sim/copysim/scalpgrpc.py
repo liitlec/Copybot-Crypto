@@ -234,7 +234,42 @@ def run_once(path: Path, start: float):
     out.update(run_e(L, t_end))
     from .scoreD import run_d
     out.update(run_d(L, t_end))
+    out.update(run_gh(out))
     return out
+
+
+# règles G / H figées le 16/10 dans prereg/scalp_rule_gh.json : F / E, mais seulement quand les trades B terminés dans
+# les 30 dernières minutes sont positifs en moyenne (filtre « vague »)
+G_NAME = "G : F seulement si B des 30 dernières minutes > 0"
+H_NAME = "H : E seulement si B des 30 dernières minutes > 0"
+WAVE_WINDOW_S, WAVE_MIN_TRADES = 1800.0, 10
+
+
+def wave_ok(b_trades, b_times, t):
+    """Filtre vague à la création t : moyenne des trades B connus à t (achat +5 s, revente +60 s, donc lancés au plus
+    tard à t − 65 s) lancés dans les 30 min précédentes ; au moins 10 trades, sinon pas de trade."""
+    import bisect
+    i0 = bisect.bisect_left(b_times, t - WAVE_WINDOW_S - 65.0)
+    i1 = bisect.bisect_right(b_times, t - 65.0)
+    xs = [x for _, _, x in b_trades[i0:i1]]
+    return len(xs) >= WAVE_MIN_TRADES and mean(xs) > 0
+
+
+def run_gh(out):
+    p = Path(__file__).resolve().parents[1] / "prereg" / "scalp_rule_gh.json"
+    if not p.exists():
+        return {}
+    since = json.loads(p.read_text(encoding="utf-8"))["debut_ts"]
+    from .scoreD import F_NAME
+    b = sorted(out.get(VARIANTES[0]["nom"], []))
+    bt = [t for t, _, _ in b]
+    res = {}
+    for name, src, ref in ((G_NAME, F_NAME, "F sur la même période que G"),
+                           (H_NAME, REGLE_E["nom"], "E sur la même période que H")):
+        base = [tr for tr in out.get(src, []) if tr[0] >= since]
+        res[name] = [tr for tr in base if wave_ok(b, bt, tr[0])]
+        res[ref] = base
+    return res
 
 
 def run_c(L, t_end, rule=None):
@@ -272,6 +307,7 @@ def report(out, start: float) -> str:
     names += [REGLE_E["nom"], "B sur les mêmes lancements que E"]
     names += [k for k in out if k.startswith(("D ", "F "))] + ["même sélection, revente à 60 s",
                                                                 "tous les lancements, sortie C"]
+    names += [G_NAME, "F sur la même période que G", H_NAME, "E sur la même période que H"]
     for name in names:
         r = [x for *_, x in out.get(name, []) if x is not None]
         if len(r) >= 2:

@@ -13,6 +13,8 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 PARIS = ZoneInfo("Europe/Paris")
 RULES = [  # règle, description, objectif du verdict, référence sur les mêmes lancements, nom de la référence
+    ("G", "F seulement pendant les vagues", 200, "F_G", "F même période"),
+    ("H", "E seulement pendant les vagues", 600, "E_H", "E même période"),
     ("F", "Score + sortie E", 300, "D_F", "D"),
     ("E", "Entrée B, moitié vendue à ×2", 1000, "B_E", "B"),
     ("D", "Score + sortie C", 300, "TOUS_C", "tous, sortie C"),
@@ -20,7 +22,7 @@ RULES = [  # règle, description, objectif du verdict, référence sur les même
     ("B", "+5 s, 1 autre acheteur, vente à 60 s", 1000, None, ""),
     ("A", "+1 s, vente à 60 s", 1000, None, ""),
 ]
-COLORS = {"F": "var(--c1)", "E": "var(--c2)", "D": "var(--c3)", "C": "var(--c4)", "B": "var(--c5)", "A": "var(--c6)"}
+COLORS = {"G": "var(--c7)", "H": "var(--c8)", "F": "var(--c1)", "E": "var(--c2)", "D": "var(--c3)", "C": "var(--c4)", "B": "var(--c5)", "A": "var(--c6)"}
 
 
 def pct(x, sign=True):
@@ -50,11 +52,13 @@ def stats(by):
         m = mean(xs)
         se = math.sqrt(sum((x - m) ** 2 for x in xs) / (n - 1)) / math.sqrt(n) if n > 1 else None
         sans = mean(sorted(xs, reverse=True)[3:])
-        rm = mean([x for _, x in by.get(ref, [])]) if ref else None
+        rxs = [x for _, x in by.get(ref, [])] if ref else []
+        rm = mean(rxs) if ref else None
+        tot_ok = r not in ("G", "H") or sum(xs) >= sum(rxs)  # G / H : le filtre ne doit pas coûter de gains au total
         if n < obj:
             verdict = "En cours"
         else:
-            verdict = "Validé" if m > 2 * se and sans > 0 and (rm is None or m > rm) else "Pas validé"
+            verdict = "Validé" if m > 2 * se and sans > 0 and (rm is None or m > rm) and tot_ok else "Pas validé"
         out.append({"r": r, "nom": nom, "n": n, "obj": obj, "m": m, "se": se, "win": sum(x > 0 for x in xs) / n if n else None,
                     "tot": sum(xs) * 0.1, "sans": sans, "ref": ref_nom, "rm": rm, "verdict": verdict})
     return out
@@ -120,7 +124,7 @@ def main():
     last = max((x["heure"] for x in main_rows), default=None)
     tiles = []
     for s in st:
-        if s["r"] not in ("F", "E", "D", "B"):
+        if s["r"] not in ("G", "H", "F", "E"):
             continue
         cls = {"Validé": "ok", "Pas validé": "bad"}.get(s["verdict"], "wait")
         sg = "pos" if (s["m"] or 0) > 0 else "neg"
@@ -137,7 +141,7 @@ def main():
                    f"<td>{pct(s['win'], False)}</td><td class='{c(s['tot'])}'>{sol(s['tot'])}</td>"
                    f"<td class='{c(s['sans'])}'>{pct(s['sans'])}</td><td class='txt'>{escape(s['ref']) or '—'}</td>"
                    f"<td>{pct(s['rm']) if s['ref'] else '—'}</td><td class='txt'>{s['verdict']}</td></tr>")
-    recent = sorted((x for x in rows if x["serie"] in ("F", "E", "D")), key=lambda x: x["heure"], reverse=True)[:25]
+    recent = sorted((x for x in rows if x["serie"] in ("G", "H", "F", "E")), key=lambda x: x["heure"], reverse=True)[:25]
     rec = "".join(f"<tr><td>{paris(x['heure'], '%H:%M:%S')}</td><td class='txt'>{x['serie']}</td>"
                   f"<td class='txt'>{escape(x['token'])}…</td><td class='{'pos' if x['rendement'] > 0 else 'neg'}'>"
                   f"{pct(x['rendement'])}</td></tr>" for x in recent)
@@ -159,12 +163,12 @@ PAGE = """<title>Suivi scalp Pump.fun</title>
 <style>
 /* Tableau de bord sobre : cartes des règles clés, courbe cumulée, tableaux ; une colonne au téléphone */
 :root {{ --bg: #f6f7f5; --panel: #ffffff; --fg: #1d2420; --muted: #5d6862; --line: #dfe4e0; --ok: #1f7a4a; --bad: #b3372f; --warn: #9a6a12;
-  --c1: #2a6fdb; --c2: #d9622b; --c3: #7b52c9; --c4: #1f8f8a; --c5: #8a8f2a; --c6: #9c5a7a;
+  --c1: #2a6fdb; --c2: #d9622b; --c3: #7b52c9; --c4: #1f8f8a; --c5: #8a8f2a; --c6: #9c5a7a; --c7: #0b7d3e; --c8: #b8860b;
   --serif: "Fraunces", Georgia, serif; --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif; }}
 @media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{ --bg: #121614; --panel: #1b201d; --fg: #e8ece9; --muted: #9aa59f; --line: #2c332f;
-  --ok: #5cc48a; --bad: #ef7a70; --warn: #e2b04f; --c1: #6ea2ff; --c2: #ff9a62; --c3: #b294ff; --c4: #4fc8c1; --c5: #c9cf5a; --c6: #e08fb4; color-scheme: dark; }} }}
+  --ok: #5cc48a; --bad: #ef7a70; --warn: #e2b04f; --c1: #6ea2ff; --c2: #ff9a62; --c3: #b294ff; --c4: #4fc8c1; --c5: #c9cf5a; --c6: #e08fb4; --c7: #5fd68f; --c8: #f0c75e; color-scheme: dark; }} }}
 :root[data-theme="dark"] {{ --bg: #121614; --panel: #1b201d; --fg: #e8ece9; --muted: #9aa59f; --line: #2c332f;
-  --ok: #5cc48a; --bad: #ef7a70; --warn: #e2b04f; --c1: #6ea2ff; --c2: #ff9a62; --c3: #b294ff; --c4: #4fc8c1; --c5: #c9cf5a; --c6: #e08fb4; color-scheme: dark; }}
+  --ok: #5cc48a; --bad: #ef7a70; --warn: #e2b04f; --c1: #6ea2ff; --c2: #ff9a62; --c3: #b294ff; --c4: #4fc8c1; --c5: #c9cf5a; --c6: #e08fb4; --c7: #5fd68f; --c8: #f0c75e; color-scheme: dark; }}
 body {{ background: var(--bg); color: var(--fg); font-family: var(--sans); padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 32px; }}
 .wrap {{ max-width: 72rem; margin-inline: auto; display: grid; gap: 20px; }}
@@ -205,7 +209,7 @@ Mise à jour toutes les 15 minutes : rechargez la page pour voir les derniers ch
 <th>Total SOL</th><th>Sans 3 meilleurs</th><th class="txt">Référence</th><th>Référence, moyenne</th><th class="txt">Verdict</th></tr></thead>
 <tbody>{rows}</tbody></table></div></section>
 <div class="two">
-<section class="card"><h2>Derniers trades D, E, F</h2><div class="scroll"><table><thead><tr><th>Heure</th><th class="txt">Règle</th><th class="txt">Token</th><th>Résultat</th></tr></thead><tbody>{recent}</tbody></table></div></section>
+<section class="card"><h2>Derniers trades E, F, G, H</h2><div class="scroll"><table><thead><tr><th>Heure</th><th class="txt">Règle</th><th class="txt">Token</th><th>Résultat</th></tr></thead><tbody>{recent}</tbody></table></div></section>
 <section class="card"><h2>Plus gros trades</h2><div class="scroll"><table><thead><tr><th>Heure</th><th class="txt">Règle</th><th class="txt">Token</th><th>Résultat</th></tr></thead><tbody>{top}</tbody></table></div></section>
 </div>
 <section class="card"><h2>Les règles</h2><ul>
@@ -214,7 +218,8 @@ Mise à jour toutes les 15 minutes : rechargez la page pour voir les derniers ch
 <li><b>C</b> : entrée de B ; à 60 s, gardé si ≥ +20 % avec un stop suiveur à −30 %, 9 min au plus.</li>
 <li><b>D</b> : seulement les 20 % meilleurs lancements selon le score de qualité, sortie de C.</li>
 <li><b>E</b> : entrée de B ; moitié vendue dès ×2, le reste avec un stop suiveur à −40 % ; sans ×2 à 60 s, sortie de C ; 9 min au plus.</li>
-<li><b>F</b> : sélection du score (comme D), sortie de E.</li></ul></section>
+<li><b>F</b> : sélection du score (comme D), sortie de E.</li>
+<li><b>G</b> / <b>H</b> : F / E, mais seulement quand les trades B terminés dans les 30 dernières minutes sont positifs en moyenne (pendant les vagues). Comptées depuis leur fixation à 13:41.</li></ul></section>
 </div>
 """
 

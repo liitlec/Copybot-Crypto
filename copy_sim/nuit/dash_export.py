@@ -14,7 +14,8 @@ SERIES = [
     ("B confirmé", "B"), ("A brut", "A"), ("C :", "C"), ("B sur les mêmes lancements que C", "B_C"),
     ("E :", "E"), ("B sur les mêmes lancements que E", "B_E"), ("D :", "D"), ("F :", "F"),
     ("D sur les mêmes lancements que F", "D_F"), ("même sélection, revente à 60 s", "D_60"),
-    ("tous les lancements, sortie C", "TOUS_C"),
+    ("tous les lancements, sortie C", "TOUS_C"), ("G :", "G"), ("F sur la même période que G", "F_G"),
+    ("H :", "H"), ("E sur la même période que H", "E_H"),
 ]
 
 
