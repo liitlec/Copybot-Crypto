@@ -88,6 +88,54 @@ def evaluate(c, rs, entry_s=ENTRY_S, hold_s=HOLD_S, max_sol=MAX_SOL):
     return (sol_for(v_out, tok) - BASE_COST) / (SIZE + BASE_COST) - 1
 
 
+def entry_state(c, rs, t_in):
+    """État de la courbe (v_tok) à l'entrée, calculé comme dans evaluate()."""
+    before = [r for r in rs if r["bt"] <= t_in]
+    after = [r for r in rs if r["bt"] > t_in]
+    if before:
+        return before[-1]["v_tok"]
+    if after:
+        return after[0]["v_tok"] + after[0]["curve_tok"]
+    dev = max(-c.get("signer_sol", 0.0) - CREATE_RENT, 0.0)
+    return V_TOK0 - tokens_for(V_TOK0, dev) if dev > 0 else V_TOK0
+
+
+def evaluate_c(c, rs, entry_s, max_sol, base_hold_s, keep_if, trail, max_hold_s):
+    """Règle C (cloud, 16/10) : entrée de B ; à base_hold_s, revente si le gain < keep_if (comme B), sinon on garde
+    et on revend dès que la valeur retombe de `trail` sous son plus haut, au plus tard à max_hold_s."""
+    t_in = c["bt"] + entry_s
+    if any(r["slot"] == c["slot"] and r["kind"] == "buy" for r in rs):
+        return None
+    v_in = entry_state(c, rs, t_in)
+    if K / v_in - V_SOL0 >= max_sol:
+        return None
+    tok = tokens_for(v_in, SIZE)
+    ret = lambda v: (sol_for(v, tok) - BASE_COST) / (SIZE + BASE_COST) - 1  # noqa: E731
+    first = [r for r in rs if t_in < r["bt"] <= t_in + base_hold_s]
+    v60 = first[-1]["v_tok"] if first else v_in
+    if ret(v60) < keep_if:
+        return ret(v60)
+    peak = ret(v60)
+    last = v60
+    for r in rs:
+        if not t_in + base_hold_s < r["bt"] <= t_in + max_hold_s:
+            continue
+        x = ret(r["v_tok"])
+        last = r["v_tok"]
+        if x <= (1 + peak) * (1 - trail) - 1:
+            return x
+        peak = max(peak, x)
+    return ret(last)
+
+
+# règle C figée le 16/10 dans prereg/scalp_rule_c.json (avant toute évaluation) : évaluée sur les lancements postérieurs
+REGLE_C = {"nom": "C : entrée de B, gardée au-delà de 60 s si ≥ +20 %, stop suiveur −30 %, max 9 min",
+           "entree_s": 5.0, "min_acheteurs": 1, "max_sol_courbe": 2.5, "base_s": 60.0, "garder_si": 0.20,
+           "stop_suiveur": 0.30, "max_s": 540.0}
+VERDICT_C = ("après au moins 1 000 trades de C : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
+             "reste positive sans les 3 meilleurs trades ET bat B sur les mêmes lancements")
+
+
 # --- prereg/scalp_rule.json du PC (variantes figées le 15/10 à 20:17)
 VARIANTES = [
     {"nom": "B confirmé : +5 s, au moins 1 autre acheteur", "entree_s": 5.0, "vente_s": 60.0, "min_acheteurs": 1,
@@ -123,7 +171,31 @@ def run_once(path: Path, start: float):
             if x is not None:
                 trades.append((c["bt"], c["mint"], x))
         out[v["nom"]] = sorted(trades)
+    out.update(run_c(L, t_end))
     return out
+
+
+def run_c(L, t_end, rule=None):
+    """C et B sur les MÊMES lancements (postérieurs à la fixation de C) pour une comparaison directe."""
+    v = rule or REGLE_C
+    since = C_START_TS()
+    c_tr, b_tr = [], []
+    for c, rs in L:
+        if c["bt"] < since or t_end - c["bt"] < v["entree_s"] + v["max_s"] + 30:
+            continue  # fenêtre de 9 min pas encore complète
+        if not confirmed(c, rs, v["entree_s"], v["min_acheteurs"]):
+            continue
+        x = evaluate_c(c, rs, v["entree_s"], v["max_sol_courbe"], v["base_s"], v["garder_si"], v["stop_suiveur"],
+                       v["max_s"])
+        if x is not None:
+            c_tr.append((c["bt"], c["mint"], x))
+            b_tr.append((c["bt"], c["mint"], evaluate(c, rs, v["entree_s"], v["base_s"], v["max_sol_courbe"])))
+    return {v["nom"]: sorted(c_tr), "B sur les mêmes lancements que C": sorted(b_tr)}
+
+
+def C_START_TS() -> float:  # noqa: N802
+    p = Path(__file__).resolve().parents[1] / "prereg" / "scalp_rule_c.json"
+    return json.loads(p.read_text(encoding="utf-8"))["debut_ts"] if p.exists() else float("inf")
 
 
 def report(out, start: float) -> str:
@@ -134,16 +206,21 @@ def report(out, start: float) -> str:
              "1.25 % par côté. Les lancements que personne n'achète ensuite sont comptés.", "",
              "| variante | trades | moyenne / trade | ± | gagnants | total SOL | sans les 3 meilleurs |",
              "|---|---|---|---|---|---|---|"]
-    for v in VARIANTES:
-        r = [x for *_, x in out.get(v["nom"], [])]
+    names = [v["nom"] for v in VARIANTES] + [REGLE_C["nom"], "B sur les mêmes lancements que C"]
+    for name in names:
+        r = [x for *_, x in out.get(name, []) if x is not None]
         if len(r) >= 2:
             srt = sorted(r, reverse=True)
-            lines.append(f"| {v['nom']} | {len(r)} | {mean(r):+.2%} | {pstdev(r) / len(r) ** .5:.2%} | "
+            lines.append(f"| {name} | {len(r)} | {mean(r):+.2%} | {pstdev(r) / len(r) ** .5:.2%} | "
                          f"{sum(x > 0 for x in r) / len(r):.0%} | {sum(r) * SIZE:+.3f} | "
                          f"{mean(srt[3:]) if len(srt) > 3 else 0:+.2%} |")
         else:
-            lines.append(f"| {v['nom']} | {len(r)} | — | — | — | — | — |")
-    lines += ["", f"Verdict prévu : {VERDICT}", "", "## 15 derniers trades (variante principale)", "",
+            lines.append(f"| {name} | {len(r)} | — | — | — | — | — |")
+    lines += ["", f"Verdict prévu (A, B) : {VERDICT}",
+              f"Verdict prévu (C) : {VERDICT_C}", "",
+              "C n'est compté que sur les lancements postérieurs à sa fixation (prereg/scalp_rule_c.json), avec 9 min "
+              "de suivi complètes ; la ligne « B sur les mêmes lancements » sert de comparaison directe.", "",
+              "## 15 derniers trades (variante principale)", "",
               "| heure | token | résultat |", "|---|---|---|"]
     for bt, mint, x in out.get(VARIANTES[0]["nom"], [])[-15:][::-1]:
         lines.append(f"| {time.strftime('%H:%M:%S', time.localtime(bt))} | {mint[:4]}…{mint[-4:]} | {x:+.1%} |")

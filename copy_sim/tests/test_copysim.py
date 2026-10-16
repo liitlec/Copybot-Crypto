@@ -362,3 +362,17 @@ def test_scalp_sol_in_curve_cap():
     rec = {"states": [[0.0, 30.4, 1.06e9, "c", 0.4, 0], [3.0, 33.0, 0.97e9, "b", 2.6, 0]]}
     assert abs(sol_in_curve_at(rec, 1.0) - 0.4) < 1e-9     # A : 0,4 SOL < 0,5 -> achète
     assert abs(sol_in_curve_at(rec, 5.0) - 3.0) < 1e-9     # B : 3 SOL >= 2,5 -> n'achète pas
+
+
+def test_scalp_rule_c_exit():
+    from copysim.scalpgrpc import V_TOK0, evaluate, evaluate_c
+    c = {"bt": 0.0, "slot": 1, "signer": "DEV", "signer_sol": -0.03}
+    row = lambda t, v, s: {"bt": t, "slot": s, "kind": "buy", "v_tok": v, "curve_tok": 0.0, "signer": "X"}  # noqa: E731
+    flat = [row(3.0, V_TOK0 * 0.999, 2), row(30.0, V_TOK0 * 0.998, 3)]
+    args = (5.0, 2.5, 60.0, 0.20, 0.30, 540.0)
+    assert abs(evaluate_c(c, flat, *args) - evaluate(c, flat, 5.0, 60.0, 2.5)) < 1e-12   # < +20 % à 60 s : comme B
+    run = [row(3.0, V_TOK0 * 0.999, 2), row(50.0, V_TOK0 * 0.8, 3), row(120.0, V_TOK0 * 0.6, 4),
+           row(200.0, V_TOK0 * 0.75, 5), row(300.0, V_TOK0 * 0.5, 6)]
+    x = evaluate_c(c, run, *args)
+    assert x > evaluate(c, run, 5.0, 60.0, 2.5)          # gardé au-delà de 60 s : capte la montée
+    assert x < 1.5                                          # revendu au stop suiveur (t=200), pas au plus haut

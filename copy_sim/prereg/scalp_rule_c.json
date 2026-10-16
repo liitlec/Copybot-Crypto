@@ -1,0 +1,14 @@
+{
+  "nom": "scalp pump.fun C : entrée de B, sortie selon le gain",
+  "debut_ts": 1792132325,
+  "debut": "2026-10-16 08:32 (heure de Paris)",
+  "regle": {
+    "entree": "identique à B : +5 s après le bloc de création, au moins 1 acheteur autre que le créateur, SOL dans la courbe < 2,5, aucun achat dans le slot de création",
+    "a_60_s": "si le gain (cotation de revente complète, frais compris) < +20 % : revente à 60 s (comme B)",
+    "au_dela": "sinon on garde ; revente dès que la valeur retombe de 30 % sous son plus haut depuis l'entrée, au plus tard 9 min après l'entrée",
+    "mise_et_frais": "0,1 SOL ; 1,25 % par côté ; 0,000105 SOL par transaction (comme le PC)"
+  },
+  "evaluation": "uniquement sur les lancements créés après debut_ts, avec 9 min de suivi complètes ; comparé à B sur les mêmes lancements",
+  "verdict": "après au moins 1 000 trades de C : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, reste positive sans les 3 meilleurs trades ET bat B sur les mêmes lancements",
+  "origine": "proposée le 16/10 au matin : sur les 50 premiers lancements terminés du cloud, 5 ont doublé après l'entrée de B, aucun dans les 60 s ; seuils ronds choisis sans optimisation"
+}
