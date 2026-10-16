@@ -321,6 +321,15 @@ def cmd_snipe_report(s: Settings, args) -> None:
     print(md)
 
 
+def cmd_scalp_report(s: Settings, args) -> None:
+    from .sniper import load_snipes, scalp_report
+    recs = [r for r in load_snipes(Path(args.dir)) if r["t0"] >= args.since]
+    md = scalp_report(recs, args.size, args.fee, args.tx_fee, args.hold)
+    Path("reports").mkdir(exist_ok=True)
+    Path("reports/live_scalp_cloud.md").write_text(md, encoding="utf-8")
+    print(md)
+
+
 def cmd_copy_check(s: Settings, args) -> None:
     """Évalue les règles de copie pré-enregistrées sur chaque dossier de test présent."""
     from .rules import closed_trades, evaluate, load_paths, render
@@ -407,6 +416,13 @@ def main(argv=None) -> None:
     p.add_argument("--size", type=float, default=0.5, help="taille d'achat en SOL")
     p.add_argument("--fee", type=float, default=0.0125, help="frais Pump.fun par côté")
     p.add_argument("--tx-fee", type=float, default=0.002, help="priority fee/Jito par transaction (SOL)")
+    p = sub.add_parser("scalp-report", help="rejoue les règles de scalp A et B sur les lancements enregistrés")
+    p.add_argument("--dir", default="data_scalp_pf")
+    p.add_argument("--since", type=float, default=0.0, help="timestamp de début (lancements postérieurs seulement)")
+    p.add_argument("--size", type=float, default=0.1)
+    p.add_argument("--fee", type=float, default=0.0125)
+    p.add_argument("--tx-fee", type=float, default=0.0005)
+    p.add_argument("--hold", type=float, default=60.0)
     p = sub.add_parser("snipe-check", help="évalue la règle sniper pré-enregistrée sur les données postérieures")
     p.add_argument("--dir", default="data_sniper")
     p.add_argument("--rule", default="prereg/sniper_rule.json")
@@ -430,7 +446,8 @@ def main(argv=None) -> None:
     args = ap.parse_args(argv)
     s = Settings()
     {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout, "copy-check": cmd_copy_check,
-     "snipe-record": cmd_snipe_record, "snipe-report": cmd_snipe_report, "snipe-check": cmd_snipe_check}[args.cmd](s, args)
+     "snipe-record": cmd_snipe_record, "snipe-report": cmd_snipe_report, "snipe-check": cmd_snipe_check,
+     "scalp-report": cmd_scalp_report}[args.cmd](s, args)
 
 
 if __name__ == "__main__":

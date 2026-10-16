@@ -345,3 +345,13 @@ def test_rugfilter_unknown_curve_liquidity_not_refused():
     assert f.reasons({**base, "liquidity_usd": None, "liquidity_unknown": True}) == []
     assert f.reasons({**base, "liquidity_usd": None}) == ["liquidité < 2000 $"]
     assert f.reasons({**base, "liquidity_usd": 500.0}) == ["liquidité < 2000 $"]
+
+
+def test_scalp_b_entry_condition():
+    from copysim.sniper import scalp_entry_ok
+    c = [0.0, 30, 1.073e9, "c", 0.5, 0]
+    assert scalp_entry_ok({"states": [c]}, 5, False)
+    assert not scalp_entry_ok({"states": [c]}, 5, True)                                   # personne n'a acheté
+    assert scalp_entry_ok({"states": [c, [2.0, 31, 1.04e9, "b", 1, 0]]}, 5, True)         # un acheteur à 2 s
+    assert not scalp_entry_ok({"states": [c, [0.2, 31, 1.04e9, "b", 1, 0], [2.0, 32, 1.0e9, "b", 1, 0]]}, 5, True)
+    assert not scalp_entry_ok({"states": [c, [6.0, 31, 1.04e9, "b", 1, 0]]}, 5, True)     # acheteur après l'entrée

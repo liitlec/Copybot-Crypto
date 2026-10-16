@@ -298,3 +298,47 @@ def snipe_report(recs: list[dict], size: float, fee: float, tx: float) -> str:
     lines += ["", "Lecture : si même la meilleure règle est négative sur la 2e moitié, le sniping amateur ne paie pas. "
               "« vente ≥ 1 SOL dans les 30 s » utilise une info future : c'est un diagnostic, pas un filtre utilisable.", ""]
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------- scalp A / B (règles figées sur le PC le 15/10)
+
+BUNDLE_S = 0.4  # trades vus dans les 0,4 s de la création ~ même bloc que la création (bundle du créateur)
+
+
+def scalp_entry_ok(rec: dict, entry_s: float, need_other_buyer: bool) -> bool:
+    """B : au moins un achat d'un autre que le créateur avant l'entrée, et pas d'achat groupé dans le bloc de
+    création. On ne connaît pas le signataire de chaque trade ici : tout achat après la création compte comme
+    « autre acheteur », et le bloc de création est approché par les 0,4 premières secondes."""
+    if not need_other_buyer:
+        return True
+    st = rec.get("states", [])
+    if any(s[3] == "b" and s[0] <= BUNDLE_S for s in st):
+        return False
+    return any(s[3] == "b" and BUNDLE_S < s[0] <= entry_s for s in st)
+
+
+SCALP_RULES = {"A brut : +1 s, sans confirmation": (1.0, False),
+               "B confirmé : +5 s, au moins 1 autre acheteur": (5.0, True)}
+
+
+def scalp_report(recs: list[dict], size: float = 0.1, fee: float = 0.0125, tx: float = 0.0005,
+                 hold_s: float = 60.0) -> str:
+    md = ["# Scalp Pump.fun A / B (cloud)", "",
+          f"{len(recs)} lancements enregistrés. Achat {size} SOL, revente {hold_s:.0f} s après l'entrée, frais Pump.fun "
+          f"{fee:.2%} par côté + {tx} SOL par transaction. Prix exacts de la courbe (états enregistrés).", "",
+          "| règle | trades | total | par trade | sans les 3 meilleurs | gagnants | > +100 % |", "|---|---|---|---|---|---|---|"]
+    for name, (entry, confirm) in SCALP_RULES.items():
+        rule = Rule(entry, None, None, hold_s)
+        rs = [r for r in (simulate(x, rule, size, fee, tx) for x in recs if scalp_entry_ok(x, entry, confirm))
+              if r is not None]
+        if not rs:
+            md.append(f"| {name} | 0 | - | - | - | - | - |")
+            continue
+        srt = sorted(rs, reverse=True)
+        se = (sum((r - mean(rs)) ** 2 for r in rs) / len(rs)) ** .5 / len(rs) ** .5
+        rest = mean(srt[3:]) if len(srt) > 3 else float("nan")
+        md.append(f"| {name} | {len(rs)} | {sum(rs) * size:+.2f} SOL | {mean(rs):+.2%} ± {se:.2%} | {rest:+.2%} | "
+                  f"{sum(r > 0 for r in rs) / len(rs):.0%} | {sum(r > 1 for r in rs)} |")
+    md += ["", "Signataires non connus ici (pas de gRPC) : « autre acheteur » = tout achat après la création ; bloc de "
+           "création approché par les 0,4 premières secondes. Résultats comparables mais pas identiques à ceux du PC.", ""]
+    return "\n".join(md)
