@@ -321,6 +321,45 @@ def cmd_snipe_report(s: Settings, args) -> None:
     print(md)
 
 
+def cmd_grpc_hub(s: Settings, args) -> None:
+    """Hub gRPC Chainstack (lecture seule) : enregistre tout pump.fun comme le hub du PC."""
+    from .grpchub import GrpcHub
+    from .pumprec import PUMP_PROGRAM, PumpRecorder
+    ep, tok = os.getenv("GRPC_ENDPOINT"), os.getenv("GRPC_TOKEN")
+    if not ep or not tok:
+        sys.exit("GRPC_ENDPOINT et GRPC_TOKEN manquants dans .env")
+    log = lambda m: print(m, flush=True)  # noqa: E731
+    rec = PumpRecorder(args.pumpfun, log=log).start()
+    GrpcHub(ep, tok, [PUMP_PROGRAM], rec.sink, log=log).start()
+    print(f"Hub gRPC : enregistrement pump.fun dans {args.pumpfun}. Ctrl+C pour arrêter.", flush=True)
+    while True:
+        time.sleep(3600)
+
+
+def cmd_scalp_grpc(s: Settings, args) -> None:
+    """Test figé du scalp A/B sur les données du hub gRPC (même code que nuit/scalp_live.py du PC)."""
+    from .scalpgrpc import report, run_once
+    path, start_file = Path(args.file), Path(args.start_file)
+    if not start_file.exists():
+        start_file.write_text(str(int(time.time())))
+    start = float(start_file.read_text().strip())
+    Path("reports").mkdir(exist_ok=True)
+    while True:
+        try:
+            out = run_once(path, start) if path.exists() else None
+            if out is not None:
+                md = report(out, start)
+                Path("reports/live_scalp_grpc.md").write_text(md, encoding="utf-8")
+                print(time.strftime("%H:%M"), {k: len(v) for k, v in out.items()}, flush=True)
+                if args.once:
+                    print(md)
+        except Exception as exc:  # noqa: BLE001 - le test continue
+            print("erreur :", exc, flush=True)
+        if args.once:
+            return
+        time.sleep(300)
+
+
 def cmd_scalp_report(s: Settings, args) -> None:
     from .sniper import load_snipes, scalp_report
     recs = [r for r in load_snipes(Path(args.dir)) if r["t0"] >= args.since]
@@ -423,6 +462,12 @@ def main(argv=None) -> None:
     p.add_argument("--fee", type=float, default=0.0125)
     p.add_argument("--tx-fee", type=float, default=0.000105)
     p.add_argument("--hold", type=float, default=60.0)
+    p = sub.add_parser("grpc-hub", help="hub gRPC Chainstack : enregistre tout pump.fun (comme le hub du PC)")
+    p.add_argument("--pumpfun", default="data_grpc/pumpfun.jsonl")
+    p = sub.add_parser("scalp-grpc", help="test figé du scalp A/B sur les données du hub gRPC (code du PC)")
+    p.add_argument("--file", default="data_grpc/pumpfun.jsonl")
+    p.add_argument("--start-file", default="data_grpc/START")
+    p.add_argument("--once", action="store_true", help="un seul calcul, puis affiche le rapport")
     p = sub.add_parser("snipe-check", help="évalue la règle sniper pré-enregistrée sur les données postérieures")
     p.add_argument("--dir", default="data_sniper")
     p.add_argument("--rule", default="prereg/sniper_rule.json")
@@ -447,7 +492,7 @@ def main(argv=None) -> None:
     s = Settings()
     {"backtest": cmd_backtest, "live": cmd_live, "report": cmd_report, "leaders": cmd_leaders, "scout": cmd_scout, "copy-check": cmd_copy_check,
      "snipe-record": cmd_snipe_record, "snipe-report": cmd_snipe_report, "snipe-check": cmd_snipe_check,
-     "scalp-report": cmd_scalp_report}[args.cmd](s, args)
+     "scalp-report": cmd_scalp_report, "grpc-hub": cmd_grpc_hub, "scalp-grpc": cmd_scalp_grpc}[args.cmd](s, args)
 
 
 if __name__ == "__main__":
