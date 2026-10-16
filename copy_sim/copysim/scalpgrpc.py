@@ -60,8 +60,22 @@ def launches(path: Path, since: float = 0.0):
         rs = [r for r in rs if r.get("vault_tok")]
         for r in rs:
             r["v_tok"] = r["vault_tok"] + V_TOK_OFFSET
-        out.append((c, rs))
+        out.append((c, drop_spikes(rs)))
     return out
+
+
+def drop_spikes(rs):
+    """Retire les états de courbe aberrants isolés (16/10 : 7 sur 868 000 transactions, une vente mal lue où la réserve
+    paraît vide ou trop pleine le temps d'une transaction) : la ligne s'écarte de plus de 40 % de ses deux voisines,
+    qui elles s'accordent à 10 % près. Sans ce filtre, un seul pic a donné un faux trade à +9 784 % (CcyF…, 16/10)."""
+    keep = []
+    for i, r in enumerate(rs):
+        if 0 < i < len(rs) - 1:
+            a, b, c = rs[i - 1]["v_tok"], r["v_tok"], rs[i + 1]["v_tok"]
+            if abs(a - c) / a < 0.10 and abs(b - a) / a > 0.40 and abs(b - c) / c > 0.40:
+                continue
+        keep.append(r)
+    return keep
 
 
 def evaluate(c, rs, entry_s=ENTRY_S, hold_s=HOLD_S, max_sol=MAX_SOL):

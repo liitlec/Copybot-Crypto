@@ -404,3 +404,11 @@ def test_scalp_wave_filter():
     neg = [(t, m, -0.02) for t, m, _ in b]
     assert not wave_ok(neg, bt, 1100.0)
     assert not wave_ok(b, bt, 1000.0 + 1800 + 65 + 30)  # hors de la fenêtre de 30 min
+
+
+def test_scalp_drop_spikes():
+    from copysim.scalpgrpc import drop_spikes
+    rs = [{"v_tok": v} for v in (1.0e9, 0.99e9, 0.0733e9, 0.985e9, 0.98e9)]
+    assert [r["v_tok"] for r in drop_spikes(rs)] == [1.0e9, 0.99e9, 0.985e9, 0.98e9]
+    steady = [{"v_tok": v} for v in (1.0e9, 0.5e9, 0.3e9)]  # vrai pump : pas de retour au niveau d'avant
+    assert len(drop_spikes(steady)) == 3
