@@ -355,3 +355,10 @@ def test_scalp_b_entry_condition():
     assert scalp_entry_ok({"states": [c, [2.0, 31, 1.04e9, "b", 1, 0]]}, 5, True)         # un acheteur à 2 s
     assert not scalp_entry_ok({"states": [c, [0.2, 31, 1.04e9, "b", 1, 0], [2.0, 32, 1.0e9, "b", 1, 0]]}, 5, True)
     assert not scalp_entry_ok({"states": [c, [6.0, 31, 1.04e9, "b", 1, 0]]}, 5, True)     # acheteur après l'entrée
+
+
+def test_scalp_sol_in_curve_cap():
+    from copysim.sniper import sol_in_curve_at
+    rec = {"states": [[0.0, 30.4, 1.06e9, "c", 0.4, 0], [3.0, 33.0, 0.97e9, "b", 2.6, 0]]}
+    assert abs(sol_in_curve_at(rec, 1.0) - 0.4) < 1e-9     # A : 0,4 SOL < 0,5 -> achète
+    assert abs(sol_in_curve_at(rec, 5.0) - 3.0) < 1e-9     # B : 3 SOL >= 2,5 -> n'achète pas

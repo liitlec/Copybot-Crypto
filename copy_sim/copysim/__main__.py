@@ -421,7 +421,7 @@ def main(argv=None) -> None:
     p.add_argument("--since", type=float, default=0.0, help="timestamp de début (lancements postérieurs seulement)")
     p.add_argument("--size", type=float, default=0.1)
     p.add_argument("--fee", type=float, default=0.0125)
-    p.add_argument("--tx-fee", type=float, default=0.0005)
+    p.add_argument("--tx-fee", type=float, default=0.000105)
     p.add_argument("--hold", type=float, default=60.0)
     p = sub.add_parser("snipe-check", help="évalue la règle sniper pré-enregistrée sur les données postérieures")
     p.add_argument("--dir", default="data_sniper")

@@ -317,20 +317,37 @@ def scalp_entry_ok(rec: dict, entry_s: float, need_other_buyer: bool) -> bool:
     return any(s[3] == "b" and BUNDLE_S < s[0] <= entry_s for s in st)
 
 
-SCALP_RULES = {"A brut : +1 s, sans confirmation": (1.0, False),
-               "B confirmé : +5 s, au moins 1 autre acheteur": (5.0, True)}
+# règles figées sur le PC (prereg/scalp_rule.json du 15/10, 20:17) : entrée (s), confirmation, plafond de SOL dans la courbe
+SCALP_RULES = {"B confirmé : +5 s, au moins 1 autre acheteur": (5.0, True, 2.5),
+               "A brut : +1 s, sans confirmation": (1.0, False, 0.5)}
+V_SOL0 = 30.0  # SOL virtuels d'une courbe neuve
 
 
-def scalp_report(recs: list[dict], size: float = 0.1, fee: float = 0.0125, tx: float = 0.0005,
+def sol_in_curve_at(rec: dict, t: float) -> float | None:
+    """SOL réels dans la courbe à l'instant t (dernier état connu, achat du créateur compris)."""
+    st = [s for s in rec.get("states", []) if s[1] and s[2]]
+    if not st:
+        return None
+    cur = st[0]
+    for s in st[1:]:
+        if s[0] > t:
+            break
+        cur = s
+    return cur[1] - V_SOL0
+
+
+def scalp_report(recs: list[dict], size: float = 0.1, fee: float = 0.0125, tx: float = 0.000105,
                  hold_s: float = 60.0) -> str:
     md = ["# Scalp Pump.fun A / B (cloud)", "",
           f"{len(recs)} lancements enregistrés. Achat {size} SOL, revente {hold_s:.0f} s après l'entrée, frais Pump.fun "
-          f"{fee:.2%} par côté + {tx} SOL par transaction. Prix exacts de la courbe (états enregistrés).", "",
+          f"{fee:.2%} par côté + {tx} SOL par transaction (mêmes valeurs que le PC). Plafond de SOL dans la courbe à "
+          "l'entrée : B 2,5 SOL, A 0,5 SOL. Prix exacts de la courbe (états enregistrés).", "",
           "| règle | trades | total | par trade | sans les 3 meilleurs | gagnants | > +100 % |", "|---|---|---|---|---|---|---|"]
-    for name, (entry, confirm) in SCALP_RULES.items():
+    for name, (entry, confirm, max_sol) in SCALP_RULES.items():
         rule = Rule(entry, None, None, hold_s)
-        rs = [r for r in (simulate(x, rule, size, fee, tx) for x in recs if scalp_entry_ok(x, entry, confirm))
-              if r is not None]
+        ok = [x for x in recs if scalp_entry_ok(x, entry, confirm)
+              and (sol_in_curve_at(x, entry) is not None and sol_in_curve_at(x, entry) < max_sol)]
+        rs = [r for r in (simulate(x, rule, size, fee, tx) for x in ok) if r is not None]
         if not rs:
             md.append(f"| {name} | 0 | - | - | - | - | - |")
             continue
