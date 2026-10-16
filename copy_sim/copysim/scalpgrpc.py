@@ -172,6 +172,8 @@ def run_once(path: Path, start: float):
                 trades.append((c["bt"], c["mint"], x))
         out[v["nom"]] = sorted(trades)
     out.update(run_c(L, t_end))
+    from .scoreD import run_d
+    out.update(run_d(L, t_end))
     return out
 
 
@@ -207,6 +209,7 @@ def report(out, start: float) -> str:
              "| variante | trades | moyenne / trade | ± | gagnants | total SOL | sans les 3 meilleurs |",
              "|---|---|---|---|---|---|---|"]
     names = [v["nom"] for v in VARIANTES] + [REGLE_C["nom"], "B sur les mêmes lancements que C"]
+    names += [k for k in out if k.startswith("D ")] + ["même sélection, revente à 60 s", "tous les lancements, sortie C"]
     for name in names:
         r = [x for *_, x in out.get(name, []) if x is not None]
         if len(r) >= 2:
