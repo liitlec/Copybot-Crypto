@@ -321,6 +321,9 @@ def scalp_entry_ok(rec: dict, entry_s: float, need_other_buyer: bool) -> bool:
 SCALP_RULES = {"B confirmé : +5 s, au moins 1 autre acheteur": (5.0, True, 2.5),
                "A brut : +1 s, sans confirmation": (1.0, False, 0.5)}
 V_SOL0 = 30.0  # SOL virtuels d'une courbe neuve
+# t0 = réception du message PumpPortal, ~0,5 s après le bloc de création (mesuré le 16/10 : 0,1 à 0,9 s) ;
+# les délais des règles (comptés depuis le bloc sur le PC) sont donc décalés d'autant ici
+CLOCK_OFFSET_S = 0.5
 
 
 def sol_in_curve_at(rec: dict, t: float) -> float | None:
@@ -343,7 +346,8 @@ def scalp_report(recs: list[dict], size: float = 0.1, fee: float = 0.0125, tx: f
           f"{fee:.2%} par côté + {tx} SOL par transaction (mêmes valeurs que le PC). Plafond de SOL dans la courbe à "
           "l'entrée : B 2,5 SOL, A 0,5 SOL. Prix exacts de la courbe (états enregistrés).", "",
           "| règle | trades | total | par trade | sans les 3 meilleurs | gagnants | > +100 % |", "|---|---|---|---|---|---|---|"]
-    for name, (entry, confirm, max_sol) in SCALP_RULES.items():
+    for name, (entry_bloc, confirm, max_sol) in SCALP_RULES.items():
+        entry = max(entry_bloc - CLOCK_OFFSET_S, 0.0)
         rule = Rule(entry, None, None, hold_s)
         ok = [x for x in recs if scalp_entry_ok(x, entry, confirm)
               and (sol_in_curve_at(x, entry) is not None and sol_in_curve_at(x, entry) < max_sol)]
@@ -357,5 +361,6 @@ def scalp_report(recs: list[dict], size: float = 0.1, fee: float = 0.0125, tx: f
         md.append(f"| {name} | {len(rs)} | {sum(rs) * size:+.2f} SOL | {mean(rs):+.2%} ± {se:.2%} | {rest:+.2%} | "
                   f"{sum(r > 0 for r in rs) / len(rs):.0%} | {sum(r > 1 for r in rs)} |")
     md += ["", "Signataires non connus ici (pas de gRPC) : « autre acheteur » = tout achat après la création ; bloc de "
-           "création approché par les 0,4 premières secondes. Résultats comparables mais pas identiques à ceux du PC.", ""]
+           "création approché par les 0,4 premières secondes ; délais corrigés de 0,5 s (retard mesuré de PumpPortal "
+           "sur le bloc). Résultats comparables mais pas identiques à ceux du PC.", ""]
     return "\n".join(md)
