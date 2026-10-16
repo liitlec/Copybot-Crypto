@@ -128,6 +128,65 @@ def evaluate_c(c, rs, entry_s, max_sol, base_hold_s, keep_if, trail, max_hold_s)
     return ret(last)
 
 
+def evaluate_scale(c, rs, entry_s, max_sol, tp=1.0, trail=0.40, max_hold_s=540.0, base_hold_s=60.0, keep_if=0.20,
+                   trail_wait=0.30):
+    """Règles E / F (16/10), décisions prises uniquement avec le passé :
+    - dès le premier passage à +tp (×2 si tp = 1) : moitié revendue ; l'autre moitié revendue quand elle retombe de
+      `trail` sous son plus haut (suivi à partir de la première vente) ;
+    - si +tp n'est pas atteint à base_hold_s : revente totale si le gain < keep_if (comme C), sinon on garde avec un
+      stop suiveur `trail_wait` en attendant +tp ;
+    - au plus tard max_hold_s."""
+    t_in = c["bt"] + entry_s
+    if any(r["slot"] == c["slot"] and r["kind"] == "buy" for r in rs):
+        return None
+    v_in = entry_state(c, rs, t_in)
+    if K / v_in - V_SOL0 >= max_sol:
+        return None
+    tok = tokens_for(v_in, SIZE)
+    ret = lambda v: (sol_for(v, tok) - BASE_COST) / (SIZE + BASE_COST) - 1  # noqa: E731
+    path = [(0.0, ret(v_in))] + [(r["bt"] - t_in, ret(r["v_tok"])) for r in rs if t_in < r["bt"] <= t_in + max_hold_s]
+    half, peak, last, waiting = None, -1.0, path[0][1], False
+    for s, v in path:
+        if half is None and not waiting and s > base_hold_s:
+            if last < keep_if:  # valeur à base_hold_s
+                return last
+            waiting, peak = True, last
+        last = v
+        if half is None and v >= tp:
+            half, peak = v, v
+            continue
+        peak = max(peak, v)
+        if half is not None and 1 + v <= (1 + peak) * (1 - trail):
+            return (half + v) / 2
+        if half is None and waiting and 1 + v <= (1 + peak) * (1 - trail_wait):
+            return v
+    return last if half is None else (half + last) / 2
+
+
+REGLE_E = {"nom": "E : entrée de B, moitié vendue à ×2, reste stop suiveur −40 % ; sans ×2 à 60 s, sortie de C ; max 9 min",
+           "entree_s": 5.0, "min_acheteurs": 1, "max_sol_courbe": 2.5, "tp": 1.0, "stop_suiveur": 0.40, "max_s": 540.0}
+
+
+def run_e(L, t_end):
+    """E et B sur les MÊMES lancements (postérieurs à la fixation de E, prereg/scalp_rule_ef.json)."""
+    p = Path(__file__).resolve().parents[1] / "prereg" / "scalp_rule_ef.json"
+    if not p.exists():
+        return {}
+    since = json.loads(p.read_text(encoding="utf-8"))["debut_ts"]
+    v = REGLE_E
+    e_tr, b_tr = [], []
+    for c, rs in L:
+        if c["bt"] < since or t_end - c["bt"] < v["entree_s"] + v["max_s"] + 30:
+            continue
+        if not confirmed(c, rs, v["entree_s"], v["min_acheteurs"]):
+            continue
+        x = evaluate_scale(c, rs, v["entree_s"], v["max_sol_courbe"], v["tp"], v["stop_suiveur"], v["max_s"])
+        if x is not None:
+            e_tr.append((c["bt"], c["mint"], x))
+            b_tr.append((c["bt"], c["mint"], evaluate(c, rs, v["entree_s"], 60.0, v["max_sol_courbe"])))
+    return {v["nom"]: sorted(e_tr), "B sur les mêmes lancements que E": sorted(b_tr)}
+
+
 # règle C figée le 16/10 dans prereg/scalp_rule_c.json (avant toute évaluation) : évaluée sur les lancements postérieurs
 REGLE_C = {"nom": "C : entrée de B, gardée au-delà de 60 s si ≥ +20 %, stop suiveur −30 %, max 9 min",
            "entree_s": 5.0, "min_acheteurs": 1, "max_sol_courbe": 2.5, "base_s": 60.0, "garder_si": 0.20,
@@ -172,6 +231,7 @@ def run_once(path: Path, start: float):
                 trades.append((c["bt"], c["mint"], x))
         out[v["nom"]] = sorted(trades)
     out.update(run_c(L, t_end))
+    out.update(run_e(L, t_end))
     from .scoreD import run_d
     out.update(run_d(L, t_end))
     return out
@@ -209,7 +269,9 @@ def report(out, start: float) -> str:
              "| variante | trades | moyenne / trade | ± | gagnants | total SOL | sans les 3 meilleurs |",
              "|---|---|---|---|---|---|---|"]
     names = [v["nom"] for v in VARIANTES] + [REGLE_C["nom"], "B sur les mêmes lancements que C"]
-    names += [k for k in out if k.startswith("D ")] + ["même sélection, revente à 60 s", "tous les lancements, sortie C"]
+    names += [REGLE_E["nom"], "B sur les mêmes lancements que E"]
+    names += [k for k in out if k.startswith(("D ", "F "))] + ["même sélection, revente à 60 s",
+                                                                "tous les lancements, sortie C"]
     for name in names:
         r = [x for *_, x in out.get(name, []) if x is not None]
         if len(r) >= 2:

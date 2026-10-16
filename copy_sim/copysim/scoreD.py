@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RULE_PATH = ROOT / "prereg" / "scalp_rule_d.json"
+F_NAME = "F : sélection du score (comme D), sortie de E"
 
 
 def _score_mod():
@@ -22,7 +23,7 @@ def _score_mod():
 
 def run_d(L, t_end):
     """Retourne {nom: [(bt, mint, rendement), ...]} pour D et ses deux comparaisons."""
-    from .scalpgrpc import evaluate, evaluate_c
+    from .scalpgrpc import evaluate, evaluate_c, evaluate_scale
     if not RULE_PATH.exists():
         return {}
     rule = json.loads(RULE_PATH.read_text(encoding="utf-8"))
@@ -41,7 +42,10 @@ def run_d(L, t_end):
     rows = S.build(L, enrich)  # variables connues à +5 s (historique strictement passé)
     byc = {(c["bt"], c["mint"]): (c, rs) for c, rs in L}
     models: dict[int, tuple] = {}
-    out = {rule["nom"]: [], "même sélection, revente à 60 s": [], "tous les lancements, sortie C": []}
+    out = {rule["nom"]: [], "même sélection, revente à 60 s": [], "tous les lancements, sortie C": [],
+           F_NAME: [], "D sur les mêmes lancements que F": []}
+    ef = ROOT / "prereg" / "scalp_rule_ef.json"
+    f_start = json.loads(ef.read_text(encoding="utf-8"))["debut_ts"] if ef.exists() else float("inf")
     for r in rows:
         if r["bt"] < start or not r["enriched"]:
             continue
@@ -67,4 +71,9 @@ def run_d(L, t_end):
             continue
         out[rule["nom"]].append((c["bt"], c["mint"], xc))
         out["même sélection, revente à 60 s"].append((c["bt"], c["mint"], evaluate(c, rs, 5.0, 60.0, 1e9)))
+        if r["bt"] >= f_start:  # F : même sélection que D, sortie de E (figée plus tard que D)
+            xf = evaluate_scale(c, rs, 5.0, 1e9, 1.0, 0.40, 540.0)
+            if xf is not None:
+                out[F_NAME].append((c["bt"], c["mint"], xf))
+                out["D sur les mêmes lancements que F"].append((c["bt"], c["mint"], xc))
     return out

@@ -376,3 +376,20 @@ def test_scalp_rule_c_exit():
     x = evaluate_c(c, run, *args)
     assert x > evaluate(c, run, 5.0, 60.0, 2.5)          # gardé au-delà de 60 s : capte la montée
     assert x < 1.5                                          # revendu au stop suiveur (t=200), pas au plus haut
+
+
+def test_scalp_rule_e_exit():
+    from copysim.scalpgrpc import K, V_SOL0, V_TOK0, evaluate_scale, tokens_for
+
+    def vtok_at(sol):  # v_tok quand la courbe contient `sol` SOL réels
+        return K / (V_SOL0 + sol)
+
+    c = {"bt": 1000.0, "slot": 1, "signer_sol": 0.0}
+    tr = lambda t, sol: {"bt": 1000.0 + t, "slot": 2, "kind": "buy", "v_tok": vtok_at(sol), "curve_tok": 0.0}  # noqa: E731
+    flat = [tr(4, 0.5), tr(30, 0.5), tr(70, 0.5)]
+    x = evaluate_scale(c, flat, 5.0, 2.5)
+    assert x == pytest.approx(evaluate_scale(c, flat[:2], 5.0, 2.5))  # < +20 % à 60 s : vendu à 60 s
+    pump = [tr(4, 0.5), tr(30, 6.0), tr(40, 20.0), tr(50, 1.0), tr(60, 0.5)]
+    y = evaluate_scale(c, pump, 5.0, 2.5)
+    assert y > 0.4  # moitié vendue au ×2 (et plus), reste coupé par le stop −40 %
+    assert V_TOK0 > tokens_for(V_TOK0, 0.1) > 0
