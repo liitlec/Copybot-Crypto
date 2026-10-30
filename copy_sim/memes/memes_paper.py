@@ -4,8 +4,10 @@ règles, sur Solana. Aucune clé, aucun wallet, aucun ordre : lecture seule de G
 Règles (figées dans memes/regle_memes.json au premier lancement) :
 - toutes les 5 min, univers = nouveaux pools + pools tendance GeckoTerminal ;
 - filtre : âge 15 min à 72 h, liquidité > 12 000 $, volume 24 h > 40 000 $, capitalisation 60 000 $ à 8 M$ ;
-- classement : les détenteurs montent plus vite que le prix sur la dernière heure (écart en tête) ; écarté si le prix
-  monte plus vite que les détenteurs, ou si les ventes dépassent les achats sur 30 min ET sur 1 h ;
+- classement : les détenteurs montent plus vite que le prix sur la dernière heure (écart en tête) ; croissance des
+  détenteurs = (portefeuilles acheteurs − vendeurs distincts sur 1 h) / nombre de détenteurs, car le nombre de
+  détenteurs de GeckoTerminal n'est rafraîchi que toutes les 1 à 19 h ; écarté si le prix monte plus vite que les
+  détenteurs, ou si les ventes dépassent les achats sur 30 min ET sur 1 h ;
 - cadran « meme » (calculé une fois par jour) = part de feux verts parmi : liquidité nette de la Fed en hausse sur
   4 semaines, VIX < 22, BTC > moyenne 200 jours, SOL > moyenne 50 jours ; sous 0,5 : aucune entrée ce jour-là ;
 - taille = 6 % de la caisse × cadran, plafonnée à 2 % de la liquidité du pool ; frais 0,45 % par côté (min 0,95 $)
@@ -18,7 +20,7 @@ Règles (figées dans memes/regle_memes.json au premier lancement) :
 Différences assumées avec le post : pas d'IA « juge » (le premier du classement est pris), pas de Kelly (pas
 d'avantage connu à mettre dedans), Solana seulement.
 
-Usage : python3 memes_paper.py [--dir DOSSIER] [--once] [--bank 1000]"""
+Usage : python3 memes_paper.py [--dir DOSSIER] [--once] [--bank 10000]"""
 import argparse
 import json
 import random
@@ -35,7 +37,7 @@ RULE = {
     "mcap_min": 60_000, "mcap_max": 8_000_000,
     "ticket_part": 0.06, "plafond_liquidite": 0.02, "frais": 0.0045, "frais_min": 0.95,
     "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300,
-    "cadran_min": 0.50, "holders_cache_s": 900,
+    "cadran_min": 0.50, "holders_cache_s": 3600,
     "verdict": "après au moins 100 trades fermés : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
                "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran »",
 }
@@ -248,35 +250,29 @@ def cycle(state, out_dir, now):
                 close_pos(b, token, a, now, f"volume 6 h à {v6 / (v24 / 4):.0%} de la normale", log)
     # 2. candidats
     uni = [a for a in pools_universe() if passes(a, now)]
-    snaps = state.setdefault("snaps", {})
+    # Classement. Le nombre de détenteurs de GeckoTerminal n'est rafraîchi que toutes les 1 à 19 h : on mesure donc la
+    # croissance des détenteurs sur la dernière heure par les portefeuilles distincts acheteurs moins vendeurs (donnée en
+    # continu), rapportés au nombre de détenteurs, et on la compare à la variation de prix sur la même heure.
     ranked = []
     for a in uni:
-        tok = a["token"]
-        n = holders(tok, state.setdefault("hcache", {}), now)
-        px = fnum(a["base_token_price_usd"])
-        s = snaps.setdefault(tok, [])
-        if n and px:
-            s.append([now, n, px])
-        snaps[tok] = [x for x in s if now - x[0] <= 3 * 3600]
         tx = a["transactions"]
         if tx["m30"]["sells"] > tx["m30"]["buys"] and tx["h1"]["sells"] > tx["h1"]["buys"]:
             continue
-        old = [x for x in snaps[tok] if 45 * 60 <= now - x[0] <= 90 * 60]
-        if not old or not n or not px:
+        n = holders(a["token"], state.setdefault("hcache", {}), now)
+        pg = (fnum(a["price_change_percentage"].get("h1")) or 0.0) / 100
+        if not n:
             continue
-        hg, pg = n / old[0][1] - 1, px / old[0][2] - 1
+        hg = (tx["h1"].get("buyers", 0) - tx["h1"].get("sellers", 0)) / n
         if hg > pg:
             ranked.append((hg - pg, a, round(hg, 4), round(pg, 4)))
     ranked.sort(key=lambda x: -x[0])
-    for tok in list(snaps):
-        if not snaps[tok]:
-            del snaps[tok]
+    state.pop("snaps", None)
     # 3. entrées (une par cycle et par caisse). « classement » suit le cadran comme dans le post ; « sans_cadran » prend
     #    les mêmes choix tous les jours ; « temoin » tire au hasard dans le filtre à chaque entrée de « sans_cadran ».
     def enter(book, a, dial_mult, why):
         dollars = min(RULE["ticket_part"] * book["cash_ref"] * dial_mult, RULE["plafond_liquidite"] * fnum(a["reserve_in_usd"]),
                       book["cash"])
-        if dollars <= RULE["frais_min"] / RULE["frais"] * 0.5 or len(book["open"]) >= RULE["max_positions"]:
+        if dollars < RULE["frais_min"] / 0.02 or len(book["open"]) >= RULE["max_positions"]:  # frais > 2 % : pas de trade
             return None
         open_pos(book, a, dollars, now, why)
         log({"event": "achat", "book": book["name"], "token": a["token"], "name": a.get("name"), "dollars": round(dollars, 2)})
@@ -331,7 +327,7 @@ def write_status(state, out_dir, live):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", default=str(Path(__file__).resolve().parent / "data"))
-    ap.add_argument("--bank", type=float, default=1000.0)
+    ap.add_argument("--bank", type=float, default=10000.0)
     ap.add_argument("--once", action="store_true")
     args = ap.parse_args()
     out_dir = Path(args.dir)
