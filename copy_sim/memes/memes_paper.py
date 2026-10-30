@@ -217,8 +217,8 @@ def equity(book, live):
     val = book["cash"]
     for token, p in book["open"].items():
         a = live.get(p["pool"])
-        if a:
-            val += p["qty"] * (fnum(a["base_token_price_usd"]) or 0)
+        # position achetée pendant ce cycle (pas encore de cotation relevée) : comptée à son prix d'achat
+        val += p["qty"] * (fnum(a["base_token_price_usd"]) or 0) if a else p["dollars"]
     return val
 
 

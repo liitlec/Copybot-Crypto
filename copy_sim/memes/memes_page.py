@@ -99,7 +99,7 @@ th {{ color: var(--muted); font-size: .75rem; font-weight: 600; }} th:first-chil
 </style>
 <div class="wrap">
 <header><h1>Suivi memecoins papier</h1>
-<p>Stratégie memecoins du post @savipww, en simulation sur le VPS (Solana, toutes les 5 min). Trois caisses fictives de 1 000 $. Dernier cycle du VPS : {when} (heure de Paris). Cadran du jour : {"—" if cad is None else f"{cad:.2f}".replace(".", ",")} ({escape(verts)}).</p></header>
+<p>Stratégie memecoins du post @savipww, en simulation sur le VPS (Solana, toutes les 5 min). Trois caisses fictives de 10 000 $. Dernier cycle du VPS : {when} (heure de Paris). Cadran du jour : {"—" if cad is None else f"{cad:.2f}".replace(".", ",")} ({escape(verts)}).</p></header>
 <section class="cards">{"".join(cards)}</section>
 <section class="box"><h2>Positions ouvertes</h2><div class="scroll"><table><thead><tr><th>Achat</th><th class="txt">Caisse</th><th class="txt">Token</th><th>Mise</th></tr></thead><tbody>{t_open}</tbody></table></div></section>
 <section class="box"><h2>Derniers trades fermés</h2><div class="scroll"><table><thead><tr><th>Vente</th><th class="txt">Caisse</th><th class="txt">Token</th><th>Durée</th><th>Résultat</th><th class="txt">Raison</th></tr></thead><tbody>{t_closed}</tbody></table></div></section>
