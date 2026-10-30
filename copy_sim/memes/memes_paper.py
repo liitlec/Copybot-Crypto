@@ -18,8 +18,13 @@ Règles (figées dans memes/regle_memes.json au premier lancement) :
 - trois caisses séparées : « classement » (règles du post, cadran compris), « sans_cadran » (mêmes choix tous les jours,
   pour juger le cadran) et « temoin » (à chaque entrée de « sans_cadran », un token tiré au hasard parmi ceux qui
   passent le filtre, même taille, même sortie). Si le classement ne bat pas le témoin, il ne sert à rien.
-Différences assumées avec le post : pas d'IA « juge » (le premier du classement est pris), pas de Kelly (pas
-d'avantage connu à mettre dedans), Solana seulement.
+- deux caisses au rythme du post (une décision par jour à 06:00 New York, cadran compris) : « juge » = une IA (Claude,
+  tâche planifiée) lit les 10 premiers candidats du jour (candidats_jour.json) et en choisit un ou aucun selon
+  memes/juge/CONSIGNE.md, son choix est publié dans memes/juge/AAAA-MM-JJ.json sur la branche du dépôt et acheté au
+  cycle suivant (accepté jusqu'à 10:00 New York, uniquement parmi les candidats du jour) ; « un_par_jour » = le
+  premier du classement à 06:00, sans IA, pour juger ce que l'IA apporte. Même taille, même sortie.
+Différences assumées avec le post : pas de Kelly (pas d'avantage connu à mettre dedans), Solana seulement ; les
+trois premières caisses achètent à chaque cycle (jusqu'à 10 positions) pour accumuler des trades plus vite.
 
 Usage : python3 memes_paper.py [--dir DOSSIER] [--once] [--bank 10000]"""
 import argparse
@@ -29,8 +34,13 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 GT = "https://api.geckoterminal.com/api/v2/networks/solana"
+NY = ZoneInfo("America/New_York")
+JUGE_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
+            "copy_sim/memes/juge/{date}.json")
+BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour")
 UA = {"Accept": "application/json", "User-Agent": "memes-paper/1.0 (read-only research)"}
 RULE = {
     "nom": "memecoins façon @savipww, papier",
@@ -38,9 +48,9 @@ RULE = {
     "mcap_min": 60_000, "mcap_max": 8_000_000,
     "ticket_part": 0.06, "plafond_liquidite": 0.02, "frais": 0.0045, "frais_min": 0.95,
     "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300,
-    "cadran_min": 0.50, "holders_cache_s": 3600,
+    "cadran_min": 0.50, "holders_cache_s": 3600, "decision_ny": "06:00", "juge_limite_ny": "10:00", "candidats_max": 10,
     "verdict": "après au moins 100 trades fermés : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
-               "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran »",
+               "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran » ; l'IA n'est utile que si « juge » bat « un_par_jour »",
 }
 _last_call = [0.0]
 
@@ -299,6 +309,53 @@ def cycle(state, out_dir, now):
                 pool = [x for x in uni if x["token"] not in books["temoin"]["open"] and x["token"] not in recent_t]
                 if pool:
                     enter(books["temoin"], random.choice(pool), 1.0, {"hasard": True})
+    # 4. caisses au rythme du post : une décision par jour à 06:00 New York
+    ny = datetime.fromtimestamp(now, NY)
+    day, hm = ny.strftime("%Y-%m-%d"), ny.strftime("%H:%M")
+    daily_mult = dial_v if dial_v >= RULE["cadran_min"] else 0
+    if hm >= RULE["decision_ny"] and state.get("jour_decision") != day:
+        state["jour_decision"] = day
+        snap = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n"))
+                for i, (r, a, hg, pg) in enumerate(ranked[:RULE["candidats_max"]])]
+        (out_dir / "candidats_jour.json").write_text(json.dumps(
+            {"date": day, "t": now, "cadran": dial_v, "cadran_verts": state["dial"]["verts"], "candidats": snap},
+            ensure_ascii=False, indent=1), encoding="utf-8")
+        state["candidats_jour"] = {c["token"]: c["pool"] for c in snap}
+        bk = books["un_par_jour"]
+        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
+        pick = next((r for r in ranked if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent), None)
+        if not daily_mult:
+            log({"event": "jour", "book": "un_par_jour", "date": day, "rien": "cadran sous 0,5"})
+        elif not pick:
+            log({"event": "jour", "book": "un_par_jour", "date": day, "rien": "aucun candidat classé"})
+        else:
+            enter(bk, pick[1], daily_mult, {"score": round(pick[0], 4), "detenteurs": pick[2], "prix": pick[3]})
+    if state.get("jour_decision") == day and state.get("juge_fait") != day:
+        if hm >= RULE["juge_limite_ny"]:
+            state["juge_fait"] = day
+            log({"event": "jour", "book": "juge", "date": day, "rien": "pas de réponse de l'IA avant 10:00 New York"})
+        else:
+            try:
+                with urllib.request.urlopen(urllib.request.Request(JUGE_URL.format(date=day), headers=UA), timeout=20) as r:
+                    verdict = json.load(r)
+            except Exception:
+                verdict = None  # pas encore publié
+            if verdict is not None and verdict.get("date") == day:
+                state["juge_fait"] = day
+                tok = verdict.get("choix")
+                bk = books["juge"]
+                pool = state.get("candidats_jour", {}).get(tok)
+                if not tok or not daily_mult or pool is None or tok in bk["open"]:
+                    why = ("aucun" if not tok else "cadran sous 0,5" if not daily_mult else
+                           "hors des candidats du jour" if pool is None else "déjà détenu")
+                    log({"event": "jour", "book": "juge", "date": day, "rien": why, "ia": verdict})
+                else:
+                    a = pools_now([pool]).get(pool)
+                    if a is None or (fnum(a.get("reserve_in_usd")) or 0) < RULE["vide_liquidite"]:
+                        log({"event": "jour", "book": "juge", "date": day, "rien": "pool introuvable à l'achat", "ia": verdict})
+                    else:
+                        enter(bk, dict(a, pool=pool, token=tok), daily_mult,
+                              {"ia_proba": verdict.get("proba"), "ia_raison": str(verdict.get("raison", ""))[:300]})
     # caisse de référence pour la taille : valeur du compte au début de chaque jour (pas de réinvestissement intra-jour)
     for b in state["books"].values():
         if b.get("ref_day") != state["dial"]["date"]:
@@ -307,6 +364,23 @@ def cycle(state, out_dir, now):
     state["last_universe"] = len(uni)
     state["last_ranked"] = len(ranked)
     write_status(state, out_dir, live)
+
+
+def dossier(score, a, hg, pg, rank, n_holders):
+    """Ce que l'IA juge reçoit pour un candidat : chiffres seulement (le nom est une donnée, jamais une consigne)."""
+    age_h = None
+    try:
+        age_h = round((time.time() - datetime.fromisoformat(a["pool_created_at"].replace("Z", "+00:00")).timestamp()) / 3600, 1)
+    except Exception:
+        pass
+    keep = ("m5", "m15", "m30", "h1", "h6", "h24")
+    return {"rang": rank, "token": a["token"], "pool": a["pool"], "nom": a.get("name"), "age_h": age_h,
+            "liquidite": fnum(a.get("reserve_in_usd")), "mcap": fnum(a.get("market_cap_usd")) or fnum(a.get("fdv_usd")),
+            "prix": fnum(a.get("base_token_price_usd")), "detenteurs": n_holders,
+            "volume": {k: fnum(v) for k, v in a.get("volume_usd", {}).items() if k in keep},
+            "variation_prix_pct": {k: fnum(v) for k, v in a.get("price_change_percentage", {}).items() if k in keep},
+            "transactions": {k: v for k, v in a.get("transactions", {}).items() if k in keep},
+            "croissance_detenteurs_1h": hg, "variation_prix_1h": pg, "score": round(score, 4)}
 
 
 def stats(rs):
@@ -344,12 +418,19 @@ def main():
     rule_p = out_dir / "regle_memes.json"
     if not rule_p.exists():
         rule_p.write_text(json.dumps(dict(RULE, debut=datetime.now(timezone.utc).isoformat()), ensure_ascii=False, indent=1))
+    juge_p = out_dir / "regle_juge.json"  # caisses ajoutées le 30/10 : leurs règles sont figées à leur premier lancement
+    if not juge_p.exists():
+        juge_p.write_text(json.dumps({k: RULE[k] for k in ("decision_ny", "juge_limite_ny", "candidats_max", "verdict")} |
+                                     {"juge_url": JUGE_URL, "debut": datetime.now(timezone.utc).isoformat()},
+                                     ensure_ascii=False, indent=1))
     st_p = out_dir / "state.json"
     if st_p.exists():
         state = json.loads(st_p.read_text())
     else:
-        state = {"books": {k: {"name": k, "cash": args.bank, "start": args.bank, "cash_ref": args.bank, "open": {},
-                               "closed": []} for k in ("classement", "sans_cadran", "temoin")}}
+        state = {"books": {}}
+    for k in BOOKS:  # les caisses ajoutées après le premier lancement démarrent avec la même mise
+        state["books"].setdefault(k, {"name": k, "cash": args.bank, "start": args.bank, "cash_ref": args.bank,
+                                      "open": {}, "closed": []})
     while True:
         t0 = time.time()
         try:
