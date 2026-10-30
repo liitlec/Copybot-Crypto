@@ -12,6 +12,7 @@ Règles (figées dans memes/regle_memes.json au premier lancement) :
   4 semaines, VIX < 22, BTC > moyenne 200 jours, SOL > moyenne 50 jours ; sous 0,5 : aucune entrée ce jour-là ;
 - taille = 6 % de la caisse × cadran, plafonnée à 2 % de la liquidité du pool ; frais 0,45 % par côté (min 0,95 $)
   + impact sur le prix calculé sur la liquidité du pool, à l'achat et à la vente ;
+- pas d'achat d'un token qui remplit déjà la condition de sortie, ni d'un token revendu dans les 24 h par la même caisse ;
 - sortie : volume des 6 dernières heures < 20 % de la normale (volume 24 h / 4), vérifié toutes les 5 min ; pool
   disparu ou liquidité < 1 000 $ = vidé, compté à la valeur de revente réelle (souvent proche de −100 %) ;
 - trois caisses séparées : « classement » (règles du post, cadran compris), « sans_cadran » (mêmes choix tous les jours,
@@ -253,6 +254,12 @@ def cycle(state, out_dir, now):
     # Classement. Le nombre de détenteurs de GeckoTerminal n'est rafraîchi que toutes les 1 à 19 h : on mesure donc la
     # croissance des détenteurs sur la dernière heure par les portefeuilles distincts acheteurs moins vendeurs (donnée en
     # continu), rapportés au nombre de détenteurs, et on la compare à la variation de prix sur la même heure.
+    # Un token qui remplit déjà la condition de sortie (volume 6 h < 20 % de la normale) n'est jamais acheté : la règle
+    # RISK le revendrait au cycle suivant. Un token revendu ne peut pas être racheté par la même caisse pendant 24 h.
+    def fading(a):
+        v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
+        return v24 <= 0 or v6 / (v24 / 4) < RULE["sortie_ratio_volume"]
+    uni = [a for a in uni if not fading(a)]
     ranked = []
     for a in uni:
         tx = a["transactions"]
@@ -284,10 +291,12 @@ def cycle(state, out_dir, now):
             if mult <= 0:
                 continue
             bk = books[name]
-            pick = next((r for r in ranked if r[1]["token"] not in bk["open"]), None)
+            recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
+            pick = next((r for r in ranked if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent), None)
             if pick and enter(bk, pick[1], mult, {"score": round(pick[0], 4), "detenteurs": pick[2], "prix": pick[3]}) \
                     and name == "sans_cadran":
-                pool = [x for x in uni if x["token"] not in books["temoin"]["open"]]
+                recent_t = {r["token"] for r in books["temoin"]["closed"] if now - r["t_out"] < 24 * 3600}
+                pool = [x for x in uni if x["token"] not in books["temoin"]["open"] and x["token"] not in recent_t]
                 if pool:
                     enter(books["temoin"], random.choice(pool), 1.0, {"hasard": True})
     # caisse de référence pour la taille : valeur du compte au début de chaque jour (pas de réinvestissement intra-jour)
