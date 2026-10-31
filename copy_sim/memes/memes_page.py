@@ -52,7 +52,8 @@ def page(state, status_md):
         when = d.astimezone(PARIS).strftime("%d/%m %H:%M")
     dial = state.get("dial", {})
     labels = {"classement": "Ses règles (avec cadran)", "sans_cadran": "Mêmes choix, sans cadran", "temoin": "Témoin tiré au hasard",
-              "juge": "IA juge, 1 par jour (comme le post)", "un_par_jour": "1 par jour sans IA (témoin de l'IA)"}
+              "juge": "IA juge, 1 par jour (comme le post)", "un_par_jour": "1 par jour sans IA (témoin de l'IA)",
+              "auto": "Règle qui apprend (réajustée chaque jour)"}
     cards, rows_open, closed_all = [], [], []
     for key in [k for k in labels if k in state["books"]]:
         b = state["books"][key]
@@ -78,6 +79,13 @@ def page(state, status_md):
         f"<td class='txt'>{escape(str(r.get('name') or r['token'][:6]))}</td><td>{r['minutes']}\u202fmin</td>"
         f"<td class='{'pos' if r['ret'] > 0 else 'neg'}'>{pct(r['ret'])}</td><td class='txt'>{escape(r['reason'])}</td></tr>"
         for r in closed_all[:40]) or "<tr><td colspan='6' class='txt'>Pas encore de trade fermé.</td></tr>"
+    au = state.get("auto") or {}
+    rg = au.get("regle")
+    auto_txt = ("Règle qui apprend : " + (
+        f"âge ≤ {rg['age_max_h']} h, prix 1 h {rg['prix_1h']}, acheteurs {rg['acheteurs_1h']}, classement {rg['classe']}, "
+        f"stop {rg['stop']:+.0%}, objectif {rg['objectif']:+.0%}, max {rg['duree_max_h']} h" if rg else "en cash")
+        + (f" ({au.get('raison')})" if au.get("raison") else "")) if au else \
+        "Règle qui apprend : pas encore d'apprentissage (il faut au moins 3 jours de collecte)."
     verts = " · ".join(f"{k} {'vert' if v else 'rouge'}" for k, v in dial.get("verts", {}).items())
     cad = dial.get("cadran")
     return f"""<title>Suivi memecoins papier</title>
@@ -100,8 +108,9 @@ th {{ color: var(--muted); font-size: .75rem; font-weight: 600; }} th:first-chil
 </style>
 <div class="wrap">
 <header><h1>Suivi memecoins papier</h1>
-<p>Stratégie memecoins du post @savipww, en simulation sur le VPS (Solana, toutes les 5 min). Cinq caisses fictives de 10 000 $ : trois achètent à chaque cycle, deux une fois par jour à 06:00 New York comme le post (l'une choisie par une IA, l'autre le premier du classement). Dernier cycle du VPS : {when} (heure de Paris). Cadran du jour : {"—" if cad is None else f"{cad:.2f}".replace(".", ",")} ({escape(verts)}).</p></header>
+<p>Stratégie memecoins du post @savipww, en simulation sur le VPS (Solana, toutes les 5 min). Six caisses fictives de 10 000 $ : trois achètent à chaque cycle selon le post, deux une fois par jour à 06:00 New York comme le post (l'une choisie par une IA, l'autre le premier du classement), et une suit une règle réapprise chaque jour sur les données collectées. Dernier cycle du VPS : {when} (heure de Paris). Cadran du jour : {"—" if cad is None else f"{cad:.2f}".replace(".", ",")} ({escape(verts)}).</p></header>
 <section class="cards">{"".join(cards)}</section>
+<p>{escape(auto_txt)}</p>
 <section class="box"><h2>Positions ouvertes</h2><div class="scroll"><table><thead><tr><th>Achat</th><th class="txt">Caisse</th><th class="txt">Token</th><th>Mise</th></tr></thead><tbody>{t_open}</tbody></table></div></section>
 <section class="box"><h2>Derniers trades fermés</h2><div class="scroll"><table><thead><tr><th>Vente</th><th class="txt">Caisse</th><th class="txt">Token</th><th>Durée</th><th>Résultat</th><th class="txt">Raison</th></tr></thead><tbody>{t_closed}</tbody></table></div></section>
 <p>Verdict prévu : après au moins 100 trades fermés, gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, reste positive sans les 3 meilleurs trades et bat le témoin tiré au hasard. Le cadran n'est utile que si « ses règles » battent « sans cadran » ; l'IA n'est utile que si « IA juge » bat « 1 par jour sans IA ». Frais 0,45 % par côté (min. 0,95 $) et impact sur le prix compris ; aucune clé, aucun ordre réel.</p>

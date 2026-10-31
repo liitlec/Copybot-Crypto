@@ -40,7 +40,7 @@ GT = "https://api.geckoterminal.com/api/v2/networks/solana"
 NY = ZoneInfo("America/New_York")
 JUGE_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
             "copy_sim/memes/juge/{date}.json")
-BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour")
+BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour", "auto")
 UA = {"Accept": "application/json", "User-Agent": "memes-paper/1.0 (read-only research)"}
 RULE = {
     "nom": "memecoins façon @savipww, papier",
@@ -247,6 +247,16 @@ def cycle(state, out_dir, now):
         state["dial"] = dict(dial(), t=now)
         log({"event": "cadran", **state["dial"]})
     dial_v = state["dial"]["cadran"]
+    # 0. caisse « auto » : règle réapprise une fois par jour (apprend.py), sur le passé seulement
+    if datetime.now(timezone.utc).strftime("%H:%M") >= "00:30" and state.get("auto_jour") != today:
+        state["auto_jour"] = today
+        try:
+            import apprend
+            state["auto"] = apprend.apprendre(out_dir, get, now)
+        except Exception as exc:
+            state["auto"] = {"t": now, "regle": None, "raison": f"erreur : {exc!r}"[:200]}
+        with (out_dir / "apprentissage.jsonl").open("a") as f:
+            f.write(json.dumps(state["auto"], ensure_ascii=False) + "\n")
     # 1. sorties
     held = {p["pool"] for b in state["books"].values() for p in b["open"].values()}
     live = pools_now(sorted(held))
@@ -255,6 +265,12 @@ def cycle(state, out_dir, now):
             a = live.get(p["pool"])
             if a is None or (fnum(a["reserve_in_usd"]) or 0) < RULE["vide_liquidite"]:
                 close_pos(b, token, a, now, "pool vidé ou disparu", log)
+                continue
+            rule = p.get("sortie")
+            if rule:  # caisse « auto » : la sortie de la règle sous laquelle la position a été achetée
+                x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
+                if x <= rule["stop"] or x >= rule["objectif"] or now - p["t"] >= rule["duree_max_h"] * 3600:
+                    close_pos(b, token, a, now, f"règle auto : {x:+.0%} après {(now - p['t']) / 60:.0f} min", log)
                 continue
             v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
             if v24 > 0 and v6 / (v24 / 4) < RULE["sortie_ratio_volume"]:
@@ -287,11 +303,14 @@ def cycle(state, out_dir, now):
     # 2 bis. collecte : chaque token qui passe le filtre, à chaque cycle, pour chercher plus tard une meilleure règle
     #        d'entrée et de sortie sur des données qu'aucune règle n'a encore vues (jamais utilisé pour trader ici).
     scores = {a["token"]: (r, hg, pg) for r, a, hg, pg in ranked}
+    recs = []
     with (out_dir / "univers.jsonl").open("a") as f:
         for a in uni_all:
             r, hg, pg = scores.get(a["token"], (None, None, None))
-            f.write(json.dumps(dict(dossier(r or 0.0, a, hg, pg, None, state.get("hcache", {}).get(a["token"], {}).get("n")),
-                                    t=round(now), classe=r is not None, essouffle=fading(a)), ensure_ascii=False) + "\n")
+            rec = dict(dossier(r or 0.0, a, hg, pg, None, state.get("hcache", {}).get(a["token"], {}).get("n")),
+                       t=round(now), classe=r is not None, essouffle=fading(a))
+            recs.append((rec, a))
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     state.pop("snaps", None)
     # 3. entrées (une par cycle et par caisse). « classement » suit le cadran comme dans le post ; « sans_cadran » prend
     #    les mêmes choix tous les jours ; « temoin » tire au hasard dans le filtre à chaque entrée de « sans_cadran ».
@@ -318,6 +337,16 @@ def cycle(state, out_dir, now):
                 pool = [x for x in uni if x["token"] not in books["temoin"]["open"] and x["token"] not in recent_t]
                 if pool:
                     enter(books["temoin"], random.choice(pool), 1.0, {"hasard": True})
+    # 3 bis. caisse « auto » : un achat par cycle parmi les candidats qui passent la règle du jour
+    rule = (state.get("auto") or {}).get("regle")
+    if rule:
+        import apprend
+        bk = books["auto"]
+        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
+        ok = sorted((x for x in recs if apprend.entre(rule, x[0]) and x[1]["token"] not in bk["open"]
+                     and x[1]["token"] not in recent), key=lambda x: -(x[0]["score"] or 0))
+        if ok and enter(bk, ok[0][1], 1.0, {"regle": rule}):
+            bk["open"][ok[0][1]["token"]]["sortie"] = rule
     # 4. caisses au rythme du post : une décision par jour à 06:00 New York
     ny = datetime.fromtimestamp(now, NY)
     day, hm = ny.strftime("%Y-%m-%d"), ny.strftime("%H:%M")
