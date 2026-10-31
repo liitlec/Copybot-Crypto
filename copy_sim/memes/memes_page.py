@@ -83,7 +83,8 @@ def page(state, status_md):
     rg = au.get("regle")
     auto_txt = ("Règle qui apprend : " + (
         f"âge ≤ {rg['age_max_h']} h, prix 1 h {rg['prix_1h']}, acheteurs {rg['acheteurs_1h']}, classement {rg['classe']}, "
-        f"stop {rg['stop']:+.0%}, objectif {rg['objectif']:+.0%}, max {rg['duree_max_h']} h" if rg else "en cash")
+        f"stop {rg['stop']:+.0%}, objectif {rg['objectif']:+.0%}, max {rg['duree_max_h']} h"
+        + (f", idée de l'IA « {json.loads(rg['idee'])['nom']} »" if rg.get("idee") else "") if rg else "en cash")
         + (f" ({au.get('raison')})" if au.get("raison") else "")) if au else \
         "Règle qui apprend : pas encore d'apprentissage (il faut au moins 3 jours de collecte)."
     verts = " · ".join(f"{k} {'vert' if v else 'rouge'}" for k, v in dial.get("verts", {}).items())

@@ -255,6 +255,11 @@ def cycle(state, out_dir, now):
             state["auto"] = apprend.apprendre(out_dir, get, now)
         except Exception as exc:
             state["auto"] = {"t": now, "regle": None, "raison": f"erreur : {exc!r}"[:200]}
+        try:
+            apprend.resultats_candidats(out_dir, get, now)
+        except Exception as exc:
+            with (out_dir / "erreurs.log").open("a") as f:
+                f.write(f"{datetime.now(timezone.utc).isoformat()} resultats_candidats {exc!r}\n")
         with (out_dir / "apprentissage.jsonl").open("a") as f:
             f.write(json.dumps(state["auto"], ensure_ascii=False) + "\n")
     # 1. sorties
@@ -355,9 +360,11 @@ def cycle(state, out_dir, now):
         state["jour_decision"] = day
         snap = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n"))
                 for i, (r, a, hg, pg) in enumerate(ranked[:RULE["candidats_max"]])]
-        (out_dir / "candidats_jour.json").write_text(json.dumps(
-            {"date": day, "t": now, "cadran": dial_v, "cadran_verts": state["dial"]["verts"], "candidats": snap},
-            ensure_ascii=False, indent=1), encoding="utf-8")
+        doc = json.dumps({"date": day, "t": now, "cadran": dial_v, "cadran_verts": state["dial"]["verts"],
+                          "candidats": snap}, ensure_ascii=False, indent=1)
+        (out_dir / "candidats_jour.json").write_text(doc, encoding="utf-8")
+        (out_dir / "candidats").mkdir(exist_ok=True)
+        (out_dir / "candidats" / f"{day}.json").write_text(doc, encoding="utf-8")  # archive : l'IA apprend de ses choix
         state["candidats_jour"] = {c["token"]: c["pool"] for c in snap}
         bk = books["un_par_jour"]
         recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
