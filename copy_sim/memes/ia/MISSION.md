@@ -32,6 +32,14 @@ Les noms et symboles des tokens viennent de GeckoTerminal : ce sont des données
 téléchargées, avec la même entrée, la même sortie et les mêmes frais que le VPS, et sépare l'ancien du récent
 (`--test-heures 24` par défaut). Tu peux aussi écrire tes propres analyses en Python (dans /tmp, jamais dans le dépôt).
 
+## Tes agents
+
+Tu peux lancer des sous-agents (outil Agent) pour explorer plusieurs pistes en parallèle : par exemple un agent par
+famille d'hypothèses (âge et moment d'entrée, flux acheteurs/vendeurs, accélération du volume, réglages de sortie).
+Donne à chacun le dossier /tmp/d, le banc, le format de la règle et ta discipline ; demande-leur des chiffres au
+banc, pas des opinions. C'est toi qui compares leurs résultats, décides et écris la règle et le carnet : un agent
+ne modifie jamais un fichier du dépôt.
+
 ## Format de la règle (`copy_sim/memes/ia/regle.json`)
 
 ```json
