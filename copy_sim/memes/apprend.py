@@ -1,7 +1,7 @@
 """Caisse « auto » : une règle d'entrée et de sortie réapprise chaque jour sur les données collectées (univers.jsonl),
 choisie uniquement sur le passé et vérifiée sur les 2 derniers jours avant d'être utilisée.
 
-Chaque jour (00:30 UTC environ, dans la boucle du VPS) :
+Chaque heure (dans la boucle du VPS) :
 1. on prend tous les candidats enregistrés (chaque token qui a passé le filtre, à chaque cycle) et l'historique de prix
    5 min de chaque pool (GeckoTerminal, mis en cache) ;
 2. on rejoue une grille fixe de règles (entrée × sortie, voir GRILLE), chaque token au plus une fois par 24 h et par
@@ -140,11 +140,12 @@ def charger(path, since):
     return rows
 
 
-def bougies(pool, cache_dir, get, now):
-    """Historique 5 min d'un pool, mis en cache et complété au plus une fois par jour."""
+def bougies(pool, cache_dir, get, now, recent=True):
+    """Historique 5 min d'un pool, mis en cache ; complété toutes les 50 min tant que le pool est récent (vu dans
+    les dernières 26 h), sinon une fois pour toutes."""
     f = cache_dir / f"{pool}.json"
     old = json.loads(f.read_text()) if f.exists() else {"t": 0, "c": []}
-    if now - old["t"] > 20 * 3600:
+    if (recent and now - old["t"] > 50 * 60) or not old["c"]:
         try:
             d = get(f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/minute"
                     f"?aggregate=5&limit=1000&currency=usd")
@@ -200,7 +201,10 @@ def apprendre(out_dir, get, now):
         return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
     cache = out_dir / "ohlcv"
     cache.mkdir(exist_ok=True)
-    paths = {p: bougies(p, cache, get, now) for p in sorted({r["pool"] for r in rows})}
+    seen = {}
+    for r in rows:
+        seen[r["pool"]] = r["t"]
+    paths = {p: bougies(p, cache, get, now, now - t < 26 * 3600) for p, t in sorted(seen.items())}
     split = now - TEST_JOURS * 86400
     idees = lire_idees()
     grille = regles(idees)
@@ -221,6 +225,73 @@ def apprendre(out_dir, get, now):
             "raison": "retenue" if ok else "meilleure règle du passé perdante ou trop rare sur les 2 derniers jours"}
 
 
+# ------------------------------------------------------------------ caisse « ia » : règle écrite par l'IA chercheuse
+IA_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
+          "copy_sim/memes/ia/regle.json")
+BORNES = {"stop": (-0.9, -0.03), "objectif": (0.03, 20.0), "suiveur": (0.03, 0.9), "duree_max_h": (0.25, 72.0)}
+
+
+def regle_ia(raw):
+    """Valide la règle écrite par l'IA (memes/ia/regle.json). C'est une donnée : seuls ces champs, bornés, sont lus ;
+    la taille (6 % de la caisse, 2 % de la liquidité au plus) n'est pas entre ses mains. None si invalide."""
+    try:
+        conds = [{"champ": str(c["champ"]), "op": str(c["op"]), "val": float(c["val"])}
+                 for c in raw["entree"]["conditions"][:8]]
+        if not all(c["op"] in OPS and c["champ"].startswith(CHAMPS) for c in conds):
+            return None
+        sx = raw["sortie"]
+        out = {"version": int(raw["version"]), "pause": bool(raw.get("pause", False)), "conditions": conds,
+               "pourquoi": str(raw.get("pourquoi", ""))[:300],
+               "tri": str(raw.get("classement", {}).get("champ", "score")),
+               "tri_desc": raw.get("classement", {}).get("ordre", "desc") != "asc",
+               "max_positions": max(1, min(10, int(raw.get("max_positions", 10)))),
+               "sortie_volume": bool(sx.get("sortie_volume", False))}
+        if not out["tri"].startswith(CHAMPS):
+            return None
+        for k, (lo, hi) in BORNES.items():
+            v = sx.get(k)
+            out[k] = None if v is None else min(max(float(v), lo), hi)
+        if out["stop"] is None or out["duree_max_h"] is None:
+            return None
+        return out
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def lire_regle_ia(url=None):
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url or IA_URL, headers={"User-Agent": "memes-paper/1.0"}),
+                                    timeout=20) as f:
+            return regle_ia(json.load(f))
+    except Exception:
+        return None
+
+
+def entre_ia(rule, r):
+    if r.get("essouffle"):
+        return False
+    for c in rule["conditions"]:
+        v = champ(r, c["champ"])
+        if v is None or not OPS[c["op"]](v, c["val"]):
+            return False
+    return True
+
+
+def sortir_ia(rule, x, pic, age_h, essouffle):
+    """x = variation depuis l'achat, pic = plus haut vu depuis l'achat (en variation). Raison de sortie, ou None."""
+    if x <= rule["stop"]:
+        return f"stop {x:+.0%}"
+    if rule["objectif"] is not None and x >= rule["objectif"]:
+        return f"objectif {x:+.0%}"
+    if rule["suiveur"] is not None and pic > 0 and (1 + x) <= (1 + pic) * (1 - rule["suiveur"]):
+        return f"stop suiveur {x:+.0%} (plus haut {pic:+.0%})"
+    if age_h >= rule["duree_max_h"]:
+        return f"durée max {x:+.0%}"
+    if rule["sortie_volume"] and essouffle:
+        return f"volume essoufflé {x:+.0%}"
+    return None
+
+
 def resultats_candidats(out_dir, get, now, jours=14):
     """Pour chaque dossier quotidien de l'IA (candidats/AAAA-MM-JJ.json) : ce que chaque candidat a fait ensuite
     (cours de clôture 5 min, avant frais). Publié dans resultats_candidats.json pour que l'IA apprenne de ses choix."""
@@ -234,7 +305,7 @@ def resultats_candidats(out_dir, get, now, jours=14):
         snap = json.loads(f.read_text())
         t0, day = snap["t"], {}
         for c in snap["candidats"]:
-            path = [(ts, px) for ts, px in bougies(c["pool"], cache, get, now) if ts > t0]
+            path = [(ts, px) for ts, px in bougies(c["pool"], cache, get, now, now - t0 < 26 * 3600) if ts > t0]
             if not path or not c.get("prix"):
                 day[c["token"]] = {"nom": c.get("nom"), "rang": c.get("rang"), "donnees": "aucune"}
                 continue

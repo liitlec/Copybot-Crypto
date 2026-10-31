@@ -40,7 +40,7 @@ GT = "https://api.geckoterminal.com/api/v2/networks/solana"
 NY = ZoneInfo("America/New_York")
 JUGE_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
             "copy_sim/memes/juge/{date}.json")
-BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour", "auto")
+BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour", "auto", "ia")
 UA = {"Accept": "application/json", "User-Agent": "memes-paper/1.0 (read-only research)"}
 RULE = {
     "nom": "memecoins façon @savipww, papier",
@@ -247,9 +247,11 @@ def cycle(state, out_dir, now):
         state["dial"] = dict(dial(), t=now)
         log({"event": "cadran", **state["dial"]})
     dial_v = state["dial"]["cadran"]
-    # 0. caisse « auto » : règle réapprise une fois par jour (apprend.py), sur le passé seulement
-    if datetime.now(timezone.utc).strftime("%H:%M") >= "00:30" and state.get("auto_jour") != today:
-        state["auto_jour"] = today
+    # 0. caisse « auto » : règle réapprise toutes les heures (apprend.py), sur le passé seulement ; caisse « ia » :
+    #    règle écrite par l'IA chercheuse (memes/ia/regle.json), relue à chaque cycle
+    hour = datetime.now(timezone.utc).strftime("%Y-%m-%d %H")
+    if state.get("auto_heure") != hour:
+        state["auto_heure"] = hour
         try:
             import apprend
             state["auto"] = apprend.apprendre(out_dir, get, now)
@@ -270,6 +272,16 @@ def cycle(state, out_dir, now):
             a = live.get(p["pool"])
             if a is None or (fnum(a["reserve_in_usd"]) or 0) < RULE["vide_liquidite"]:
                 close_pos(b, token, a, now, "pool vidé ou disparu", log)
+                continue
+            if p.get("sortie_ia"):  # caisse « ia » : sortie de la version de règle sous laquelle elle a été achetée
+                import apprend
+                x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
+                p["pic"] = max(p.get("pic", 0.0), x)
+                v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
+                why = apprend.sortir_ia(p["sortie_ia"], x, p["pic"], (now - p["t"]) / 3600,
+                                        v24 > 0 and v6 / (v24 / 4) < RULE["sortie_ratio_volume"])
+                if why:
+                    close_pos(b, token, a, now, f"IA v{p['sortie_ia']['version']} : {why}", log)
                 continue
             rule = p.get("sortie")
             if rule:  # caisse « auto » : la sortie de la règle sous laquelle la position a été achetée
@@ -352,6 +364,25 @@ def cycle(state, out_dir, now):
                      and x[1]["token"] not in recent), key=lambda x: -(x[0]["score"] or 0))
         if ok and enter(bk, ok[0][1], 1.0, {"regle": rule}):
             bk["open"][ok[0][1]["token"]]["sortie"] = rule
+    # 3 ter. caisse « ia » : règle de l'IA chercheuse, relue à chaque cycle (la dernière règle valide reste en vigueur)
+    try:
+        import apprend
+        new = apprend.lire_regle_ia()
+    except Exception:
+        new = None
+    if new and new["version"] != (state.get("ia") or {}).get("version"):
+        state["ia"] = new
+        with (out_dir / "ia_regles.jsonl").open("a") as f:
+            f.write(json.dumps(dict(new, t=now), ensure_ascii=False) + "\n")
+    ia = state.get("ia")
+    if ia and not ia["pause"]:
+        bk = books["ia"]
+        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
+        ok = [x for x in recs if apprend.entre_ia(ia, x[0]) and x[1]["token"] not in bk["open"]
+              and x[1]["token"] not in recent]
+        ok.sort(key=lambda x: (apprend.champ(x[0], ia["tri"]) or 0) * (-1 if ia["tri_desc"] else 1))
+        if ok and len(bk["open"]) < ia["max_positions"] and enter(bk, ok[0][1], 1.0, {"ia_version": ia["version"]}):
+            bk["open"][ok[0][1]["token"]]["sortie_ia"] = ia
     # 4. caisses au rythme du post : une décision par jour à 06:00 New York
     ny = datetime.fromtimestamp(now, NY)
     day, hm = ny.strftime("%Y-%m-%d"), ny.strftime("%H:%M")
