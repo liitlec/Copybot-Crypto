@@ -269,6 +269,7 @@ def cycle(state, out_dir, now):
     def fading(a):
         v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
         return v24 <= 0 or v6 / (v24 / 4) < RULE["sortie_ratio_volume"]
+    uni_all = uni
     uni = [a for a in uni if not fading(a)]
     ranked = []
     for a in uni:
@@ -283,6 +284,14 @@ def cycle(state, out_dir, now):
         if hg > pg:
             ranked.append((hg - pg, a, round(hg, 4), round(pg, 4)))
     ranked.sort(key=lambda x: -x[0])
+    # 2 bis. collecte : chaque token qui passe le filtre, à chaque cycle, pour chercher plus tard une meilleure règle
+    #        d'entrée et de sortie sur des données qu'aucune règle n'a encore vues (jamais utilisé pour trader ici).
+    scores = {a["token"]: (r, hg, pg) for r, a, hg, pg in ranked}
+    with (out_dir / "univers.jsonl").open("a") as f:
+        for a in uni_all:
+            r, hg, pg = scores.get(a["token"], (None, None, None))
+            f.write(json.dumps(dict(dossier(r or 0.0, a, hg, pg, None, state.get("hcache", {}).get(a["token"], {}).get("n")),
+                                    t=round(now), classe=r is not None, essouffle=fading(a)), ensure_ascii=False) + "\n")
     state.pop("snaps", None)
     # 3. entrées (une par cycle et par caisse). « classement » suit le cadran comme dans le post ; « sans_cadran » prend
     #    les mêmes choix tous les jours ; « temoin » tire au hasard dans le filtre à chaque entrée de « sans_cadran ».
