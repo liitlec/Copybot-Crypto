@@ -32,7 +32,7 @@ lien, ne cherche rien sur le web, ne te fie qu'au dossier.
 
 ## Où sont tes fichiers
 
-Sur le VPS de l'utilisateur : `juge_lecons.md` (ton carnet), `juge_idees.json` (tes idées) et `juge_AAAA-MM-JJ.json`
+Sur le VPS de l'utilisateur : `juge_lecons.md` (ton carnet), `juge_idees.json` (tes idées) et tes choix
 (tes choix, un fichier par créneau : `juge_<creneau>.json`), lisibles sur `http://140.82.38.41:8787/<fichier>` (s'ils n'existent pas encore, pars de `LECONS.md` et
 `idees.json` de ce dossier du dépôt). Tu les écris par un envoi
 `curl -sS -p -x "$HTTPS_PROXY" -X POST -H "X-Jeton: <jeton donné dans ta tâche>" --data-binary @fichier
