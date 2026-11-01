@@ -326,7 +326,7 @@ def resultats_candidats(out_dir, get, now, jours=14):
             day[c["token"]] = {"nom": c.get("nom"), "rang": c.get("rang"), "1h": at(1), "4h": at(4), "24h": at(24),
                                "max_24h": round(max(day24) / c["prix"] - 1, 3),
                                "min_24h": round(min(day24) / c["prix"] - 1, 3)}
-        res[snap["date"]] = day
+        res[snap.get("creneau", snap["date"])] = day
     (out_dir / "resultats_candidats.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
 
 

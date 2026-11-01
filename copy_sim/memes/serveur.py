@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import apprend  # noqa: E402
 
-ECRITURE = re.compile(r"^(ia_regle\.json|ia_carnet\.md|juge_lecons\.md|juge_idees\.json|juge_\d{4}-\d{2}-\d{2}\.json)$")
+ECRITURE = re.compile(r"^(ia_regle\.json|ia_carnet\.md|juge_lecons\.md|juge_idees\.json|juge_\d{4}-\d{2}-\d{2}(_\d{2})?\.json)$")
 TAILLE_MAX = 64 * 1024
 
 
@@ -28,7 +28,7 @@ def verifier(name, body):
     data = json.loads(text)
     if name == "ia_regle.json" and apprend.regle_ia(data) is None:
         raise ValueError("règle invalide (voir memes/ia/MISSION.md)")
-    if name.startswith("juge_2") and not (isinstance(data, dict) and "date" in data and "choix" in data):
+    if name.startswith("juge_2") and not (isinstance(data, dict) and "creneau" in data and "choix" in data):
         raise ValueError("choix du juge invalide")
     return json.dumps(data, ensure_ascii=False, indent=1)
 

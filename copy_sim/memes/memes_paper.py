@@ -48,7 +48,7 @@ RULE = {
     "mcap_min": 60_000, "mcap_max": 8_000_000,
     "ticket_part": 0.06, "plafond_liquidite": 0.02, "frais": 0.0045, "frais_min": 0.95,
     "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300,
-    "cadran_min": 0.50, "holders_cache_s": 3600, "decision_ny": "06:00", "juge_limite_ny": "10:00", "candidats_max": 10,
+    "cadran_min": 0.50, "holders_cache_s": 3600, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "candidats_max": 10,
     "verdict": "après au moins 100 trades fermés : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
                "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran » ; l'IA n'est utile que si « juge » bat « un_par_jour »",
 }
@@ -281,7 +281,7 @@ def cycle(state, out_dir, now):
                 why = apprend.sortir_ia(p["sortie_ia"], x, p["pic"], (now - p["t"]) / 3600,
                                         v24 > 0 and v6 / (v24 / 4) < RULE["sortie_ratio_volume"])
                 if why:
-                    close_pos(b, token, a, now, f"IA v{p['sortie_ia']['version']} : {why}", log)
+                    close_pos(b, token, a, now, f"{p['sortie_ia'].get('nom') or 'IA v%d' % p['sortie_ia']['version']} : {why}", log)
                 continue
             rule = p.get("sortie")
             if rule:  # caisse « auto » : la sortie de la règle sous laquelle la position a été achetée
@@ -383,60 +383,73 @@ def cycle(state, out_dir, now):
         ok.sort(key=lambda x: (apprend.champ(x[0], ia["tri"]) or 0) * (-1 if ia["tri_desc"] else 1))
         if ok and len(bk["open"]) < ia["max_positions"] and enter(bk, ok[0][1], 1.0, {"ia_version": ia["version"]}):
             bk["open"][ok[0][1]["token"]]["sortie_ia"] = ia
-    # 4. caisses au rythme du post : une décision par jour à 06:00 New York
+    # 4. caisses « juge » (IA) et « un_par_jour » (sans IA) : une décision par créneau de 4 h (heure de New York) ;
+    #    le post n'en prenait qu'une par jour à 06:00, l'utilisateur a voulu une IA qui ajuste plus souvent
     ny = datetime.fromtimestamp(now, NY)
     day, hm = ny.strftime("%Y-%m-%d"), ny.strftime("%H:%M")
     daily_mult = dial_v if dial_v >= RULE["cadran_min"] else 0
-    if hm >= RULE["decision_ny"] and state.get("jour_decision") != day:
-        state["jour_decision"] = day
+    slot = max((h for h in RULE["decisions_ny"] if h <= hm), default=None)
+    key = f"{day}_{slot[:2]}" if slot else None
+    if key and state.get("creneau") != key:
+        state["creneau"] = key
         snap = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n"))
                 for i, (r, a, hg, pg) in enumerate(ranked[:RULE["candidats_max"]])]
-        doc = json.dumps({"date": day, "t": now, "cadran": dial_v, "cadran_verts": state["dial"]["verts"],
-                          "candidats": snap}, ensure_ascii=False, indent=1)
+        doc = json.dumps({"date": day, "creneau": key, "t": now, "cadran": dial_v,
+                          "cadran_verts": state["dial"]["verts"], "candidats": snap}, ensure_ascii=False, indent=1)
         (out_dir / "candidats_jour.json").write_text(doc, encoding="utf-8")
         (out_dir / "candidats").mkdir(exist_ok=True)
-        (out_dir / "candidats" / f"{day}.json").write_text(doc, encoding="utf-8")  # archive : l'IA apprend de ses choix
+        (out_dir / "candidats" / f"{key}.json").write_text(doc, encoding="utf-8")  # archive : l'IA apprend de ses choix
         state["candidats_jour"] = {c["token"]: c["pool"] for c in snap}
         bk = books["un_par_jour"]
         recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
         pick = next((r for r in ranked if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent), None)
         if not daily_mult:
-            log({"event": "jour", "book": "un_par_jour", "date": day, "rien": "cadran sous 0,5"})
+            log({"event": "jour", "book": "un_par_jour", "creneau": key, "rien": "cadran sous 0,5"})
         elif not pick:
-            log({"event": "jour", "book": "un_par_jour", "date": day, "rien": "aucun candidat classé"})
+            log({"event": "jour", "book": "un_par_jour", "creneau": key, "rien": "aucun candidat classé"})
         else:
             enter(bk, pick[1], daily_mult, {"score": round(pick[0], 4), "detenteurs": pick[2], "prix": pick[3]})
-    if state.get("jour_decision") == day and state.get("juge_fait") != day:
-        if hm >= RULE["juge_limite_ny"]:
-            state["juge_fait"] = day
-            log({"event": "jour", "book": "juge", "date": day, "rien": "pas de réponse de l'IA avant 10:00 New York"})
+    if key and state.get("creneau") == key and state.get("juge_fait") != key:
+        t_slot = datetime.strptime(f"{day} {slot}", "%Y-%m-%d %H:%M").replace(tzinfo=NY).timestamp()
+        if now - t_slot > RULE["juge_delai_h"] * 3600:
+            state["juge_fait"] = key
+            log({"event": "jour", "book": "juge", "creneau": key, "rien": "pas de réponse de l'IA à temps"})
         else:
             try:  # déposé sur le VPS par l'IA (serveur.py), sinon publié sur la branche GitHub
-                local = out_dir / f"juge_{day}.json"
+                local = out_dir / f"juge_{key}.json"
                 if local.exists():
                     verdict = json.loads(local.read_text())
                 else:
-                    with urllib.request.urlopen(urllib.request.Request(JUGE_URL.format(date=day), headers=UA),
+                    with urllib.request.urlopen(urllib.request.Request(JUGE_URL.format(date=key), headers=UA),
                                                 timeout=20) as r:
                         verdict = json.load(r)
             except Exception:
                 verdict = None  # pas encore publié
-            if verdict is not None and verdict.get("date") == day:
-                state["juge_fait"] = day
+            if verdict is not None and verdict.get("creneau") == key:
+                state["juge_fait"] = key
                 tok = verdict.get("choix")
                 bk = books["juge"]
                 pool = state.get("candidats_jour", {}).get(tok)
                 if not tok or not daily_mult or pool is None or tok in bk["open"]:
                     why = ("aucun" if not tok else "cadran sous 0,5" if not daily_mult else
-                           "hors des candidats du jour" if pool is None else "déjà détenu")
-                    log({"event": "jour", "book": "juge", "date": day, "rien": why, "ia": verdict})
+                           "hors des candidats du créneau" if pool is None else "déjà détenu")
+                    log({"event": "jour", "book": "juge", "creneau": key, "rien": why, "ia": verdict})
                 else:
                     a = pools_now([pool]).get(pool)
                     if a is None or (fnum(a.get("reserve_in_usd")) or 0) < RULE["vide_liquidite"]:
-                        log({"event": "jour", "book": "juge", "date": day, "rien": "pool introuvable à l'achat", "ia": verdict})
-                    else:
-                        enter(bk, dict(a, pool=pool, token=tok), daily_mult,
-                              {"ia_proba": verdict.get("proba"), "ia_raison": str(verdict.get("raison", ""))[:300]})
+                        log({"event": "jour", "book": "juge", "creneau": key, "rien": "pool introuvable à l'achat",
+                             "ia": verdict})
+                    elif enter(bk, dict(a, pool=pool, token=tok), daily_mult,
+                               {"ia_proba": verdict.get("proba"), "ia_raison": str(verdict.get("raison", ""))[:300]}):
+                        # sortie choisie par l'IA (bornée comme celle de l'IA chercheuse), sinon celle du post
+                        try:
+                            import apprend
+                            sx = apprend.regle_ia({"version": 0, "entree": {"conditions": []},
+                                                   "sortie": verdict.get("sortie")}) if verdict.get("sortie") else None
+                        except Exception:
+                            sx = None
+                        if sx:
+                            bk["open"][tok]["sortie_ia"] = dict(sx, nom="juge")
     # caisse de référence pour la taille : valeur du compte au début de chaque jour (pas de réinvestissement intra-jour)
     for b in state["books"].values():
         if b.get("ref_day") != state["dial"]["date"]:
@@ -501,7 +514,7 @@ def main():
         rule_p.write_text(json.dumps(dict(RULE, debut=datetime.now(timezone.utc).isoformat()), ensure_ascii=False, indent=1))
     juge_p = out_dir / "regle_juge.json"  # caisses ajoutées le 30/10 : leurs règles sont figées à leur premier lancement
     if not juge_p.exists():
-        juge_p.write_text(json.dumps({k: RULE[k] for k in ("decision_ny", "juge_limite_ny", "candidats_max", "verdict")} |
+        juge_p.write_text(json.dumps({k: RULE[k] for k in ("decisions_ny", "juge_delai_h", "candidats_max", "verdict")} |
                                      {"juge_url": JUGE_URL, "debut": datetime.now(timezone.utc).isoformat()},
                                      ensure_ascii=False, indent=1))
     st_p = out_dir / "state.json"

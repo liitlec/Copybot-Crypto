@@ -52,7 +52,7 @@ def page(state, status_md):
         when = d.astimezone(PARIS).strftime("%d/%m %H:%M")
     dial = state.get("dial", {})
     labels = {"classement": "Ses règles (avec cadran)", "sans_cadran": "Mêmes choix, sans cadran", "temoin": "Témoin tiré au hasard",
-              "juge": "IA juge, 1 par jour (comme le post)", "un_par_jour": "1 par jour sans IA (témoin de l'IA)",
+              "juge": "IA juge (1 choix toutes les 4 h)", "un_par_jour": "Sans IA, 1 toutes les 4 h (témoin de l'IA juge)",
               "auto": "Règle qui apprend (réajustée chaque heure)", "ia": "IA chercheuse (réécrit sa règle elle-même)"}
     cards, rows_open, closed_all = [], [], []
     for key in [k for k in labels if k in state["books"]]:
