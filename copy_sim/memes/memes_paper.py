@@ -41,7 +41,7 @@ GT = "https://api.geckoterminal.com/api/v2/networks/solana"
 NY = ZoneInfo("America/New_York")
 JUGE_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
             "copy_sim/memes/juge/{date}.json")
-BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour", "auto", "ia")
+BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour", "auto", "ia", "ia_filtre")
 UA = {"Accept": "application/json", "User-Agent": "memes-paper/1.0 (read-only research)"}
 RULE = {
     "nom": "memecoins façon @savipww, papier",
@@ -49,7 +49,7 @@ RULE = {
     "mcap_min": 60_000, "mcap_max": 8_000_000,
     "ticket_part": 0.06, "plafond_liquidite": 0.02, "frais": 0.0045, "frais_min": 0.95,
     "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300, "suivi_s": 15,
-    "cadran_min": 0.50, "holders_cache_s": 3600, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "candidats_max": 10,
+    "cadran_min": 0.50, "holders_cache_s": 3600, "filtre_detenteurs_min": 300, "filtre_top10_max": 50, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "candidats_max": 10,
     "verdict": "après au moins 100 trades fermés : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
                "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran » ; l'IA n'est utile que si « juge » bat « un_par_jour »",
 }
@@ -181,16 +181,33 @@ def passes(a, now):
             and RULE["mcap_min"] <= mcap <= RULE["mcap_max"])
 
 
-def holders(token, cache, now):
+def holders(token, cache, now, full=False):
+    """Nombre de détenteurs (GeckoTerminal, mis en cache 1 h) ; full=True renvoie aussi la sécurité du token : part des
+    10 plus gros détenteurs (en %) et autorisations de création / gel encore actives."""
     c = cache.get(token)
-    if c and now - c["t"] < RULE["holders_cache_s"]:
-        return c["n"]
-    try:
-        n = get(f"{GT}/tokens/{token}/info")["data"]["attributes"]["holders"]["count"]
-    except Exception:
-        n = None
-    cache[token] = {"t": now, "n": n}
-    return n
+    if not (c and now - c["t"] < RULE["holders_cache_s"] and (not full or "top10" in c)):
+        try:
+            a = get(f"{GT}/tokens/{token}/info")["data"]["attributes"]
+            h = a.get("holders") or {}
+            c = {"t": now, "n": h.get("count"), "top10": fnum((h.get("distribution_percentage") or {}).get("top_10")),
+                 "mint": a.get("mint_authority"), "freeze": a.get("freeze_authority")}
+        except Exception:
+            c = {"t": now, "n": None, "top10": None, "mint": None, "freeze": None}
+        cache[token] = c
+    return c if full else c["n"]
+
+
+def securite(token, cache, now):
+    """Filtre anti-pièges de la caisse « ia_filtre » (ajouté le 01/11 après trois effondrements : USDF −100 %, Kim −95 %,
+    SA −77 %). Renvoie None si le token passe, sinon la raison du refus."""
+    c = holders(token, cache, now, full=True)
+    if c["mint"] == "yes" or c["freeze"] == "yes":
+        return "autorisation de création ou de gel encore active"
+    if not c["n"] or c["n"] < RULE["filtre_detenteurs_min"]:
+        return f"trop peu de détenteurs ({c['n']})"
+    if c["top10"] is None or c["top10"] > RULE["filtre_top10_max"]:
+        return f"10 plus gros détenteurs à {c['top10']} %"
+    return None
 
 
 def pools_now(addresses):
@@ -477,6 +494,24 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         ok.sort(key=lambda x: (apprend.champ(x[0], ia["tri"]) or 0) * (-1 if ia["tri_desc"] else 1))
         if ok and len(bk["open"]) < ia["max_positions"] and enter(bk, ok[0][1], 1.0, {"ia_version": ia["version"]}):
             bk["open"][ok[0][1]["token"]]["sortie_ia"] = ia
+        # caisse « ia_filtre » : la même règle, mais seulement des tokens qui passent le filtre anti-pièges
+        bf = books["ia_filtre"]
+        recent_f = {r["token"] for r in bf["closed"] if now - r["t_out"] < 24 * 3600}
+        refus = state.setdefault("filtre_refus", [])
+        ok_f = [x for x in recs if apprend.entre_ia(ia, x[0]) and x[1]["token"] not in bf["open"]
+                and x[1]["token"] not in recent_f]
+        ok_f.sort(key=lambda x: (apprend.champ(x[0], ia["tri"]) or 0) * (-1 if ia["tri_desc"] else 1))
+        for rec, a in ok_f:
+            if len(bf["open"]) >= ia["max_positions"]:
+                break
+            why = securite(a["token"], state.setdefault("hcache", {}), now)
+            if why:
+                refus.append({"t": round(now), "token": a["token"], "nom": a.get("name"), "raison": why})
+                del refus[:-50]
+                continue
+            if enter(bf, a, 1.0, {"ia_version": ia["version"], "filtre": "ok"}):
+                bf["open"][a["token"]]["sortie_ia"] = ia
+            break
     # 4. caisses « juge » (IA) et « un_par_jour » (sans IA) : une décision par créneau de 4 h (heure de New York) ;
     #    le post n'en prenait qu'une par jour à 06:00, l'utilisateur a voulu une IA qui ajuste plus souvent
     ny = datetime.fromtimestamp(now, NY)

@@ -53,7 +53,8 @@ def page(state, status_md):
     dial = state.get("dial", {})
     labels = {"classement": "Ses règles (avec cadran)", "sans_cadran": "Mêmes choix, sans cadran", "temoin": "Témoin tiré au hasard",
               "juge": "IA juge (1 choix toutes les 4 h)", "un_par_jour": "Sans IA, 1 toutes les 4 h (témoin de l'IA juge)",
-              "auto": "Règle qui apprend (réajustée chaque heure)", "ia": "IA chercheuse (réécrit sa règle elle-même)"}
+              "auto": "Règle qui apprend (réajustée chaque heure)", "ia": "IA chercheuse (réécrit sa règle elle-même)",
+              "ia_filtre": "IA chercheuse + filtre anti-pièges"}
     cards, rows_open, closed_all = [], [], []
     for key in [k for k in labels if k in state["books"]]:
         b = state["books"][key]
