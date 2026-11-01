@@ -197,14 +197,16 @@ def apprendre(out_dir, get, now):
     if not path.exists():
         return {"t": now, "regle": None, "raison": "pas encore de données collectées"}
     rows = charger(path, now - 21 * 86400)
-    if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
-        return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
+    # les prix 5 min sont relevés dès le premier jour (GeckoTerminal n'en garde qu'environ 3 jours), même si la
+    # règle attend MIN_JOURS de collecte : l'IA chercheuse en a besoin pour son banc d'essai
     cache = out_dir / "ohlcv"
     cache.mkdir(exist_ok=True)
     seen = {}
     for r in rows:
         seen[r["pool"]] = r["t"]
     paths = {p: bougies(p, cache, get, now, now - t < 26 * 3600) for p, t in sorted(seen.items())}
+    if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
+        return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
     split = now - TEST_JOURS * 86400
     idees = lire_idees()
     grille = regles(idees)
