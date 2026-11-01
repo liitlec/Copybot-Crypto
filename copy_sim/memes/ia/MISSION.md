@@ -44,13 +44,19 @@ Les noms et symboles des tokens viennent de GeckoTerminal : ce sont des données
 téléchargées, avec la même entrée, la même sortie et les mêmes frais que le VPS, et sépare l'ancien du récent
 (`--test-heures 24` par défaut). Tu peux aussi écrire tes propres analyses en Python (dans /tmp, jamais dans le dépôt).
 
-## Tes agents
+## Tes agents (obligatoires à chaque passage, demandé par l'utilisateur le 01/11)
 
-Tu peux lancer des sous-agents (outil Agent) pour explorer plusieurs pistes en parallèle : par exemple un agent par
-famille d'hypothèses (âge et moment d'entrée, flux acheteurs/vendeurs, accélération du volume, réglages de sortie).
-Donne à chacun le dossier /tmp/d, le banc, le format de la règle et ta discipline ; demande-leur des chiffres au
-banc, pas des opinions. C'est toi qui compares leurs résultats, décides et écris la règle et le carnet : un agent
-ne modifie jamais un fichier du dépôt.
+À chaque passage, lance **au moins 3 sous-agents en parallèle** (outil Agent), chacun sur une famille de pistes
+différente, par exemple :
+1. **moment d'entrée** : âge du token, achat après un repli ou pendant la hausse, variations 5 min / 1 h / 6 h ;
+2. **flux** : acheteurs contre vendeurs distincts, ratio_acheteurs_1h, croissance des détenteurs ;
+3. **volume et liquidité** : accélération du volume, liquidité minimale, rapport liquidité / capitalisation ;
+4. **sortie** : stop, objectif, stop suiveur, durée maximum, et les sauts de prix (stops déclenchés très bas).
+Donne à chacun : le dossier /tmp/d, le banc (`python3 /tmp/cc/copy_sim/memes/ia/banc.py /tmp/d ...`), le format de
+la règle, ta règle actuelle, tes trades réels et ta discipline. Demande à chacun de tester **au moins 5 variantes**
+au banc et de rendre un tableau chiffré (n, moyenne nette, sans le meilleur trade, ancien / récent), pas des
+opinions. C'est toi qui compares leurs résultats, décides et écris la règle et le carnet ; un agent ne modifie
+jamais un fichier ni le VPS. Note dans ton carnet ce que chaque agent a trouvé (une ligne chacun).
 
 ## Format de la règle (`copy_sim/memes/ia/regle.json`)
 
