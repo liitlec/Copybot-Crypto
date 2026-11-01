@@ -26,7 +26,9 @@ GitHub.
 
 ## Tes données (lecture seule, par le tunnel du proxy : `curl -sS -p -x "$HTTPS_PROXY" http://140.82.38.41:8787/...`)
 
-- `univers.jsonl` : chaque token qui passe le filtre, à chaque cycle de 5 min, avec ses chiffres (âge, liquidité,
+- `univers.jsonl` : chaque token qui passe le filtre, à chaque cycle de 5 min (depuis le 01/11 vers 14:30, l'univers
+  inclut aussi les pools les plus actifs sur 24 h : volume, transactions, PumpSwap, Raydium ; champ `univers_post`
+  = vrai si le token était aussi dans l'univers d'origine du post), avec ses chiffres (âge, liquidité,
   capitalisation, volumes et variations de prix par fenêtre, transactions, acheteurs et vendeurs distincts, score).
 - `ohlcv/<pool>.json` : historique de prix 5 min des pools vus (`{"t": ..., "c": [[ts, close], ...]}`) ;
   la liste des pools est dans univers.jsonl. Récupère-les avec une boucle curl (pas besoin de GeckoTerminal).

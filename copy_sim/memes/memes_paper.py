@@ -141,12 +141,21 @@ def dial():
 
 
 # ------------------------------------------------------------------ marché
+# Sources de l'univers. Les trois caisses du post gardent celui du post (nouveaux pools + tendance, « _post ») ; les
+# autres caisses et la collecte voient en plus les pools les plus actifs sur 24 h (volume, transactions, PumpSwap,
+# Raydium), ajoutés le 01/11 parce que l'univers du post ne laissait passer qu'une dizaine de tokens.
+SOURCES = (("new_pools", 5, True), ("trending_pools", 3, True),
+           ("pools?sort=h24_volume_usd_desc", 8, False), ("pools?sort=h24_tx_count_desc", 4, False),
+           ("dexes/pumpswap/pools?sort=h24_volume_usd_desc", 2, False),
+           ("dexes/raydium/pools?sort=h24_volume_usd_desc", 2, False))
+
+
 def pools_universe():
     out = {}
-    for path, pages in (("new_pools", 5), ("trending_pools", 3)):
+    for path, pages, post in SOURCES:
         for page in range(1, pages + 1):
             try:
-                d = get(f"{GT}/{path}?page={page}")
+                d = get(f"{GT}/{path}{'&' if '?' in path else '?'}page={page}")
             except Exception:
                 continue
             for p in d.get("data", []):
@@ -154,7 +163,9 @@ def pools_universe():
                 token = p["relationships"]["base_token"]["data"]["id"].split("_", 1)[1]
                 prev = out.get(token)
                 if prev is None or (fnum(a["reserve_in_usd"]) or 0) > (fnum(prev["reserve_in_usd"]) or 0):
-                    out[token] = dict(a, pool=a["address"], token=token)
+                    out[token] = dict(a, pool=a["address"], token=token, _post=post or bool(prev and prev["_post"]))
+                elif post:
+                    prev["_post"] = True
                 LAST_GT[a["address"]] = a
     return list(out.values())
 
@@ -398,6 +409,8 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         if hg > pg:
             ranked.append((hg - pg, a, round(hg, 4), round(pg, 4)))
     ranked.sort(key=lambda x: -x[0])
+    ranked_post = [r for r in ranked if r[1].get("_post")]   # univers du post, pour ses trois caisses
+    uni_post = [a for a in uni if a.get("_post")]
     # 2 bis. collecte : chaque token qui passe le filtre, à chaque cycle, pour chercher plus tard une meilleure règle
     #        d'entrée et de sortie sur des données qu'aucune règle n'a encore vues (jamais utilisé pour trader ici).
     scores = {a["token"]: (r, hg, pg) for r, a, hg, pg in ranked}
@@ -406,7 +419,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         for a in uni_all:
             r, hg, pg = scores.get(a["token"], (None, None, None))
             rec = dict(dossier(r or 0.0, a, hg, pg, None, state.get("hcache", {}).get(a["token"], {}).get("n")),
-                       t=round(now), classe=r is not None, essouffle=fading(a))
+                       t=round(now), classe=r is not None, essouffle=fading(a), univers_post=bool(a.get("_post")))
             recs.append((rec, a))
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     state.pop("snaps", None)
@@ -422,17 +435,17 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         return dollars
 
     books = state["books"]
-    if ranked:
+    if ranked_post:
         for name, mult in (("classement", dial_v if dial_v >= RULE["cadran_min"] else 0), ("sans_cadran", 1.0)):
             if mult <= 0:
                 continue
             bk = books[name]
             recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
-            pick = next((r for r in ranked if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent), None)
+            pick = next((r for r in ranked_post if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent), None)
             if pick and enter(bk, pick[1], mult, {"score": round(pick[0], 4), "detenteurs": pick[2], "prix": pick[3]}) \
                     and name == "sans_cadran":
                 recent_t = {r["token"] for r in books["temoin"]["closed"] if now - r["t_out"] < 24 * 3600}
-                pool = [x for x in uni if x["token"] not in books["temoin"]["open"] and x["token"] not in recent_t]
+                pool = [x for x in uni_post if x["token"] not in books["temoin"]["open"] and x["token"] not in recent_t]
                 if pool:
                     enter(books["temoin"], random.choice(pool), 1.0, {"hasard": True})
     # 3 bis. caisse « auto » : un achat par cycle parmi les candidats qui passent la règle du jour
@@ -537,6 +550,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
             b["cash_ref"], b["ref_day"] = equity(b, live), state["dial"]["date"]
     state["last_cycle"] = now
     state["last_universe"] = len(uni)
+    state["last_universe_post"] = len(uni_post)
     state["last_ranked"] = len(ranked)
     write_status(state, out_dir, live)
 
@@ -573,7 +587,8 @@ def stats(rs):
 def write_status(state, out_dir, live):
     lines = [f"# Memecoins papier (façon @savipww) — {datetime.now(timezone.utc):%d/%m %H:%M} UTC", "",
              f"Cadran du jour : {state['dial']['cadran']:.2f} {state['dial']['verts']}",
-             f"Dernier cycle : {state['last_universe']} tokens passent le filtre, {state['last_ranked']} classés", ""]
+             f"Dernier cycle : {state['last_universe']} tokens passent le filtre (dont {state.get('last_universe_post', '?')} "
+             f"dans l'univers du post), {state['last_ranked']} classés", ""]
     fx = FLUX[0]
     lines += ["Prix en direct (gRPC) : " + ("non configuré, suivi par GeckoTerminal toutes les 15 s" if fx is None else
               f"{'connecté' if fx.actif else 'déconnecté'}, {len(fx.pools)} pools suivis, "
