@@ -68,7 +68,7 @@ ne modifie jamais un fichier du dépôt.
   haut, 0,03 à 0,9 ou null), duree_max_h (0,25 à 72, obligatoire), sortie_volume (revente quand le volume s'essouffle).
 - Un achat par cycle au plus, le premier selon le classement ; pas de rachat d'un token revendu dans les 24 h.
 - La taille n'est pas entre tes mains (6 % de la caisse, 2 % de la liquidité au plus). Le VPS relit la règle toutes
-  les 5 min ; les positions déjà ouvertes gardent la sortie de la version sous laquelle elles ont été achetées.
+  les 5 min et vérifie le prix de tes positions toutes les 15 s (stop, objectif, stop suiveur, durée) ; les positions déjà ouvertes gardent la sortie de la version sous laquelle elles ont été achetées.
 - `"pause": true` arrête les achats (les positions ouvertes continuent jusqu'à leur sortie).
 
 ## Ta discipline (c'est elle qui fait la différence entre apprendre et se raconter des histoires)

@@ -47,7 +47,7 @@ RULE = {
     "age_min_s": 15 * 60, "age_max_s": 72 * 3600, "liq_min": 12_000, "vol24_min": 40_000,
     "mcap_min": 60_000, "mcap_max": 8_000_000,
     "ticket_part": 0.06, "plafond_liquidite": 0.02, "frais": 0.0045, "frais_min": 0.95,
-    "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300,
+    "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300, "suivi_s": 15,
     "cadran_min": 0.50, "holders_cache_s": 3600, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "candidats_max": 10,
     "verdict": "après au moins 100 trades fermés : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
                "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran » ; l'IA n'est utile que si « juge » bat « un_par_jour »",
@@ -232,6 +232,53 @@ def equity(book, live):
     return val
 
 
+def suivie(p):
+    """Position à sortie par règle (stop, objectif, durée) : son prix est suivi toutes les SUIVI_S secondes."""
+    return bool(p.get("sortie_ia") or p.get("sortie"))
+
+
+def sortie_regle(b, token, p, a, now, log):
+    """Sortie des positions à règle (caisses « ia », « juge » avec sa sortie, « auto ») ; False si la position suit
+    la sortie du post (volume essoufflé), traitée par le cycle de 5 min."""
+    if p.get("sortie_ia"):  # sortie de la version de règle sous laquelle la position a été achetée
+        import apprend
+        x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
+        p["pic"] = max(p.get("pic", 0.0), x)
+        v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
+        why = apprend.sortir_ia(p["sortie_ia"], x, p["pic"], (now - p["t"]) / 3600,
+                                v24 > 0 and v6 / (v24 / 4) < RULE["sortie_ratio_volume"])
+        if why:
+            close_pos(b, token, a, now, f"{p['sortie_ia'].get('nom') or 'IA v%d' % p['sortie_ia']['version']} : {why}", log)
+        return True
+    rule = p.get("sortie")
+    if rule:  # caisse « auto »
+        x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
+        if x <= rule["stop"] or x >= rule["objectif"] or now - p["t"] >= rule["duree_max_h"] * 3600:
+            close_pos(b, token, a, now, f"règle auto : {x:+.0%} après {(now - p['t']) / 60:.0f} min", log)
+        return True
+    return False
+
+
+def surveiller(state, out_dir, now):
+    """Entre deux cycles : relève le prix des positions à règle (un seul appel GeckoTerminal pour toutes) et applique
+    leurs stops, objectifs et durées au plus tard SUIVI_S secondes après le franchissement (au lieu de 5 min)."""
+    pos = [(b, t, p) for b in state["books"].values() for t, p in b["open"].items() if suivie(p)]
+    if not pos:
+        return
+    live = pools_now(sorted({p["pool"] for _, _, p in pos}))
+
+    def log(rec):
+        with (out_dir / "trades.jsonl").open("a") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    n = sum(len(b["closed"]) for b in state["books"].values())
+    for b, token, p in pos:
+        a = live.get(p["pool"])
+        if a is not None and token in b["open"]:  # pool absent de la réponse : le cycle de 5 min tranchera
+            sortie_regle(b, token, p, a, now, log)
+    if sum(len(b["closed"]) for b in state["books"].values()) != n:
+        (out_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+
 # ------------------------------------------------------------------ boucle
 def cycle(state, out_dir, now):
     log_path = out_dir / "trades.jsonl"
@@ -273,21 +320,7 @@ def cycle(state, out_dir, now):
             if a is None or (fnum(a["reserve_in_usd"]) or 0) < RULE["vide_liquidite"]:
                 close_pos(b, token, a, now, "pool vidé ou disparu", log)
                 continue
-            if p.get("sortie_ia"):  # caisse « ia » : sortie de la version de règle sous laquelle elle a été achetée
-                import apprend
-                x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
-                p["pic"] = max(p.get("pic", 0.0), x)
-                v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
-                why = apprend.sortir_ia(p["sortie_ia"], x, p["pic"], (now - p["t"]) / 3600,
-                                        v24 > 0 and v6 / (v24 / 4) < RULE["sortie_ratio_volume"])
-                if why:
-                    close_pos(b, token, a, now, f"{p['sortie_ia'].get('nom') or 'IA v%d' % p['sortie_ia']['version']} : {why}", log)
-                continue
-            rule = p.get("sortie")
-            if rule:  # caisse « auto » : la sortie de la règle sous laquelle la position a été achetée
-                x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
-                if x <= rule["stop"] or x >= rule["objectif"] or now - p["t"] >= rule["duree_max_h"] * 3600:
-                    close_pos(b, token, a, now, f"règle auto : {x:+.0%} après {(now - p['t']) / 60:.0f} min", log)
+            if sortie_regle(b, token, p, a, now, log):
                 continue
             v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
             if v24 > 0 and v6 / (v24 / 4) < RULE["sortie_ratio_volume"]:
@@ -534,7 +567,14 @@ def main():
                 f.write(f"{datetime.now(timezone.utc).isoformat()} {exc!r}\n")
         if args.once:
             break
-        time.sleep(max(30, RULE["cycle_s"] - (time.time() - t0)))
+        while time.time() - t0 < RULE["cycle_s"] - RULE["suivi_s"]:  # suivi des positions à règle entre deux cycles
+            time.sleep(RULE["suivi_s"])
+            try:
+                surveiller(state, out_dir, time.time())
+            except Exception as exc:
+                with (out_dir / "erreurs.log").open("a") as f:
+                    f.write(f"{datetime.now(timezone.utc).isoformat()} suivi {exc!r}\n")
+        time.sleep(max(1.0, RULE["cycle_s"] - (time.time() - t0)))
 
 
 if __name__ == "__main__":
