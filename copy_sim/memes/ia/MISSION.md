@@ -93,6 +93,8 @@ ne modifie jamais un fichier du dépôt.
    chiffré.
 6. Écris dans ton carnet une entrée datée (heure de Paris) de 3 à 8 lignes : ce que tu as observé, les hypothèses
    testées avec leurs chiffres au banc, ta décision. Garde le carnet sous 200 lignes en résumant les plus anciennes
-   entrées. Si rien de neuf depuis ton dernier passage (moins de 3 nouveaux trades et pas de nouvelle idée), écris
-   une seule ligne et ne change pas la règle.
+   entrées. Si rien de neuf depuis ton dernier passage (moins de 3 nouveaux trades, pas de nouvelle idée, et ta
+   règle est déjà active), écris une seule ligne et ne change pas la règle. Ce raccourci ne s'applique jamais quand
+   tu es en pause en phase d'exploration : là, refais l'étape 3 à chaque passage avec les règles d'exploration
+   (les données grossissent toutes les 5 min).
 7. N'écris que ton carnet et ta règle (sur le VPS). Jamais le code, jamais les autres caisses.
