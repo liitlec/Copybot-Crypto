@@ -30,6 +30,7 @@ Usage : python3 memes_paper.py [--dir DOSSIER] [--once] [--bank 10000]"""
 import argparse
 import json
 import random
+import threading
 import time
 import urllib.request
 from datetime import datetime, timezone
@@ -53,6 +54,9 @@ RULE = {
                "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran » ; l'IA n'est utile que si « juge » bat « un_par_jour »",
 }
 _last_call = [0.0]
+LOCK = threading.Lock()   # le cycle, le suivi GeckoTerminal et le gardien gRPC ne touchent pas les caisses en même temps
+LAST_GT = {}              # pool -> derniers attributs GeckoTerminal (prix de la cotation en dollars, liquidité…)
+FLUX = [None]             # suivi des prix en direct par gRPC (flux.py), s'il est configuré
 
 
 def get(url, tries=4):
@@ -151,6 +155,7 @@ def pools_universe():
                 prev = out.get(token)
                 if prev is None or (fnum(a["reserve_in_usd"]) or 0) > (fnum(prev["reserve_in_usd"]) or 0):
                     out[token] = dict(a, pool=a["address"], token=token)
+                LAST_GT[a["address"]] = a
     return list(out.values())
 
 
@@ -186,6 +191,7 @@ def pools_now(addresses):
             continue
         for p in d.get("data", []):
             res[p["attributes"]["address"]] = p["attributes"]
+    LAST_GT.update(res)
     return res
 
 
@@ -279,23 +285,47 @@ def surveiller(state, out_dir, now):
         (out_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
 
 
-# ------------------------------------------------------------------ boucle
-def cycle(state, out_dir, now):
-    log_path = out_dir / "trades.jsonl"
+def pools_suivis(state):
+    return {p["pool"]: token for b in state["books"].values() for token, p in b["open"].items() if suivie(p)}
 
+
+def gardien(state, out_dir):
+    """Fil de fond : chaque seconde, applique les stops, objectifs et stops suiveurs des positions à règle au prix
+    gRPC le plus récent (moins de 20 s), converti en dollars avec le prix de la cotation relevé par GeckoTerminal."""
     def log(rec):
-        with log_path.open("a") as f:
+        with (out_dir / "trades.jsonl").open("a") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    while True:
+        time.sleep(1)
+        fx = FLUX[0]
+        if fx is None or not fx.prix:
+            continue
+        try:
+            with LOCK:
+                now = time.time()
+                n = sum(len(b["closed"]) for b in state["books"].values())
+                for b in state["books"].values():
+                    for token, p in list(b["open"].items()):
+                        pr, g = fx.prix.get(p["pool"]), LAST_GT.get(p["pool"])
+                        if not suivie(p) or not pr or now - pr[0] > 20 or not g:
+                            continue
+                        q, ref = fnum(g.get("quote_token_price_usd")), fnum(g.get("base_token_price_usd"))
+                        usd = pr[1] * (q or 0)
+                        if not usd or (ref and not 0.2 * ref <= usd <= 5 * ref):  # cotation mal appariée : ignoré
+                            continue
+                        sortie_regle(b, token, p, dict(g, base_token_price_usd=str(usd)), now, log)
+                if sum(len(b["closed"]) for b in state["books"].values()) != n:
+                    (out_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
+                    fx.suivre(pools_suivis(state))
+        except Exception as exc:
+            with (out_dir / "erreurs.log").open("a") as f:
+                f.write(f"{datetime.now(timezone.utc).isoformat()} gardien {exc!r}\n")
 
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    d = state.get("dial", {})
-    failed = any(k.endswith("_erreur") for k in d.get("donnees", {}))
-    if d.get("date") != today or (failed and now - d.get("t", 0) > 1800):  # nouvel essai toutes les 30 min si erreur
-        state["dial"] = dict(dial(), t=now)
-        log({"event": "cadran", **state["dial"]})
-    dial_v = state["dial"]["cadran"]
-    # 0. caisse « auto » : règle réapprise toutes les heures (apprend.py), sur le passé seulement ; caisse « ia » :
-    #    règle écrite par l'IA chercheuse (memes/ia/regle.json), relue à chaque cycle
+
+# ------------------------------------------------------------------ boucle
+def apprentissage(state, out_dir, now):
+    """Caisse « auto » : règle réapprise toutes les heures (apprend.py), sur le passé seulement. Appelé hors du verrou
+    par la boucle principale (peut durer quelques minutes) ; ne touche à aucune caisse."""
     hour = datetime.now(timezone.utc).strftime("%Y-%m-%d %H")
     if state.get("auto_heure") != hour:
         state["auto_heure"] = hour
@@ -311,8 +341,26 @@ def cycle(state, out_dir, now):
                 f.write(f"{datetime.now(timezone.utc).isoformat()} resultats_candidats {exc!r}\n")
         with (out_dir / "apprentissage.jsonl").open("a") as f:
             f.write(json.dumps(state["auto"], ensure_ascii=False) + "\n")
+
+
+def cycle(state, out_dir, now, avec_apprentissage=True):
+    log_path = out_dir / "trades.jsonl"
+
+    def log(rec):
+        with log_path.open("a") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    d = state.get("dial", {})
+    failed = any(k.endswith("_erreur") for k in d.get("donnees", {}))
+    if d.get("date") != today or (failed and now - d.get("t", 0) > 1800):  # nouvel essai toutes les 30 min si erreur
+        state["dial"] = dict(dial(), t=now)
+        log({"event": "cadran", **state["dial"]})
+    dial_v = state["dial"]["cadran"]
+    if avec_apprentissage:
+        apprentissage(state, out_dir, now)
     # 1. sorties
-    held = {p["pool"] for b in state["books"].values() for p in b["open"].values()}
+    held ={p["pool"] for b in state["books"].values() for p in b["open"].values()}
     live = pools_now(sorted(held))
     for b in state["books"].values():
         for token, p in list(b["open"].items()):
@@ -526,6 +574,10 @@ def write_status(state, out_dir, live):
     lines = [f"# Memecoins papier (façon @savipww) — {datetime.now(timezone.utc):%d/%m %H:%M} UTC", "",
              f"Cadran du jour : {state['dial']['cadran']:.2f} {state['dial']['verts']}",
              f"Dernier cycle : {state['last_universe']} tokens passent le filtre, {state['last_ranked']} classés", ""]
+    fx = FLUX[0]
+    lines += ["Prix en direct (gRPC) : " + ("non configuré, suivi par GeckoTerminal toutes les 15 s" if fx is None else
+              f"{'connecté' if fx.actif else 'déconnecté'}, {len(fx.pools)} pools suivis, "
+              f"{sum(1 for t, *_ in fx.prix.values() if time.time() - t < 60)} prix reçus dans la dernière minute"), ""]
     for b in state["books"].values():
         lines += [f"## {b['name']}", f"- caisse {b['cash']:.2f} $, valeur {equity(b, live):.2f} $ (départ {b['start']:.0f} $), "
                   f"{len(b['open'])} positions ouvertes", f"- {stats(b['closed'])}", ""]
@@ -558,10 +610,26 @@ def main():
     for k in BOOKS:  # les caisses ajoutées après le premier lancement démarrent avec la même mise
         state["books"].setdefault(k, {"name": k, "cash": args.bank, "start": args.bank, "cash_ref": args.bank,
                                       "open": {}, "closed": []})
+    if not args.once:  # prix en direct par gRPC si grpc.env (GRPC_ENDPOINT, GRPC_TOKEN) est à côté du script
+        try:
+            import flux
+
+            def flog(m):
+                with (out_dir / "flux.log").open("a") as f:
+                    f.write(f"{datetime.now(timezone.utc).isoformat()} {m}\n")
+            FLUX[0] = flux.Flux.depuis_fichier(Path(__file__).resolve().parent / "grpc.env", log=flog)
+        except Exception as exc:
+            with (out_dir / "erreurs.log").open("a") as f:
+                f.write(f"{datetime.now(timezone.utc).isoformat()} flux {exc!r}\n")
+        threading.Thread(target=gardien, args=(state, out_dir), daemon=True).start()
     while True:
         t0 = time.time()
         try:
-            cycle(state, out_dir, t0)
+            apprentissage(state, out_dir, t0)
+            with LOCK:
+                cycle(state, out_dir, t0, avec_apprentissage=False)
+                if FLUX[0]:
+                    FLUX[0].suivre(pools_suivis(state))
         except Exception as exc:
             with (out_dir / "erreurs.log").open("a") as f:
                 f.write(f"{datetime.now(timezone.utc).isoformat()} {exc!r}\n")
@@ -570,7 +638,10 @@ def main():
         while time.time() - t0 < RULE["cycle_s"] - RULE["suivi_s"]:  # suivi des positions à règle entre deux cycles
             time.sleep(RULE["suivi_s"])
             try:
-                surveiller(state, out_dir, time.time())
+                with LOCK:
+                    surveiller(state, out_dir, time.time())
+                    if FLUX[0]:
+                        FLUX[0].suivre(pools_suivis(state))
             except Exception as exc:
                 with (out_dir / "erreurs.log").open("a") as f:
                     f.write(f"{datetime.now(timezone.utc).isoformat()} suivi {exc!r}\n")
