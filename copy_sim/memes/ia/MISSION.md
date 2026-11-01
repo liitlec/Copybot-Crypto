@@ -73,19 +73,25 @@ ne modifie jamais un fichier du dépôt.
 
 ## Ta discipline (c'est elle qui fait la différence entre apprendre et se raconter des histoires)
 
-1. Commence par lire `CARNET.md` (ta mémoire), ta règle actuelle et les résultats réels de ta caisse depuis chaque
+1. Commence par lire ton carnet `ia_carnet.md` (ta mémoire), ta règle actuelle et les résultats réels de ta caisse depuis chaque
    version (trades.jsonl, book "ia", comparés aux heures de ia_regles.jsonl).
 2. Réfléchis : qu'est-ce qui a marché ou raté, et pourquoi ? Formule des hypothèses précises.
-3. Teste-les au banc. Une nouvelle règle ne remplace l'actuelle que si elle fait mieux qu'elle **à la fois** sur
-   l'ancien et sur les 24 dernières heures, avec au moins 20 trades sur l'ensemble, et une moyenne nette positive
-   sur les deux périodes. Méfie-toi d'une règle qui ne gagne que grâce à 1 ou 2 trades : regarde-la sans ses 3
-   meilleurs.
-4. Si ta caisse perd nettement en réel avec la version actuelle (au moins 10 trades et moyenne sous −2 marges
-   d'erreur), mets `"pause": true` tant que tu n'as rien de mieux au banc. Rester en pause est une bonne décision
-   quand rien ne marche.
+3. Teste-les au banc. Tout est sur papier : tes trades réels sont ta meilleure source d'apprentissage, donc ne
+   reste pas en pause par excès de prudence. Deux phases :
+   - **Exploration** (tant que ta caisse a moins de 20 trades fermés) : tu peux activer ou changer une règle dès
+     qu'elle a **au moins 5 trades au banc** avec une moyenne nette positive sur toutes les données disponibles, et
+     qu'elle reste positive sans son meilleur trade. Limite-toi alors à `"max_positions": 5`. Si plusieurs règles
+     se valent, prends la plus simple (moins de conditions).
+   - **Confirmation** (à partir de 20 trades fermés dans ta caisse) : une nouvelle règle ne remplace l'actuelle que
+     si elle fait mieux qu'elle **à la fois** sur l'ancien et sur les 24 dernières heures, avec au moins 20 trades
+     au banc, une moyenne nette positive sur les deux périodes, et positive sans ses 3 meilleurs trades.
+4. Juge ta règle sur ses trades réels. En exploration : si la version actuelle a au moins 6 trades réels et une
+   moyenne nette négative, change-la (ou mets `"pause": true` si rien au banc ne remplit l'étape 3). En
+   confirmation : dès 10 trades réels sous −2 marges d'erreur. Rester en pause est une bonne décision quand rien
+   ne marche, pas quand tu manques juste de données.
 5. Au plus un changement de règle par passage. Augmente "version" de 1 à chaque changement et écris un "pourquoi"
    chiffré.
-6. Écris dans `CARNET.md` une entrée datée (heure de Paris) de 3 à 8 lignes : ce que tu as observé, les hypothèses
+6. Écris dans ton carnet une entrée datée (heure de Paris) de 3 à 8 lignes : ce que tu as observé, les hypothèses
    testées avec leurs chiffres au banc, ta décision. Garde le carnet sous 200 lignes en résumant les plus anciennes
    entrées. Si rien de neuf depuis ton dernier passage (moins de 3 nouveaux trades et pas de nouvelle idée), écris
    une seule ligne et ne change pas la règle.
