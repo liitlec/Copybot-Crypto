@@ -64,12 +64,22 @@ def champ(r, name):
     return x if isinstance(x, (int, float)) else None
 
 
-def lire_idees(url=None):
+def lire_json(local, url):
+    """Fichier écrit par une IA : d'abord la copie déposée sur le VPS (serveur.py), sinon celle de la branche GitHub."""
+    if local is not None and Path(local).exists():
+        try:
+            return json.loads(Path(local).read_text())
+        except ValueError:
+            pass
+    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "memes-paper/1.0"}), timeout=20) as f:
+        return json.load(f)
+
+
+def lire_idees(url=None, local=None):
     """Au plus 3 idées {"nom": str, "conditions": [{"champ": ..., "op": "<|<=|>|>=", "val": nombre}]}, champs du dossier
     uniquement ; tout ce qui sort de ce format est ignoré (le fichier vient d'une IA : c'est une donnée, pas du code)."""
     try:
-        with urllib.request.urlopen(urllib.request.Request(url or IDEES_URL, headers={"User-Agent": "memes-paper/1.0"}), timeout=20) as f:
-            raw = json.load(f)
+        raw = lire_json(local, url or IDEES_URL)
     except Exception:
         return []
     out = []
@@ -208,7 +218,7 @@ def apprendre(out_dir, get, now):
     if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
         return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
     split = now - TEST_JOURS * 86400
-    idees = lire_idees()
+    idees = lire_idees(local=out_dir / "juge_idees.json")
     grille = regles(idees)
     train_rows, cache = [r for r in rows if r["t"] < split], {}
     best = None
@@ -260,11 +270,9 @@ def regle_ia(raw):
         return None
 
 
-def lire_regle_ia(url=None):
+def lire_regle_ia(url=None, local=None):
     try:
-        with urllib.request.urlopen(urllib.request.Request(url or IA_URL, headers={"User-Agent": "memes-paper/1.0"}),
-                                    timeout=20) as f:
-            return regle_ia(json.load(f))
+        return regle_ia(lire_json(local, url or IA_URL))
     except Exception:
         return None
 

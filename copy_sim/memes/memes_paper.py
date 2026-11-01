@@ -367,7 +367,7 @@ def cycle(state, out_dir, now):
     # 3 ter. caisse « ia » : règle de l'IA chercheuse, relue à chaque cycle (la dernière règle valide reste en vigueur)
     try:
         import apprend
-        new = apprend.lire_regle_ia()
+        new = apprend.lire_regle_ia(local=out_dir / "ia_regle.json")
     except Exception:
         new = None
     if new and new["version"] != (state.get("ia") or {}).get("version"):
@@ -411,9 +411,14 @@ def cycle(state, out_dir, now):
             state["juge_fait"] = day
             log({"event": "jour", "book": "juge", "date": day, "rien": "pas de réponse de l'IA avant 10:00 New York"})
         else:
-            try:
-                with urllib.request.urlopen(urllib.request.Request(JUGE_URL.format(date=day), headers=UA), timeout=20) as r:
-                    verdict = json.load(r)
+            try:  # déposé sur le VPS par l'IA (serveur.py), sinon publié sur la branche GitHub
+                local = out_dir / f"juge_{day}.json"
+                if local.exists():
+                    verdict = json.loads(local.read_text())
+                else:
+                    with urllib.request.urlopen(urllib.request.Request(JUGE_URL.format(date=day), headers=UA),
+                                                timeout=20) as r:
+                        verdict = json.load(r)
             except Exception:
                 verdict = None  # pas encore publié
             if verdict is not None and verdict.get("date") == day:

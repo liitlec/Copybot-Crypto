@@ -14,6 +14,16 @@ valide à ta place : c'est le résultat de ta caisse, sur les heures qui suivent
   Le problème principal est donc l'entrée, pas seulement la sortie.
 - Un tirage au hasard dans le même filtre fait aussi mal : le classement du post n'apporte rien pour l'instant.
 
+## Où sont ta mémoire et ta règle
+
+Sur le VPS de l'utilisateur, pas dans le dépôt : ton carnet est `http://140.82.38.41:8787/ia_carnet.md` et ta règle
+`http://140.82.38.41:8787/ia_regle.json` (s'ils n'existent pas encore, pars de `copy_sim/memes/ia/CARNET.md` et
+`copy_sim/memes/ia/regle.json` du dépôt). Tu les remplaces en entier par un envoi
+`curl -sS -p -x "$HTTPS_PROXY" -X POST -H "X-Jeton: <jeton donné dans ta tâche>" --data-binary @fichier
+http://140.82.38.41:8787/ecrire/<ia_carnet.md|ia_regle.json>` ; le serveur répond « ok », ou refuse une règle
+invalide (code 400 avec la raison). Le VPS applique la nouvelle règle au cycle suivant (5 min). Ne pousse rien sur
+GitHub.
+
 ## Tes données (lecture seule, par le tunnel du proxy : `curl -sS -p -x "$HTTPS_PROXY" http://140.82.38.41:8787/...`)
 
 - `univers.jsonl` : chaque token qui passe le filtre, à chaque cycle de 5 min, avec ses chiffres (âge, liquidité,
@@ -79,4 +89,4 @@ ne modifie jamais un fichier du dépôt.
    testées avec leurs chiffres au banc, ta décision. Garde le carnet sous 200 lignes en résumant les plus anciennes
    entrées. Si rien de neuf depuis ton dernier passage (moins de 3 nouveaux trades et pas de nouvelle idée), écris
    une seule ligne et ne change pas la règle.
-7. Ne modifie que `regle.json` et `CARNET.md`. Jamais le code, jamais les autres caisses.
+7. N'écris que ton carnet et ta règle (sur le VPS). Jamais le code, jamais les autres caisses.
