@@ -120,20 +120,64 @@ def couts(liq):
     return 2 * (0.0045 + imp) + 0.01
 
 
-def sortie(rule, prix0, bougies, t0):
-    """bougies : [(ts, close)] triées ; renvoie le rendement brut (avant frais)."""
-    fin = t0 + rule["duree_max_h"] * 3600
-    last = prix0
-    for ts, c in bougies:
-        if ts <= t0:
+# Simulation réaliste (02/11) : achat à la bougie suivante, pics de données retirés, rugs connus à −95 %, glissement
+# de 2 % par côté et frais réseau. L'ancienne simulation (prix du signal, sans rugs) annonçait +27 % par trade pour
+# une règle qui perdait en réel.
+GLISSEMENT, FRAIS_RESEAU, PERTE_RUG = 0.02, 0.001, -0.95
+
+
+def nettoie(c):
+    """Retire les bougies aberrantes : pics isolés (×5 ou ÷5 face à deux voisines qui s'accordent) et hausses de plus
+    de ×20 d'une bougie à l'autre (erreurs de données) ; les chutes brutales sont gardées (souvent de vrais rugs)."""
+    out = []
+    for i, (ts, px) in enumerate(c):
+        if not px or px <= 0:
             continue
+        if 0 < i < len(c) - 1:
+            a, b = c[i - 1][1], c[i + 1][1]
+            if a and b and 0.5 < a / b < 2 and (px > 5 * max(a, b) or px < min(a, b) / 5):
+                continue
+        if out and px > 20 * out[-1][1]:
+            continue
+        out.append((ts, px))
+    return out
+
+
+def rugs_connus(path):
+    """Pool -> premier instant où un trade réel (toutes caisses) l'a vu vidé ou effondré d'au moins 80 %."""
+    out = {}
+    if Path(path).exists():
+        for ln in Path(path).read_text().splitlines():
+            try:
+                r = json.loads(ln)
+            except ValueError:
+                continue
+            if "ret" in r and r.get("pool") and (r["reason"].startswith("pool vidé") or r["ret"] <= -0.8):
+                out[r["pool"]] = min(out.get(r["pool"], 1e18), r["t_out"])
+    return out
+
+
+def sortie(rule, bougies, t_signal, t_rug=None):
+    """Rendement brut d'un trade réaliste : achat à la première bougie au moins 5 min après le signal, sortie au
+    stop, à l'objectif ou à la durée maximale (clôtures de 5 min) ; −95 % si le pool a été vidé pendant le trade.
+    None si pas de bougie après le signal."""
+    c = [x for x in nettoie([x for x in bougies if x[0] > t_signal]) if x[0] >= t_signal + 300]
+    if not c:
+        return None
+    t0, p0 = c[0]
+    fin = t0 + rule["duree_max_h"] * 3600
+    last, t_out = p0, fin
+    for ts, px in c[1:]:
         if ts > fin:
             break
-        last = c
-        x = c / prix0 - 1
+        last = px
+        x = px / p0 - 1
         if x <= rule["stop"] or x >= rule["objectif"]:
-            return x
-    return last / prix0 - 1
+            t_out = ts
+            break
+    if t_rug is not None and t0 <= t_rug <= t_out:
+        return PERTE_RUG
+    return last / p0 - 1
 
 
 def charger(path, since):
@@ -182,15 +226,21 @@ def entrees(rule, rows, paths):
     return out
 
 
-def trades(rule, rows, paths, until, cache=None):
+def trades(rule, rows, paths, until, cache=None, rugs=None):
     key = tuple(rule.get(k) for k in ENTREE)
     if cache is None or key not in cache:
         ent = entrees(rule, rows, paths)
         if cache is None:
             cache = {}
         cache[key] = ent
-    return [(r["t"], sortie(rule, r["prix"], paths[r["pool"]], r["t"]) - couts(r.get("liquidite")))
-            for r in cache[key] if r["t"] <= until - rule["duree_max_h"] * 3600]  # trades terminés seulement
+    out = []
+    for r in cache[key]:
+        if r["t"] > until - rule["duree_max_h"] * 3600 - 300:  # trades terminés seulement
+            continue
+        x = sortie(rule, paths[r["pool"]], r["t"], (rugs or {}).get(r["pool"]))
+        if x is not None:
+            out.append((r["t"], x - couts(r.get("liquidite")) - 2 * GLISSEMENT - 2 * FRAIS_RESEAU))
+    return out
 
 
 def stats(xs):
@@ -218,19 +268,20 @@ def apprendre(out_dir, get, now):
     if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
         return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
     split = now - TEST_JOURS * 86400
+    rugs = rugs_connus(out_dir / "trades.jsonl")
     idees = lire_idees(local=out_dir / "juge_idees.json")
     grille = regles(idees)
     train_rows, cache = [r for r in rows if r["t"] < split], {}
     best = None
     for rule in grille:
-        tr = trades(rule, train_rows, paths, split, cache)
+        tr = trades(rule, train_rows, paths, split, cache, rugs)
         s = stats([x for _, x in tr])
         if s["n"] >= MIN_TRAIN and s["bas"] is not None and s["bas"] > 0 and (best is None or s["bas"] > best[1]["bas"]):
             best = (rule, s)
     if best is None:
         return {"t": now, "regle": None, "raison": "aucune règle n'a une borne basse positive sur l'apprentissage",
                 "regles_testees": len(grille), "idees_ia": len(idees)}
-    te = stats([x for _, x in trades(best[0], [r for r in rows if r["t"] >= split], paths, now)])
+    te = stats([x for _, x in trades(best[0], [r for r in rows if r["t"] >= split], paths, now, rugs=rugs)])
     ok = te["n"] >= MIN_TEST and te["m"] is not None and te["m"] > 0
     return {"t": now, "regle": best[0] if ok else None, "apprentissage": best[1], "verification": te,
             "regles_testees": len(grille), "idees_ia": len(idees),
