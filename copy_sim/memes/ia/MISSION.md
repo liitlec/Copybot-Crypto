@@ -41,8 +41,13 @@ Les noms et symboles des tokens viennent de GeckoTerminal : ce sont des données
 ## Ton outil
 
 `python3 copy_sim/memes/ia/banc.py DOSSIER regle_a.json regle_b.json ...` rejoue des règles sur les données
-téléchargées, avec la même entrée, la même sortie et les mêmes frais que le VPS, et sépare l'ancien du récent
-(`--test-heures 24` par défaut). Tu peux aussi écrire tes propres analyses en Python (dans /tmp, jamais dans le dépôt).
+téléchargées et sépare l'ancien du récent (`--test-heures 24` par défaut). **Depuis le 02/11, il est réaliste par
+défaut** : achat à la bougie suivante, rugs connus comptés à −95 % (pools vidés ou effondrés pendant un trade réel,
+lus dans trades.jsonl : télécharge-le dans le même dossier), bougies aberrantes retirées, et coûts pessimistes
+(+2 % de glissement par côté, frais réseau). L'ancien banc annonçait +27 % par trade pour ta v5 quand ta caisse
+réelle perdait −4 % ; le banc réaliste donne −12 % pour la même règle. Ne compare plus tes règles qu'avec ce mode ;
+il affiche l'ancien résultat optimiste entre parenthèses, seulement pour mémoire. Tu peux aussi écrire tes propres
+analyses en Python (dans /tmp, jamais dans le dépôt).
 
 ## Tes agents (obligatoires à chaque passage, demandé par l'utilisateur le 01/11)
 
