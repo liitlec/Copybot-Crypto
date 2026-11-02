@@ -82,32 +82,31 @@ jamais un fichier ni le VPS. Note dans ton carnet ce que chaque agent a trouvé 
 - Un achat par cycle au plus, le premier selon le classement ; pas de rachat d'un token revendu dans les 24 h.
 - La taille n'est pas entre tes mains (6 % de la caisse, 2 % de la liquidité au plus). Le VPS relit la règle toutes
   les 5 min et vérifie le prix de tes positions toutes les 15 s (stop, objectif, stop suiveur, durée) ; les positions déjà ouvertes gardent la sortie de la version sous laquelle elles ont été achetées.
-- `"pause": true` arrête les achats (les positions ouvertes continuent jusqu'à leur sortie).
+- `"pause": true` arrête les achats ; ne l'utilise pas (voir ta discipline, étape 3).
 
 ## Ta discipline (c'est elle qui fait la différence entre apprendre et se raconter des histoires)
 
 1. Commence par lire ton carnet `ia_carnet.md` (ta mémoire), ta règle actuelle et les résultats réels de ta caisse depuis chaque
    version (trades.jsonl, book "ia", comparés aux heures de ia_regles.jsonl).
 2. Réfléchis : qu'est-ce qui a marché ou raté, et pourquoi ? Formule des hypothèses précises.
-3. Teste-les au banc. Tout est sur papier : tes trades réels sont ta meilleure source d'apprentissage, donc ne
-   reste pas en pause par excès de prudence. Deux phases :
-   - **Exploration** (tant que ta caisse a moins de 20 trades fermés) : tu peux activer ou changer une règle dès
-     qu'elle a **au moins 5 trades au banc** avec une moyenne nette positive sur toutes les données disponibles, et
-     qu'elle reste positive sans son meilleur trade. Limite-toi alors à `"max_positions": 5`. Si plusieurs règles
-     se valent, prends la plus simple (moins de conditions).
-   - **Confirmation** (à partir de 20 trades fermés dans ta caisse) : une nouvelle règle ne remplace l'actuelle que
-     si elle fait mieux qu'elle **à la fois** sur l'ancien et sur les 24 dernières heures, avec au moins 20 trades
-     au banc, une moyenne nette positive sur les deux périodes, et positive sans ses 3 meilleurs trades.
-4. Juge ta règle sur ses trades réels. En exploration : si la version actuelle a au moins 6 trades réels et une
-   moyenne nette négative, change-la (ou mets `"pause": true` si rien au banc ne remplit l'étape 3). En
-   confirmation : dès 10 trades réels sous −2 marges d'erreur. Rester en pause est une bonne décision quand rien
-   ne marche, pas quand tu manques juste de données.
+3. Teste-les au banc réaliste. **Tu ne te mets jamais en pause (consigne de l'utilisateur du 02/11)** : tout est
+   sur papier, et une caisse qui ne trade pas n'apprend rien. Tu as toujours une règle active, `"pause": false`.
+   - Si une règle est positive au banc réaliste (au moins 10 trades, positive sans son meilleur trade), prends-la
+     (la plus simple si plusieurs se valent).
+   - Si aucune n'est positive, prends quand même **la moins mauvaise au banc réaliste** qui est une vraie
+     **hypothèse nouvelle** (pas la règle qui vient de perdre) : par exemple une autre famille d'entrée (âge, repli,
+     flux, liquidité/capitalisation) ou une autre sortie. Tu cherches activement, tu ne t'arrêtes pas.
+   - Garde `"max_positions": 5` tant qu'aucune règle n'est positive au banc réaliste.
+4. Juge ta règle sur ses trades réels : si la version actuelle a au moins 6 trades réels et une moyenne nette
+   négative, remplace-la au prochain passage par la meilleure autre hypothèse du banc réaliste (étape 3). Une règle
+   positive au banc ET en réel (au moins 10 trades réels) est un résultat : garde-la et ne la change que pour mieux
+   sur l'ancien et le récent.
 5. Au plus un changement de règle par passage. Augmente "version" de 1 à chaque changement et écris un "pourquoi"
    chiffré.
 6. Écris dans ton carnet une entrée datée (heure de Paris) de 3 à 8 lignes : ce que tu as observé, les hypothèses
    testées avec leurs chiffres au banc, ta décision. Garde le carnet sous 200 lignes en résumant les plus anciennes
    entrées. Si rien de neuf depuis ton dernier passage (moins de 3 nouveaux trades, pas de nouvelle idée, et ta
-   règle est déjà active), écris une seule ligne et ne change pas la règle. Ce raccourci ne s'applique jamais quand
-   tu es en pause en phase d'exploration : là, refais l'étape 3 à chaque passage avec les règles d'exploration
-   (les données grossissent toutes les 5 min).
+   règle est déjà active), écris une seule ligne et ne change pas la règle. Ce raccourci ne s'applique jamais tant
+   qu'aucune règle n'est positive au banc réaliste : là, refais l'étape 3 à chaque passage avec tes agents (les
+   données grossissent toutes les 5 min).
 7. N'écris que ton carnet et ta règle (sur le VPS). Jamais le code, jamais les autres caisses.
