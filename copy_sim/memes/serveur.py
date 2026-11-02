@@ -9,6 +9,8 @@ import hmac
 import json
 import re
 import sys
+import threading
+import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -18,6 +20,10 @@ import apprend  # noqa: E402
 
 ECRITURE = re.compile(r"^(ia_regle\.json|ia_carnet\.md|juge_lecons\.md|juge_idees\.json|juge_\d{4}-\d{2}-\d{2}(_\d{2})?\.json|juge2_\d{4}-\d{2}-\d{2}_\d{2}\.json|juge2_lecons\.md)$")
 TAILLE_MAX = 64 * 1024
+# tableau commun des IA (01-02/11) : chacune y ajoute des observations, sans pouvoir effacer celles des autres
+COMMUN, COMMUN_AJOUT_MAX, COMMUN_LIGNES_MAX = "commun.md", 2048, 400
+AUTEURS = ("chercheuse", "juge", "juge2")
+_verrou = threading.Lock()
 
 
 def verifier(name, body):
@@ -36,7 +42,38 @@ def verifier(name, body):
 class Handler(SimpleHTTPRequestHandler):
     jeton = ""
 
+    def _ajouter_commun(self):
+        """POST /ajouter/commun.md?auteur=<chercheuse|juge|juge2> : ajoute le texte (2 Ko au plus) en fin de tableau,
+        daté et signé ; le tableau garde ses 400 dernières lignes. Personne ne peut réécrire ce qu'un autre a écrit."""
+        auteur = (re.search(r"[?&]auteur=([a-z0-9]+)", self.path) or [None, ""])[1]
+        if auteur not in AUTEURS:
+            return self.send_error(400, "auteur inconnu")
+        n = int(self.headers.get("Content-Length") or 0)
+        if not 0 < n <= COMMUN_AJOUT_MAX:
+            return self.send_error(413, "taille invalide (2 Ko au plus)")
+        try:
+            texte = self.rfile.read(n).decode("utf-8").strip()
+        except UnicodeDecodeError:
+            return self.send_error(400, "texte invalide")
+        path = Path(self.directory) / COMMUN
+        entete = f"### {time.strftime('%d/%m %H:%M', time.gmtime())} UTC — {auteur}"
+        with _verrou:
+            old = path.read_text(encoding="utf-8").splitlines() if path.exists() else ["# Tableau commun des IA"]
+            lignes = (old + ["", entete] + texte.splitlines())[-COMMUN_LIGNES_MAX:]
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text("\n".join(lignes) + "\n", encoding="utf-8")
+            tmp.replace(path)
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"ok\n")
+
     def do_POST(self):
+        if self.path.startswith("/ajouter/"):
+            if not self.jeton or not hmac.compare_digest(self.headers.get("X-Jeton", ""), self.jeton):
+                return self.send_error(403, "jeton invalide")
+            if not re.match(r"^/ajouter/commun\.md(\?|$)", self.path):
+                return self.send_error(404, "fichier non autorisé")
+            return self._ajouter_commun()
         m = re.match(r"^/ecrire/([^/?#]+)$", self.path)
         if not m or not ECRITURE.match(m.group(1)):
             return self.send_error(404, "fichier non autorisé")
