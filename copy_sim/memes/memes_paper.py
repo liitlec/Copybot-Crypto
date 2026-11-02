@@ -61,7 +61,7 @@ FLUX = [None]             # suivi des prix en direct par gRPC (flux.py), s'il es
 
 def get(url, tries=4):
     for k in range(tries):
-        wait = 2.2 - (time.time() - _last_call[0])  # ≤ ~27 appels/min, sous la limite gratuite
+        wait = 2.6 - (time.time() - _last_call[0])  # ≤ ~23 appels/min, sous la limite gratuite (30/min)
         if wait > 0:
             time.sleep(wait)
         _last_call[0] = time.time()
@@ -155,7 +155,7 @@ def pools_universe():
     for path, pages, post in SOURCES:
         for page in range(1, pages + 1):
             try:
-                d = get(f"{GT}/{path}{'&' if '?' in path else '?'}page={page}")
+                d = get(f"{GT}/{path}{'&' if '?' in path else '?'}page={page}", tries=2)  # page ratée : sautée
             except Exception:
                 continue
             for p in d.get("data", []):
@@ -187,7 +187,7 @@ def holders(token, cache, now, full=False):
     c = cache.get(token)
     if not (c and now - c["t"] < RULE["holders_cache_s"] and (not full or "top10" in c)):
         try:
-            a = get(f"{GT}/tokens/{token}/info")["data"]["attributes"]
+            a = get(f"{GT}/tokens/{token}/info", tries=2)["data"]["attributes"]
             h = a.get("holders") or {}
             c = {"t": now, "n": h.get("count"), "top10": fnum((h.get("distribution_percentage") or {}).get("top_10")),
                  "mint": a.get("mint_authority"), "freeze": a.get("freeze_authority")}

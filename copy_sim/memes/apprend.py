@@ -194,12 +194,21 @@ def charger(path, since):
     return rows
 
 
-def bougies(pool, cache_dir, get, now, recent=True):
-    """Historique 5 min d'un pool, mis en cache ; complété toutes les 50 min tant que le pool est récent (vu dans
-    les dernières 26 h), sinon une fois pour toutes."""
+BUDGET = [0]  # appels GeckoTerminal encore permis pour les bougies dans ce passage (voir appels_bougies)
+
+
+def appels_bougies(n):
+    BUDGET[0] = n
+
+
+def bougies(pool, cache_dir, get, now, recent=True, age_max=50 * 60):
+    """Historique 5 min d'un pool, mis en cache ; complété au plus toutes les `age_max` secondes tant que le pool est
+    récent, sinon une fois pour toutes, et dans la limite du budget d'appels du passage (au-delà : le cache sert).
+    Sans limite, l'élargissement de l'univers (150 pools et plus) saturait l'API gratuite et bloquait le cycle."""
     f = cache_dir / f"{pool}.json"
     old = json.loads(f.read_text()) if f.exists() else {"t": 0, "c": []}
-    if (recent and now - old["t"] > 50 * 60) or not old["c"]:
+    if ((recent and now - old["t"] > age_max) or not old["c"]) and BUDGET[0] > 0:
+        BUDGET[0] -= 1
         try:
             d = get(f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/minute"
                     f"?aggregate=5&limit=1000&currency=usd")
@@ -264,7 +273,11 @@ def apprendre(out_dir, get, now):
     seen = {}
     for r in rows:
         seen[r["pool"]] = r["t"]
-    paths = {p: bougies(p, cache, get, now, now - t < 26 * 3600) for p, t in sorted(seen.items())}
+    # au plus 40 appels par heure : d'abord les pools vus récemment ; vus depuis 6 h : toutes les 50 min,
+    # vus il y a 6 à 26 h : toutes les 6 h (GeckoTerminal garde environ 3 jours de bougies de 5 min)
+    appels_bougies(40)
+    paths = {p: bougies(p, cache, get, now, now - t < 26 * 3600, 50 * 60 if now - t < 6 * 3600 else 6 * 3600)
+             for p, t in sorted(seen.items(), key=lambda kv: -kv[1])}
     if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
         return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
     split = now - TEST_JOURS * 86400
@@ -361,6 +374,7 @@ def resultats_candidats(out_dir, get, now, jours=14):
         return
     cache = out_dir / "ohlcv"
     cache.mkdir(exist_ok=True)
+    appels_bougies(20)
     res = {}
     for f in sorted(d.glob("*.json"))[-jours:]:
         snap = json.loads(f.read_text())
