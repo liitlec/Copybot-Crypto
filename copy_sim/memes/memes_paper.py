@@ -41,7 +41,7 @@ GT = "https://api.geckoterminal.com/api/v2/networks/solana"
 NY = ZoneInfo("America/New_York")
 JUGE_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
             "copy_sim/memes/juge/{date}.json")
-BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour", "auto", "ia", "ia_filtre")
+BOOKS = ("classement", "sans_cadran", "temoin", "juge", "un_par_jour", "auto", "ia", "ia_filtre", "juge2")
 UA = {"Accept": "application/json", "User-Agent": "memes-paper/1.0 (read-only research)"}
 RULE = {
     "nom": "memecoins façon @savipww, papier",
@@ -49,7 +49,7 @@ RULE = {
     "mcap_min": 60_000, "mcap_max": 8_000_000,
     "ticket_part": 0.06, "plafond_liquidite": 0.02, "frais": 0.0045, "frais_min": 0.95,
     "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300, "suivi_s": 15,
-    "cadran_min": 0.50, "holders_cache_s": 3600, "filtre_detenteurs_min": 300, "filtre_top10_max": 50, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "candidats_max": 10,
+    "cadran_min": 0.50, "holders_cache_s": 3600, "filtre_detenteurs_min": 300, "filtre_top10_max": 50, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "juge2_delai_min": 50, "candidats_max": 10,
     "verdict": "après au moins 100 trades fermés : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
                "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran » ; l'IA n'est utile que si « juge » bat « un_par_jour »",
 }
@@ -579,6 +579,58 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
                             sx = None
                         if sx:
                             bk["open"][tok]["sortie_ia"] = dict(sx, nom="juge")
+    # 5. caisse « juge2 » (demandée le 02/11) : même IA juge, mais une décision chaque heure (heure de New York),
+    #    jusqu'à 2 tokens par décision, 5 positions au plus ; dossier candidats_heure.json, choix juge2_<créneau>.json
+    key2 = f"{day}_{ny.strftime('%H')}"
+    if state.get("creneau2") != key2:
+        state["creneau2"] = key2
+        snap2 = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n"))
+                 for i, (r, a, hg, pg) in enumerate(ranked[:RULE["candidats_max"]])]
+        doc2 = json.dumps({"date": day, "creneau": key2, "t": now, "cadran": dial_v,
+                           "cadran_verts": state["dial"]["verts"], "candidats": snap2}, ensure_ascii=False, indent=1)
+        (out_dir / "candidats_heure.json").write_text(doc2, encoding="utf-8")
+        (out_dir / "candidats").mkdir(exist_ok=True)
+        (out_dir / "candidats" / f"h_{key2}.json").write_text(doc2, encoding="utf-8")
+        state["candidats_heure"] = {c["token"]: c["pool"] for c in snap2}
+    if state.get("juge2_fait") != key2:
+        t_h = datetime.strptime(f"{key2[:10]} {key2[11:]}:00", "%Y-%m-%d %H:%M").replace(tzinfo=NY).timestamp()
+        if now - t_h > RULE["juge2_delai_min"] * 60:
+            state["juge2_fait"] = key2
+            log({"event": "jour", "book": "juge2", "creneau": key2, "rien": "pas de réponse de l'IA à temps"})
+        else:
+            try:
+                local = out_dir / f"juge2_{key2}.json"
+                verdict = json.loads(local.read_text()) if local.exists() else None
+            except Exception:
+                verdict = None
+            if verdict is not None and verdict.get("creneau") == key2:
+                state["juge2_fait"] = key2
+                bk = books["juge2"]
+                choix = verdict.get("choix")
+                choix = [c for c in (choix if isinstance(choix, list) else [choix]) if c][:2]
+                if not choix or not daily_mult:
+                    log({"event": "jour", "book": "juge2", "creneau": key2, "rien": "aucun" if not choix else "cadran sous 0,5",
+                         "ia": verdict})
+                for tok in choix if daily_mult else []:
+                    pool = state.get("candidats_heure", {}).get(tok)
+                    if pool is None or tok in bk["open"] or len(bk["open"]) >= 5:
+                        log({"event": "jour", "book": "juge2", "creneau": key2, "token": tok,
+                             "rien": "hors des candidats" if pool is None else "déjà détenu ou 5 positions"})
+                        continue
+                    a = pools_now([pool]).get(pool)
+                    if a is None or (fnum(a.get("reserve_in_usd")) or 0) < RULE["vide_liquidite"]:
+                        log({"event": "jour", "book": "juge2", "creneau": key2, "token": tok, "rien": "pool introuvable"})
+                        continue
+                    if enter(bk, dict(a, pool=pool, token=tok), daily_mult,
+                             {"ia_proba": verdict.get("proba"), "ia_raison": str(verdict.get("raison", ""))[:300]}):
+                        try:
+                            import apprend
+                            sx = apprend.regle_ia({"version": 0, "entree": {"conditions": []},
+                                                   "sortie": verdict.get("sortie")}) if verdict.get("sortie") else None
+                        except Exception:
+                            sx = None
+                        if sx:
+                            bk["open"][tok]["sortie_ia"] = dict(sx, nom="juge2")
     # caisse de référence pour la taille : valeur du compte au début de chaque jour (pas de réinvestissement intra-jour)
     for b in state["books"].values():
         if b.get("ref_day") != state["dial"]["date"]:
