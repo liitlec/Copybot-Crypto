@@ -158,11 +158,19 @@ def rugs_connus(path):
     return out
 
 
-def sortie(rule, bougies, t_signal, t_rug=None):
+def fenetre(bougies, t_signal):
+    """Bougies nettoyées utilisables pour un signal : à partir de 5 min après lui, sur au plus 73 h (la plus longue
+    durée permise est 72 h). Calculée une fois par signal et réutilisée pour toutes les règles (voir trades)."""
+    w = [x for x in bougies if t_signal < x[0] <= t_signal + 73 * 3600]
+    return [x for x in nettoie(w) if x[0] >= t_signal + 300]
+
+
+def sortie(rule, bougies, t_signal, t_rug=None, c=None):
     """Rendement brut d'un trade réaliste : achat à la première bougie au moins 5 min après le signal, sortie au
     stop, à l'objectif ou à la durée maximale (clôtures de 5 min) ; −95 % si le pool a été vidé pendant le trade.
-    None si pas de bougie après le signal."""
-    c = [x for x in nettoie([x for x in bougies if x[0] > t_signal]) if x[0] >= t_signal + 300]
+    None si pas de bougie après le signal. `c` : fenêtre déjà calculée (fenetre)."""
+    if c is None:
+        c = fenetre(bougies, t_signal)
     if not c:
         return None
     t0, p0 = c[0]
@@ -247,7 +255,10 @@ def trades(rule, rows, paths, until, cache=None, rugs=None):
     for r in cache[key]:
         if r["t"] > until - rule["duree_max_h"] * 3600 - 300:  # trades terminés seulement
             continue
-        x = sortie(rule, paths[r["pool"]], r["t"], (rugs or {}).get(r["pool"]))
+        fk = ("fenetre", r["pool"], r["t"])
+        if fk not in cache:
+            cache[fk] = fenetre(paths[r["pool"]], r["t"])
+        x = sortie(rule, None, r["t"], (rugs or {}).get(r["pool"]), cache[fk])
         if x is not None:
             out.append((r["t"], x - couts(r.get("liquidite")) - 2 * GLISSEMENT - 2 * FRAIS_RESEAU))
     return out
