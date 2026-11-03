@@ -1,127 +1,348 @@
 """Page de suivi (HTML statique) du test papier memecoins qui tourne sur le VPS. Lit en lecture seule les fichiers
-publiés par le VPS (http://IP:8787/state.json, status.md), via le tunnel HTTPS du proxy si la machine en a un.
+publiés par le VPS (http://IP:8787/state.json, status.md, ia_regles.jsonl, choix des juges, erreurs.log), via le
+tunnel HTTPS du proxy si la machine en a un, et le prix actuel des positions ouvertes sur GeckoTerminal.
+
+Vue d'ensemble (03/11) : état du VPS, classement des caisses (total, jour, 24 h), courbe de chaque caisse, positions
+ouvertes avec leur résultat en direct, historique de l'IA chercheuse par version, journal des juges, derniers trades.
+
 Usage : python3 memes_page.py [--base http://140.82.38.41:8787] [--out reports/memes_paper.html]"""
 import argparse
 import json
 import os
 import re
 import subprocess
+import time
+from collections import defaultdict
 from datetime import datetime, timezone
 from html import escape
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-PARIS = ZoneInfo("Europe/Paris")
+PARIS, NY = ZoneInfo("Europe/Paris"), ZoneInfo("America/New_York")
 ROOT = Path(__file__).resolve().parents[1]
+LABELS = {"juge": "IA juge v1", "juge2": "IA juge v2", "ia": "IA chercheuse", "ia_filtre": "IA chercheuse + filtre",
+          "auto": "Règle qui apprend", "un_par_jour": "Sans IA, 1 toutes les 4 h", "classement": "Règles du post",
+          "sans_cadran": "Post, sans cadran", "temoin": "Témoin au hasard"}
+DETAIL = {"juge": "1 choix toutes les 4 h", "juge2": "jusqu'à 2 choix chaque heure",
+          "ia": "règle réécrite par l'IA", "ia_filtre": "même règle + filtre anti-pièges",
+          "auto": "meilleure règle simple, en cash si elle perd", "un_par_jour": "témoin des juges",
+          "classement": "avec cadran", "sans_cadran": "mêmes choix", "temoin": "tiré dans le filtre"}
+# courbes : 6 caisses au plus (palette catégorielle validée, ordre fixe) ; les autres sont dans le classement
+COURBES = ("ia", "ia_filtre", "juge", "juge2", "un_par_jour", "classement")
+POST = ("classement", "sans_cadran", "temoin")
 
 
-def fetch(url):
-    cmd = ["curl", "-sS", "--max-time", "30", "-f", url]
+def fetch(url, timeout=30):
+    cmd = ["curl", "-sS", "--max-time", str(timeout), "-f", url]
     if os.environ.get("HTTPS_PROXY"):
         cmd[1:1] = ["-p", "-x", os.environ["HTTPS_PROXY"]]
     return subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
 
 
-def pct(x):
-    return "—" if x is None else f"{x * 100:+.1f}".replace(".", ",") + "\u202f%"
-
-
-def usd(x):
-    return f"{x:,.2f}".replace(",", "\u202f").replace(".", ",") + "\u202f$"
-
-
-def stats(rs):
-    xs = [r["ret"] for r in rs]
-    if not xs:
+def essai(url, timeout=30):
+    try:
+        return fetch(url, timeout)
+    except Exception:
         return None
-    n, m = len(xs), sum(xs) / len(xs)
-    se = ((sum((x - m) ** 2 for x in xs) / (n - 1)) ** 0.5 / n ** 0.5) if n > 1 else None
-    srt = sorted(xs, reverse=True)
-    return {"n": n, "m": m, "se": se, "win": sum(x > 0 for x in xs) / n,
-            "no3": (sum(srt[3:]) / len(srt[3:])) if n > 3 else None,
-            "rug": sum(r["reason"].startswith("pool vidé") for r in rs),
-            "pnl": sum(r["proceeds"] - r["dollars"] for r in rs)}
 
 
-def page(state, status_md):
+def pct(x, signe=True):
+    if x is None:
+        return "—"
+    return (f"{x * 100:+.1f}" if signe else f"{x * 100:.0f}").replace(".", ",").replace("-", "−") + "\u202f%"
+
+
+def usd(x, signe=False):
+    s = f"{abs(x):,.0f}".replace(",", "\u202f") + "\u202f$"
+    return ("+" if x >= 0 else "−") + s if signe else ("−" if x < 0 else "") + s
+
+
+def heure(t, fmt="%d/%m %H:%M"):
+    return datetime.fromtimestamp(t, PARIS).strftime(fmt)
+
+
+def cls(x):
+    return "" if x is None or abs(x) < 1e-9 else ("pos" if x > 0 else "neg")
+
+
+def pnl(rs):
+    return sum(r["proceeds"] - r["dollars"] for r in rs)
+
+
+def version_ia(r):
+    m = re.match(r"IA v(\d+)", r.get("reason", ""))
+    if m:
+        return int(m.group(1))
+    w = r.get("why")
+    return w.get("ia_version") if isinstance(w, dict) else None
+
+
+def prix_actuels(pools):
+    """Prix GeckoTerminal des pools (30 par appel, un seul appel ici) ; {} si l'API refuse."""
+    pools = sorted(set(pools))[:30]
+    if not pools:
+        return {}
+    raw = essai("https://api.geckoterminal.com/api/v2/networks/solana/pools/multi/" + ",".join(pools), 30)
+    try:
+        return {d["attributes"]["address"]: float(d["attributes"]["base_token_price_usd"] or 0)
+                for d in json.loads(raw)["data"]}
+    except Exception:
+        return {}
+
+
+def courbe(books, now):
+    """Ligne SVG : résultat de chaque caisse depuis le départ (réalisé à chaque vente, valeur actuelle au bout)."""
+    W, H, L, R, T, B = 720, 260, 46, 12, 12, 26
+    series = {}
+    t0 = min((r["t_in"] for k in COURBES for r in books[k]["b"]["closed"]), default=now - 86400)
+    for k in COURBES:
+        b = books[k]["b"]
+        pts, cum = [(t0, 0.0)], 0.0
+        for r in sorted(b["closed"], key=lambda r: r["t_out"]):
+            cum += r["proceeds"] - r["dollars"]
+            pts.append((r["t_out"], cum / b["start"]))
+        pts.append((now, books[k]["val"] / b["start"] - 1))
+        series[k] = pts
+    ys = [y for p in series.values() for _, y in p] + [0.0]
+    lo, hi = min(ys), max(ys)
+    pad = (hi - lo) * 0.08 or 0.05
+    lo, hi = lo - pad, hi + pad
+    X = lambda t: L + (t - t0) / max(now - t0, 1) * (W - L - R)
+    Y = lambda y: T + (hi - y) / (hi - lo) * (H - T - B)
+    grid = []
+    step = 0.1 if hi - lo < 0.8 else 0.25
+    v = (int(lo / step) - 1) * step
+    while v <= hi:
+        if v >= lo:
+            grid.append(f'<line x1="{L}" x2="{W - R}" y1="{Y(v):.1f}" y2="{Y(v):.1f}" class="{"zero" if abs(v) < 1e-9 else "grid"}"/>'
+                        f'<text x="{L - 6}" y="{Y(v) + 4:.1f}" class="ax" text-anchor="end">{pct(v)}</text>')
+        v += step
+    jour = datetime.fromtimestamp(t0, PARIS).replace(hour=0, minute=0, second=0, microsecond=0).timestamp() + 86400
+    while jour < now:
+        grid.append(f'<line x1="{X(jour):.1f}" x2="{X(jour):.1f}" y1="{T}" y2="{H - B}" class="grid"/>'
+                    f'<text x="{X(jour):.1f}" y="{H - 8}" class="ax" text-anchor="middle">{heure(jour, "%d/%m")}</text>')
+        jour += 86400
+    lines = []
+    for i, k in enumerate(COURBES):
+        d = " ".join(f"{'M' if j == 0 else 'L'}{X(t):.1f},{Y(y):.1f}" for j, (t, y) in enumerate(series[k]))
+        lines.append(f'<path d="{d}" class="s s{i + 1}" fill="none"><title>{escape(LABELS[k])}</title></path>')
+        t, y = series[k][-1]
+        lines.append(f'<circle cx="{X(t):.1f}" cy="{Y(y):.1f}" r="4" class="d{i + 1}"/>')
+    data = {k: [[round(t), round(y, 4)] for t, y in series[k]] for k in COURBES}
+    legend = "".join(f'<span class="lg"><i class="sw sw{i + 1}"></i>{escape(LABELS[k])}</span>' for i, k in enumerate(COURBES))
+    return (f'<div class="legend">{legend}</div><div class="chart" data-t0="{t0}" data-now="{now}" data-lo="{lo}" data-hi="{hi}">'
+            f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Résultat de chaque caisse depuis le départ">'
+            f'{"".join(grid)}{"".join(lines)}<line class="cross" x1="0" x2="0" y1="{T}" y2="{H - B}" visibility="hidden"/></svg>'
+            f'<div class="tip" hidden></div></div><script type="application/json" id="series">{json.dumps(data)}</script>')
+
+
+def page(state, status_md, regles, juges, erreurs, prix, now):
     values = dict(re.findall(r"## (\w+)\n- caisse [\d.]+ \$, valeur ([\d.]+) \$", status_md))
     upd = re.search(r"— (\d\d/\d\d \d\d:\d\d) UTC", status_md)
-    when = "—"
-    if upd:
-        d = datetime.strptime(f"{datetime.now().year}/{upd.group(1)}", "%Y/%d/%m %H:%M").replace(tzinfo=timezone.utc)
-        when = d.astimezone(PARIS).strftime("%d/%m %H:%M")
-    dial = state.get("dial", {})
-    labels = {"classement": "Ses règles (avec cadran)", "sans_cadran": "Mêmes choix, sans cadran", "temoin": "Témoin tiré au hasard",
-              "juge": "IA juge (1 choix toutes les 4 h)", "juge2": "IA juge v2 (jusqu'à 2 choix chaque heure)", "un_par_jour": "Sans IA, 1 toutes les 4 h (témoin de l'IA juge)",
-              "auto": "Règle qui apprend (meilleure règle réaliste, réajustée chaque heure)", "ia": "IA chercheuse (réécrit sa règle elle-même)",
-              "ia_filtre": "IA chercheuse + filtre anti-pièges"}
-    cards, rows_open, closed_all = [], [], []
-    for key in [k for k in labels if k in state["books"]]:
-        b = state["books"][key]
-        val = float(values.get(key, b["cash"]))
-        st = stats(b["closed"])
-        line = "aucun trade fermé" if not st else (
-            f"{st['n']} trades fermés · moyenne {pct(st['m'])}" + (f" ± {pct(st['se'])[1:]}" if st['se'] else "") +
-            f" · gagnants {st['win'] * 100:.0f}\u202f% · sans les 3 meilleurs {pct(st['no3'])} · vidés {st['rug']}")
-        cls = "pos" if val >= b["start"] else "neg"
-        cards.append(f'<article class="card"><div class="lab">{labels[key]}</div><div class="big {cls}">{pct(val / b["start"] - 1)}</div>'
-                     f'<div class="small">valeur {usd(val)} · départ {usd(b["start"])} · {len(b["open"])} positions ouvertes</div>'
-                     f'<div class="small">{line}</div></article>')
-        for tok, p in b["open"].items():
-            rows_open.append((p["t"], key, p.get("name") or tok[:6], p["dollars"]))
-        closed_all += [dict(r, book=key) for r in b["closed"]]
-    rows_open.sort(reverse=True)
-    closed_all.sort(key=lambda r: -r["t_out"])
-    t_open = "".join(f"<tr><td>{datetime.fromtimestamp(t, PARIS):%d/%m %H:%M}</td><td class='txt'>{escape(labels[k].split(' (')[0])}</td>"
-                     f"<td class='txt'>{escape(str(n))}</td><td>{usd(d)}</td></tr>" for t, k, n, d in rows_open[:30]) \
-        or "<tr><td colspan='4' class='txt'>Aucune position ouverte.</td></tr>"
-    t_closed = "".join(
-        f"<tr><td>{datetime.fromtimestamp(r['t_out'], PARIS):%d/%m %H:%M}</td><td class='txt'>{escape(labels[r['book']].split(' (')[0])}</td>"
-        f"<td class='txt'>{escape(str(r.get('name') or r['token'][:6]))}</td><td>{r['minutes']}\u202fmin</td>"
-        f"<td class='{'pos' if r['ret'] > 0 else 'neg'}'>{pct(r['ret'])}</td><td class='txt'>{escape(r['reason'])}</td></tr>"
-        for r in closed_all[:40]) or "<tr><td colspan='6' class='txt'>Pas encore de trade fermé.</td></tr>"
+    grpc = re.search(r"Prix en direct \(gRPC\) : ([^\n]+)", status_md)
+    minuit = datetime.fromtimestamp(now, PARIS).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    books = {}
+    for k in LABELS:
+        b = state["books"].get(k)
+        if not b:
+            continue
+        val = float(values.get(k, b["cash"]))
+        xs = [r["ret"] for r in b["closed"]]
+        books[k] = {"b": b, "val": val, "n": len(xs), "win": (sum(x > 0 for x in xs) / len(xs)) if xs else None,
+                    "moy": (sum(xs) / len(xs)) if xs else None,
+                    "rugs": sum(r["reason"].startswith("pool vidé") or r["ret"] <= -0.8 for r in b["closed"]),
+                    "jour": pnl([r for r in b["closed"] if r["t_out"] >= minuit]),
+                    "h24": pnl([r for r in b["closed"] if r["t_out"] >= now - 86400])}
+
+    # 1. état du VPS
+    last = state.get("last_cycle") or 0
+    age = (now - last) / 60
+    err = [ln for ln in (erreurs or "").splitlines() if ln.strip()][-1:] if erreurs else []
+    err_t = None
+    if err:
+        try:
+            err_t = datetime.fromisoformat(err[0].split()[0]).timestamp()
+        except Exception:
+            pass
+    ok = age <= 15
+    etat = (f'<span class="badge {"ok" if ok else "ko"}">{"✓ VPS à jour" if ok else "⚠ VPS en retard"}</span> '
+            f'dernier cycle {heure(last, "%H:%M")} (il y a {age:.0f} min)'
+            + (f' · gRPC {escape(grpc.group(1).split(",")[0])}' if grpc else "")
+            + (f' · dernière erreur {heure(err_t)}' + (" (<b>moins de 2 h</b>)" if now - err_t < 7200 else "") if err_t else " · aucune erreur")
+            + f' · cadran du jour {str(state.get("dial", {}).get("cadran", "—")).replace(".", ",")}')
+
+    # 2. classement
+    rows = []
+    for k, x in sorted(books.items(), key=lambda kv: -kv[1]["val"] / kv[1]["b"]["start"]):
+        tot = x["val"] / x["b"]["start"] - 1
+        rows.append(
+            f"<tr><td class='txt'><b>{escape(LABELS[k])}</b><div class='sub'>{escape(DETAIL[k])}</div></td>"
+            f"<td class='{cls(tot)}'><b>{pct(tot)}</b></td><td>{usd(x['val'])}</td>"
+            f"<td class='{cls(x['jour'])}'>{usd(x['jour'], True) if x['jour'] else '—'}</td>"
+            f"<td class='{cls(x['h24'])}'>{usd(x['h24'], True) if x['h24'] else '—'}</td>"
+            f"<td>{x['n']}</td><td>{pct(x['win'], False)}</td><td class='{cls(x['moy'])}'>{pct(x['moy'])}</td>"
+            f"<td>{x['rugs']}</td><td>{len(x['b']['open'])}</td></tr>")
+    classement = ("<div class='scroll'><table><thead><tr><th class='txt'>Caisse</th><th>Total</th><th>Valeur</th>"
+                  "<th>Aujourd'hui</th><th>24 h</th><th>Trades</th><th>Gagnants</th><th>Moyenne</th><th>Rugs</th>"
+                  "<th>Ouvertes</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table></div>")
+
+    # 3. positions ouvertes (caisses des IA et témoins des juges en détail ; règles du post en résumé)
+    op = []
+    for k in LABELS:
+        if k not in books or k in POST:
+            continue
+        for tok, p in books[k]["b"]["open"].items():
+            px = prix.get(p["pool"])
+            x = px / p["px_in"] - 1 if px and p.get("px_in") else None
+            sx = p.get("sortie_ia") or p.get("sortie") or {}
+            sortie = " · ".join(s for s in (
+                f"stop {pct(sx['stop'])}" if sx.get("stop") is not None else "",
+                f"objectif {pct(sx['objectif'])}" if sx.get("objectif") is not None else "",
+                f"max {sx['duree_max_h']:g} h".replace(".", ",") if sx.get("duree_max_h") else "") if s) or "sortie du post (volume)"
+            op.append((p["t"], f"<tr><td>{heure(p['t'])}</td><td class='txt'>{escape(LABELS[k])}</td>"
+                               f"<td class='txt'>{escape(str(p.get('name') or tok[:6]))}</td><td>{usd(p['dollars'])}</td>"
+                               f"<td class='{cls(x)}'><b>{pct(x)}</b></td><td class='txt sub'>{escape(sortie)}</td></tr>"))
+    op.sort(reverse=True)
+    post = [f"{escape(LABELS[k])} : {len(books[k]['b']['open'])}" for k in POST if k in books]
+    positions = ("<div class='scroll'><table><thead><tr><th>Achat</th><th class='txt'>Caisse</th><th class='txt'>Token</th>"
+                 "<th>Mise</th><th>Maintenant</th><th class='txt'>Sortie prévue</th></tr></thead><tbody>"
+                 + ("".join(r for _, r in op) or "<tr><td colspan='6' class='txt'>Aucune position ouverte dans les caisses des IA.</td></tr>")
+                 + "</tbody></table></div>"
+                 + f"<p class='sub'>Positions des règles du post (souvent anciennes) : {' · '.join(post)}."
+                 + ("" if prix else " Prix en direct indisponibles (GeckoTerminal a refusé l'appel).") + "</p>")
+
+    # 4. chercheuse par version
+    par_v = defaultdict(list)
+    for r in books.get("ia", {}).get("b", {}).get("closed", []):
+        par_v[version_ia(r)].append(r)
+    debut = {}
+    for r in regles:
+        debut.setdefault(r.get("version"), r.get("t"))
+    vrows = []
+    for v in sorted((v for v in par_v if v is not None), reverse=True):
+        rs = par_v[v]
+        xs = [r["ret"] for r in rs]
+        vrows.append(f"<tr><td class='txt'>v{v}</td><td>{heure(debut[v]) if debut.get(v) else '—'}</td><td>{len(xs)}</td>"
+                     f"<td>{sum(x > 0 for x in xs)}</td><td class='{cls(sum(xs))}'>{pct(sum(xs) / len(xs))}</td>"
+                     f"<td class='{cls(pnl(rs))}'>{usd(pnl(rs), True)}</td>"
+                     f"<td>{sum(r['reason'].startswith('pool vidé') or r['ret'] <= -0.8 for r in rs)}</td></tr>")
+    ia = state.get("ia") or {}
+    regle_ia = (f"<p><b>Règle active : v{ia.get('version')}</b>" + (" (en pause)" if ia.get("pause") else "")
+                + (f" — {escape(ia.get('pourquoi', '')[:400])}" if ia.get("pourquoi") else "") + "</p>") if ia else ""
+    chercheuse = (regle_ia + "<div class='scroll'><table><thead><tr><th class='txt'>Version</th><th>Depuis</th><th>Trades</th>"
+                  "<th>Gagnés</th><th>Moyenne</th><th>Résultat</th><th>Rugs</th></tr></thead><tbody>"
+                  + "".join(vrows) + "</tbody></table></div>")
     au = state.get("auto") or {}
-    rg = au.get("regle")
-    auto_txt = ("Règle qui apprend : " + (
-        f"âge ≤ {rg['age_max_h']} h, prix 1 h {rg['prix_1h']}, acheteurs {rg['acheteurs_1h']}, classement {rg['classe']}, "
-        f"stop {rg['stop']:+.0%}, objectif {rg['objectif']:+.0%}, max {rg['duree_max_h']} h"
-        + (f", idée de l'IA « {json.loads(rg['idee'])['nom']} »" if rg.get("idee") else "") if rg else "en cash")
-        + (f" ({au.get('raison')})" if au.get("raison") else "")) if au else \
-        "Règle qui apprend : pas encore d'apprentissage (il faut 1,5 jour de collecte)."
-    ia = state.get("ia")
-    ia_txt = ("IA chercheuse : " + (f"règle v{ia['version']}" + (" en pause" if ia.get("pause") else "") +
-              (f" — {ia['pourquoi']}" if ia.get("pourquoi") else "")) if ia else
-              "IA chercheuse : pas encore de règle (elle passe toutes les heures).")
-    verts = " · ".join(f"{k} {'vert' if v else 'rouge'}" for k, v in dial.get("verts", {}).items())
-    cad = dial.get("cadran")
+    auto_txt = ("<p><b>Règle qui apprend :</b> " + ("<span class='pos'>en jeu</span>" if au.get("regle") else "en cash")
+                + (f" — {escape(au.get('raison', ''))}" if au.get("raison") else "") + "</p>") if au else ""
+
+    # 5. journal des juges (24 dernières heures)
+    noms = {}
+    for b in state["books"].values():
+        for r in b["closed"]:
+            noms[r["token"]] = r.get("name")
+        for tok, p in b["open"].items():
+            noms[tok] = p.get("name")
+    jr = []
+    for nom, d in juges:
+        try:
+            t = datetime.strptime(d["creneau"], "%Y-%m-%d_%H").replace(tzinfo=NY).timestamp()
+        except Exception:
+            continue
+        ch = d.get("choix")
+        ch = [c for c in (ch if isinstance(ch, list) else [ch]) if c]
+        quoi = ", ".join(escape(str(noms.get(c) or c[:6])) for c in ch) or "aucun"
+        jr.append((t, f"<tr><td>{heure(t)}</td><td class='txt'>{'v2' if nom.startswith('juge2') else 'v1'}</td>"
+                      f"<td class='txt'>{'<b>' + quoi + '</b>' if ch else quoi}</td>"
+                      f"<td>{str(d.get('proba', '—')).replace('.', ',')}</td>"
+                      f"<td class='txt sub wrap'>{escape(str(d.get('raison', ''))[:220])}</td></tr>"))
+    jr.sort(reverse=True)
+    n_choix = sum("<b>" in r for _, r in jr)
+    journal = (f"<p class='sub'>{len(jr)} décisions sur 24 h, dont {n_choix} achat{'s' if n_choix > 1 else ''}. "
+               "Seuil d'achat : probabilité 0,55.</p><div class='scroll'><table><thead><tr><th>Créneau</th><th class='txt'>Juge</th>"
+               "<th class='txt'>Choix</th><th>Proba</th><th class='txt'>Raison</th></tr></thead><tbody>"
+               + ("".join(r for _, r in jr) or "<tr><td colspan='5' class='txt'>Aucune décision sur 24 h.</td></tr>")
+               + "</tbody></table></div>")
+
+    # 6. derniers trades
+    closed = sorted((dict(r, book=k) for k, x in books.items() for r in x["b"]["closed"]), key=lambda r: -r["t_out"])
+    t_closed = "".join(
+        f"<tr><td>{heure(r['t_out'])}</td><td class='txt'>{escape(LABELS[r['book']])}</td>"
+        f"<td class='txt'>{escape(str(r.get('name') or r['token'][:6]))}</td><td>{r['minutes']}\u202fmin</td>"
+        f"<td class='{cls(r['ret'])}'>{pct(r['ret'])}</td><td class='{cls(r['ret'])}'>{usd(r['proceeds'] - r['dollars'], True)}</td>"
+        f"<td class='txt sub'>{escape(r['reason'])}</td></tr>" for r in closed[:30])
+
+    maj = heure(now)
     return f"""<title>Suivi memecoins papier</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-:root {{ --bg: #f6f5f2; --panel: #ffffff; --fg: #1d1c19; --muted: #66625a; --line: #e2ded6; --ok: #1f7a4a; --bad: #b3372f; }}
-@media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{ --bg: #141311; --panel: #1d1c19; --fg: #ecebe7; --muted: #a29d93; --line: #2f2d29; --ok: #5cc48a; --bad: #ef7a70; color-scheme: dark; }} }}
-:root[data-theme="dark"] {{ --bg: #141311; --panel: #1d1c19; --fg: #ecebe7; --muted: #a29d93; --line: #2f2d29; --ok: #5cc48a; --bad: #ef7a70; color-scheme: dark; }}
-body {{ background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, sans-serif; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 32px; }}
-.wrap {{ max-width: 60rem; margin-inline: auto; display: grid; gap: 16px; }}
-h1 {{ font-size: 1.5rem; margin: 0; }} h2 {{ font-size: 1rem; margin: 0; }}
-p {{ margin: 0; color: var(--muted); font-size: .9rem; max-width: 70ch; }}
-.cards {{ display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }}
-.card, .box {{ background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 6px; min-width: 0; }}
-.lab {{ font-weight: 600; }} .big {{ font-size: 2rem; font-variant-numeric: tabular-nums; }} .small {{ font-size: .82rem; color: var(--muted); }}
-.pos {{ color: var(--ok); }} .neg {{ color: var(--bad); }}
-.scroll {{ overflow-x: auto; }} table {{ width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }}
-th, td {{ text-align: right; padding: .4rem .5rem; border-bottom: 1px solid var(--line); white-space: nowrap; }}
-th {{ color: var(--muted); font-size: .75rem; font-weight: 600; }} th:first-child, td:first-child, .txt {{ text-align: left; }}
+:root {{ --bg: #f6f5f2; --panel: #ffffff; --fg: #1d1c19; --muted: #66625a; --line: #e2ded6; --grid: #ebe8e1; --ok: #1f7a4a; --bad: #b3372f;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; }}
+@media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{ --bg: #141311; --panel: #1d1c19; --fg: #ecebe7; --muted: #a29d93; --line: #2f2d29; --grid: #2a2825; --ok: #5cc48a; --bad: #ef7a70; color-scheme: dark;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; }} }}
+:root[data-theme="dark"] {{ --bg: #141311; --panel: #1d1c19; --fg: #ecebe7; --muted: #a29d93; --line: #2f2d29; --grid: #2a2825; --ok: #5cc48a; --bad: #ef7a70; color-scheme: dark;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; }}
+body {{ background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, sans-serif; margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 32px; }}
+.wrap {{ max-width: 64rem; margin-inline: auto; display: grid; gap: 16px; }}
+h1 {{ font-size: 1.5rem; margin: 0; }} h2 {{ font-size: 1.05rem; margin: 0; }}
+p {{ margin: 0; color: var(--muted); font-size: .9rem; max-width: 80ch; }} p b {{ color: var(--fg); }}
+.box {{ background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; min-width: 0; }}
+.badge {{ display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 600; font-size: .82rem; }}
+.badge.ok {{ background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }}
+.badge.ko {{ background: color-mix(in srgb, var(--bad) 15%, transparent); color: var(--bad); }}
+.pos {{ color: var(--ok); }} .neg {{ color: var(--bad); }} .sub {{ font-size: .78rem; color: var(--muted); font-weight: 400; }}
+.scroll {{ overflow-x: auto; }} table {{ width: 100%; border-collapse: collapse; font-size: .86rem; font-variant-numeric: tabular-nums; }}
+th, td {{ text-align: right; padding: .4rem .5rem; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: top; }}
+th {{ color: var(--muted); font-size: .74rem; font-weight: 600; }} th:first-child, td:first-child, .txt {{ text-align: left; }}
+td.wrap {{ white-space: normal; min-width: 18rem; }}
+.legend {{ display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--muted); }}
+.lg {{ display: inline-flex; align-items: center; gap: 6px; }} .sw {{ width: 14px; height: 3px; border-radius: 2px; display: inline-block; }}
+.chart {{ position: relative; }} svg {{ width: 100%; height: auto; display: block; }}
+.grid {{ stroke: var(--grid); stroke-width: 1; }} .zero {{ stroke: var(--muted); stroke-width: 1; }}
+.ax {{ fill: var(--muted); font-size: 11px; }} .cross {{ stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }}
+.s {{ stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }}
+{"".join(f".s{i} {{ stroke: var(--s{i}); }} .d{i} {{ fill: var(--s{i}); stroke: var(--panel); stroke-width: 2; }} .sw{i} {{ background: var(--s{i}); }} " for i in range(1, 7))}
+.tip {{ position: absolute; top: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: .78rem; pointer-events: none; box-shadow: 0 2px 8px rgb(0 0 0 / .12); min-width: 11rem; }}
+.tip div {{ display: flex; justify-content: space-between; gap: 10px; }} .tip i {{ width: 10px; height: 3px; border-radius: 2px; display: inline-block; margin-right: 5px; vertical-align: middle; }}
 </style>
 <div class="wrap">
-<header><h1>Suivi memecoins papier</h1>
-<p>Stratégie memecoins du post @savipww, en simulation sur le VPS (Solana, toutes les 5 min). Sept caisses fictives de 10 000 $ : trois achètent à chaque cycle selon le post, deux une fois par jour à 06:00 New York comme le post (l'une choisie par une IA, l'autre le premier du classement), une suit une règle réapprise chaque heure sur les données collectées, et une suit la règle qu'une IA chercheuse réécrit elle-même toutes les heures. Dernier cycle du VPS : {when} (heure de Paris). Cadran du jour : {"—" if cad is None else f"{cad:.2f}".replace(".", ",")} ({escape(verts)}).</p></header>
-<section class="cards">{"".join(cards)}</section>
-<p>{escape(auto_txt)}</p>
-<p>{escape(ia_txt)}</p>
-<section class="box"><h2>Positions ouvertes</h2><div class="scroll"><table><thead><tr><th>Achat</th><th class="txt">Caisse</th><th class="txt">Token</th><th>Mise</th></tr></thead><tbody>{t_open}</tbody></table></div></section>
-<section class="box"><h2>Derniers trades fermés</h2><div class="scroll"><table><thead><tr><th>Vente</th><th class="txt">Caisse</th><th class="txt">Token</th><th>Durée</th><th>Résultat</th><th class="txt">Raison</th></tr></thead><tbody>{t_closed}</tbody></table></div></section>
-<p>Verdict prévu : après au moins 100 trades fermés, gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, reste positive sans les 3 meilleurs trades et bat le témoin tiré au hasard. Le cadran n'est utile que si « ses règles » battent « sans cadran » ; l'IA n'est utile que si « IA juge » bat « 1 par jour sans IA ». Frais 0,45 % par côté (min. 0,95 $) et impact sur le prix compris ; aucune clé, aucun ordre réel.</p>
+<header style="display:grid;gap:6px"><h1>Suivi memecoins papier</h1>
+<p>Test papier sur le VPS (Solana), 10 000 $ fictifs par caisse, aucun ordre réel. Page mise à jour le {maj} (heure de Paris).</p>
+<p>{etat}</p></header>
+<section class="box"><h2>Classement des caisses</h2>{classement}
+<p class="sub">« Aujourd'hui » et « 24 h » : gains et pertes des trades fermés sur la période. Moyenne : par trade, frais et glissement compris. Rugs : pool vidé ou chute de plus de 80 %.</p></section>
+<section class="box"><h2>Résultat depuis le départ</h2>{courbe(books, now)}
+<p class="sub">Chaque point est une vente ; le dernier point est la valeur actuelle (positions ouvertes comprises). Les deux autres caisses du post et la règle qui apprend sont dans le classement.</p></section>
+<section class="box"><h2>Positions ouvertes</h2>{positions}</section>
+<section class="box"><h2>IA chercheuse : résultats réels par version</h2>{chercheuse}{auto_txt}</section>
+<section class="box"><h2>Journal des juges (24 h)</h2>{journal}</section>
+<section class="box"><h2>Derniers trades fermés</h2><div class="scroll"><table><thead><tr><th>Vente</th><th class="txt">Caisse</th><th class="txt">Token</th><th>Durée</th><th>Résultat</th><th>Gain</th><th class="txt">Raison</th></tr></thead><tbody>{t_closed}</tbody></table></div></section>
+<p class="sub">Verdict prévu : après au moins 100 trades fermés, une caisse ne gagne que si sa moyenne dépasse 2 fois sa marge d'erreur, reste positive sans ses 3 meilleurs trades et bat le témoin tiré au hasard.</p>
 </div>
+<script>
+(() => {{
+  const box = document.querySelector('.chart'); if (!box) return;
+  const data = JSON.parse(document.getElementById('series').textContent);
+  const names = {json.dumps({k: LABELS[k] for k in COURBES}, ensure_ascii=False)};
+  const keys = Object.keys(data), svg = box.querySelector('svg'), tip = box.querySelector('.tip'), cross = svg.querySelector('.cross');
+  const t0 = +box.dataset.t0, now = +box.dataset.now, W = 720, L = 46, R = 12;
+  const fmt = v => (v >= 0 ? '+' : '−') + Math.abs(v * 100).toFixed(1).replace('.', ',') + ' %';
+  const at = (pts, t) => {{ let y = 0; for (const [ti, yi] of pts) {{ if (ti <= t) y = yi; else break; }} return y; }};
+  svg.addEventListener('pointermove', e => {{
+    const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W;
+    if (x < L || x > W - R) {{ tip.hidden = true; cross.setAttribute('visibility', 'hidden'); return; }}
+    const t = t0 + (x - L) / (W - L - R) * (now - t0);
+    cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+    const d = new Date(t * 1000).toLocaleString('fr-FR', {{ timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }});
+    const rows = keys.map((k, i) => [k, i, at(data[k], t)]).sort((a, b) => b[2] - a[2]);
+    tip.innerHTML = '<b>' + d + '</b>' + rows.map(([k, i, y]) => `<div><span><i style="background:var(--s${{i + 1}})"></i>${{names[k]}}</span><span>${{fmt(y)}}</span></div>`).join('');
+    tip.hidden = false;
+    const left = (e.clientX - r.left) > r.width / 2 ? (e.clientX - r.left) - tip.offsetWidth - 12 : (e.clientX - r.left) + 12;
+    tip.style.left = Math.max(0, left) + 'px';
+  }});
+  svg.addEventListener('pointerleave', () => {{ tip.hidden = true; cross.setAttribute('visibility', 'hidden'); }});
+}})();
+</script>
 """
 
 
@@ -130,10 +351,32 @@ def main():
     ap.add_argument("--base", default="http://140.82.38.41:8787")
     ap.add_argument("--out", default=str(ROOT / "reports" / "memes_paper.html"))
     a = ap.parse_args()
-    state = json.loads(fetch(a.base + "/state.json"))
+    now = time.time()
+    state = json.loads(fetch(a.base + "/state.json", 60))
     status_md = fetch(a.base + "/status.md")
+    regles = []
+    for ln in (essai(a.base + "/ia_regles.jsonl") or "").splitlines():
+        try:
+            regles.append(json.loads(ln))
+        except ValueError:
+            pass
+    liste = sorted(set(re.findall(r'href="(juge2?_\d{4}-\d{2}-\d{2}(?:_\d{2})?\.json)"', essai(a.base + "/") or "")))
+    juges = []
+    for nom in liste:
+        m = re.search(r"_(\d{4}-\d{2}-\d{2})(?:_(\d{2}))?\.json$", nom)  # sans heure : ancien choix de 06:00
+        t = datetime.strptime(f"{m.group(1)}_{m.group(2) or '06'}", "%Y-%m-%d_%H").replace(tzinfo=NY).timestamp()
+        if now - t > 26 * 3600:
+            continue
+        raw = essai(a.base + "/" + nom, 20)
+        try:
+            juges.append((nom, json.loads(raw)))
+        except Exception:
+            pass
+    pools = [p["pool"] for k, b in state["books"].items() if k not in POST for p in b["open"].values()]
+    prix = prix_actuels(pools)
+    page_html = page(state, status_md, regles, juges, essai(a.base + "/erreurs.log"), prix, now)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    Path(a.out).write_text(page(state, status_md), encoding="utf-8")
+    Path(a.out).write_text(page_html, encoding="utf-8")
     print(a.out)
 
 
