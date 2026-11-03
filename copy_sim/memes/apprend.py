@@ -7,10 +7,11 @@ Chaque heure (dans la boucle du VPS) :
 2. on rejoue une grille fixe de règles (entrée × sortie, voir GRILLE), chaque token au plus une fois par 24 h et par
    règle, sortie vérifiée sur le cours de clôture de chaque bougie de 5 min (comme le VPS, qui ne voit le prix que
    toutes les 5 min), frais 0,45 % par côté + impact sur la liquidité + 1 % de glissement ;
-3. apprentissage = tout sauf les 2 derniers jours ; on garde la règle dont la borne basse (moyenne − 2 marges
-   d'erreur, au moins 30 trades) est la meilleure ET positive ;
-4. vérification = les 2 derniers jours, que la règle n'a pas vus : elle doit y gagner en moyenne sur au moins 8 trades.
-   Sinon : aucune règle, la caisse reste en cash ce jour-là. « Rien ne marche » est une réponse permise.
+3. depuis le 03/11 (demande de l'utilisateur) : on garde toujours la règle dont la borne basse (moyenne − 2 marges
+   d'erreur, au moins 15 trades, coûts réalistes) est la meilleure sur tout le passé, même négative, dès 1,5 jour
+   de collecte (avant : 3 jours, borne basse positive exigée et vérification sur les 2 derniers jours : la caisse
+   restait en cash) ;
+4. les 12 dernières heures sont recalculées à part pour la règle retenue (« verification »), à titre d'information.
 Les positions ouvertes gardent la sortie de la règle sous laquelle elles ont été achetées. Le seul juge est le
 résultat de la caisse après chaque choix : il porte sur des jours que la règle n'avait pas vus.
 
@@ -41,8 +42,8 @@ GRILLE = {
     "objectif": (0.20, 0.40, 0.80),
     "duree_max_h": (1, 4),
 }
-TEST_JOURS, MIN_TRAIN, MIN_TEST, TICKET = 2, 30, 8, 300.0
-MIN_JOURS = 3  # pas de règle avant 3 jours de collecte
+TEST_H, MIN_TRAIN, TICKET = 12, 15, 300.0
+MIN_JOURS = 1.5  # 3 jusqu'au 03/11
 
 
 def regles(idees=()):
@@ -280,25 +281,24 @@ def apprendre(out_dir, get, now):
              for p, t in sorted(seen.items(), key=lambda kv: -kv[1])}
     if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
         return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
-    split = now - TEST_JOURS * 86400
     rugs = rugs_connus(out_dir / "trades.jsonl")
     idees = lire_idees(local=out_dir / "juge_idees.json")
     grille = regles(idees)
-    train_rows, cache = [r for r in rows if r["t"] < split], {}
-    best = None
+    cache, best = {}, None
     for rule in grille:
-        tr = trades(rule, train_rows, paths, split, cache, rugs)
-        s = stats([x for _, x in tr])
-        if s["n"] >= MIN_TRAIN and s["bas"] is not None and s["bas"] > 0 and (best is None or s["bas"] > best[1]["bas"]):
+        s = stats([x for _, x in trades(rule, rows, paths, now, cache, rugs)])
+        if s["n"] >= MIN_TRAIN and s["bas"] is not None and (best is None or s["bas"] > best[1]["bas"]):
             best = (rule, s)
     if best is None:
-        return {"t": now, "regle": None, "raison": "aucune règle n'a une borne basse positive sur l'apprentissage",
+        return {"t": now, "regle": None, "raison": f"aucune règle n'a {MIN_TRAIN} trades terminés",
                 "regles_testees": len(grille), "idees_ia": len(idees)}
-    te = stats([x for _, x in trades(best[0], [r for r in rows if r["t"] >= split], paths, now, rugs=rugs)])
-    ok = te["n"] >= MIN_TEST and te["m"] is not None and te["m"] > 0
-    return {"t": now, "regle": best[0] if ok else None, "apprentissage": best[1], "verification": te,
+    recent = now - TEST_H * 3600
+    te = stats([x for t, x in trades(best[0], rows, paths, now, rugs=rugs) if t >= recent])
+    s = best[1]
+    return {"t": now, "regle": best[0], "apprentissage": s, "verification": te,
             "regles_testees": len(grille), "idees_ia": len(idees),
-            "raison": "retenue" if ok else "meilleure règle du passé perdante ou trop rare sur les 2 derniers jours"}
+            "raison": f"meilleure des {len(grille)} règles : {s['n']} trades, moyenne {s['m']:+.1%}, borne basse "
+                      f"{s['bas']:+.1%}" + ("" if s["bas"] > 0 else " (aucune n'est sûre de gagner : c'est la moins mauvaise)")}
 
 
 # ------------------------------------------------------------------ caisse « ia » : règle écrite par l'IA chercheuse

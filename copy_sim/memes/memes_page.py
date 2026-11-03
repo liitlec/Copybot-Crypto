@@ -53,7 +53,7 @@ def page(state, status_md):
     dial = state.get("dial", {})
     labels = {"classement": "Ses règles (avec cadran)", "sans_cadran": "Mêmes choix, sans cadran", "temoin": "Témoin tiré au hasard",
               "juge": "IA juge (1 choix toutes les 4 h)", "juge2": "IA juge v2 (jusqu'à 2 choix chaque heure)", "un_par_jour": "Sans IA, 1 toutes les 4 h (témoin de l'IA juge)",
-              "auto": "Règle qui apprend (réajustée chaque heure)", "ia": "IA chercheuse (réécrit sa règle elle-même)",
+              "auto": "Règle qui apprend (meilleure règle réaliste, réajustée chaque heure)", "ia": "IA chercheuse (réécrit sa règle elle-même)",
               "ia_filtre": "IA chercheuse + filtre anti-pièges"}
     cards, rows_open, closed_all = [], [], []
     for key in [k for k in labels if k in state["books"]]:
@@ -87,7 +87,7 @@ def page(state, status_md):
         f"stop {rg['stop']:+.0%}, objectif {rg['objectif']:+.0%}, max {rg['duree_max_h']} h"
         + (f", idée de l'IA « {json.loads(rg['idee'])['nom']} »" if rg.get("idee") else "") if rg else "en cash")
         + (f" ({au.get('raison')})" if au.get("raison") else "")) if au else \
-        "Règle qui apprend : pas encore d'apprentissage (il faut au moins 3 jours de collecte)."
+        "Règle qui apprend : pas encore d'apprentissage (il faut 1,5 jour de collecte)."
     ia = state.get("ia")
     ia_txt = ("IA chercheuse : " + (f"règle v{ia['version']}" + (" en pause" if ia.get("pause") else "") +
               (f" — {ia['pourquoi']}" if ia.get("pourquoi") else "")) if ia else
