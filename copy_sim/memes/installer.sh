@@ -13,7 +13,7 @@ D=/opt/memes_paper
 U=https://raw.githubusercontent.com/liitlec/Copybot-Crypto/$VERSION/copy_sim/memes
 mkdir -p "$D/yproto" "$D/data"
 cd "$D"
-for f in memes_paper.py apprend.py serveur.py flux.py yproto/__init__.py yproto/geyser_pb2.py yproto/geyser_pb2_grpc.py \
+for f in memes_paper.py memes_page.py apprend.py serveur.py flux.py yproto/__init__.py yproto/geyser_pb2.py yproto/geyser_pb2_grpc.py \
          yproto/solana_storage_pb2.py yproto/solana_storage_pb2_grpc.py; do
   curl -fsSL -o "$f.new" "$U/$f" && mv "$f.new" "$f"
 done

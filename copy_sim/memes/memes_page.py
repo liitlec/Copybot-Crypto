@@ -346,6 +346,36 @@ td.wrap {{ white-space: normal; min-width: 18rem; }}
 """
 
 
+def depuis_dossier(d, now, prix, rafraichir=60):
+    """Même page, construite par le VPS à chaque cycle depuis son dossier de données (servie en /suivi.html), avec
+    les prix qu'il vient de relever ; la page se recharge toute seule toutes les `rafraichir` secondes."""
+    d = Path(d)
+    lire = lambda n: (d / n).read_text(encoding="utf-8") if (d / n).exists() else ""
+    regles = []
+    for ln in lire("ia_regles.jsonl").splitlines():
+        try:
+            regles.append(json.loads(ln))
+        except ValueError:
+            pass
+    juges = []
+    for f in sorted(d.glob("juge*_20*.json")):
+        m = re.search(r"^juge2?_(\d{4}-\d{2}-\d{2})(?:_(\d{2}))?\.json$", f.name)
+        if not m:
+            continue
+        t = datetime.strptime(f"{m.group(1)}_{m.group(2) or '06'}", "%Y-%m-%d_%H").replace(tzinfo=NY).timestamp()
+        if now - t <= 26 * 3600:
+            try:
+                juges.append((f.name, json.loads(f.read_text(encoding="utf-8"))))
+            except ValueError:
+                pass
+    err = lire("erreurs.log").splitlines()[-5:]
+    corps = page(json.loads(lire("state.json")), lire("status.md"), regles, juges, "\n".join(err),
+                 {p: x for p, x in prix.items() if x}, now)
+    return ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            f'<meta http-equiv="refresh" content="{rafraichir}"></head><body>{corps}</body></html>')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default="http://140.82.38.41:8787")

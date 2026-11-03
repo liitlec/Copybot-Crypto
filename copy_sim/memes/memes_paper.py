@@ -693,6 +693,17 @@ def write_status(state, out_dir, live):
     lines.append("Verdict prévu : " + RULE["verdict"])
     (out_dir / "status.md").write_text("\n".join(lines), encoding="utf-8")
     (out_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    # page de suivi complète, servie en http://IP:8787/suivi.html et refaite à chaque cycle (03/11)
+    try:
+        import memes_page
+        prix = {p: fnum(a.get("base_token_price_usd")) for p, a in live.items() if a}
+        html = memes_page.depuis_dossier(out_dir, time.time(), prix)
+        tmp = out_dir / "suivi.html.tmp"
+        tmp.write_text(html, encoding="utf-8")
+        tmp.replace(out_dir / "suivi.html")
+    except Exception as exc:
+        with (out_dir / "erreurs.log").open("a") as f:
+            f.write(f"{datetime.now(timezone.utc).isoformat()} suivi.html {exc!r}\n")
 
 
 def main():
