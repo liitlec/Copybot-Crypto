@@ -76,7 +76,7 @@ jamais un fichier ni le VPS. Note dans ton carnet ce que chaque agent a trouvé 
 - Champs d'entrée et de classement : age_h, liquidite, mcap, detenteurs, croissance_detenteurs_1h,
   variation_prix_1h, score, ratio_acheteurs_1h, acceleration_volume, volume.<m5|m15|m30|h1|h6|h24>,
   variation_prix_pct.<m5|m15|m30|h1|h6|h24> (en %), transactions.<fenêtre>.<buys|sells|buyers|sellers> ;
-  opérateurs < <= > >= ; au plus 8 conditions. Un token déjà essoufflé n'est jamais acheté.
+  opérateurs < <= > >= ; au plus 12 conditions (une règle qui en a plus est refusée, avec une erreur). Un token déjà essoufflé n'est jamais acheté.
 - Sortie : stop (−0,9 à −0,03, obligatoire), objectif (+0,03 à +20 ou null), suiveur (stop suiveur depuis le plus
   haut, 0,03 à 0,9 ou null), duree_max_h (0,25 à 72, obligatoire), sortie_volume (revente quand le volume s'essouffle).
 - Un achat par cycle au plus, le premier selon le classement ; pas de rachat d'un token revendu dans les 24 h.

@@ -120,9 +120,12 @@ def main():
     print(f"{len(rows)} lignes, {len(paths)} pools avec prix, {len(rugs)} pools vidés connus, "
           f"test = dernières {a.test_heures:g} h ; mode {'optimiste' if a.optimiste else 'réaliste'}")
     for path in a.regles:
-        rule = A.regle_ia(json.loads(Path(path).read_text()))
+        raw = json.loads(Path(path).read_text())
+        rule = A.regle_ia(raw)
         if rule is None:
-            print(f"\n{path} : règle invalide")
+            n = len((raw.get("entree") or {}).get("conditions") or [])
+            print(f"\n{path} : règle invalide" + (f" ({n} conditions, {A.CONDITIONS_MAX} au plus)"
+                                                 if n > A.CONDITIONS_MAX else ""))
             continue
         tr = simule(rule, rows, paths, rugs, realiste=not a.optimiste)
         old = [x for t, x, *_ in tr if t < split]

@@ -304,6 +304,7 @@ def apprendre(out_dir, get, now):
 # ------------------------------------------------------------------ caisse « ia » : règle écrite par l'IA chercheuse
 IA_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
           "copy_sim/memes/ia/regle.json")
+CONDITIONS_MAX = 12  # 8 jusqu'au 03/11 : les conditions en trop étaient ignorées sans erreur
 BORNES = {"stop": (-0.9, -0.03), "objectif": (0.03, 20.0), "suiveur": (0.03, 0.9), "duree_max_h": (0.25, 72.0)}
 
 
@@ -311,8 +312,10 @@ def regle_ia(raw):
     """Valide la règle écrite par l'IA (memes/ia/regle.json). C'est une donnée : seuls ces champs, bornés, sont lus ;
     la taille (6 % de la caisse, 2 % de la liquidité au plus) n'est pas entre ses mains. None si invalide."""
     try:
+        if len(raw["entree"]["conditions"]) > CONDITIONS_MAX:  # refusée, et non tronquée en silence
+            return None
         conds = [{"champ": str(c["champ"]), "op": str(c["op"]), "val": float(c["val"])}
-                 for c in raw["entree"]["conditions"][:8]]
+                 for c in raw["entree"]["conditions"]]
         if not all(c["op"] in OPS and c["champ"].startswith(CHAMPS) for c in conds):
             return None
         sx = raw["sortie"]
