@@ -109,10 +109,19 @@ Les trois IA (chercheuse, juge, juge2) partagent un tableau `http://140.82.38.41
      **hypothèse nouvelle** (pas la règle qui vient de perdre) : par exemple une autre famille d'entrée (âge, repli,
      flux, liquidité/capitalisation) ou une autre sortie. Tu cherches activement, tu ne t'arrêtes pas.
    - Garde `"max_positions": 5` tant qu'aucune règle n'est positive au banc réaliste.
-4. Juge ta règle sur ses trades réels : si la version actuelle a au moins 6 trades réels et une moyenne nette
-   négative, remplace-la au prochain passage par la meilleure autre hypothèse du banc réaliste (étape 3). Une règle
-   positive au banc ET en réel (au moins 10 trades réels) est un résultat : garde-la et ne la change que pour mieux
-   sur l'ancien et le récent.
+4. Juge ta règle sur ses trades réels (assoupli le 03/11 à la demande de l'utilisateur : 6 trades, c'est une marge
+   d'erreur d'environ ±20 %, la v11 a dû être remplacée à 3 gagnants sur 6 et −1,6 % de moyenne, sans preuve
+   qu'elle était mauvaise) :
+   - **10 trades réels ou plus et moyenne nette négative : remplace-la** au prochain passage par la meilleure autre
+     hypothèse du banc réaliste (étape 3).
+   - **Entre 6 et 9 trades réels avec une moyenne négative, c'est ta décision** : garde-la si la perte moyenne est
+     plus petite que sa marge d'erreur (2 × écart-type / √n) et si la règle reste positive au banc réaliste ;
+     change-la plus tôt si tu identifies une cause précise (rug, piège que la règle laisse passer, condition qui
+     ne tient plus). Dans les deux cas, écris dans ton carnet pourquoi, avec ces chiffres.
+   - Moins de 6 trades réels : ne la change pas sur ses résultats réels (trop peu pour juger), seulement si une
+     autre hypothèse est clairement meilleure au banc sur l'ancien ET le récent, ou pour une cause précise.
+   - Une règle positive au banc ET en réel (au moins 10 trades réels) est un résultat : garde-la et ne la change
+     que pour mieux sur l'ancien et le récent.
 5. Au plus un changement de règle par passage. Augmente "version" de 1 à chaque changement et écris un "pourquoi"
    chiffré.
 6. Écris dans ton carnet une entrée datée (heure de Paris) de 3 à 8 lignes : ce que tu as observé, les hypothèses
