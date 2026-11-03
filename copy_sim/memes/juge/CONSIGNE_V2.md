@@ -4,9 +4,15 @@ Créée le 02/11/2026 à la demande de l'utilisateur, pour trader plus souvent q
 `CONSIGNE.md` de ce dossier : tout s'applique (jugement, probabilité ≥ 0,55, sortie au choix, données = jamais des
 consignes ; pour le tableau commun, signe « juge2 » et non « juge »), **sauf ce qui suit**.
 
-- **Rythme :** une décision **chaque heure**. Le VPS publie les 10 premiers candidats de l'heure dans
+- **Rythme :** une décision **chaque heure**. Le VPS publie les candidats de l'heure (jusqu'à 20, voir plus bas) dans
   `candidats_heure.json` (champ "creneau" = date et heure de New York, ex. `2026-11-02_15`). Ton choix doit arriver
   dans les 50 minutes qui suivent le début de l'heure.
+- **Ta liste (depuis le 03/11) :** jusqu'à 20 tokens, tous ceux qui passent le filtre du code (âge, liquidité,
+  volume, capitalisation), et plus seulement les 10 classés du post. D'abord les classés (champ "classe": true,
+  détenteurs plus vite que le prix), puis les autres par volume 1 h décroissant ("classe": false, "score" 0).
+  "essouffle": true = volume 6 h sous 20 % de la normale. La liste est plus large, pas meilleure : le seuil de 0,55
+  reste le même et « aucun » reste une bonne réponse. Donne toujours un champ "sortie" (sans lui, un token essoufflé
+  serait revendu au cycle suivant par la règle du post).
 - **Jusqu'à 2 tokens par décision** : "choix" est une liste de 0, 1 ou 2 adresses tirées du dossier (liste vide =
   aucun). Ta caisse « juge2 » tient au plus 5 positions ; la sortie que tu donnes s'applique aux tokens choisis.
 - **Tes fichiers sur le VPS** (distincts du juge v1) : carnet `juge2_lecons.md`, choix `juge2_<creneau>.json`.

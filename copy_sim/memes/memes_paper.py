@@ -49,7 +49,7 @@ RULE = {
     "mcap_min": 60_000, "mcap_max": 8_000_000,
     "ticket_part": 0.06, "plafond_liquidite": 0.02, "frais": 0.0045, "frais_min": 0.95,
     "sortie_ratio_volume": 0.20, "vide_liquidite": 1_000, "max_positions": 10, "cycle_s": 300, "suivi_s": 15,
-    "cadran_min": 0.50, "holders_cache_s": 3600, "filtre_detenteurs_min": 300, "filtre_top10_max": 50, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "juge2_delai_min": 50, "candidats_max": 10,
+    "cadran_min": 0.50, "holders_cache_s": 3600, "filtre_detenteurs_min": 300, "filtre_top10_max": 50, "decisions_ny": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"], "juge_delai_h": 3, "juge2_delai_min": 50, "candidats_max": 10, "candidats_max_v2": 20,
     "verdict": "après au moins 100 trades fermés : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, "
                "reste positive sans les 3 meilleurs trades ET bat le témoin tiré au hasard ; le cadran n'est utile que si « classement » bat « sans_cadran » ; l'IA n'est utile que si « juge » bat « un_par_jour »",
 }
@@ -584,8 +584,15 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     key2 = f"{day}_{ny.strftime('%H')}"
     if state.get("creneau2") != key2:
         state["creneau2"] = key2
-        snap2 = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n"))
-                 for i, (r, a, hg, pg) in enumerate(ranked[:RULE["candidats_max"]])]
+        # depuis le 03/11 : tous les tokens qui passent le filtre (jusqu'à 20), pas seulement les classés du post (la
+        # liste de 10 classés ne contenait plus que des pièges et des tokens en chute, l'IA répondait « aucun »)
+        classes = {a["token"] for _, a, _, _ in ranked}
+        autres = sorted((a for a in uni_all if a["token"] not in classes),
+                        key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
+        liste2 = ranked + [(None, a, None, None) for a in autres]
+        snap2 = [dict(dossier(r or 0.0, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n")),
+                      classe=r is not None, essouffle=fading(a))
+                 for i, (r, a, hg, pg) in enumerate(liste2[:RULE["candidats_max_v2"]])]
         doc2 = json.dumps({"date": day, "creneau": key2, "t": now, "cadran": dial_v,
                            "cadran_verts": state["dial"]["verts"], "candidats": snap2}, ensure_ascii=False, indent=1)
         (out_dir / "candidats_heure.json").write_text(doc2, encoding="utf-8")
