@@ -7,10 +7,10 @@ Chaque heure (dans la boucle du VPS) :
 2. on rejoue une grille fixe de règles (entrée × sortie, voir GRILLE), chaque token au plus une fois par 24 h et par
    règle, sortie vérifiée sur le cours de clôture de chaque bougie de 5 min (comme le VPS, qui ne voit le prix que
    toutes les 5 min), frais 0,45 % par côté + impact sur la liquidité + 1 % de glissement ;
-3. depuis le 03/11 (demande de l'utilisateur) : on garde toujours la règle dont la borne basse (moyenne − 2 marges
-   d'erreur, au moins 15 trades, coûts réalistes) est la meilleure sur tout le passé, même négative, dès 1,5 jour
-   de collecte (avant : 3 jours, borne basse positive exigée et vérification sur les 2 derniers jours : la caisse
-   restait en cash) ;
+3. depuis le 03/11 (demande de l'utilisateur) : dès 1,5 jour de collecte, on prend la règle dont la borne basse
+   (moyenne − 2 marges d'erreur, au moins 15 trades, coûts réalistes) est la meilleure sur tout le passé, et on la
+   trade si sa moyenne est positive ; sinon la caisse reste en cash (avant : 3 jours, borne basse positive exigée
+   et vérification sur les 2 derniers jours) ;
 4. les 12 dernières heures sont recalculées à part pour la règle retenue (« verification »), à titre d'information.
 Les positions ouvertes gardent la sortie de la règle sous laquelle elles ont été achetées. Le seul juge est le
 résultat de la caisse après chaque choix : il porte sur des jours que la règle n'avait pas vus.
@@ -306,10 +306,11 @@ def apprendre(out_dir, get, now):
     recent = now - TEST_H * 3600
     te = stats([x for t, x in trades(best[0], rows, paths, now, rugs=rugs) if t >= recent])
     s = best[1]
-    return {"t": now, "regle": best[0], "apprentissage": s, "verification": te,
+    ok = s["m"] > 0  # 03/11 : une règle qui perd déjà sur les données où elle a été choisie n'est pas tradée
+    return {"t": now, "regle": best[0] if ok else None, "meilleure": best[0], "apprentissage": s, "verification": te,
             "regles_testees": len(grille), "idees_ia": len(idees),
             "raison": f"meilleure des {len(grille)} règles : {s['n']} trades, moyenne {s['m']:+.1%}, borne basse "
-                      f"{s['bas']:+.1%}" + ("" if s["bas"] > 0 else " (aucune n'est sûre de gagner : c'est la moins mauvaise)")}
+                      f"{s['bas']:+.1%}" + ("" if ok else " ; même elle perd sur le passé : en cash")}
 
 
 # ------------------------------------------------------------------ caisse « ia » : règle écrite par l'IA chercheuse
