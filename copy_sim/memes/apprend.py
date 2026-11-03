@@ -203,11 +203,14 @@ def charger(path, since):
     return rows
 
 
-BUDGET = [0]  # appels GeckoTerminal encore permis pour les bougies dans ce passage (voir appels_bougies)
+BUDGET = [0, 0.0]  # appels GeckoTerminal encore permis pour les bougies dans ce passage, et heure limite
 
 
-def appels_bougies(n):
-    BUDGET[0] = n
+def appels_bougies(n, secondes=150):
+    """Au plus n appels et `secondes` de téléchargement par passage. Le 03/11, des appels ratés (retentés 4 fois, 30 s
+    d'attente chacun) ont bloqué la boucle du VPS 12 minutes : désormais un seul essai, et au premier échec le passage
+    continue avec le cache."""
+    BUDGET[0], BUDGET[1] = n, time.time() + secondes
 
 
 def bougies(pool, cache_dir, get, now, recent=True, age_max=50 * 60):
@@ -216,18 +219,22 @@ def bougies(pool, cache_dir, get, now, recent=True, age_max=50 * 60):
     Sans limite, l'élargissement de l'univers (150 pools et plus) saturait l'API gratuite et bloquait le cycle."""
     f = cache_dir / f"{pool}.json"
     old = json.loads(f.read_text()) if f.exists() else {"t": 0, "c": []}
-    if ((recent and now - old["t"] > age_max) or not old["c"]) and BUDGET[0] > 0:
+    if ((recent and now - old["t"] > age_max) or not old["c"]) and BUDGET[0] > 0 and time.time() < BUDGET[1]:
         BUDGET[0] -= 1
         try:
-            d = get(f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/minute"
-                    f"?aggregate=5&limit=1000&currency=usd")
+            url = (f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/minute"
+                   f"?aggregate=5&limit=1000&currency=usd")
+            try:
+                d = get(url, tries=1)
+            except TypeError:  # get sans paramètre tries (essais hors du VPS)
+                d = get(url)
             new = [(int(x[0]), float(x[4])) for x in d["data"]["attributes"]["ohlcv_list"]]
             merged = dict(map(tuple, old["c"]))
             merged.update(new)
             old = {"t": now, "c": sorted(merged.items())}
             f.write_text(json.dumps(old))
         except Exception:
-            pass
+            BUDGET[0] = 0  # GeckoTerminal refuse ou ne répond pas : plus d'appel pendant ce passage
     return old["c"]
 
 
