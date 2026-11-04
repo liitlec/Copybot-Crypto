@@ -42,3 +42,14 @@ Format de ton choix, fichier `juge2_<creneau>.json` :
  "raison": "une ou deux phrases", "probas": {"<adresse>": 0.0},
  "sortie": {"stop": -0.3, "objectif": 0.3, "suiveur": null, "duree_max_h": 4}}
 ```
+
+## Note de l'utilisateur du 04/11 : trades faux dans l'historique
+
+12 sorties de caisses d'IA ont été enregistrées par le VPS à des prix que les bougies ne montrent pas (erreur de la
+simulation, corrigée le 04/11) : AAPLCAT +119 % (01/11), Warcoin +130 % et PREDICT +107 % (02/11, chercheuse),
+juge PREDICT +306 % et −75 % et XTEN −70 % (02/11), juge2 XTEN +117 % (02/11), HEDGE −79 % (02/11), XTEN −72 % et
+PREDICT −54 % (03/11 02:42), PREDICT +295 % et XTEN −48 % (04/11 14:25). Les bougies de ces tokens bougeaient de
+quelques pour cent. **Ne tire aucune leçon de ces trades** : en particulier, les « gaps au remplissage » de XTEN et
+PREDICT viennent en grande partie de cette erreur, pas du marché (leur vraie nature reste à juger sur les bougies).
+Les « pools vidés » à −95 % sans bougie après la vente ne sont pas vérifiables ; le banc ne les compte désormais
+comme rugs que si les bougies confirment l'effondrement.

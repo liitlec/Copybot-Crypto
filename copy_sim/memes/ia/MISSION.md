@@ -141,3 +141,14 @@ Les trois IA (chercheuse, juge, juge2) partagent un tableau `http://140.82.38.41
    qu'aucune règle n'est positive au banc réaliste : là, refais l'étape 3 à chaque passage avec tes agents (les
    données grossissent toutes les 5 min).
 7. N'écris que ton carnet et ta règle (sur le VPS). Jamais le code, jamais les autres caisses.
+
+## Note de l'utilisateur du 04/11 : trades faux dans l'historique
+
+12 sorties de caisses d'IA ont été enregistrées par le VPS à des prix que les bougies ne montrent pas (erreur de la
+simulation, corrigée le 04/11) : AAPLCAT +119 % (01/11), Warcoin +130 % et PREDICT +107 % (02/11, chercheuse),
+juge PREDICT +306 % et −75 % et XTEN −70 % (02/11), juge2 XTEN +117 % (02/11), HEDGE −79 % (02/11), XTEN −72 % et
+PREDICT −54 % (03/11 02:42), PREDICT +295 % et XTEN −48 % (04/11 14:25). Les bougies de ces tokens bougeaient de
+quelques pour cent. **Ne tire aucune leçon de ces trades** : en particulier, les « gaps au remplissage » de XTEN et
+PREDICT viennent en grande partie de cette erreur, pas du marché (leur vraie nature reste à juger sur les bougies).
+Les « pools vidés » à −95 % sans bougie après la vente ne sont pas vérifiables ; le banc ne les compte désormais
+comme rugs que si les bougies confirment l'effondrement.
