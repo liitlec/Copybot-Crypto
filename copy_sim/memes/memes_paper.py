@@ -56,6 +56,14 @@ RULE = {
 _last_call = [0.0]
 LOCK = threading.Lock()   # le cycle, le suivi GeckoTerminal et le gardien gRPC ne touchent pas les caisses en même temps
 LAST_GT = {}              # pool -> derniers attributs GeckoTerminal (prix de la cotation en dollars, liquidité…)
+LAST_GT_T = {}            # pool -> heure de ces attributs
+# 04/11 : une réponse GeckoTerminal ratée (pool absent de la réponse, liquidité nulle d'un relevé) suffisait à compter
+# un « pool vidé » à −95 %, sans confirmation. Désormais : pool absent = on attend (vidé seulement après ABSENT_MAX
+# cycles sans aucune donnée), liquidité sous le seuil = vidé seulement si deux relevés de suite le confirment. Et le
+# prix gRPC n'est utilisé que s'il reste à ±30 % du dernier prix GeckoTerminal de moins d'une minute : 12 sorties
+# d'IA (XTEN, PREDICT, AAPLCAT, Warcoin, HEDGE…) s'étaient faites à des prix que les bougies ne montrent pas, par
+# exemple PREDICT « +295 % » le 04/11 pendant que son cours bougeait de quelques pour cent.
+ABSENT_MAX, VIDE_CONFIRME, GRPC_ECART, GRPC_REF_S = 12, 2, (0.7, 1 / 0.7), 60
 FLUX = [None]             # suivi des prix en direct par gRPC (flux.py), s'il est configuré
 
 
@@ -220,6 +228,7 @@ def pools_now(addresses):
         for p in d.get("data", []):
             res[p["attributes"]["address"]] = p["attributes"]
     LAST_GT.update(res)
+    LAST_GT_T.update({k: time.time() for k in res})
     return res
 
 
@@ -337,10 +346,12 @@ def gardien(state, out_dir):
                         pr, g = fx.prix.get(p["pool"]), LAST_GT.get(p["pool"])
                         if not suivie(p) or not pr or now - pr[0] > 20 or not g:
                             continue
+                        if now - LAST_GT_T.get(p["pool"], 0) > GRPC_REF_S:  # référence trop vieille : le suivi 15 s tranche
+                            continue
                         q, ref = fnum(g.get("quote_token_price_usd")), fnum(g.get("base_token_price_usd"))
                         usd = pr[1] * (q or 0)
-                        if not usd or (ref and not 0.2 * ref <= usd <= 5 * ref):  # cotation mal appariée : ignoré
-                            continue
+                        if not usd or not ref or not GRPC_ECART[0] * ref <= usd <= GRPC_ECART[1] * ref:
+                            continue  # prix gRPC trop loin de GeckoTerminal : probablement faux, ignoré
                         sortie_regle(b, token, p, dict(g, base_token_price_usd=str(usd)), now, log)
                 if sum(len(b["closed"]) for b in state["books"].values()) != n:
                     (out_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
@@ -393,8 +404,20 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     for b in state["books"].values():
         for token, p in list(b["open"].items()):
             a = live.get(p["pool"])
-            if a is None or (fnum(a["reserve_in_usd"]) or 0) < RULE["vide_liquidite"]:
-                close_pos(b, token, a, now, "pool vidé ou disparu", log)
+            if a is None:  # absent de la réponse (souvent un appel refusé) : pas de sortie sur une donnée manquante
+                p["absent_n"] = p.get("absent_n", 0) + 1
+                if p["absent_n"] >= ABSENT_MAX:
+                    close_pos(b, token, None, now, f"pool disparu ({ABSENT_MAX} cycles sans données)", log)
+                continue
+            p["absent_n"] = 0
+            liq = fnum(a.get("reserve_in_usd"))
+            if liq is not None and liq < RULE["vide_liquidite"]:
+                p["vide_n"] = p.get("vide_n", 0) + 1
+                if p["vide_n"] >= VIDE_CONFIRME:
+                    close_pos(b, token, a, now, "pool vidé (confirmé sur 2 relevés)", log)
+                continue
+            p["vide_n"] = 0
+            if liq is None:
                 continue
             if sortie_regle(b, token, p, a, now, log):
                 continue

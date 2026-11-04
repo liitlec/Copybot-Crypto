@@ -47,18 +47,9 @@ def nettoie(c):
 
 
 def rugs_connus(d):
-    """Pool -> premier instant où un trade réel (toutes caisses) l'a vu vidé ou effondré d'au moins 80 %."""
-    out = {}
-    f = d / "trades.jsonl"
-    if f.exists():
-        for ln in f.read_text().splitlines():
-            try:
-                r = json.loads(ln)
-            except ValueError:
-                continue
-            if "ret" in r and r.get("pool") and (r["reason"].startswith("pool vidé") or r["ret"] <= -0.8):
-                out[r["pool"]] = min(out.get(r["pool"], 1e18), r["t_out"])
-    return out
+    """Pool -> premier instant où un trade réel l'a vu vidé ou effondré d'au moins 80 %, confirmé par les bougies
+    (voir apprend.rugs_connus : depuis le 04/11, les faux « pools vidés » ne comptent plus)."""
+    return A.rugs_connus(d / "trades.jsonl", d / "ohlcv")
 
 
 def simule(rule, rows, paths, rugs=None, realiste=True):

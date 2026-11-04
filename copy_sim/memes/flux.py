@@ -129,6 +129,9 @@ class Flux:
         pre = [(b.account_index, b.mint, b.owner, b.ui_token_amount.ui_amount) for b in meta.pre_token_balances]
         post = [(b.account_index, b.mint, b.owner, b.ui_token_amount.ui_amount) for b in meta.post_token_balances]
         now = time.time()
+        touches = [pool for pool in list(self.pools) if pool in keys]
+        if len(touches) > 1:  # un swap qui passe par plusieurs pools suivis : soldes mélangés, prix faux (04/11)
+            return
         for pool, base in list(self.pools.items()):
             if pool in keys:
                 r = prix_swap(pre, post, pool, base)

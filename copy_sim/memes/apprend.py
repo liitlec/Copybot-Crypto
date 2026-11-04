@@ -144,8 +144,20 @@ def nettoie(c):
     return out
 
 
-def rugs_connus(path):
-    """Pool -> premier instant où un trade réel (toutes caisses) l'a vu vidé ou effondré d'au moins 80 %."""
+def rug_confirme(c, t_in, t_out):
+    """Le pool s'est-il vraiment effondré ? Bougies 5 min (ts, prix) : plus bas des 2 h après la sortie sous 30 % du
+    dernier prix avant l'achat. Sans bougie pour juger : on garde le trade comme rug (prudence)."""
+    avant = [px for ts, px in c if ts <= t_in] or [px for ts, px in c if ts <= t_out]
+    apres = [px for ts, px in c if t_out - 300 <= ts <= t_out + 7200]
+    if not avant or not apres:
+        return True
+    return min(apres) < 0.3 * avant[-1]
+
+
+def rugs_connus(path, cache_dir=None):
+    """Pool -> premier instant où un trade réel (toutes caisses) l'a vu vidé ou effondré d'au moins 80 %. Depuis le
+    04/11, avec `cache_dir` (bougies data/ohlcv), seulement si les bougies confirment l'effondrement : une partie des
+    « pools vidés » venaient d'une réponse GeckoTerminal ratée ou d'un prix gRPC faux, pas d'un vrai rug."""
     out = {}
     if Path(path).exists():
         for ln in Path(path).read_text().splitlines():
@@ -154,6 +166,14 @@ def rugs_connus(path):
             except ValueError:
                 continue
             if "ret" in r and r.get("pool") and (r["reason"].startswith("pool vidé") or r["ret"] <= -0.8):
+                if cache_dir is not None:
+                    f = Path(cache_dir) / f"{r['pool']}.json"
+                    try:
+                        c = [tuple(x) for x in json.loads(f.read_text())["c"]] if f.exists() else []
+                    except ValueError:
+                        c = []
+                    if c and not rug_confirme(c, r.get("t_in", r["t_out"]), r["t_out"]):
+                        continue
                 out[r["pool"]] = min(out.get(r["pool"], 1e18), r["t_out"])
     return out
 
@@ -307,7 +327,7 @@ def apprendre(out_dir, get, now):
              for p, t in sorted(seen.items(), key=lambda kv: -kv[1])}
     if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
         return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
-    rugs = rugs_connus(out_dir / "trades.jsonl")
+    rugs = rugs_connus(out_dir / "trades.jsonl", out_dir / "ohlcv")
     idees = lire_idees(local=out_dir / "juge_idees.json")
     grille = regles(idees)
     cache, best = {}, None
