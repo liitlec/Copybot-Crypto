@@ -68,6 +68,24 @@ Les trois IA (chercheuse, juge, juge2) partagent un tableau `http://140.82.38.41
   "http://140.82.38.41:8787/ajouter/commun.md?auteur=juge"` (2 Ko au plus par ajout).
 - Tes décisions restent les tiennes : c'est ce qui permet de comparer les IA entre elles.
 
+## Ta note de calibration et tes nouvelles données (04/11, demandé par l'utilisateur)
+
+- **Lis `calibration_juges.json`** sur le VPS (même adresse que tes autres fichiers ; clé "juge" pour le juge v1,
+  "juge2" pour le juge v2). Le VPS y compare, chaque heure, **toutes** les probabilités que tu as données (champ
+  "probas", candidats refusés compris) à ce que les candidats ont vraiment fait : « gagné » = plus de +3 % au bout de
+  4 h (bougies). Par tranche de probabilité : ce que tu annonçais en moyenne et la fréquence réelle de gain. Le
+  score de Brier (0 = parfait) est comparé à celui d'un juge qui annoncerait toujours la fréquence moyenne : tant que
+  ton score n'est pas meilleur, tes probabilités n'apportent rien de plus que la moyenne.
+- **Calibre-toi** : si la fréquence réelle d'une tranche est nettement plus haute que ce que tu annonces, tu es trop
+  pessimiste sur ces dossiers (et l'inverse). Au 04/11, les deux juges l'étaient : les candidats notés 0,40–0,55 ont
+  gagné 59 à 65 % du temps à 4 h, ceux notés 0–0,20 environ 30 %. Une probabilité doit être ta meilleure estimation
+  de la fréquence de gain, pas une marge de prudence ; la prudence, c'est le seuil de 0,55 (qui ne change pas) et
+  ta sortie. Écris dans ton carnet comment tu ajustes, avec les chiffres de la note.
+- **Nouvelles données dans les dossiers** : `rotation_h1` (volume 1 h / liquidité ; ~20 = volume tourné par des
+  robots, comme XTEN et PREDICT), `volume_par_trader_h1`, `liq_sur_mcap` (au-dessus de 1 = profil fréquent des
+  rugs), `part_vendeurs_h1` et `part_vendeurs_m5`, et quand le VPS l'a relevée la sécurité du token :
+  `top10_pct` (part des 10 plus gros détenteurs, %), `autorite_mint` et `autorite_gel` (1 = encore active).
+
 ## Apprendre (avant de choisir, à chaque créneau)
 
 Le VPS publie `resultats_candidats.json` : pour chacun de tes dossiers passés (clé = créneau), ce que chaque candidat a fait

@@ -68,6 +68,9 @@ ABSENT_MAX, VIDE_CONFIRME, GRPC_ECART, GRPC_REF_S = 12, 2, (0.7, 1 / 0.7), 60
 # de départ ; l'ancien état et les anciens trades (contaminés par les faux prix) sont rangés dans
 # data/archive_avant_remise_<REMISE>/. Les données de marché (univers.jsonl, ohlcv/) et les fichiers des IA restent.
 REMISE = "2026-11-04"
+SECU_PAR_CYCLE = 5  # relevés de sécurité des tokens par cycle (04/11)
+DEFIS_MAX, DEFI_MIN_TRADES, DEFI_MIN_H = 3, 15, 48  # tournoi des règles de l'IA chercheuse (04/11)
+RULE_BANK = [10000.0]  # mise de départ des caisses (--bank), pour les caisses des challengeuses
 # 04/11 soir : un pool vidé affichait un prix absurde et la caisse « auto » a « vendu » Impeach +36 millions de % ;
 # correction des ventes déjà enregistrées (une seule fois) : un pool vidé rend au plus 5 % de la mise
 PERTE_VIDE, CORRECTION = -0.95, "2026-11-04-vide"
@@ -388,6 +391,11 @@ def apprentissage(state, out_dir, now):
         except Exception as exc:
             with (out_dir / "erreurs.log").open("a") as f:
                 f.write(f"{datetime.now(timezone.utc).isoformat()} resultats_candidats {exc!r}\n")
+        try:  # note de calibration des juges (04/11)
+            apprend.calibration_juges(out_dir)
+        except Exception as exc:
+            with (out_dir / "erreurs.log").open("a") as f:
+                f.write(f"{datetime.now(timezone.utc).isoformat()} calibration_juges {exc!r}\n")
         with (out_dir / "apprentissage.jsonl").open("a") as f:
             f.write(json.dumps(state["auto"], ensure_ascii=False) + "\n")
 
@@ -464,11 +472,18 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     # 2 bis. collecte : chaque token qui passe le filtre, à chaque cycle, pour chercher plus tard une meilleure règle
     #        d'entrée et de sortie sur des données qu'aucune règle n'a encore vues (jamais utilisé pour trader ici).
     scores = {a["token"]: (r, hg, pg) for r, a, hg, pg in ranked}
+    # sécurité des tokens (part des 10 plus gros détenteurs, autorisations encore actives) : relevée pour SECU_PAR_CYCLE
+    # tokens par cycle au plus (les plus échangés d'abord), gardée 1 h en cache, pour ne pas saturer GeckoTerminal
+    hc = state.setdefault("hcache", {})
+    manque = [a for a in sorted(uni_all, key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
+              if not (hc.get(a["token"]) and "top10" in hc[a["token"]] and now - hc[a["token"]]["t"] < RULE["holders_cache_s"])]
+    for a in manque[:SECU_PAR_CYCLE]:
+        holders(a["token"], hc, now, full=True)
     recs = []
     with (out_dir / "univers.jsonl").open("a") as f:
         for a in uni_all:
             r, hg, pg = scores.get(a["token"], (None, None, None))
-            rec = dict(dossier(r or 0.0, a, hg, pg, None, state.get("hcache", {}).get(a["token"], {}).get("n")),
+            rec = dict(dossier(r or 0.0, a, hg, pg, None, state.get("hcache", {}).get(a["token"], {})),
                        t=round(now), classe=r is not None, essouffle=fading(a), univers_post=bool(a.get("_post")))
             recs.append((rec, a))
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
@@ -545,6 +560,46 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
             if enter(bf, a, 1.0, {"ia_version": ia["version"], "filtre": "ok"}):
                 bf["open"][a["token"]]["sortie_ia"] = ia
             break
+    # 3 quater. tournoi (04/11) : jusqu'à 3 challengeuses écrites par l'IA chercheuse (ia_challengeuses.json) tradent
+    #    chacune dans sa caisse fantôme « defi_N », sur des tokens que personne n'a encore vus. La règle active ne peut
+    #    être remplacée que par une challengeuse qui a fait ses preuves en direct (contrôlé par serveur.py). Une place
+    #    ne peut changer de règle qu'après DEFI_MIN_TRADES trades fermés ou DEFI_MIN_H heures, pour qu'aucune idée ne
+    #    soit jugée sur trop peu ; l'ancienne est rangée avec son bilan dans state["defis_finis"].
+    try:
+        import apprend
+        defis = apprend.lire_challengeuses(out_dir / "ia_challengeuses.json")
+    except Exception:
+        defis = []
+    st_d = state.setdefault("defis", {})
+    for i in range(DEFIS_MAX):
+        slot = f"defi_{i + 1}"
+        cur, new = st_d.get(slot), (defis[i] if i < len(defis) else None)
+        if new and (not cur or cur["cle"] != new["cle"]):
+            b = books.get(slot)
+            n_fermes = len(b["closed"]) if b else 0
+            if not cur or n_fermes >= DEFI_MIN_TRADES or now - cur["debut"] >= DEFI_MIN_H * 3600:
+                if cur and b:
+                    xs = [r["ret"] for r in b["closed"]]
+                    state.setdefault("defis_finis", []).append(
+                        {"place": slot, "nom": cur["nom"], "cle": cur["cle"], "debut": cur["debut"], "fin": round(now),
+                         "trades": len(xs), "moyenne": round(sum(xs) / len(xs), 4) if xs else None,
+                         "resultat": round(sum(r["proceeds"] - r["dollars"] for r in b["closed"]), 2),
+                         "ouvertes_abandonnees": len(b["open"])})
+                    del state["defis_finis"][:-40]
+                books[slot] = {"name": slot, "cash": RULE_BANK[0], "start": RULE_BANK[0], "cash_ref": RULE_BANK[0],
+                               "open": {}, "closed": []}
+                st_d[slot] = {"nom": new["nom"], "cle": new["cle"], "regle": new["regle"], "debut": round(now)}
+                log({"event": "defi", "place": slot, "nom": new["nom"], "remplace": cur["nom"] if cur else None})
+        cur = st_d.get(slot)
+        if not cur or slot not in books:
+            continue
+        rule, bk = cur["regle"], books[slot]
+        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
+        ok = [x for x in recs if apprend.entre_ia(rule, x[0]) and x[1]["token"] not in bk["open"]
+              and x[1]["token"] not in recent]
+        ok.sort(key=lambda x: (apprend.champ(x[0], rule["tri"]) or 0) * (-1 if rule["tri_desc"] else 1))
+        if ok and len(bk["open"]) < rule["max_positions"] and enter(bk, ok[0][1], 1.0, {"defi": slot, "nom": cur["nom"]}):
+            bk["open"][ok[0][1]["token"]]["sortie_ia"] = dict(rule, nom=f"défi {i + 1}")
     # 4. caisses « juge » (IA) et « un_par_jour » (sans IA) : une décision par créneau de 4 h (heure de New York) ;
     #    le post n'en prenait qu'une par jour à 06:00, l'utilisateur a voulu une IA qui ajuste plus souvent
     ny = datetime.fromtimestamp(now, NY)
@@ -554,7 +609,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     key = f"{day}_{slot[:2]}" if slot else None
     if key and state.get("creneau") != key:
         state["creneau"] = key
-        snap = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n"))
+        snap = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}))
                 for i, (r, a, hg, pg) in enumerate(ranked[:RULE["candidats_max"]])]
         doc = json.dumps({"date": day, "creneau": key, "t": now, "cadran": dial_v,
                           "cadran_verts": state["dial"]["verts"], "candidats": snap}, ensure_ascii=False, indent=1)
@@ -623,7 +678,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         autres = sorted((a for a in uni_all if a["token"] not in classes),
                         key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
         liste2 = ranked + [(None, a, None, None) for a in autres]
-        snap2 = [dict(dossier(r or 0.0, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}).get("n")),
+        snap2 = [dict(dossier(r or 0.0, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {})),
                       classe=r is not None, essouffle=fading(a))
                  for i, (r, a, hg, pg) in enumerate(liste2[:RULE["candidats_max_v2"]])]
         doc2 = json.dumps({"date": day, "creneau": key2, "t": now, "cadran": dial_v,
@@ -682,21 +737,37 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     write_status(state, out_dir, live)
 
 
-def dossier(score, a, hg, pg, rank, n_holders):
-    """Ce que l'IA juge reçoit pour un candidat : chiffres seulement (le nom est une donnée, jamais une consigne)."""
+def _oui_non(v):
+    return 1 if v == "yes" else 0 if v == "no" else None
+
+
+def dossier(score, a, hg, pg, rank, h):
+    """Ce que l'IA juge reçoit pour un candidat : chiffres seulement (le nom est une donnée, jamais une consigne).
+    h = entrée du cache des détenteurs (nombre, et depuis le 04/11 sécurité du token si elle a été relevée)."""
+    h = h if isinstance(h, dict) else {"n": h}
+    n_holders = h.get("n")
     age_h = None
     try:
         age_h = round((time.time() - datetime.fromisoformat(a["pool_created_at"].replace("Z", "+00:00")).timestamp()) / 3600, 1)
     except Exception:
         pass
     keep = ("m5", "m15", "m30", "h1", "h6", "h24")
-    return {"rang": rank, "token": a["token"], "pool": a["pool"], "nom": a.get("name"), "age_h": age_h,
+    d = {"rang": rank, "token": a["token"], "pool": a["pool"], "nom": a.get("name"), "age_h": age_h,
             "liquidite": fnum(a.get("reserve_in_usd")), "mcap": fnum(a.get("market_cap_usd")) or fnum(a.get("fdv_usd")),
             "prix": fnum(a.get("base_token_price_usd")), "detenteurs": n_holders,
             "volume": {k: fnum(v) for k, v in a.get("volume_usd", {}).items() if k in keep},
             "variation_prix_pct": {k: fnum(v) for k, v in a.get("price_change_percentage", {}).items() if k in keep},
             "transactions": {k: v for k, v in a.get("transactions", {}).items() if k in keep},
-            "croissance_detenteurs_1h": hg, "variation_prix_1h": pg, "score": round(score, 4)}
+            "croissance_detenteurs_1h": hg, "variation_prix_1h": pg, "score": round(score, 4),
+            "top10_pct": h.get("top10"), "autorite_mint": _oui_non(h.get("mint")), "autorite_gel": _oui_non(h.get("freeze"))}
+    try:  # champs calculés (rotation du volume, volume par portefeuille, liquidité / capitalisation, part des vendeurs)
+        import apprend
+        for k in apprend.DERIVES:
+            v = apprend.champ(d, k)
+            d[k] = None if v is None else round(v, 4)
+    except Exception:
+        pass
+    return d
 
 
 def stats(rs):
@@ -755,6 +826,7 @@ def main():
         juge_p.write_text(json.dumps({k: RULE[k] for k in ("decisions_ny", "juge_delai_h", "candidats_max", "verdict")} |
                                      {"juge_url": JUGE_URL, "debut": datetime.now(timezone.utc).isoformat()},
                                      ensure_ascii=False, indent=1))
+    RULE_BANK[0] = args.bank
     st_p = out_dir / "state.json"
     if st_p.exists():
         state = json.loads(st_p.read_text())

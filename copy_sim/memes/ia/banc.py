@@ -16,6 +16,7 @@ Affiche, pour chaque règle : nombre de trades, moyenne nette, borne basse (moye
 gagnants, sur la période ancienne et sur les dernières heures (test), puis jour par jour."""
 import argparse
 import json
+import math
 import sys
 import time
 from collections import defaultdict
@@ -99,12 +100,17 @@ def main():
     ap.add_argument("regles", nargs="+")
     ap.add_argument("--test-heures", type=float, default=24)
     ap.add_argument("--optimiste", action="store_true", help="seulement l'ancien mode (prix du signal, sans rugs ni glissement)")
+    ap.add_argument("--essais", type=int, default=0,
+                    help="nombre total de variantes testées pendant ce passage (toi et tes agents) : relève le seuil")
     a = ap.parse_args()
     d = Path(a.data)
     rows = A.charger(d / "univers.jsonl", 0)
     paths = {}
     for f in (d / "ohlcv").glob("*.json"):
-        paths[f.stem] = [tuple(x) for x in json.loads(f.read_text())["c"]]
+        try:  # un fichier mal téléchargé (page d'erreur, coupure) est ignoré
+            paths[f.stem] = [tuple(x) for x in json.loads(f.read_text())["c"]]
+        except (ValueError, KeyError, TypeError):
+            continue
     now = max(r["t"] for r in rows)
     split = now - a.test_heures * 3600
     rugs = rugs_connus(d)
@@ -126,6 +132,14 @@ def main():
         print(f"\n{path} (v{rule['version']})\n  ancien : {resume(old)}\n  test   : {resume(new)}"
               f"\n  total  : {resume(xs)}  dont rugs={sum(1 for *_, g in tr if g)}"
               f"  sans les 3 meilleurs={(sum(srt[3:]) / len(srt[3:])) if len(srt) > 3 else float('nan'):+.1%}")
+        if len(xs) > 1:  # essais multiples (04/11) : sur N variantes, la meilleure gagne souvent par hasard
+            m = sum(xs) / len(xs)
+            se = (sum((x - m) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5 / len(xs) ** 0.5
+            t = m / se if se > 0 else float("inf")
+            n_ess = max(a.essais, len(a.regles))
+            seuil = max(2.0, (2 * math.log(n_ess)) ** 0.5) if n_ess > 1 else 2.0
+            print(f"  solidité : t = {t:.2f} (moyenne / marge), seuil {seuil:.2f} pour {n_ess} essais "
+                  f"-> {'PASSE' if t >= seuil else 'trop faible, probablement du hasard'}")
         if not a.optimiste:
             opt = [x for _, x, *_ in simule(rule, rows, paths, realiste=False)]
             print(f"  (ancien banc optimiste, pour comparaison : {resume(opt)})")

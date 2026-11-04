@@ -136,11 +136,33 @@ def courbe(books, now):
             f'<div class="tip" hidden></div></div><script type="application/json" id="series">{json.dumps(data)}</script>')
 
 
-def page(state, status_md, regles, juges, erreurs, prix, now):
+def calib_html(calib):
+    """Note de calibration des juges (04/11) : probabilité annoncée face à la fréquence réelle de gain."""
+    if not calib or not calib.get("juges"):
+        return ""
+    out = []
+    for j, nom in (("juge", "v1"), ("juge2", "v2")):
+        c = calib["juges"].get(j) or {}
+        if not c.get("n"):
+            continue
+        tr = " · ".join(f"annoncé {t['proba_moyenne']:.2f} → réel {t['frequence_reelle']:.2f} ({t['n']})".replace(".", ",")
+                        for t in c.get("tranches", []))
+        out.append(f"<p><b>Calibration juge {nom}</b> ({c['n']} probabilités, gain = plus de "
+                   f"{calib['seuil_gain'] * 100:.0f} % après {calib['horizon']}) : score de Brier {c['brier']:.3f} contre "
+                   f"{c['brier_reference']:.3f} pour un juge qui dirait toujours la moyenne → "
+                   f"{'<span class=pos>utile</span>' if c['utile'] else '<span class=neg>pas encore mieux que la moyenne</span>'}"
+                   f".</p><p class='sub'>{tr}</p>".replace(".3f", ""))
+    return "".join(out)
+
+
+def page(state, status_md, regles, juges, erreurs, prix, now, calib=None):
     values = dict(re.findall(r"## (\w+)\n- caisse [\d.]+ \$, valeur ([\d.]+) \$", status_md))
     upd = re.search(r"— (\d\d/\d\d \d\d:\d\d) UTC", status_md)
     grpc = re.search(r"Prix en direct \(gRPC\) : ([^\n]+)", status_md)
     minuit = datetime.fromtimestamp(now, PARIS).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    for slot, dfi in sorted((state.get("defis") or {}).items()):  # tournoi (04/11) : challengeuses de la chercheuse
+        LABELS[slot] = f"Défi {slot[-1]} : {dfi.get('nom') or 'sans nom'}"
+        DETAIL[slot] = f"challengeuse de la chercheuse, depuis le {heure(dfi.get('debut', now))}"
     books = {}
     for k in LABELS:
         b = state["books"].get(k)
@@ -232,6 +254,13 @@ def page(state, status_md, regles, juges, erreurs, prix, now):
     chercheuse = (regle_ia + "<div class='scroll'><table><thead><tr><th class='txt'>Version</th><th>Depuis</th><th>Trades</th>"
                   "<th>Gagnés</th><th>Moyenne</th><th>Résultat</th><th>Rugs</th></tr></thead><tbody>"
                   + "".join(vrows) + "</tbody></table></div>")
+    finis = (state.get("defis_finis") or [])[-6:]
+    if state.get("defis") or finis:
+        chercheuse += ("<p><b>Tournoi :</b> une challengeuse ne remplace la règle active qu'après au moins 15 trades "
+                       "fermés en direct, avec une moyenne positive et meilleure que la règle active sur la même période.</p>")
+        if finis:
+            chercheuse += "<p class='sub'>Challengeuses terminées : " + " · ".join(
+                f"{escape(x['nom'] or x['place'])} ({x['trades']} trades, {pct(x['moyenne'])})" for x in reversed(finis)) + "</p>"
     au = state.get("auto") or {}
     auto_txt = ("<p><b>Règle qui apprend :</b> " + ("<span class='pos'>en jeu</span>" if au.get("regle") else "en cash")
                 + (f" — {escape(au.get('raison', ''))}" if au.get("raison") else "") + "</p>") if au else ""
@@ -258,7 +287,7 @@ def page(state, status_md, regles, juges, erreurs, prix, now):
                       f"<td class='txt sub wrap'>{escape(str(d.get('raison', ''))[:220])}</td></tr>"))
     jr.sort(reverse=True)
     n_choix = sum("<b>" in r for _, r in jr)
-    journal = (f"<p class='sub'>{len(jr)} décisions sur 24 h, dont {n_choix} achat{'s' if n_choix > 1 else ''}. "
+    journal = calib_html(calib) + (f"<p class='sub'>{len(jr)} décisions sur 24 h, dont {n_choix} achat{'s' if n_choix > 1 else ''}. "
                "Seuil d'achat : probabilité 0,55.</p><div class='scroll'><table><thead><tr><th>Créneau</th><th class='txt'>Juge</th>"
                "<th class='txt'>Choix</th><th>Proba</th><th class='txt'>Raison</th></tr></thead><tbody>"
                + ("".join(r for _, r in jr) or "<tr><td colspan='5' class='txt'>Aucune décision sur 24 h.</td></tr>")
@@ -369,8 +398,12 @@ def depuis_dossier(d, now, prix, rafraichir=60):
             except ValueError:
                 pass
     err = lire("erreurs.log").splitlines()[-5:]
+    try:
+        calib = json.loads(lire("calibration_juges.json") or "null")
+    except ValueError:
+        calib = None
     corps = page(json.loads(lire("state.json")), lire("status.md"), regles, juges, "\n".join(err),
-                 {p: x for p, x in prix.items() if x}, now)
+                 {p: x for p, x in prix.items() if x}, now, calib)
     return ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             f'<meta http-equiv="refresh" content="{rafraichir}"></head><body>{corps}</body></html>')
@@ -404,7 +437,11 @@ def main():
             pass
     pools = [p["pool"] for k, b in state["books"].items() if k not in POST for p in b["open"].values()]
     prix = prix_actuels(pools)
-    page_html = page(state, status_md, regles, juges, essai(a.base + "/erreurs.log"), prix, now)
+    try:
+        calib = json.loads(essai(a.base + "/calibration_juges.json") or "null")
+    except ValueError:
+        calib = None
+    page_html = page(state, status_md, regles, juges, essai(a.base + "/erreurs.log"), prix, now, calib)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(page_html, encoding="utf-8")
     print(a.out)

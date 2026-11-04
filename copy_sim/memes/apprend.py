@@ -20,6 +20,7 @@ simples sur les chiffres du dossier, voir lire_idees) : elles sont ajoutées à 
 épreuves que les autres. L'IA propose, les données décident. resultats_candidats() publie aussi, pour chaque jour,
 ce que chaque candidat du dossier de l'IA a fait ensuite, pour qu'elle apprenne de ses choix."""
 import itertools
+import math
 import json
 import os
 import time
@@ -28,8 +29,12 @@ from pathlib import Path
 
 IDEES_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
              "copy_sim/memes/juge/idees.json")
+# champs calculés (04/11) : signes de volume de robots et de pièges, recalculables sur tout l'historique d'univers.jsonl
+DERIVES = ("rotation_h1", "volume_par_trader_h1", "liq_sur_mcap", "part_vendeurs_h1", "part_vendeurs_m5")
+# sécurité du token (relevée par le VPS depuis le 04/11, absente des lignes plus anciennes : condition fausse si absente)
+SECURITE = ("top10_pct", "autorite_mint", "autorite_gel")
 CHAMPS = ("age_h", "liquidite", "mcap", "detenteurs", "croissance_detenteurs_1h", "variation_prix_1h", "score",
-          "ratio_acheteurs_1h", "acceleration_volume", "volume.", "variation_prix_pct.", "transactions.")
+          "ratio_acheteurs_1h", "acceleration_volume", "volume.", "variation_prix_pct.", "transactions.") + DERIVES + SECURITE
 OPS = {"<": lambda a, b: a < b, "<=": lambda a, b: a <= b, ">": lambda a, b: a > b, ">=": lambda a, b: a >= b}
 
 GRILLE = {
@@ -52,7 +57,24 @@ def regles(idees=()):
     return [dict(zip(keys, v)) for v in itertools.product(*g.values())]
 
 
+def _tx(r, fen):
+    t = (r.get("transactions") or {}).get(fen) or {}
+    return t.get("buyers") or 0, t.get("sellers") or 0
+
+
 def champ(r, name):
+    if name == "rotation_h1":  # volume d'une heure / liquidité : très haut = volume tourné par des robots
+        liq = r.get("liquidite") or 0
+        return ((r.get("volume") or {}).get("h1") or 0) / liq if liq > 0 else None
+    if name == "volume_par_trader_h1":  # dollars échangés par portefeuille distinct sur 1 h
+        b, s_ = _tx(r, "h1")
+        return ((r.get("volume") or {}).get("h1") or 0) / (b + s_) if b + s_ > 0 else None
+    if name == "liq_sur_mcap":  # liquidité / capitalisation : au-dessus de 1, profil fréquent des rugs
+        m = r.get("mcap") or 0
+        return (r.get("liquidite") or 0) / m if m > 0 else None
+    if name in ("part_vendeurs_h1", "part_vendeurs_m5"):  # vendeurs distincts / (acheteurs + vendeurs)
+        b, s_ = _tx(r, name[-2:])
+        return s_ / (b + s_) if b + s_ > 0 else None
     if name == "ratio_acheteurs_1h":
         h1 = (r.get("transactions") or {}).get("h1") or {}
         return h1.get("buyers", 0) / (h1.get("sellers", 0) + 1)
@@ -353,6 +375,38 @@ IA_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polym
           "copy_sim/memes/ia/regle.json")
 CONDITIONS_MAX = 12  # 8 jusqu'au 03/11 : les conditions en trop étaient ignorées sans erreur
 BORNES = {"stop": (-0.9, -0.03), "objectif": (0.03, 20.0), "suiveur": (0.03, 0.9), "duree_max_h": (0.25, 72.0)}
+# score pondéré (04/11) : en plus des conditions, une somme bornée de termes poids × champ (ou × log10(1 + champ)),
+# comparée à un seuil ; permet un vrai modèle appris (par exemple une régression ajustée sur l'ancien et vérifiée sur
+# le récent) sans exécuter de code venu de l'IA. Un champ absent rend le score faux (pas d'achat).
+TERMES_MAX, POIDS_MAX = 10, 1e6
+
+
+def score_ia(sc, r):
+    tot = 0.0
+    for t in sc["termes"]:
+        v = champ(r, t["champ"])
+        if v is None:
+            return None
+        if t["log"]:
+            v = math.log10(1 + max(v, 0.0))
+        tot += t["poids"] * v
+    return tot
+
+
+def _score_valide(raw):
+    """None si pas de score ; False si invalide ; sinon le score normalisé."""
+    if raw is None:
+        return None
+    try:
+        termes = [{"champ": str(t["champ"]), "poids": float(t["poids"]), "log": bool(t.get("log", False))}
+                  for t in raw["termes"]]
+        seuil = float(raw["seuil"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    if not 0 < len(termes) <= TERMES_MAX or not all(t["champ"].startswith(CHAMPS) and abs(t["poids"]) <= POIDS_MAX
+                                                    and math.isfinite(t["poids"]) for t in termes) or not math.isfinite(seuil):
+        return False
+    return {"termes": termes, "seuil": seuil}
 
 
 def regle_ia(raw):
@@ -366,7 +420,10 @@ def regle_ia(raw):
         if not all(c["op"] in OPS and c["champ"].startswith(CHAMPS) for c in conds):
             return None
         sx = raw["sortie"]
-        out = {"version": int(raw["version"]), "pause": bool(raw.get("pause", False)), "conditions": conds,
+        sc = _score_valide(raw["entree"].get("score"))
+        if sc is False:
+            return None
+        out = {"version": int(raw.get("version", 0)), "score": sc, "pause": bool(raw.get("pause", False)), "conditions": conds,
                "pourquoi": str(raw.get("pourquoi", ""))[:300],
                "tri": str(raw.get("classement", {}).get("champ", "score")),
                "tri_desc": raw.get("classement", {}).get("ordre", "desc") != "asc",
@@ -384,6 +441,32 @@ def regle_ia(raw):
         return None
 
 
+def cle_regle(rule):
+    """Ce qui fait une règle (entrée, score, sortie, tri, positions) sans sa version ni son « pourquoi » : deux règles
+    de même clé sont la même stratégie."""
+    garde = ("conditions", "score", "tri", "tri_desc", "max_positions", "sortie_volume") + tuple(BORNES)
+    return json.dumps({k: rule.get(k) for k in garde}, sort_keys=True)
+
+
+DEFIS_MAX = 3  # challengeuses en même temps (tournoi du 04/11)
+
+
+def lire_challengeuses(local):
+    """ia_challengeuses.json écrit par l'IA chercheuse : {"challengeuses": [{"nom": str, "regle": {même format que
+    ia_regle.json}}]}, 3 au plus, chacune validée comme la règle active. Une entrée invalide laisse sa place vide."""
+    try:
+        raw = json.loads(Path(local).read_text())
+    except (OSError, ValueError):
+        return []
+    out = []
+    for c in (raw.get("challengeuses") if isinstance(raw, dict) else None) or []:
+        if len(out) >= DEFIS_MAX:
+            break
+        r = regle_ia(c.get("regle")) if isinstance(c, dict) else None
+        out.append(None if r is None else {"nom": str(c.get("nom", ""))[:40], "regle": r, "cle": cle_regle(r)})
+    return out
+
+
 def lire_regle_ia(url=None, local=None):
     try:
         return regle_ia(lire_json(local, url or IA_URL))
@@ -398,6 +481,9 @@ def entre_ia(rule, r):
         v = champ(r, c["champ"])
         if v is None or not OPS[c["op"]](v, c["val"]):
             return False
+    if rule.get("score"):
+        v = score_ia(rule["score"], r)
+        return v is not None and v >= rule["score"]["seuil"]
     return True
 
 
@@ -445,6 +531,56 @@ def resultats_candidats(out_dir, get, now, jours=72):
                                "min_24h": round(min(day24) / c["prix"] - 1, 3) if day24 else None}
         res[f.stem] = day  # « 2026-11-02_14 » pour le juge (toutes les 4 h), « h_2026-11-02_14 » pour le juge v2 (horaire)
     (out_dir / "resultats_candidats.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+SEUIL_GAIN, HORIZON = 0.03, "4h"  # un candidat « gagne » s'il a fait plus de +3 % (environ les frais) 4 h après
+TRANCHES = ((0.0, 0.2), (0.2, 0.4), (0.4, 0.55), (0.55, 1.01))
+
+
+def calibration_juges(out_dir):
+    """Note de calibration des juges (04/11) : pour chaque probabilité donnée par un juge à un candidat (champ "probas"
+    de ses choix), le candidat a-t-il gagné plus de SEUIL_GAIN au bout de HORIZON (resultats_candidats.json, bougies) ?
+    Score de Brier (moyenne de (proba − résultat)², 0 = parfait) comparé à celui d'un juge qui dirait toujours la
+    fréquence moyenne : un juge utile fait mieux que cette référence. Par tranche de probabilité : fréquence réelle."""
+    out_dir = Path(out_dir)
+    try:
+        res = json.loads((out_dir / "resultats_candidats.json").read_text())
+    except (OSError, ValueError):
+        return None
+    note = {"horizon": HORIZON, "seuil_gain": SEUIL_GAIN, "juges": {}}
+    for juge, motif, prefixe in (("juge", "juge_20*.json", ""), ("juge2", "juge2_20*.json", "h_")):
+        pts = []
+        for f in sorted(out_dir.glob(motif)):
+            try:
+                d = json.loads(f.read_text())
+            except ValueError:
+                continue
+            dossier = res.get(prefixe + str(d.get("creneau", "")), {})
+            for tok, pr in (d.get("probas") or {}).items():
+                x = (dossier.get(tok) or {}).get(HORIZON)
+                try:
+                    pr = min(max(float(pr), 0.0), 1.0)
+                except (TypeError, ValueError):
+                    continue
+                if x is not None:
+                    pts.append((pr, 1.0 if x > SEUIL_GAIN else 0.0))
+        if not pts:
+            note["juges"][juge] = {"n": 0}
+            continue
+        freq = sum(y for _, y in pts) / len(pts)
+        brier = sum((p_ - y) ** 2 for p_, y in pts) / len(pts)
+        ref = sum((freq - y) ** 2 for _, y in pts) / len(pts)
+        tr = []
+        for lo, hi in TRANCHES:
+            xs = [(p_, y) for p_, y in pts if lo <= p_ < hi]
+            if xs:
+                tr.append({"tranche": f"{lo:.2f}-{min(hi, 1):.2f}", "n": len(xs),
+                           "proba_moyenne": round(sum(p_ for p_, _ in xs) / len(xs), 3),
+                           "frequence_reelle": round(sum(y for _, y in xs) / len(xs), 3)})
+        note["juges"][juge] = {"n": len(pts), "brier": round(brier, 4), "brier_reference": round(ref, 4),
+                               "utile": brier < ref, "frequence_gain": round(freq, 3), "tranches": tr}
+    (out_dir / "calibration_juges.json").write_text(json.dumps(note, ensure_ascii=False, indent=1), encoding="utf-8")
+    return note
 
 
 if __name__ == "__main__":  # essai manuel : python3 apprend.py DOSSIER_DATA
