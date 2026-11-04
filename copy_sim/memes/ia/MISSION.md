@@ -122,6 +122,16 @@ Les trois IA (chercheuse, juge, juge2) partagent un tableau `http://140.82.38.41
      autre hypothèse est clairement meilleure au banc sur l'ancien ET le récent, ou pour une cause précise.
    - Une règle positive au banc ET en réel (au moins 10 trades réels) est un résultat : garde-la et ne la change
      que pour mieux sur l'ancien et le récent.
+   - **Règle trop rare (ajouté le 04/11 à la demande de l'utilisateur)** : si ta règle active n'a fait **aucun achat
+     réel depuis 12 h** (trades.jsonl, book "ia" : ni position ouverte ni trade dont l'achat a moins de 12 h), tu
+     peux l'assouplir quel que soit son nombre de trades réels : desserre ou retire **une ou deux conditions** (celles
+     qui bloquent le plus de lignes d'univers.jsonl sur ces 12 h, compte-les), sans toucher à celles qui écartent un
+     piège connu (ex. plafond volume.h1 contre les jumeaux XTEN/PREDICT) sauf si le banc montre qu'il ne sert plus.
+     La version assouplie doit rester positive au banc réaliste (au moins 10 trades, positive sans son meilleur
+     trade) ET ne pas être négative sur les 24 dernières heures ; elle doit donner nettement plus de trades au banc
+     (au moins 1,5 fois). Si aucune version assouplie ne remplit ces conditions, garde la règle et écris pourquoi.
+     C'est un changement de version comme un autre (version + 1, pourquoi chiffré : heures sans achat, conditions
+     qui bloquaient, chiffres au banc avant et après).
 5. Au plus un changement de règle par passage. Augmente "version" de 1 à chaque changement et écris un "pourquoi"
    chiffré.
 6. Écris dans ton carnet une entrée datée (heure de Paris) de 3 à 8 lignes : ce que tu as observé, les hypothèses
