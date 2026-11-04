@@ -41,6 +41,13 @@ PREDICT viennent en grande partie de cette erreur, pas du marché (leur vraie na
 Les « pools vidés » à −95 % sans bougie après la vente ne sont pas vérifiables ; le banc ne les compte désormais
 comme rugs que si les bougies confirment l'effondrement.
 
+**Remise à zéro (décision de l'utilisateur du 04/11)** : à l'installation de la correction, toutes les caisses
+repartent à 10 000 $. `state.json` et `trades.jsonl` ne contiennent alors que les trades faits depuis ; les anciens
+sont rangés dans `archive_avant_remise_2026-11-04/` sur le VPS, contaminés par l'erreur : ne t'en sers pas pour
+juger tes règles ou tes choix (tes résultats réels repartent de zéro, la version active compte ses trades depuis la
+remise). Les données de marché (univers.jsonl, ohlcv/, résultats des candidats) restent valables.
+
+
 ## Où sont tes fichiers
 
 Sur le VPS de l'utilisateur : `juge_lecons.md` (ton carnet), `juge_idees.json` (tes idées) et tes choix

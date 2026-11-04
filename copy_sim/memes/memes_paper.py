@@ -64,6 +64,10 @@ LAST_GT_T = {}            # pool -> heure de ces attributs
 # d'IA (XTEN, PREDICT, AAPLCAT, Warcoin, HEDGE…) s'étaient faites à des prix que les bougies ne montrent pas, par
 # exemple PREDICT « +295 % » le 04/11 pendant que son cours bougeait de quelques pour cent.
 ABSENT_MAX, VIDE_CONFIRME, GRPC_ECART, GRPC_REF_S = 12, 2, (0.7, 1 / 0.7), 60
+# remise à zéro demandée par l'utilisateur le 04/11 après cette correction : toutes les caisses repartent à la mise
+# de départ ; l'ancien état et les anciens trades (contaminés par les faux prix) sont rangés dans
+# data/archive_avant_remise_<REMISE>/. Les données de marché (univers.jsonl, ohlcv/) et les fichiers des IA restent.
+REMISE = "2026-11-04"
 FLUX = [None]             # suivi des prix en direct par gRPC (flux.py), s'il est configuré
 
 
@@ -750,9 +754,18 @@ def main():
         state = json.loads(st_p.read_text())
     else:
         state = {"books": {}}
+    if state.get("remise") != REMISE:  # remise à zéro des caisses (une seule fois par valeur de REMISE)
+        arch = out_dir / f"archive_avant_remise_{REMISE}"
+        arch.mkdir(exist_ok=True)
+        for n in ("state.json", "trades.jsonl", "status.md", "suivi.html"):
+            if (out_dir / n).exists():
+                (out_dir / n).replace(arch / n)
+        state["books"], state["remise"] = {}, REMISE
+        state.pop("ref_day", None)
     for k in BOOKS:  # les caisses ajoutées après le premier lancement démarrent avec la même mise
         state["books"].setdefault(k, {"name": k, "cash": args.bank, "start": args.bank, "cash_ref": args.bank,
                                       "open": {}, "closed": []})
+    st_p.write_text(json.dumps(state), encoding="utf-8")  # la remise est enregistrée avant tout trade
     if not args.once:  # prix en direct par gRPC si grpc.env (GRPC_ENDPOINT, GRPC_TOKEN) est à côté du script
         try:
             import flux
