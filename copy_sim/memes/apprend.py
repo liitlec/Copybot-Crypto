@@ -203,14 +203,17 @@ def charger(path, since):
     return rows
 
 
-BUDGET = [0, 0.0]  # appels GeckoTerminal encore permis pour les bougies dans ce passage, et heure limite
+BUDGET = [0, 0.0, 0]  # appels GeckoTerminal permis dans ce passage, heure limite, échecs de suite
+ECHECS_MAX, PAUSE_ECHEC = 4, 8.0
 
 
 def appels_bougies(n, secondes=150):
-    """Au plus n appels et `secondes` de téléchargement par passage. Le 03/11, des appels ratés (retentés 4 fois, 30 s
-    d'attente chacun) ont bloqué la boucle du VPS 12 minutes : désormais un seul essai, et au premier échec le passage
-    continue avec le cache."""
-    BUDGET[0], BUDGET[1] = n, time.time() + secondes
+    """Au plus n appels et `secondes` de téléchargement par passage. Le 03/11 au matin, des appels ratés (retentés 4
+    fois, 30 s d'attente chacun) ont bloqué la boucle du VPS 12 minutes : un seul essai par appel. Mais arrêter au
+    premier échec a presque gelé le cache (9 pools rafraîchis en 22 h, GeckoTerminal refusant souvent un appel) :
+    depuis le 04/11, après un refus on attend PAUSE_ECHEC secondes et on continue ; on n'arrête qu'après ECHECS_MAX
+    refus de suite, et toujours dans la limite de `secondes`."""
+    BUDGET[0], BUDGET[1], BUDGET[2] = n, time.time() + secondes, 0
 
 
 def bougies(pool, cache_dir, get, now, recent=True, age_max=50 * 60):
@@ -233,8 +236,13 @@ def bougies(pool, cache_dir, get, now, recent=True, age_max=50 * 60):
             merged.update(new)
             old = {"t": now, "c": sorted(merged.items())}
             f.write_text(json.dumps(old))
+            BUDGET[2] = 0
         except Exception:
-            BUDGET[0] = 0  # GeckoTerminal refuse ou ne répond pas : plus d'appel pendant ce passage
+            BUDGET[2] += 1
+            if BUDGET[2] >= ECHECS_MAX:
+                BUDGET[0] = 0  # GeckoTerminal refuse sans arrêt : le passage continue avec le cache
+            elif time.time() + PAUSE_ECHEC < BUDGET[1]:
+                time.sleep(PAUSE_ECHEC)
     return old["c"]
 
 
@@ -396,7 +404,7 @@ def resultats_candidats(out_dir, get, now, jours=72):
         return
     cache = out_dir / "ohlcv"
     cache.mkdir(exist_ok=True)
-    appels_bougies(20)
+    appels_bougies(20, secondes=60)
     res = {}
     for f in sorted(d.glob("*.json"))[-jours:]:
         snap = json.loads(f.read_text())
