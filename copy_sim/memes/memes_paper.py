@@ -68,6 +68,9 @@ ABSENT_MAX, VIDE_CONFIRME, GRPC_ECART, GRPC_REF_S = 12, 2, (0.7, 1 / 0.7), 60
 # de départ ; l'ancien état et les anciens trades (contaminés par les faux prix) sont rangés dans
 # data/archive_avant_remise_<REMISE>/. Les données de marché (univers.jsonl, ohlcv/) et les fichiers des IA restent.
 REMISE = "2026-11-04"
+# 04/11 soir : un pool vidé affichait un prix absurde et la caisse « auto » a « vendu » Impeach +36 millions de % ;
+# correction des ventes déjà enregistrées (une seule fois) : un pool vidé rend au plus 5 % de la mise
+PERTE_VIDE, CORRECTION = -0.95, "2026-11-04-vide"
 FLUX = [None]             # suivi des prix en direct par gRPC (flux.py), s'il est configuré
 
 
@@ -261,6 +264,9 @@ def close_pos(book, token, a, now, reason, log):
     liq = fnum(a.get("reserve_in_usd")) if a else 0.0
     px = fnum(a.get("base_token_price_usd")) if a else 0.0
     gross = p["qty"] * (px or 0) * (1 - impact(p["qty"] * (px or 0), liq or 0))
+    gross = min(gross, (liq or 0) / 2)  # une vente ne peut pas sortir plus que le côté SOL du pool (04/11)
+    if reason.startswith("pool vidé"):  # pool vidé : le prix affiché n'a plus de sens, on ne récupère presque rien
+        gross = min(gross, p["dollars"] * (1 + PERTE_VIDE))
     proceeds = max(gross - cost(gross) if gross > 0 else 0.0, 0.0)
     book["cash"] += proceeds
     rec = {"book": book["name"], "token": token, "pool": p["pool"], "name": p["name"], "t_in": p["t"], "t_out": now,
@@ -765,6 +771,16 @@ def main():
     for k in BOOKS:  # les caisses ajoutées après le premier lancement démarrent avec la même mise
         state["books"].setdefault(k, {"name": k, "cash": args.bank, "start": args.bank, "cash_ref": args.bank,
                                       "open": {}, "closed": []})
+    if state.get("correction") != CORRECTION:
+        for b in state["books"].values():
+            for r in b["closed"]:
+                if r["reason"].startswith("pool vidé") and r["proceeds"] > r["dollars"] * (1 + PERTE_VIDE):
+                    juste = round(r["dollars"] * (1 + PERTE_VIDE) * (1 - RULE["frais"]), 4)
+                    b["cash"] -= r["proceeds"] - juste
+                    b["cash_ref"] = min(b.get("cash_ref", b["start"]), b["cash"] + sum(q["dollars"] for q in b["open"].values()))
+                    r["proceeds"], r["ret"] = juste, round(juste / r["dollars"] - 1, 5)
+                    r["reason"] += " (vente corrigée le 04/11 : pool vidé)"
+        state["correction"] = CORRECTION
     st_p.write_text(json.dumps(state), encoding="utf-8")  # la remise est enregistrée avant tout trade
     if not args.once:  # prix en direct par gRPC si grpc.env (GRPC_ENDPOINT, GRPC_TOKEN) est à côté du script
         try:
