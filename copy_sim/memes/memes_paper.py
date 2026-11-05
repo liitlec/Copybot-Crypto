@@ -96,6 +96,9 @@ RULE_BANK = [10000.0]  # mise de départ des caisses (--bank), pour les caisses 
 # 04/11 soir : un pool vidé affichait un prix absurde et la caisse « auto » a « vendu » Impeach +36 millions de % ;
 # correction des ventes déjà enregistrées (une seule fois) : un pool vidé rend au plus 5 % de la mise
 PERTE_VIDE, CORRECTION = -0.95, "2026-11-04-vide"
+# 05/11 : plafond de gain par trade et attente de confirmation d'un prix aberrant ; les ventes déjà enregistrées
+# au-delà du plafond sont recomptées comme des pools vidés (BUNNY : 52 $ de liquidité le lendemain)
+GAIN_MAX, ABERRANT_S, CORRECTION_2 = 10.0, 1800, "2026-11-05-aberrant"
 FLUX = [None]             # suivi des prix en direct par gRPC (flux.py), s'il est configuré
 
 
@@ -294,6 +297,7 @@ def close_pos(book, token, a, now, reason, log):
     gross = min(gross, (liq or 0) / 2)  # une vente ne peut pas sortir plus que le côté SOL du pool (04/11)
     if reason.startswith("pool vidé"):  # pool vidé : le prix affiché n'a plus de sens, on ne récupère presque rien
         gross = min(gross, p["dollars"] * (1 + PERTE_VIDE))
+    gross = min(gross, p["dollars"] * (1 + GAIN_MAX))  # jamais plus de +1 000 % crédité (05/11)
     proceeds = max(gross - cost(gross) if gross > 0 else 0.0, 0.0)
     book["cash"] += proceeds
     rec = {"book": book["name"], "token": token, "pool": p["pool"], "name": p["name"], "t_in": p["t"], "t_out": now,
@@ -317,9 +321,23 @@ def suivie(p):
     return bool(p.get("sortie_ia") or p.get("sortie"))
 
 
+def prix_aberrant(p, a, now):
+    """Hausse de plus de GAIN_MAX depuis l'achat (05/11, BUNNY « +13 592 % » : pool en train d'être vidé, prix et
+    liquidité affichés absurdes) : on ne vend pas sur ce prix pendant ABERRANT_S secondes, le temps que le cycle voie
+    le pool vidé ; si la hausse dure, la vente se fait, plafonnée à GAIN_MAX (close_pos)."""
+    x = (fnum(a.get("base_token_price_usd")) or 0) / p["px_in"] - 1 if p.get("px_in") else 0
+    if x <= GAIN_MAX:
+        p.pop("aberrant_t", None)
+        return False
+    p.setdefault("aberrant_t", now)
+    return now - p["aberrant_t"] < ABERRANT_S
+
+
 def sortie_regle(b, token, p, a, now, log):
     """Sortie des positions à règle (caisses « ia », « juge » avec sa sortie, « auto ») ; False si la position suit
     la sortie du post (volume essoufflé), traitée par le cycle de 5 min."""
+    if (p.get("sortie_ia") or p.get("sortie")) and prix_aberrant(p, a, now):
+        return True
     if p.get("sortie_ia"):  # sortie de la version de règle sous laquelle la position a été achetée
         import apprend
         x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
@@ -888,6 +906,16 @@ def main():
                     r["reason"] += " (vente corrigée le 04/11 : pool vidé)"
         state["correction"] = CORRECTION
     NOMS_VIDES[0] = state.setdefault("noms_vides", {})
+    if state.get("correction_2") != CORRECTION_2:
+        for b in state["books"].values():
+            for r in b["closed"]:
+                if r["ret"] > GAIN_MAX:
+                    juste = round(r["dollars"] * (1 + PERTE_VIDE) * (1 - RULE["frais"]), 4)
+                    b["cash"] -= r["proceeds"] - juste
+                    r["proceeds"], r["ret"] = juste, round(juste / r["dollars"] - 1, 5)
+                    r["reason"] += " (vente corrigée le 05/11 : prix aberrant d'un pool vidé)"
+                    noter_rug(r.get("name"), r["t_out"])
+        state["correction_2"] = CORRECTION_2
     if not NOMS_VIDES[0]:  # première fois : les pools vidés déjà enregistrés depuis la remise à zéro (un par pool)
         vus = set()
         for b in state["books"].values():
