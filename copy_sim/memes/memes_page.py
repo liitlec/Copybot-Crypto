@@ -30,6 +30,9 @@ DETAIL = {"juge": "1 choix toutes les 4 h", "juge2": "jusqu'à 2 choix chaque he
 # courbes : 6 caisses au plus (palette catégorielle validée, ordre fixe) ; les autres sont dans le classement
 COURBES = ("ia", "ia_filtre", "juge", "juge2", "un_par_jour", "classement")
 POST = ("classement", "sans_cadran", "temoin")
+# XTEN et PREDICT (05/11) : deux tokens jumeaux à volume de robots qui ont fait la plupart des gains ; la colonne
+# « hors XTEN/PREDICT » montre si une caisse gagne aussi sur les autres tokens
+JUMEAUX = ("XTEN", "PREDICT")
 
 
 def fetch(url, timeout=30):
@@ -172,6 +175,7 @@ def page(state, status_md, regles, juges, erreurs, prix, now, calib=None):
         xs = [r["ret"] for r in b["closed"]]
         books[k] = {"b": b, "val": val, "n": len(xs), "win": (sum(x > 0 for x in xs) / len(xs)) if xs else None,
                     "moy": (sum(xs) / len(xs)) if xs else None,
+                    "hors": [r["ret"] for r in b["closed"] if not str(r.get("name") or "").upper().startswith(JUMEAUX)],
                     "rugs": sum(r["reason"].startswith("pool vidé") or r["ret"] <= -0.8 for r in b["closed"]),
                     "jour": pnl([r for r in b["closed"] if r["t_out"] >= minuit]),
                     "h24": pnl([r for r in b["closed"] if r["t_out"] >= now - 86400])}
@@ -203,9 +207,11 @@ def page(state, status_md, regles, juges, erreurs, prix, now, calib=None):
             f"<td class='{cls(x['jour'])}'>{usd(x['jour'], True) if x['jour'] else '—'}</td>"
             f"<td class='{cls(x['h24'])}'>{usd(x['h24'], True) if x['h24'] else '—'}</td>"
             f"<td>{x['n']}</td><td>{pct(x['win'], False)}</td><td class='{cls(x['moy'])}'>{pct(x['moy'])}</td>"
+            f"<td class='{cls(sum(x['hors']) if x['hors'] else None)}'>{pct(sum(x['hors']) / len(x['hors'])) if x['hors'] else '—'}"
+            f"<div class='sub'>{len(x['hors'])} trades</div></td>"
             f"<td>{x['rugs']}</td><td>{len(x['b']['open'])}</td></tr>")
     classement = ("<div class='scroll'><table><thead><tr><th class='txt'>Caisse</th><th>Total</th><th>Valeur</th>"
-                  "<th>Aujourd'hui</th><th>24 h</th><th>Trades</th><th>Gagnants</th><th>Moyenne</th><th>Rugs</th>"
+                  "<th>Aujourd'hui</th><th>24 h</th><th>Trades</th><th>Gagnants</th><th>Moyenne</th><th>Hors XTEN/PREDICT</th><th>Rugs</th>"
                   "<th>Ouvertes</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table></div>")
 
     # 3. positions ouvertes (caisses des IA et témoins des juges en détail ; règles du post en résumé)
@@ -339,7 +345,7 @@ td.wrap {{ white-space: normal; min-width: 18rem; }}
 <p>Test papier sur le VPS (Solana), 10 000 $ fictifs par caisse, aucun ordre réel. Page mise à jour le {maj} (heure de Paris).</p>
 <p>{etat}</p></header>
 <section class="box"><h2>Classement des caisses</h2>{classement}
-<p class="sub">« Aujourd'hui » et « 24 h » : gains et pertes des trades fermés sur la période. Moyenne : par trade, frais et glissement compris. Rugs : pool vidé ou chute de plus de 80 %.</p></section>
+<p class="sub">« Aujourd'hui » et « 24 h » : gains et pertes des trades fermés sur la période. Moyenne : par trade, frais et glissement compris ; « hors XTEN/PREDICT » : la même moyenne sans ces deux tokens. Rugs : pool vidé ou chute de plus de 80 %.</p></section>
 <section class="box"><h2>Résultat depuis le départ</h2>{courbe(books, now)}
 <p class="sub">Chaque point est une vente ; le dernier point est la valeur actuelle (positions ouvertes comprises). Les deux autres caisses du post et la règle qui apprend sont dans le classement.</p></section>
 <section class="box"><h2>Positions ouvertes</h2>{positions}</section>

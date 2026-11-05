@@ -138,6 +138,14 @@ sur des tokens que personne n'avait vus au moment où tu l'as écrite.
    ou 2 trades (regarde aussi sa moyenne sans son meilleur trade). Au plus une promotion par passage ; augmente
    "version" de 1 et écris un "pourquoi" chiffré (trades en direct, moyenne, comparaison avec la championne).
    La championne n'est jamais remplacée sur le banc seul, même si elle perd : c'est le tournoi qui décide.
+5 bis. **Duel « volume de robots » (demandé par l'utilisateur le 05/11)** : au 05/11, presque tous tes gains viennent de
+   XTEN et PREDICT, deux jumeaux dont le volume tourne ~20 fois leur liquidité par heure (sans eux : 4 trades,
+   −10,8 % de moyenne). Il faut savoir si tu gagnes aussi ailleurs. Dès que deux places se libèrent, mets face à
+   face **une challengeuse qui exige ce volume** (par exemple ta piste `rotation_h1 >= 3`) et **une challengeuse
+   identique par ailleurs qui l'exclut** (`rotation_h1 <= 3`, et donc ni XTEN ni PREDICT). Garde ce duel jusqu'à
+   15 trades chacune, puis écris dans ton carnet ce qu'il montre ; une règle qui ne gagne que sur les deux jumeaux
+   est fragile (une copie de PREDICT a été vidée le 05/11, et leur hausse peut s'arrêter d'un coup). La page de suivi
+   affiche pour chaque caisse la moyenne « hors XTEN/PREDICT ».
 6. **Règle trop rare** (04/11) : si la championne n'a rien acheté depuis 12 h, mets sa version assouplie (une ou deux
    conditions desserrées, celles qui bloquent le plus de lignes d'univers.jsonl sur ces 12 h) dans une place libre
    du tournoi ; elle sera promue si elle gagne en direct.
