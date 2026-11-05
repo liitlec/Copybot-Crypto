@@ -69,6 +69,28 @@ ABSENT_MAX, VIDE_CONFIRME, GRPC_ECART, GRPC_REF_S = 12, 2, (0.7, 1 / 0.7), 60
 # data/archive_avant_remise_<REMISE>/. Les données de marché (univers.jsonl, ohlcv/) et les fichiers des IA restent.
 REMISE = "2026-11-04"
 SECU_PAR_CYCLE = 5  # relevés de sécurité des tokens par cycle (04/11)
+# noms vidés (05/11) : des escrocs relancent le même nom (PIRATE, HIGH, AI…) et vident le pool en 10 à 20 min, encore
+# et encore. Pour toutes les caisses : un nom est bloqué NOM_BLOQUE_1_H heures après un premier pool vidé (un rug
+# isolé, comme une copie de PREDICT le 05/11, ne doit pas écarter le token pour deux jours), et NOM_BLOQUE_H heures
+# dès qu'il a eu 2 pools vidés en NOM_BLOQUE_H heures (escroc en série). Heures des rugs par nom dans state.json.
+NOM_BLOQUE_1_H, NOM_BLOQUE_H = 6, 48
+NOMS_VIDES = [{}]
+
+
+def nom_base(name):
+    return (name or "").split(" / ")[0].strip().upper()
+
+
+def nom_bloque(name, now):
+    ts = [t for t in NOMS_VIDES[0].get(nom_base(name), []) if now - t < NOM_BLOQUE_H * 3600]
+    return len(ts) >= 2 or any(now - t < NOM_BLOQUE_1_H * 3600 for t in ts)
+
+
+def noter_rug(name, now):
+    k = nom_base(name)
+    if k:
+        ts = [t for t in NOMS_VIDES[0].get(k, []) if now - t < NOM_BLOQUE_H * 3600 and abs(now - t) > 60]
+        NOMS_VIDES[0][k] = (ts + [now])[-10:]
 DEFIS_MAX, DEFI_MIN_TRADES, DEFI_MIN_H = 3, 15, 48  # tournoi des règles de l'IA chercheuse (04/11)
 RULE_BANK = [10000.0]  # mise de départ des caisses (--bank), pour les caisses des challengeuses
 # 04/11 soir : un pool vidé affichait un prix absurde et la caisse « auto » a « vendu » Impeach +36 millions de % ;
@@ -264,6 +286,8 @@ def open_pos(book, a, dollars, now, why):
 
 def close_pos(book, token, a, now, reason, log):
     p = book["open"].pop(token)
+    if reason.startswith(("pool vidé", "pool disparu")):
+        noter_rug(p.get("name"), now)
     liq = fnum(a.get("reserve_in_usd")) if a else 0.0
     px = fnum(a.get("base_token_price_usd")) if a else 0.0
     gross = p["qty"] * (px or 0) * (1 - impact(p["qty"] * (px or 0), liq or 0))
@@ -488,9 +512,15 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
             recs.append((rec, a))
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     state.pop("snaps", None)
+    recs = [x for x in recs if not nom_bloque(x[1].get("name"), now)]  # les caisses à règle passent au suivant
     # 3. entrées (une par cycle et par caisse). « classement » suit le cadran comme dans le post ; « sans_cadran » prend
     #    les mêmes choix tous les jours ; « temoin » tire au hasard dans le filtre à chaque entrée de « sans_cadran ».
     def enter(book, a, dial_mult, why):
+        if nom_bloque(a.get("name"), now):  # nom d'un pool vidé récemment (voir NOM_BLOQUE_H) : pas racheté
+            if book["name"] in ("juge", "juge2", "un_par_jour"):
+                log({"event": "bloque", "book": book["name"], "token": a.get("token"), "name": a.get("name"),
+                     "raison": "nom d'un pool vidé récemment"})
+            return None
         dollars = min(RULE["ticket_part"] * book["cash_ref"] * dial_mult, RULE["plafond_liquidite"] * fnum(a["reserve_in_usd"]),
                       book["cash"])
         if dollars < RULE["frais_min"] / 0.02 or len(book["open"]) >= RULE["max_positions"]:  # frais > 2 % : pas de trade
@@ -521,8 +551,12 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
         ok = sorted((x for x in recs if apprend.entre(rule, x[0]) and x[1]["token"] not in bk["open"]
                      and x[1]["token"] not in recent), key=lambda x: -(x[0]["score"] or 0))
-        if ok and enter(bk, ok[0][1], 1.0, {"regle": rule}):
-            bk["open"][ok[0][1]["token"]]["sortie"] = rule
+        for rec, a in ok[:3]:  # 05/11 : filtre anti-pièges (14 rugs sur 18 achats sans lui)
+            if securite(a["token"], state.setdefault("hcache", {}), now):
+                continue
+            if enter(bk, a, 1.0, {"regle": rule, "filtre": "ok"}):
+                bk["open"][a["token"]]["sortie"] = rule
+            break
     # 3 ter. caisse « ia » : règle de l'IA chercheuse, relue à chaque cycle (la dernière règle valide reste en vigueur)
     try:
         import apprend
@@ -853,6 +887,14 @@ def main():
                     r["proceeds"], r["ret"] = juste, round(juste / r["dollars"] - 1, 5)
                     r["reason"] += " (vente corrigée le 04/11 : pool vidé)"
         state["correction"] = CORRECTION
+    NOMS_VIDES[0] = state.setdefault("noms_vides", {})
+    if not NOMS_VIDES[0]:  # première fois : les pools vidés déjà enregistrés depuis la remise à zéro (un par pool)
+        vus = set()
+        for b in state["books"].values():
+            for r in sorted(b["closed"], key=lambda r: r["t_out"]):
+                if r["reason"].startswith(("pool vidé", "pool disparu")) and r["pool"] not in vus:
+                    vus.add(r["pool"])
+                    noter_rug(r.get("name"), r["t_out"])
     st_p.write_text(json.dumps(state), encoding="utf-8")  # la remise est enregistrée avant tout trade
     if not args.once:  # prix en direct par gRPC si grpc.env (GRPC_ENDPOINT, GRPC_TOKEN) est à côté du script
         try:
