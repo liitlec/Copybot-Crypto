@@ -8,7 +8,7 @@
 # Le prix en direct par gRPC s'active si /opt/memes_paper/grpc.env contient GRPC_ENDPOINT=... et GRPC_TOKEN=...
 set -e
 [ -n "$1" ] || { echo "usage : sh installer.sh JETON"; exit 1; }
-VERSION=64e6e568236eecec21d8cd52961d09016a01a598
+VERSION=4a8aa72505bc827204dc0734c9c6e8c07b44d376
 D=/opt/memes_paper
 U=https://raw.githubusercontent.com/liitlec/Copybot-Crypto/$VERSION/copy_sim/memes
 mkdir -p "$D/yproto" "$D/data"
