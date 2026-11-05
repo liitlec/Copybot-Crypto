@@ -3,7 +3,7 @@ caisse papier « ia » (IA chercheuse) sur un portefeuille Solana dédié, via J
 
 Sécurités écrites dans le code (en plus du réglage reel.json, qui ne peut que les resserrer) :
 - le portefeuille ne doit contenir que le budget du test : c'est la vraie limite de perte ;
-- mise fixe par achat (MISE_MAX_USD au plus), MAX_POSITIONS positions au plus, MAX_ACHATS achats au total ;
+- mise fixe par achat (2 $ par défaut, entre MISE_MIN_USD et MISE_MAX_USD), MAX_POSITIONS positions au plus, MAX_ACHATS achats au total ;
 - plus aucun achat si la valeur du portefeuille passe sous PLANCHER de sa valeur de départ (les ventes continuent) ;
 - glissement limité (GLISSEMENT_BPS à l'achat ; à la vente, essais à 3 %, 6 % puis 15 % pour toujours sortir) ;
 - un achat papier vieux de plus de RETARD_MAX_S secondes n'est pas copié (le prix a déjà bougé) ;
@@ -33,7 +33,9 @@ RPC_DEFAUT = "https://api.mainnet-beta.solana.com"
 # plafonds durs : reel.json peut les baisser, jamais les dépasser
 MISE_MAX_USD, MAX_POSITIONS, MAX_ACHATS, PLANCHER = 25.0, 3, 20, 0.5
 GLISSEMENT_BPS, VENTE_BPS, RETARD_MAX_S = 300, (300, 600, 1500), 120
-FRAIS_PRIO_MAX = 200_000  # lamports (0,0002 SOL) par transaction au plus
+FRAIS_PRIO_MAX = 100_000  # lamports (0,0001 SOL, ~0,01 $) par transaction au plus
+MISE_MIN_USD, MISE_DEFAUT_USD = 1.0, 2.0  # premier test (05/11) : de toutes petites mises
+PROGRAMMES_JETON = ("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
 UA = {"User-Agent": "memes-reel/1.0", "Content-Type": "application/json"}
 
 
@@ -56,6 +58,12 @@ class Rpc:
 
     def solde_sol(self, pub):
         return self("getBalance", [pub, {"commitment": "confirmed"}])["value"] / 1e9
+
+    def comptes_jeton(self, pub, mint):
+        """[(adresse du compte, programme du jeton, montant brut)] des comptes de ce jeton."""
+        r = self("getTokenAccountsByOwner", [pub, {"mint": mint}, {"encoding": "jsonParsed", "commitment": "confirmed"}])
+        return [(acc["pubkey"], acc["account"]["owner"], int(acc["account"]["data"]["parsed"]["info"]["tokenAmount"]["amount"]))
+                for acc in r["value"]]
 
     def solde_jeton(self, pub, mint):
         """(montant brut, décimales) du jeton détenu, tous comptes confondus."""
@@ -88,6 +96,27 @@ def creer_portefeuille(path):
     os.chmod(path, 0o600)
     print(f"Portefeuille créé : {path} (clé privée dans ce fichier, à ne jamais partager)")
     print(f"Adresse à alimenter avec le budget du test (en SOL) : {kp.pubkey()}")
+
+
+def fermer_comptes_vides(rpc, kp, mint):
+    """Ferme les comptes de jeton vides après une vente : chaque compte bloque ~0,002 SOL (~0,19 $), soit 10 % d'une
+    mise de 2 $ ; la fermeture les rend au portefeuille. Renvoie le nombre de comptes fermés."""
+    from solders.hash import Hash
+    from solders.instruction import AccountMeta, Instruction
+    from solders.message import Message
+    from solders.pubkey import Pubkey
+    from solders.transaction import Transaction
+    vides = [(a, prog) for a, prog, brut in rpc.comptes_jeton(str(kp.pubkey()), mint) if brut == 0 and prog in PROGRAMMES_JETON]
+    if not vides:
+        return 0
+    moi = kp.pubkey()
+    ixs = [Instruction(Pubkey.from_string(prog), bytes([9]),  # 9 = CloseAccount (programme SPL Token et Token-2022)
+                       [AccountMeta(Pubkey.from_string(a), False, True), AccountMeta(moi, False, True),
+                        AccountMeta(moi, True, False)]) for a, prog in vides]
+    bh = Hash.from_string(rpc("getLatestBlockhash", [{"commitment": "confirmed"}])["value"]["blockhash"])
+    tx = Transaction([kp], Message.new_with_blockhash(ixs, moi, bh), bh)
+    rpc("sendTransaction", [base64.b64encode(bytes(tx)).decode(), {"encoding": "base64", "maxRetries": 3}])
+    return len(vides)
 
 
 def prix_sol():
@@ -155,7 +184,7 @@ class Reel:
 
     def acheter(self, ev):
         mint, cfg = ev["token"], self.cfg
-        mise = min(float(cfg.get("mise_usd", 15)), MISE_MAX_USD)
+        mise = min(max(float(cfg.get("mise_usd", MISE_DEFAUT_USD)), MISE_MIN_USD), MISE_MAX_USD)
         raison = None
         if not cfg.get("actif", True) or (self.d / "STOP_REEL").exists():
             raison = "arrêt demandé"
@@ -215,7 +244,12 @@ class Reel:
                 recu = (self.rpc.solde_sol(self.pub) - sol_avant) * psol
                 self.etat["positions"].pop(mint)
                 self.sauver()
-                return self.noter({"event": "vente", "token": mint, "nom": pos["nom"], "sig": sig,
+                try:
+                    time.sleep(2)
+                    fermes = fermer_comptes_vides(self.rpc, self.kp, mint)
+                except Exception:
+                    fermes = 0
+                return self.noter({"event": "vente", "token": mint, "nom": pos["nom"], "sig": sig, "comptes_fermes": fermes,
                                    "usd_mise": pos["usd"], "usd_recu": round(recu, 2),
                                    "ret_reel": round(recu / pos["usd"] - 1, 4), "ret_papier": rec.get("ret"),
                                    "raison_papier": rec.get("reason"), "glissement_bps": bps})

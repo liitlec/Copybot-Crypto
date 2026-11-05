@@ -72,7 +72,7 @@ $SANDBOX
 WantedBy=multi-user.target
 UNIT
 # test réel (05/11) : copie la caisse « ia » sur un portefeuille dédié ; ne fait rien tant que wallet.json n'existe pas
-[ -f "$D/reel.json" ] || printf '%s\n' '{"actif": true, "mise_usd": 15, "max_positions": 3, "max_achats": 20, "plancher": 0.5, "caisse": "ia"}' > "$D/reel.json"
+[ -f "$D/reel.json" ] || printf '%s\n' '{"actif": true, "mise_usd": 2, "max_positions": 3, "max_achats": 20, "plancher": 0.5, "caisse": "ia"}' > "$D/reel.json"
 chown memes:memes "$D/reel.json"
 [ -f "$D/wallet.json" ] && chown memes:memes "$D/wallet.json" && chmod 600 "$D/wallet.json"
 cat > /etc/systemd/system/memes-reel.service <<UNIT
