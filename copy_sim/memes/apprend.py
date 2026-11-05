@@ -263,7 +263,10 @@ def bougies(pool, cache_dir, get, now, recent=True, age_max=50 * 60):
     récent, sinon une fois pour toutes, et dans la limite du budget d'appels du passage (au-delà : le cache sert).
     Sans limite, l'élargissement de l'univers (150 pools et plus) saturait l'API gratuite et bloquait le cycle."""
     f = cache_dir / f"{pool}.json"
-    old = json.loads(f.read_text()) if f.exists() else {"t": 0, "c": []}
+    try:  # un fichier abîmé (écriture coupée) est refait au lieu de tout faire échouer
+        old = json.loads(f.read_text()) if f.exists() else {"t": 0, "c": []}
+    except ValueError:
+        old = {"t": 0, "c": []}
     if ((recent and now - old["t"] > age_max) or not old["c"]) and BUDGET[0] > 0 and time.time() < BUDGET[1]:
         BUDGET[0] -= 1
         try:
@@ -512,7 +515,12 @@ def resultats_candidats(out_dir, get, now, jours=72):
     cache.mkdir(exist_ok=True)
     appels_bougies(20, secondes=60)
     res = {}
-    for f in sorted(d.glob("*.json"))[-jours:]:
+    fichiers = sorted(d.glob("*.json"))
+    # 05/11 : les dossiers horaires du juge v2 (« h_… ») évinçaient ceux du juge v1 des 72 derniers ; chaque juge garde
+    # maintenant ses propres derniers dossiers
+    v1 = [f for f in fichiers if not f.name.startswith("h_")][-jours:]
+    v2 = [f for f in fichiers if f.name.startswith("h_")][-jours:]
+    for f in v1 + v2:
         snap = json.loads(f.read_text())
         t0, day = snap["t"], {}
         for c in snap["candidats"]:
