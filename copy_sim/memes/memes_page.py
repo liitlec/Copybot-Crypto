@@ -158,7 +158,36 @@ def calib_html(calib):
     return "".join(out)
 
 
-def page(state, status_md, regles, juges, erreurs, prix, now, calib=None):
+def reel_html(lignes):
+    """Test réel à petites sommes (05/11) : ventes faites, comparées à leur jumeau papier, et derniers événements."""
+    ev = []
+    for ln in (lignes or "").splitlines():
+        try:
+            ev.append(json.loads(ln))
+        except ValueError:
+            pass
+    if not ev:
+        return "<p>Pas encore de test réel (le portefeuille dédié n'est pas créé ou n'a encore rien fait).</p>"
+    dep = next((e for e in ev if e.get("event") == "depart"), {})
+    ventes = [e for e in ev if e.get("event") == "vente"]
+    achats = [e for e in ev if e.get("event") == "achat"]
+    gain = sum(e["usd_recu"] - e["usd_mise"] for e in ventes)
+    ec = [e["ecart_achat"] for e in achats if e.get("ecart_achat") is not None]
+    ecr = [e["ret_reel"] - e["ret_papier"] for e in ventes if e.get("ret_papier") is not None]
+    tete = (f"<p><b>Test réel</b> (portefeuille dédié, {usd(dep.get('valeur_usd', 0))} au départ) : {len(achats)} achats, "
+            f"{len(ventes)} ventes, résultat réalisé <span class='{cls(gain)}'>{usd(gain, True)}</span>"
+            + (f" · prix d'achat réel {pct(sum(ec) / len(ec))} par rapport au papier" if ec else "")
+            + (f" · résultat réel {pct(sum(ecr) / len(ecr))} par rapport au papier, par trade" if ecr else "") + ".</p>")
+    rows = "".join(
+        f"<tr><td>{heure(e['t'])}</td><td class='txt'>{escape(e.get('event', ''))}</td>"
+        f"<td class='txt'>{escape(str(e.get('nom') or e.get('token', '')[:6]))}</td>"
+        f"<td class='txt sub wrap'>{escape(', '.join(f'{k} {v}' for k, v in e.items() if k in ('usd', 'usd_recu', 'ret_reel', 'ret_papier', 'ecart_achat', 'raison', 'erreur', 'secondes')))}</td></tr>"
+        for e in reversed(ev[-12:]))
+    return tete + ("<div class='scroll'><table><thead><tr><th>Heure</th><th class='txt'>Événement</th><th class='txt'>Token</th>"
+                   "<th class='txt'>Détail</th></tr></thead><tbody>" + rows + "</tbody></table></div>")
+
+
+def page(state, status_md, regles, juges, erreurs, prix, now, calib=None, reel=None):
     values = dict(re.findall(r"## (\w+)\n- caisse [\d.]+ \$, valeur ([\d.]+) \$", status_md))
     upd = re.search(r"— (\d\d/\d\d \d\d:\d\d) UTC", status_md)
     grpc = re.search(r"Prix en direct \(gRPC\) : ([^\n]+)", status_md)
@@ -348,6 +377,7 @@ td.wrap {{ white-space: normal; min-width: 18rem; }}
 <p class="sub">« Aujourd'hui » et « 24 h » : gains et pertes des trades fermés sur la période. Moyenne : par trade, frais et glissement compris ; « hors XTEN/PREDICT » : la même moyenne sans ces deux tokens. Rugs : pool vidé ou chute de plus de 80 %.</p></section>
 <section class="box"><h2>Résultat depuis le départ</h2>{courbe(books, now)}
 <p class="sub">Chaque point est une vente ; le dernier point est la valeur actuelle (positions ouvertes comprises). Les deux autres caisses du post et la règle qui apprend sont dans le classement.</p></section>
+<section class="box"><h2>Test réel (petites sommes)</h2>{reel_html(reel)}</section>
 <section class="box"><h2>Positions ouvertes</h2>{positions}</section>
 <section class="box"><h2>IA chercheuse : résultats réels par version</h2>{chercheuse}{auto_txt}</section>
 <section class="box"><h2>Journal des juges (24 h)</h2>{journal}</section>
@@ -409,7 +439,7 @@ def depuis_dossier(d, now, prix, rafraichir=60):
     except ValueError:
         calib = None
     corps = page(json.loads(lire("state.json")), lire("status.md"), regles, juges, "\n".join(err),
-                 {p: x for p, x in prix.items() if x}, now, calib)
+                 {p: x for p, x in prix.items() if x}, now, calib, lire("reel.jsonl"))
     return ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             f'<meta http-equiv="refresh" content="{rafraichir}"></head><body>{corps}</body></html>')
@@ -447,7 +477,8 @@ def main():
         calib = json.loads(essai(a.base + "/calibration_juges.json") or "null")
     except ValueError:
         calib = None
-    page_html = page(state, status_md, regles, juges, essai(a.base + "/erreurs.log"), prix, now, calib)
+    page_html = page(state, status_md, regles, juges, essai(a.base + "/erreurs.log"), prix, now, calib,
+                     essai(a.base + "/reel.jsonl"))
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(page_html, encoding="utf-8")
     print(a.out)

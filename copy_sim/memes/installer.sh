@@ -13,7 +13,7 @@ D=/opt/memes_paper
 U=https://raw.githubusercontent.com/liitlec/Copybot-Crypto/$VERSION/copy_sim/memes
 mkdir -p "$D/yproto" "$D/data"
 cd "$D"
-for f in memes_paper.py memes_page.py apprend.py serveur.py flux.py yproto/__init__.py yproto/geyser_pb2.py yproto/geyser_pb2_grpc.py \
+for f in memes_paper.py memes_page.py apprend.py serveur.py flux.py reel.py yproto/__init__.py yproto/geyser_pb2.py yproto/geyser_pb2_grpc.py \
          yproto/solana_storage_pb2.py yproto/solana_storage_pb2_grpc.py; do
   curl -fsSL -o "$f.new" "$U/$f" && mv "$f.new" "$f"
 done
@@ -23,7 +23,7 @@ PY=/usr/bin/python3
 if [ ! -x "$D/.venv/bin/python" ]; then
   python3 -m venv "$D/.venv" 2>/dev/null || { apt-get install -y -qq python3-venv >/dev/null 2>&1 && python3 -m venv "$D/.venv"; } || true
 fi
-if [ -x "$D/.venv/bin/python" ] && "$D/.venv/bin/pip" install -q --disable-pip-version-check grpcio protobuf; then
+if [ -x "$D/.venv/bin/python" ] && "$D/.venv/bin/pip" install -q --disable-pip-version-check grpcio protobuf solders; then
   PY="$D/.venv/bin/python"
 else
   echo "gRPC : installation de grpcio impossible, le test continue avec GeckoTerminal toutes les 15 s"
@@ -71,10 +71,30 @@ $SANDBOX
 [Install]
 WantedBy=multi-user.target
 UNIT
+# test réel (05/11) : copie la caisse « ia » sur un portefeuille dédié ; ne fait rien tant que wallet.json n'existe pas
+[ -f "$D/reel.json" ] || printf '%s\n' '{"actif": true, "mise_usd": 15, "max_positions": 3, "max_achats": 20, "plancher": 0.5, "caisse": "ia"}' > "$D/reel.json"
+chown memes:memes "$D/reel.json"
+[ -f "$D/wallet.json" ] && chown memes:memes "$D/wallet.json" && chmod 600 "$D/wallet.json"
+cat > /etc/systemd/system/memes-reel.service <<UNIT
+[Unit]
+Description=Test réel à petites sommes (copie de la caisse papier ia, portefeuille dédié)
+After=network.target memes-paper.service
+
+[Service]
+WorkingDirectory=$D
+ExecStart=$PY $D/reel.py --dir $D/data
+Restart=always
+RestartSec=20
+$SANDBOX
+
+[Install]
+WantedBy=multi-user.target
+UNIT
 systemctl daemon-reload
-systemctl restart memes-web memes-paper
+systemctl enable -q memes-reel 2>/dev/null || true
+systemctl restart memes-web memes-paper memes-reel
 sleep 3
-systemctl is-active memes-web memes-paper
+systemctl is-active memes-web memes-paper memes-reel
 echo "utilisateur des services : $(systemctl show -p User --value memes-paper)"
 [ -f "$D/grpc.env" ] && echo "gRPC : grpc.env présent" || echo "gRPC : pas de grpc.env (suivi GeckoTerminal toutes les 15 s)"
 echo "mise à jour terminée (version $VERSION)"

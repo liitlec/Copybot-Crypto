@@ -302,7 +302,7 @@ def close_pos(book, token, a, now, reason, log):
     book["cash"] += proceeds
     rec = {"book": book["name"], "token": token, "pool": p["pool"], "name": p["name"], "t_in": p["t"], "t_out": now,
            "minutes": round((now - p["t"]) / 60), "dollars": p["dollars"], "proceeds": round(proceeds, 4),
-           "ret": round(proceeds / p["dollars"] - 1, 5), "reason": reason, "why": p["why"]}
+           "ret": round(proceeds / p["dollars"] - 1, 5), "reason": reason, "why": p["why"], "px_out": px}
     book["closed"].append(rec)
     log(rec)
 
@@ -544,7 +544,8 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         if dollars < RULE["frais_min"] / 0.02 or len(book["open"]) >= RULE["max_positions"]:  # frais > 2 % : pas de trade
             return None
         open_pos(book, a, dollars, now, why)
-        log({"event": "achat", "book": book["name"], "token": a["token"], "name": a.get("name"), "dollars": round(dollars, 2)})
+        log({"event": "achat", "book": book["name"], "token": a["token"], "name": a.get("name"), "dollars": round(dollars, 2),
+             "pool": a["pool"], "px_in": book["open"][a["token"]]["px_in"], "t": round(now, 1)})
         return dollars
 
     books = state["books"]
