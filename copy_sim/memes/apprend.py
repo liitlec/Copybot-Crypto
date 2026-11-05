@@ -431,7 +431,9 @@ def regle_ia(raw):
                "tri": str(raw.get("classement", {}).get("champ", "score")),
                "tri_desc": raw.get("classement", {}).get("ordre", "desc") != "asc",
                "max_positions": max(1, min(10, int(raw.get("max_positions", 10)))),
-               "sortie_volume": bool(sx.get("sortie_volume", False))}
+               "sortie_volume": bool(sx.get("sortie_volume", False)),
+               # délai avant de racheter un token déjà vendu (05/11 : 24 h fixes jusqu'ici), entre 2 et 48 h
+               "delai_rachat_h": min(max(float(raw.get("delai_rachat_h", 24)), 2.0), 48.0)}
         if not out["tri"].startswith(CHAMPS):
             return None
         for k, (lo, hi) in BORNES.items():
@@ -448,7 +450,10 @@ def cle_regle(rule):
     """Ce qui fait une règle (entrée, score, sortie, tri, positions) sans sa version ni son « pourquoi » : deux règles
     de même clé sont la même stratégie."""
     garde = ("conditions", "score", "tri", "tri_desc", "max_positions", "sortie_volume") + tuple(BORNES)
-    return json.dumps({k: rule.get(k) for k in garde}, sort_keys=True)
+    d = {k: rule.get(k) for k in garde}
+    if rule.get("delai_rachat_h", 24) != 24:  # absent = 24 h : les règles d'avant le 05/11 gardent leur clé
+        d["delai_rachat_h"] = rule["delai_rachat_h"]
+    return json.dumps(d, sort_keys=True)
 
 
 DEFIS_MAX = 3  # challengeuses en même temps (tournoi du 04/11)

@@ -156,6 +156,12 @@ sur des tokens que personne n'avait vus au moment où tu l'as écrite.
 
 ## Nouveaux outils et nouvelles données (04/11)
 
+- **Délai de rachat** (05/11) : `"delai_rachat_h"` au premier niveau de la règle (à côté de "version"), entre 2 et
+  48 h, 24 h si absent. C'est le temps pendant lequel une caisse ne rachète pas un token qu'elle vient de vendre. Le
+  05/11 au soir, ta v15 ne trouvait plus que XTEN et PREDICT, déjà vendus à midi : plus aucun achat pendant des
+  heures. Un délai plus court rachète plus vite (plus de trades, mais plus d'exposition aux rugs de ces familles :
+  deux copies de PREDICT ont été vidées le 05/11). Teste-le au banc (il en tient compte) puis en challengeuse.
+
 - **Champs calculés**, disponibles sur tout l'historique : `rotation_h1` (volume 1 h / liquidité ; XTEN et PREDICT
   tournent ~20 fois leur liquidité par heure avec un prix presque plat, signe de robots), `volume_par_trader_h1`
   (dollars par portefeuille distinct sur 1 h), `liq_sur_mcap` (au-dessus de 1 = profil fréquent des rugs),

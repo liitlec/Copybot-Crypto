@@ -589,7 +589,8 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     ia = state.get("ia")
     if ia and not ia["pause"]:
         bk = books["ia"]
-        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
+        delai = ia.get("delai_rachat_h", 24) * 3600  # délai avant de racheter un token vendu (règle de l'IA, 05/11)
+        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < delai}
         ok = [x for x in recs if apprend.entre_ia(ia, x[0]) and x[1]["token"] not in bk["open"]
               and x[1]["token"] not in recent]
         ok.sort(key=lambda x: (apprend.champ(x[0], ia["tri"]) or 0) * (-1 if ia["tri_desc"] else 1))
@@ -597,7 +598,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
             bk["open"][ok[0][1]["token"]]["sortie_ia"] = ia
         # caisse « ia_filtre » : la même règle, mais seulement des tokens qui passent le filtre anti-pièges
         bf = books["ia_filtre"]
-        recent_f = {r["token"] for r in bf["closed"] if now - r["t_out"] < 24 * 3600}
+        recent_f = {r["token"] for r in bf["closed"] if now - r["t_out"] < delai}
         refus = state.setdefault("filtre_refus", [])
         ok_f = [x for x in recs if apprend.entre_ia(ia, x[0]) and x[1]["token"] not in bf["open"]
                 and x[1]["token"] not in recent_f]
@@ -647,7 +648,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         if not cur or slot not in books:
             continue
         rule, bk = cur["regle"], books[slot]
-        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
+        recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < rule.get("delai_rachat_h", 24) * 3600}
         ok = [x for x in recs if apprend.entre_ia(rule, x[0]) and x[1]["token"] not in bk["open"]
               and x[1]["token"] not in recent]
         ok.sort(key=lambda x: (apprend.champ(x[0], rule["tri"]) or 0) * (-1 if rule["tri_desc"] else 1))

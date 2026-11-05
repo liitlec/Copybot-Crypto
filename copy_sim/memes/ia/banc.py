@@ -57,7 +57,7 @@ def simule(rule, rows, paths, rugs=None, realiste=True):
     out, last = [], {}
     rugs = rugs or {}
     for r in rows:
-        if r["t"] - last.get(r["token"], -1e18) < 24 * 3600 or not A.entre_ia(rule, r):
+        if r["t"] - last.get(r["token"], -1e18) < rule.get("delai_rachat_h", 24) * 3600 or not A.entre_ia(rule, r):
             continue
         c = nettoie([(ts, px) for ts, px in paths.get(r["pool"], []) if ts > r["t"]])
         if realiste:
