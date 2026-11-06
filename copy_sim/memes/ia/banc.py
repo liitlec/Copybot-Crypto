@@ -30,6 +30,7 @@ GLISSEMENT, FRAIS_RESEAU, PERTE_RUG = 0.02, 0.001, -0.95
 # coût en plus du papier par aller-retour : 2 % de glissement + 0,1 % de frais réseau par côté, remplacé par l'écart
 # mesuré sur le test réel dès A.REEL_MIN ventes réelles s'il est plus élevé (06/11)
 SURCOUT = [2 * GLISSEMENT + 2 * FRAIS_RESEAU]
+GAIN_MAX = 10.0  # +1000 % : au-delà, le VPS tient le prix pour aberrant (05/11, Impeach et BUNNY)
 
 
 def nettoie(c):
@@ -56,9 +57,10 @@ def rugs_connus(d):
     return A.rugs_connus(d / "trades.jsonl", d / "ohlcv")
 
 
-def simule(rule, rows, paths, rugs=None, realiste=True, avec_ligne=False):
+def entrees(rule, rows, paths, realiste=True):
+    """Achats d'une règle : [(ligne, bougies après l'achat)], un par token et par délai de rachat. La sortie n'y joue
+    pas (le délai compte depuis le signal) : les outils peuvent donc essayer plusieurs sorties sur les mêmes achats."""
     out, last = [], {}
-    rugs = rugs or {}
     for r in rows:
         if r["t"] - last.get(r["token"], -1e18) < rule.get("delai_rachat_h", 24) * 3600 or not A.entre_ia(rule, r):
             continue
@@ -68,24 +70,39 @@ def simule(rule, rows, paths, rugs=None, realiste=True, avec_ligne=False):
         if not c:
             continue
         last[r["token"]] = r["t"]
-        t0, p0 = (c[0][0], c[0][1]) if realiste else (r["t"], r["prix"])
-        pic, x, why, t_fin = 0.0, 0.0, None, c[-1][0]
-        for ts, px in c[1:] if realiste else c:
-            x = px / p0 - 1
-            pic = max(pic, x)
-            why = A.sortir_ia(rule, x, pic, (ts - t0) / 3600, False)
-            if why:
-                t_fin = ts
-                break
-        fin_prevue = t0 + rule["duree_max_h"] * 3600
-        t_rug = rugs.get(r["pool"])
-        rug = realiste and t_rug is not None and t0 <= t_rug <= (t_fin if why else fin_prevue)
-        if rug:
-            x = PERTE_RUG
-        elif not why and (c[-1][0] - t0) / 3600 < rule["duree_max_h"]:
-            continue  # trade pas encore terminé
-        cout = A.couts(r.get("liquidite")) + (SURCOUT[0] if realiste else 0)
-        out.append((r["t"], x - cout, r["token"], rug, r) if avec_ligne else (r["t"], x - cout, r["token"], rug))
+        out.append((r, c))
+    return out
+
+
+def resultat(rule, r, c, rugs, realiste=True):
+    """(rendement net de coûts, rug ?) d'un achat avec la sortie de `rule`, ou None si le trade n'est pas terminé."""
+    t0, p0 = (c[0][0], c[0][1]) if realiste else (r["t"], r["prix"])
+    pic, x, why, t_fin = 0.0, 0.0, None, c[-1][0]
+    for ts, px in c[1:] if realiste else c:
+        if px / p0 - 1 > GAIN_MAX:  # prix aberrant (pool vidé, bougie fausse) : ignoré, comme sur le VPS
+            continue
+        x = px / p0 - 1
+        pic = max(pic, x)
+        why = A.sortir_ia(rule, x, pic, (ts - t0) / 3600, False)
+        if why:
+            t_fin = ts
+            break
+    fin_prevue = t0 + rule["duree_max_h"] * 3600
+    t_rug = rugs.get(r["pool"])
+    rug = realiste and t_rug is not None and t0 <= t_rug <= (t_fin if why else fin_prevue)
+    if rug:
+        x = PERTE_RUG
+    elif not why and (c[-1][0] - t0) / 3600 < rule["duree_max_h"]:
+        return None  # trade pas encore terminé
+    return x - (A.couts(r.get("liquidite")) + (SURCOUT[0] if realiste else 0)), rug
+
+
+def simule(rule, rows, paths, rugs=None, realiste=True, avec_ligne=False):
+    out, rugs = [], rugs or {}
+    for r, c in entrees(rule, rows, paths, realiste):
+        res = resultat(rule, r, c, rugs, realiste)
+        if res is not None:
+            out.append((r["t"], res[0], r["token"], res[1], r) if avec_ligne else (r["t"], res[0], r["token"], res[1]))
     return out
 
 

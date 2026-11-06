@@ -192,6 +192,9 @@ sur des tokens que personne n'avait vus au moment où tu l'as écrite.
   champs composés, test hors échantillon, coût réel, autopsie, demandes d'outils).
 - **Champs composés** : tu inventes toi-même jusqu'à 10 champs `c_<nom>` = a op b dans `entree.composes` (voir SKILLS
   §3) ; le VPS, le banc et les outils les calculent. Tu n'as plus à attendre un nouveau champ pour tester un rapport.
+- **Avant toute promotion** : passe la challengeuse au **test contre le hasard** (`ia/outils/hasard.py`, p < 5 %) et à la
+  **validation glissante** (`ia/outils/glissante.py`, « SOLIDE »), et note les deux résultats dans le `pourquoi`. Utilise
+  aussi `pieges.py` (filtres anti-rug), `sorties.py` (sorties) et `diversite.py` (places trop proches) : SKILLS §8 à §12.
 - **Outils** : `ia/outils/criblage.py` (tous les champs d'un coup, choisis sur l'ancien, vérifiés sur le récent) et
   `ia/outils/ajuste_score.py` (régression apprise sur l'ancien, jugée sur le récent, qui sort le bloc `score`).
 - **Coût réel** : télécharge aussi `reel.jsonl`. Dès 5 ventes du test réel, le banc remplace son hypothèse de coût

@@ -187,13 +187,36 @@ def reel_html(lignes):
                    "<th class='txt'>Détail</th></tr></thead><tbody>" + rows + "</tbody></table></div>")
 
 
+def diversite_html(state):
+    """Diversité du tournoi (06/11) : places qui achètent les mêmes tokens (même calcul que ia/outils/diversite.py)."""
+    books, acs = state.get("books") or {}, {}
+    for slot, debut in [("ia", 0)] + [(k, v.get("debut", 0)) for k, v in (state.get("defis") or {}).items()]:
+        b = books.get(slot) or {}
+        acs[slot] = ({r["token"] for r in b.get("closed", []) if r.get("t_in", 0) >= debut}
+                     | {t for t, q in (b.get("open") or {}).items() if q.get("t", 0) >= debut})
+    tous = [t for ts in acs.values() for t in ts]
+    if not tous:
+        return ""
+    cles, proches = sorted(acs, key=lambda k: (k != "ia", int(k.split("_")[1]) if "_" in k else 0)), []
+    for i, a in enumerate(cles):
+        for b in cles[i + 1:]:
+            if len(acs[a]) >= 3 and len(acs[b]) >= 3:
+                part = len(acs[a] & acs[b]) / min(len(acs[a]), len(acs[b]))
+                if part >= 0.5:
+                    proches.append(f"{'championne' if a == 'ia' else a.replace('_', ' ')} et {b.replace('_', ' ')} "
+                                   f"({part:.0%})")
+    return (f"<p class='sub'><b>Diversité :</b> {len(set(tous))} tokens distincts sur {len(tous)} achats"
+            + (" ; places qui achètent surtout les mêmes tokens : " + ", ".join(proches) if proches else
+               " ; aucune paire de places trop proche") + ".</p>")
+
+
 def page(state, status_md, regles, juges, erreurs, prix, now, calib=None, reel=None):
     values = dict(re.findall(r"## (\w+)\n- caisse [\d.]+ \$, valeur ([\d.]+) \$", status_md))
     upd = re.search(r"— (\d\d/\d\d \d\d:\d\d) UTC", status_md)
     grpc = re.search(r"Prix en direct \(gRPC\) : ([^\n]+)", status_md)
     minuit = datetime.fromtimestamp(now, PARIS).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
     for slot, dfi in sorted((state.get("defis") or {}).items(), key=lambda kv: int(kv[0].split("_")[1])):  # tournoi (04/11) : challengeuses de la chercheuse
-        LABELS[slot] = f"Défi {slot[-1]} : {dfi.get('nom') or 'sans nom'}"
+        LABELS[slot] = f"Défi {slot.split('_')[1]} : {dfi.get('nom') or 'sans nom'}"
         DETAIL[slot] = f"challengeuse de la chercheuse, depuis le {heure(dfi.get('debut', now))}"
     books = {}
     for k in LABELS:
@@ -292,7 +315,9 @@ def page(state, status_md, regles, juges, erreurs, prix, now, calib=None, reel=N
     finis = (state.get("defis_finis") or [])[-6:]
     if state.get("defis") or finis:
         chercheuse += ("<p><b>Tournoi :</b> une challengeuse ne remplace la règle active qu'après au moins 15 trades "
-                       "fermés en direct, avec une moyenne positive et meilleure que la règle active sur la même période.</p>")
+                       "fermés en direct, avec une moyenne positive, meilleure que la règle active sur la même période, "
+                       "et assez nette pour ne pas être de la chance (seuil qui monte avec le nombre de places).</p>")
+        chercheuse += diversite_html(state)
         if finis:
             chercheuse += "<p class='sub'>Challengeuses terminées : " + " · ".join(
                 f"{escape(x['nom'] or x['place'])} ({x['trades']} trades, {pct(x['moyenne'])})" for x in reversed(finis)) + "</p>"

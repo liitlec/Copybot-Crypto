@@ -47,6 +47,40 @@ ne gagne rien en vrai : vise plus large, ou des sorties qui laissent courir les 
 `python3 ia/autopsie.py /tmp/d --caisse defi_4` : chaque trade fermé, ce que le token montrait à l'achat, ce qu'il a
 fait ensuite. À faire sur chaque place du tournoi, pas seulement sur la championne.
 
+## 8. Optimiser la sortie d'une entrée
+Quand : une entrée semble bonne mais la sortie a été choisie à la main (souvent le cas), ou des gagnants repartent
+après ton objectif.
+`python3 ia/outils/sorties.py /tmp/d regle.json --essais N` : 400 sorties (stop, objectif, suiveur, durée) sur les
+MÊMES achats, classées sur l'ancien, jugées sur le récent. « RETENUE » seulement si elle passe le seuil (qui compte les
+400 essais) ET bat la sortie actuelle sur le récent. Grille réglable (`--stops`, `--objectifs`, `--suiveurs`,
+`--durees`, 0 = sans). Une nouvelle sortie se teste en challengeuse avec la même entrée, jamais directement.
+
+## 9. Test contre le hasard (obligatoire avant toute promotion)
+`python3 ia/outils/hasard.py /tmp/d regle.json` : 2000 tirages d'achats au hasard, mêmes jours, même sortie, même
+nombre. p < 5 % : l'entrée choisit vraiment ses tokens. Sinon, son résultat vient du marché du moment ou de la
+sortie (au 06/11 : v15 p = 4 %, defi_5 p = 3 %, defi_3 p = 31 %). Avec k règles testées, exige p < 5 % / k.
+
+## 10. Détecteur de pièges (filtre à ajouter à toute règle)
+`python3 ia/outils/pieges.py /tmp/d [--horizon 24] [--chute 0.8]` : quels champs, à l'achat, séparent les tokens
+qui se vident ou s'effondrent de 80 % dans les 24 h. Il propose des conditions « garder si » vérifiées sur le récent.
+Au 06/11 : sous ~4 200 achats sur 1 h (`transactions.h1.buys`), 83 % de pièges sur l'ancien et 94 % sur le récent,
+contre 16 % au-dessus. Ajouter un tel filtre à une bonne entrée est souvent le gain le plus sûr.
+
+## 11. Diversité du tournoi
+`python3 ia/outils/diversite.py /tmp/d` (aussi sur la page) : les places qui achètent surtout les mêmes tokens ne
+testent qu'une idée. Au 06/11 : la championne, defi_1 et defi_2 ont 89 à 100 % d'achats communs. Quand une place
+se libère, remplace l'une des deux d'une paire trop proche par une autre famille d'idées.
+
+## 12. Validation glissante
+`python3 ia/outils/glissante.py /tmp/d regle.json [autres.json]` : la règle jugée sur 6 périodes successives.
+« SOLIDE » = au moins 2/3 des périodes positives, aucune sous −20 %, positive sans la meilleure période. Au 06/11,
+v15, defi_3 et defi_5 sont « FRAGILE » : chacune ne gagne que sur une période. À passer avant toute promotion, avec
+le test contre le hasard.
+
+## Ordre conseillé pour une idée
+criblage ou pièges (piste) → règle → banc `--essais N` → hasard → glissante → sorties → challengeuse → 15 trades en
+direct → promotion. Note chaque étape au registre.
+
 ## 7. Demander un outil ou une donnée (sans attendre l'utilisateur)
 Quand : il te manque une donnée (« âge des portefeuilles acheteurs »), un type de sortie (« vendre la moitié à +X »),
 un outil. Écris-le dans `ia_demandes.md` sur le VPS (même envoi que ton carnet), une demande par bloc :
