@@ -192,7 +192,7 @@ def page(state, status_md, regles, juges, erreurs, prix, now, calib=None, reel=N
     upd = re.search(r"— (\d\d/\d\d \d\d:\d\d) UTC", status_md)
     grpc = re.search(r"Prix en direct \(gRPC\) : ([^\n]+)", status_md)
     minuit = datetime.fromtimestamp(now, PARIS).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
-    for slot, dfi in sorted((state.get("defis") or {}).items()):  # tournoi (04/11) : challengeuses de la chercheuse
+    for slot, dfi in sorted((state.get("defis") or {}).items(), key=lambda kv: int(kv[0].split("_")[1])):  # tournoi (04/11) : challengeuses de la chercheuse
         LABELS[slot] = f"Défi {slot[-1]} : {dfi.get('nom') or 'sans nom'}"
         DETAIL[slot] = f"challengeuse de la chercheuse, depuis le {heure(dfi.get('debut', now))}"
     books = {}

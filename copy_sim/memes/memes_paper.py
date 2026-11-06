@@ -29,6 +29,7 @@ trois premières caisses achètent à chaque cycle (jusqu'à 10 positions) pour 
 Usage : python3 memes_paper.py [--dir DOSSIER] [--once] [--bank 10000]"""
 import argparse
 import json
+import os
 import random
 import threading
 import time
@@ -95,7 +96,7 @@ def noter_rug(name, now):
     if k:
         ts = [t for t in NOMS_VIDES[0].get(k, []) if now - t < NOM_BLOQUE_H * 3600 and abs(now - t) > 60]
         NOMS_VIDES[0][k] = (ts + [now])[-10:]
-DEFIS_MAX, DEFI_MIN_TRADES, DEFI_MIN_H = 6, 15, 48  # tournoi des règles de l'IA chercheuse (04/11 ; 6 places le 06/11)
+DEFIS_MAX, DEFI_MIN_TRADES, DEFI_MIN_H = 12, 15, 48  # tournoi des règles de l'IA chercheuse (04/11 ; 6 places puis 12 le 06/11)
 # 06/11 : une place se libère aussi plus tôt si sa challengeuse perd nettement (au moins ELIM_TRADES trades et moyenne
 # sous ELIM_MOYENNE) ou si elle n'a rien acheté depuis MORTE_H heures (une place morte n'apprend rien)
 ELIM_TRADES, ELIM_MOYENNE, MORTE_H = 8, -0.15, 24
@@ -630,7 +631,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < delai}
         ok = [x for x in recs if apprend.entre_ia(ia, x[0]) and x[1]["token"] not in bk["open"]
               and x[1]["token"] not in recent]
-        ok.sort(key=lambda x: (apprend.champ(x[0], ia["tri"]) or 0) * (-1 if ia["tri_desc"] else 1))
+        ok.sort(key=lambda x: apprend.valeur_tri(ia, x[0]) * (-1 if ia["tri_desc"] else 1))
         if ok and len(bk["open"]) < ia["max_positions"] and enter(bk, ok[0][1], 1.0, {"ia_version": ia["version"]}):
             bk["open"][ok[0][1]["token"]]["sortie_ia"] = ia
         # caisse « ia_filtre » : la même règle, mais seulement des tokens qui passent le filtre anti-pièges
@@ -639,7 +640,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         refus = state.setdefault("filtre_refus", [])
         ok_f = [x for x in recs if apprend.entre_ia(ia, x[0]) and x[1]["token"] not in bf["open"]
                 and x[1]["token"] not in recent_f]
-        ok_f.sort(key=lambda x: (apprend.champ(x[0], ia["tri"]) or 0) * (-1 if ia["tri_desc"] else 1))
+        ok_f.sort(key=lambda x: apprend.valeur_tri(ia, x[0]) * (-1 if ia["tri_desc"] else 1))
         for rec, a in ok_f:
             if len(bf["open"]) >= ia["max_positions"]:
                 break
@@ -651,7 +652,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
             if enter(bf, a, 1.0, {"ia_version": ia["version"], "filtre": "ok"}):
                 bf["open"][a["token"]]["sortie_ia"] = ia
             break
-    # 3 quater. tournoi (04/11) : jusqu'à DEFIS_MAX (6) challengeuses écrites par l'IA chercheuse (ia_challengeuses.json) tradent
+    # 3 quater. tournoi (04/11) : jusqu'à DEFIS_MAX (12) challengeuses écrites par l'IA chercheuse (ia_challengeuses.json) tradent
     #    chacune dans sa caisse fantôme « defi_N », sur des tokens que personne n'a encore vus. La règle active ne peut
     #    être remplacée que par une challengeuse qui a fait ses preuves en direct (contrôlé par serveur.py). Une place
     #    ne peut changer de règle qu'après DEFI_MIN_TRADES trades fermés ou DEFI_MIN_H heures, pour qu'aucune idée ne
@@ -692,7 +693,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < rule.get("delai_rachat_h", 24) * 3600}
         ok = [x for x in recs if apprend.entre_ia(rule, x[0]) and x[1]["token"] not in bk["open"]
               and x[1]["token"] not in recent]
-        ok.sort(key=lambda x: (apprend.champ(x[0], rule["tri"]) or 0) * (-1 if rule["tri_desc"] else 1))
+        ok.sort(key=lambda x: apprend.valeur_tri(rule, x[0]) * (-1 if rule["tri_desc"] else 1))
         if ok and len(bk["open"]) < rule["max_positions"] and enter(bk, ok[0][1], 1.0, {"defi": slot, "nom": cur["nom"]}):
             bk["open"][ok[0][1]["token"]]["sortie_ia"] = dict(rule, nom=f"défi {i + 1}")
     # 4. caisses « juge » (IA) et « un_par_jour » (sans IA) : une décision par créneau de 4 h (heure de New York) ;
@@ -906,6 +907,20 @@ def write_status(state, out_dir, live):
             f.write(f"{datetime.now(timezone.utc).isoformat()} suivi.html {exc!r}\n")
 
 
+def redemarrer_si_demande(out_dir):
+    """Mise à jour automatique (06/11) : maj_auto.py dépose data/REDEMARRER après avoir remplacé le code ; on s'arrête
+    ici, entre deux cycles et sous le verrou (aucune écriture de state.json en cours), et systemd relance la nouvelle
+    version (Restart=always)."""
+    f = out_dir / "REDEMARRER"
+    if f.exists():
+        with LOCK:
+            try:
+                f.unlink()
+            except OSError:
+                pass
+            os._exit(0)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", default=str(Path(__file__).resolve().parent / "data"))
@@ -968,6 +983,7 @@ def main():
                     vus.add(r["pool"])
                     noter_rug(r.get("name"), r["t_out"])
     st_p.write_text(json.dumps(state), encoding="utf-8")  # la remise est enregistrée avant tout trade
+    (out_dir / "demarrage").write_text(str(time.time()))  # pour maj_auto.py : la nouvelle version a bien démarré
     if not args.once:  # prix en direct par gRPC si grpc.env (GRPC_ENDPOINT, GRPC_TOKEN) est à côté du script
         try:
             import flux
@@ -993,6 +1009,7 @@ def main():
                 f.write(f"{datetime.now(timezone.utc).isoformat()} {exc!r}\n")
         if args.once:
             break
+        redemarrer_si_demande(out_dir)
         while time.time() - t0 < RULE["cycle_s"] - RULE["suivi_s"]:  # suivi des positions à règle entre deux cycles
             time.sleep(RULE["suivi_s"])
             try:

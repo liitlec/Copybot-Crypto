@@ -7,7 +7,11 @@ Sécurités écrites dans le code (en plus du réglage reel.json, qui ne peut qu
 - plus aucun achat si la valeur du portefeuille passe sous PLANCHER de sa valeur de départ (les ventes continuent) ;
 - glissement limité (GLISSEMENT_BPS à l'achat ; à la vente, essais à 3 %, 6 % puis 15 % pour toujours sortir) ;
 - un achat papier vieux de plus de RETARD_MAX_S secondes n'est pas copié (le prix a déjà bougé) ;
-- arrêt d'urgence : fichier data/STOP_REEL (plus aucun achat), ou "actif": false dans reel.json.
+- arrêt d'urgence : fichier STOP_REEL à côté de reel.py ou dans data/ (plus aucun achat), ou "actif": false dans reel.json.
+
+Depuis le 06/11 (mises à jour automatiques du papier) : ce script tourne sous son propre utilisateur, dans son propre
+dossier (--sortie : reel.jsonl, reel_etat.json), et ne fait que LIRE les fichiers du papier (--dir : trades.jsonl,
+state.json). Le code du papier, qui peut changer sans validation, ne peut donc ni lire la clé ni modifier cet état.
 
 La clé privée reste dans wallet.json (format solana-keygen, lisible seulement par l'utilisateur memes) et n'est
 jamais affichée ni envoyée : seule la transaction signée part vers le réseau. Chaque ordre est noté dans
@@ -147,9 +151,10 @@ def echanger(rpc, kp, entree, sortie, montant_brut, bps):
 
 
 class Reel:
-    def __init__(self, d, cfg):
-        self.d, self.cfg = Path(d), cfg
-        self.etat_p = self.d / "reel_etat.json"
+    def __init__(self, d, cfg, sortie=None):
+        self.d, self.cfg = Path(d), cfg  # d : fichiers du papier (lecture seule)
+        self.out = Path(sortie) if sortie else self.d  # nos propres fichiers
+        self.etat_p = self.out / "reel_etat.json"
         self.etat = json.loads(self.etat_p.read_text()) if self.etat_p.exists() else {}
         self.rpc = Rpc(cfg.get("rpc") or RPC_DEFAUT)
         self.kp = lire_cle(ICI / "wallet.json")
@@ -157,7 +162,7 @@ class Reel:
 
     def noter(self, rec):
         rec = dict(rec, t=round(time.time(), 1))
-        with (self.d / "reel.jsonl").open("a") as f:
+        with (self.out / "reel.jsonl").open("a") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         print(json.dumps(rec, ensure_ascii=False), flush=True)
 
@@ -186,7 +191,7 @@ class Reel:
         mint, cfg = ev["token"], self.cfg
         mise = min(max(float(cfg.get("mise_usd", MISE_DEFAUT_USD)), MISE_MIN_USD), MISE_MAX_USD)
         raison = None
-        if not cfg.get("actif", True) or (self.d / "STOP_REEL").exists():
+        if not cfg.get("actif", True) or any((x / "STOP_REEL").exists() for x in (ICI, self.out, self.d)):
             raison = "arrêt demandé"
         elif mint in self.etat["positions"]:
             raison = "déjà détenu"
@@ -319,7 +324,8 @@ class Reel:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dir", default=str(ICI / "data"))
+    ap.add_argument("--dir", default=str(ICI / "data"), help="fichiers du papier (lecture)")
+    ap.add_argument("--sortie", default=None, help="dossier de reel.jsonl et reel_etat.json (par défaut --dir)")
     ap.add_argument("--creer-portefeuille", action="store_true")
     ap.add_argument("--etat", action="store_true")
     a = ap.parse_args()
@@ -333,7 +339,7 @@ def main():
                 break
     cfg_p = ICI / "reel.json"
     cfg = json.loads(cfg_p.read_text()) if cfg_p.exists() else {}
-    r = Reel(a.dir, cfg)
+    r = Reel(a.dir, cfg, a.sortie)
     if a.etat:
         psol = prix_sol()
         print(f"adresse {r.pub} ; SOL {r.rpc.solde_sol(r.pub):.4f} ({r.rpc.solde_sol(r.pub) * psol:.2f} $) ; "

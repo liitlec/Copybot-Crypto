@@ -21,6 +21,7 @@ simples sur les chiffres du dossier, voir lire_idees) : elles sont ajoutées à 
 ce que chaque candidat du dossier de l'IA a fait ensuite, pour qu'elle apprenne de ses choix."""
 import itertools
 import math
+import re
 import json
 import os
 import time
@@ -463,7 +464,70 @@ def score_ia(sc, r):
     return tot
 
 
-def _score_valide(raw):
+# champs composés (06/11) : l'IA définit elle-même jusqu'à COMPOSES_MAX nouveaux champs « c_<nom> » = a op b, où a et b
+# sont des champs connus (ou des composés définis avant) et b peut être un nombre ; utilisables partout où un champ
+# l'est (conditions, score, classement). Aucun code venu de l'IA : seulement + - * / min max sur des nombres.
+COMPOSES_MAX = 10
+OPS_COMPOSES = {"+": lambda a, b: a + b, "-": lambda a, b: a - b, "*": lambda a, b: a * b,
+                "/": lambda a, b: a / b if b else None, "min": min, "max": max}
+_NOM_COMPOSE = re.compile(r"^c_[a-z0-9_]{1,30}$")
+
+
+def _composes_valides(raw):
+    """[] si absent ; None si invalide ; sinon la liste normalisée."""
+    if raw is None:
+        return []
+    if not isinstance(raw, list) or len(raw) > COMPOSES_MAX:
+        return None
+    out, noms = [], ()
+    for c in raw:
+        try:
+            nom, op, a = str(c["nom"]), str(c["op"]), str(c["a"])
+            b = c["b"]
+            b = float(b) if isinstance(b, (int, float)) and not isinstance(b, bool) else str(b)
+        except (KeyError, TypeError, ValueError):
+            return None
+        connus = CHAMPS + noms
+        if (not _NOM_COMPOSE.match(nom) or nom in noms or op not in OPS_COMPOSES or not a.startswith(connus)
+                or (isinstance(b, str) and not b.startswith(connus)) or (isinstance(b, float) and not math.isfinite(b))):
+            return None
+        out.append({"nom": nom, "op": op, "a": a, "b": b, "log": bool(c.get("log", False))})
+        noms += (nom,)
+    return out
+
+
+def avec_composes(rule, r):
+    """Le dossier r avec les champs composés de la règle (absent si un opérande manque)."""
+    cs = rule.get("composes") or []
+    if not cs:
+        return r
+    r = dict(r)
+    for c in cs:
+        a = champ(r, c["a"])
+        b = c["b"] if isinstance(c["b"], float) else champ(r, c["b"])
+        v = None
+        if a is not None and b is not None:
+            try:
+                v = OPS_COMPOSES[c["op"]](float(a), float(b))
+            except (ArithmeticError, ValueError):
+                v = None
+            if v is not None and c["log"]:
+                v = math.log10(1 + max(v, 0.0))
+            if v is not None and not math.isfinite(v):
+                v = None
+        if v is not None:
+            r[c["nom"]] = v
+        else:
+            r.pop(c["nom"], None)
+    return r
+
+
+def valeur_tri(rule, r):
+    """Valeur de classement d'un dossier pour la règle (avec ses champs composés), 0 si absente."""
+    return champ(avec_composes(rule, r), rule["tri"]) or 0
+
+
+def _score_valide(raw, noms=()):
     """None si pas de score ; False si invalide ; sinon le score normalisé."""
     if raw is None:
         return None
@@ -473,7 +537,7 @@ def _score_valide(raw):
         seuil = float(raw["seuil"])
     except (KeyError, TypeError, ValueError):
         return False
-    if not 0 < len(termes) <= TERMES_MAX or not all(t["champ"].startswith(CHAMPS) and abs(t["poids"]) <= POIDS_MAX
+    if not 0 < len(termes) <= TERMES_MAX or not all(t["champ"].startswith(CHAMPS + noms) and abs(t["poids"]) <= POIDS_MAX
                                                     and math.isfinite(t["poids"]) for t in termes) or not math.isfinite(seuil):
         return False
     return {"termes": termes, "seuil": seuil}
@@ -485,15 +549,20 @@ def regle_ia(raw):
     try:
         if len(raw["entree"]["conditions"]) > CONDITIONS_MAX:  # refusée, et non tronquée en silence
             return None
+        composes = _composes_valides(raw["entree"].get("composes"))
+        if composes is None:
+            return None
+        noms = tuple(c["nom"] for c in composes)
         conds = [{"champ": str(c["champ"]), "op": str(c["op"]), "val": float(c["val"])}
                  for c in raw["entree"]["conditions"]]
-        if not all(c["op"] in OPS and c["champ"].startswith(CHAMPS) for c in conds):
+        if not all(c["op"] in OPS and c["champ"].startswith(CHAMPS + noms) for c in conds):
             return None
         sx = raw["sortie"]
-        sc = _score_valide(raw["entree"].get("score"))
+        sc = _score_valide(raw["entree"].get("score"), noms)
         if sc is False:
             return None
         out = {"version": int(raw.get("version", 0)), "score": sc, "pause": bool(raw.get("pause", False)), "conditions": conds,
+               "composes": composes,
                "pourquoi": str(raw.get("pourquoi", ""))[:300],
                "tri": str(raw.get("classement", {}).get("champ", "score")),
                "tri_desc": raw.get("classement", {}).get("ordre", "desc") != "asc",
@@ -501,7 +570,7 @@ def regle_ia(raw):
                "sortie_volume": bool(sx.get("sortie_volume", False)),
                # délai avant de racheter un token déjà vendu (05/11 : 24 h fixes jusqu'ici), entre 2 et 48 h
                "delai_rachat_h": min(max(float(raw.get("delai_rachat_h", 24)), 2.0), 48.0)}
-        if not out["tri"].startswith(CHAMPS):
+        if not out["tri"].startswith(CHAMPS + noms):
             return None
         for k, (lo, hi) in BORNES.items():
             v = sx.get(k)
@@ -518,17 +587,19 @@ def cle_regle(rule):
     de même clé sont la même stratégie."""
     garde = ("conditions", "score", "tri", "tri_desc", "max_positions", "sortie_volume") + tuple(BORNES)
     d = {k: rule.get(k) for k in garde}
+    if rule.get("composes"):  # absent ou vide : les règles d'avant le 06/11 gardent leur clé
+        d["composes"] = rule["composes"]
     if rule.get("delai_rachat_h", 24) != 24:  # absent = 24 h : les règles d'avant le 05/11 gardent leur clé
         d["delai_rachat_h"] = rule["delai_rachat_h"]
     return json.dumps(d, sort_keys=True)
 
 
-DEFIS_MAX = 6  # challengeuses en même temps (tournoi du 04/11 ; 6 places depuis le 06/11)
+DEFIS_MAX = 12  # challengeuses en même temps (tournoi du 04/11 ; 6 places le 06/11, 12 le soir du 06/11)
 
 
 def lire_challengeuses(local):
     """ia_challengeuses.json écrit par l'IA chercheuse : {"challengeuses": [{"nom": str, "regle": {même format que
-    ia_regle.json}}]}, DEFIS_MAX (6) au plus, chacune validée comme la règle active. Une entrée invalide laisse sa place vide."""
+    ia_regle.json}}]}, DEFIS_MAX (12) au plus, chacune validée comme la règle active. Une entrée invalide laisse sa place vide."""
     try:
         raw = json.loads(Path(local).read_text())
     except (OSError, ValueError):
@@ -552,6 +623,7 @@ def lire_regle_ia(url=None, local=None):
 def entre_ia(rule, r):
     if r.get("essouffle"):
         return False
+    r = avec_composes(rule, r)
     for c in rule["conditions"]:
         v = champ(r, c["champ"])
         if v is None or not OPS[c["op"]](v, c["val"]):
@@ -575,6 +647,27 @@ def sortir_ia(rule, x, pic, age_h, essouffle):
     if rule["sortie_volume"] and essouffle:
         return f"volume essoufflé {x:+.0%}"
     return None
+
+
+REEL_MIN = 5  # ventes réelles terminées avant que leur écart remplace l'hypothèse de coût du banc (06/11)
+
+
+def ecart_reel(path):
+    """Coût réel mesuré au-delà du papier, par aller-retour : moyenne de (rendement papier − rendement réel) sur les
+    ventes du test réel (reel.jsonl). Renvoie (n, écart moyen) ; écart None s'il n'y a aucune vente."""
+    xs = []
+    try:
+        with open(path) as f:
+            for ln in f:
+                try:
+                    e = json.loads(ln)
+                except ValueError:
+                    continue
+                if e.get("event") == "vente" and e.get("ret_reel") is not None and e.get("ret_papier") is not None:
+                    xs.append(e["ret_papier"] - e["ret_reel"])
+    except OSError:
+        pass
+    return len(xs), (sum(xs) / len(xs) if xs else None)
 
 
 def resultats_candidats(out_dir, get, now, jours=72):

@@ -27,6 +27,9 @@ import apprend as A  # noqa: E402
 
 
 GLISSEMENT, FRAIS_RESEAU, PERTE_RUG = 0.02, 0.001, -0.95
+# coût en plus du papier par aller-retour : 2 % de glissement + 0,1 % de frais réseau par côté, remplacé par l'écart
+# mesuré sur le test réel dès A.REEL_MIN ventes réelles s'il est plus élevé (06/11)
+SURCOUT = [2 * GLISSEMENT + 2 * FRAIS_RESEAU]
 
 
 def nettoie(c):
@@ -53,7 +56,7 @@ def rugs_connus(d):
     return A.rugs_connus(d / "trades.jsonl", d / "ohlcv")
 
 
-def simule(rule, rows, paths, rugs=None, realiste=True):
+def simule(rule, rows, paths, rugs=None, realiste=True, avec_ligne=False):
     out, last = [], {}
     rugs = rugs or {}
     for r in rows:
@@ -81,9 +84,38 @@ def simule(rule, rows, paths, rugs=None, realiste=True):
             x = PERTE_RUG
         elif not why and (c[-1][0] - t0) / 3600 < rule["duree_max_h"]:
             continue  # trade pas encore terminé
-        cout = A.couts(r.get("liquidite")) + ((2 * GLISSEMENT + 2 * FRAIS_RESEAU) if realiste else 0)
-        out.append((r["t"], x - cout, r["token"], rug))
+        cout = A.couts(r.get("liquidite")) + (SURCOUT[0] if realiste else 0)
+        out.append((r["t"], x - cout, r["token"], rug, r) if avec_ligne else (r["t"], x - cout, r["token"], rug))
     return out
+
+
+def donnees(d, depuis=None, avec_interdits=False):
+    """(lignes d'univers.jsonl, bougies par pool, pools vidés) comme le banc les utilise ; règle aussi le surcoût
+    mesuré par le test réel. Partagé avec les outils de ia/outils/."""
+    rows = A.charger(d / "univers.jsonl", 0)
+    if not avec_interdits:  # 06/11 : interdits pour toutes les caisses, donc hors du banc aussi
+        rows = [r for r in rows if not A.nom_interdit(r.get("nom"))]
+    if depuis:
+        from datetime import datetime, timezone
+        t_dep = float(depuis) if str(depuis).replace(".", "").isdigit() else \
+            datetime.fromisoformat(depuis).replace(tzinfo=timezone.utc).timestamp()
+        rows = [r for r in rows if r["t"] >= t_dep]
+        print(f"hors échantillon : signaux après {datetime.fromtimestamp(t_dep, timezone.utc):%d/%m %H:%M} UTC seulement")
+    paths = {}
+    for f in (d / "ohlcv").glob("*.json"):
+        try:  # un fichier mal téléchargé (page d'erreur, coupure) est ignoré
+            paths[f.stem] = [tuple(x) for x in json.loads(f.read_text())["c"]]
+        except (ValueError, KeyError, TypeError):
+            continue
+    rugs = rugs_connus(d)
+    n_reel, ec = A.ecart_reel(d / "reel.jsonl")
+    if ec is not None:
+        print(f"test réel : {n_reel} ventes, le papier surestime de {ec:+.1%} par aller-retour"
+              + (f" ; coût du banc porté à {max(ec, SURCOUT[0]):.1%}" if n_reel >= A.REEL_MIN and ec > SURCOUT[0]
+                 else f" (le banc compte {SURCOUT[0]:.1%} ; remplacé à partir de {A.REEL_MIN} ventes si plus élevé)"))
+        if n_reel >= A.REEL_MIN:
+            SURCOUT[0] = max(SURCOUT[0], ec)
+    return rows, paths, rugs
 
 
 def resume(xs):
@@ -108,24 +140,9 @@ def main():
                     help="nombre total de variantes testées pendant ce passage (toi et tes agents) : relève le seuil")
     a = ap.parse_args()
     d = Path(a.data)
-    rows = A.charger(d / "univers.jsonl", 0)
-    if not a.avec_interdits:  # 06/11 : interdits pour toutes les caisses, donc hors du banc aussi
-        rows = [r for r in rows if not A.nom_interdit(r.get("nom"))]
-    if a.depuis:
-        from datetime import datetime, timezone
-        t_dep = float(a.depuis) if a.depuis.replace(".", "").isdigit() else \
-            datetime.fromisoformat(a.depuis).replace(tzinfo=timezone.utc).timestamp()
-        rows = [r for r in rows if r["t"] >= t_dep]
-        print(f"hors échantillon : signaux après {datetime.fromtimestamp(t_dep, timezone.utc):%d/%m %H:%M} UTC seulement")
-    paths = {}
-    for f in (d / "ohlcv").glob("*.json"):
-        try:  # un fichier mal téléchargé (page d'erreur, coupure) est ignoré
-            paths[f.stem] = [tuple(x) for x in json.loads(f.read_text())["c"]]
-        except (ValueError, KeyError, TypeError):
-            continue
+    rows, paths, rugs = donnees(d, a.depuis, a.avec_interdits)
     now = max(r["t"] for r in rows)
     split = now - a.test_heures * 3600
-    rugs = rugs_connus(d)
     print(f"{len(rows)} lignes, {len(paths)} pools avec prix, {len(rugs)} pools vidés connus, "
           f"test = dernières {a.test_heures:g} h ; mode {'optimiste' if a.optimiste else 'réaliste'}")
     for path in a.regles:

@@ -7,6 +7,7 @@ Usage : python3 serveur.py --dir /opt/memes_paper/data --port 8787"""
 import argparse
 import hmac
 import json
+import math
 import re
 import sys
 import threading
@@ -18,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import apprend  # noqa: E402
 
-ECRITURE = re.compile(r"^(ia_regle\.json|ia_challengeuses\.json|ia_registre\.json|ia_carnet\.md|juge_lecons\.md|juge_idees\.json|juge_\d{4}-\d{2}-\d{2}(_\d{2})?\.json|juge2_\d{4}-\d{2}-\d{2}_\d{2}\.json|juge2_lecons\.md)$")
+ECRITURE = re.compile(r"^(ia_regle\.json|ia_challengeuses\.json|ia_registre\.json|ia_demandes\.md|ia_carnet\.md|juge_lecons\.md|juge_idees\.json|juge_\d{4}-\d{2}-\d{2}(_\d{2})?\.json|juge2_\d{4}-\d{2}-\d{2}_\d{2}\.json|juge2_lecons\.md)$")
 TAILLE_MAX = 64 * 1024
 TAILLE_MAX_PAR_FICHIER = {"ia_registre.json": 512 * 1024}  # registre des hypothèses de la chercheuse (06/11)
 # tableau commun des IA (01-02/11) : chacune y ajoute des observations, sans pouvoir effacer celles des autres
@@ -53,6 +54,15 @@ def promotion(rule, d):
         m = sum(xs) / len(xs)
         if m <= 0:
             return f"{slot} perd en direct (moyenne {m:+.1%})"
+        # 06/11 : avec jusqu'à 12 places, la meilleure gagne souvent par chance ; sa moyenne doit dépasser
+        # sqrt(2 ln N) erreurs types (N = places en jeu), comme le seuil du banc
+        n_places = max(1, len(state.get("defis") or {}))
+        sd = (sum((x - m) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5
+        t = m / (sd / len(xs) ** 0.5) if sd > 0 else float("inf")
+        seuil = max(1.0, math.sqrt(2 * math.log(n_places))) if n_places > 1 else 1.0
+        if t < seuil:
+            return (f"{slot} : moyenne {m:+.1%} à {t:.2f} erreurs types, il en faut {seuil:.2f} avec {n_places} places "
+                    "en jeu (attends plus de trades)")
         champ_xs = [r["ret"] for r in (state.get("books") or {}).get("ia", {}).get("closed", [])
                     if r.get("t_in", 0) >= defi.get("debut", 0)]
         if len(champ_xs) >= 5 and m <= sum(champ_xs) / len(champ_xs):

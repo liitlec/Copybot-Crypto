@@ -105,9 +105,9 @@ Jusqu'ici, tu choisissais ta règle sur le passé puis tu la jouais : une règle
 sur des tokens que personne n'avait vus au moment où tu l'as écrite.
 
 - **La championne** = ta règle active (`ia_regle.json`), jouée par les caisses « ia » et « ia_filtre ».
-- **Les challengeuses** = jusqu'à 6 règles (3 jusqu'au 06/11) que tu écris dans `ia_challengeuses.json` sur le VPS :
+- **Les challengeuses** = jusqu'à 12 règles (3 jusqu'au 06/11, 6 puis 12 le 06/11) que tu écris dans `ia_challengeuses.json` sur le VPS :
   `{"challengeuses": [{"nom": "court et clair", "regle": {même format que ia_regle.json}}, ...]}`. Le VPS donne à
-  chacune sa caisse fantôme « defi_1 » … « defi_6 » (10 000 $, mêmes tailles et mêmes coûts) qui achète
+  chacune sa caisse fantôme « defi_1 » … « defi_12 » (10 000 $, mêmes tailles et mêmes coûts) qui achète
   et vend en direct. Lis leurs résultats dans state.json (books "defi_N", et "defis" pour savoir quelle règle est où ;
   les challengeuses terminées et leur bilan sont dans "defis_finis").
 - **Une place est figée** tant que sa challengeuse n'a pas 15 trades fermés ou 48 h d'âge (ou qu'elle n'est pas
@@ -152,7 +152,7 @@ sur des tokens que personne n'avait vus au moment où tu l'as écrite.
    du tournoi ; elle sera promue si elle gagne en direct.
 7. Écris dans ton carnet une entrée datée (heure de Paris) de 3 à 8 lignes : autopsies, hypothèses testées (avec le
    nombre total d'essais), état du tournoi, décision. Garde le carnet sous 200 lignes en résumant les plus anciennes.
-8. N'écris que ton carnet, `ia_registre.json`, `ia_challengeuses.json` et (pour une promotion) `ia_regle.json`, sur le VPS. Jamais le
+8. N'écris que ton carnet, `ia_registre.json`, `ia_demandes.md`, `ia_challengeuses.json` et (pour une promotion) `ia_regle.json`, sur le VPS. Jamais le
    code, jamais les autres caisses.
 
 ## Ce qui change le 06/11 (demandé par l'utilisateur : « qu'elle trouve vraiment quelque chose »)
@@ -185,6 +185,25 @@ sur des tokens que personne n'avait vus au moment où tu l'as écrite.
   "moyenne": 0.03}, "direct": {"place": "defi_4", "trades": 0, "moyenne": null}, "statut": "en jeu|rejetée|promue",
   "pourquoi": "chiffré"}]}`. Lis-le au début de chaque passage, mets-le à jour à la fin ; avant de tester une idée,
   vérifie qu'elle n'y est pas déjà rejetée.
+
+## Ce qui change le soir du 06/11 (demandé par l'utilisateur : « plus compétente et autonome »)
+
+- **Lis `ia/SKILLS.md` à chaque passage** : tes méthodes prêtes à suivre (criblage de tous les champs, score ajusté,
+  champs composés, test hors échantillon, coût réel, autopsie, demandes d'outils).
+- **Champs composés** : tu inventes toi-même jusqu'à 10 champs `c_<nom>` = a op b dans `entree.composes` (voir SKILLS
+  §3) ; le VPS, le banc et les outils les calculent. Tu n'as plus à attendre un nouveau champ pour tester un rapport.
+- **Outils** : `ia/outils/criblage.py` (tous les champs d'un coup, choisis sur l'ancien, vérifiés sur le récent) et
+  `ia/outils/ajuste_score.py` (régression apprise sur l'ancien, jugée sur le récent, qui sort le bloc `score`).
+- **Coût réel** : télécharge aussi `reel.jsonl`. Dès 5 ventes du test réel, le banc remplace son hypothèse de coût
+  (4,2 % par aller-retour) par l'écart mesuré entre le papier et le vrai marché s'il est plus élevé.
+- **Tournoi à 12 places** (le fichier accepte 12 challengeuses). Avec autant de places, la meilleure gagne souvent par
+  chance : la promotion exige en plus que sa moyenne en direct dépasse **sqrt(2 ln N) erreurs types** (N = places en
+  jeu : 2,23 pour 12), en plus des 15 trades, d'une moyenne positive et de battre la championne. Le serveur te donne
+  le chiffre en cas de refus. Garde des familles d'idées variées entre les places.
+- **Demandes d'outils, sans attendre l'utilisateur** : écris ce qui te manque dans `ia_demandes.md` sur le VPS (format
+  SKILLS §7, envoi comme ton carnet ; lis d'abord la version du VPS et ajoute à la suite). Une ingénieure les code une
+  fois par jour, le VPS les installe tout seul après test ; les réponses sont dans `ia/DEMANDES_FAITES.md` du dépôt.
+  Une bonne demande est chiffrée (ce que tu as vu qui la justifie) et dit comment tu la testeras.
 
 ## Nouveaux outils et nouvelles données (04/11)
 
