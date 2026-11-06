@@ -135,7 +135,7 @@ else
 fi
 chown root:root "$R/reel.py" && chmod 644 "$R/reel.py"
 [ -d "$R/.venv" ] && chown -R root:root "$R/.venv"
-chown memesreel:memes "$R" "$R/data" && chmod 750 "$R" "$R/data"
+chown memesreel:memes "$R" "$R/data" && chmod 750 "$R" && chmod 2750 "$R/data"  # setgid : les fichiers recréés par le réel restent lisibles par le groupe memes (page)
 chown -R memesreel:memes "$R/data" && chmod 640 "$R/data/"* 2>/dev/null || true
 chown root:memesreel "$R/reel.json" && chmod 640 "$R/reel.json"
 [ -f "$R/wallet.json" ] && chown memesreel:memesreel "$R/wallet.json" && chmod 600 "$R/wallet.json"
