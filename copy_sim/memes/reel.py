@@ -209,7 +209,14 @@ class Reel:
         try:
             sig, q = echanger(self.rpc, self.kp, SOL, mint, lamports, GLISSEMENT_BPS)
         except Exception as exc:
-            return self.noter({"event": "achat_echec", "token": mint, "nom": ev.get("name"), "erreur": str(exc)[:300]})
+            # 06/11 : une transaction confirmée en retard arrive quand même ; sans cette vérification, les jetons
+            # resteraient dans le portefeuille sans jamais être revendus
+            time.sleep(20)
+            brut, _ = self.rpc.solde_jeton(self.pub, mint)
+            if not brut:
+                return self.noter({"event": "achat_echec", "token": mint, "nom": ev.get("name"), "erreur": str(exc)[:300]})
+            sig, q = "confirmée en retard", {}
+            self.noter({"event": "achat_tardif", "token": mint, "nom": ev.get("name"), "erreur": str(exc)[:200]})
         brut, dec = 0, 0
         for _ in range(6):  # le solde peut mettre quelques secondes à apparaître
             brut, dec = self.rpc.solde_jeton(self.pub, mint)
@@ -229,7 +236,7 @@ class Reel:
     def vendre(self, rec, tries=VENTE_BPS):
         mint = rec["token"]
         pos = self.etat["positions"].get(mint)
-        if not pos:
+        if not pos or time.time() < pos.get("reessai", 0):
             return
         brut, dec = self.rpc.solde_jeton(self.pub, mint)
         if not brut:
@@ -255,12 +262,19 @@ class Reel:
                                    "raison_papier": rec.get("reason"), "glissement_bps": bps})
             except Exception as exc:
                 err = str(exc)[:300]
+        pos["reessai"] = time.time() + 120  # nouvel essai dans 2 min (rattrapage), pas toutes les 5 s
+        self.sauver()
         self.noter({"event": "vente_echec", "token": mint, "nom": pos["nom"], "erreur": err})
 
     def tourner(self):
         self.demarrer()
-        f = self.d / "trades.jsonl"
         while True:
+            self.une_passe()
+            time.sleep(5)
+
+    def une_passe(self):
+        f = self.d / "trades.jsonl"
+        if True:
             try:
                 if f.exists() and f.stat().st_size < self.etat["offset"]:  # fichier remplacé (remise à zéro)
                     self.etat["offset"] = 0
@@ -282,21 +296,25 @@ class Reel:
                         elif "ret" in ev:
                             self.vendre(ev)
                 # une vente ratée est retentée tant que la position papier est fermée
-                ouvertes = self.ouvertes_papier()
+                # 06/11 : state.json n'est réécrit qu'en fin de cycle, plusieurs minutes après l'achat ; une position
+                # n'est jugée fermée en papier que si l'état a été réécrit après notre achat et ne la contient plus
+                ouvertes, maj = self.ouvertes_papier()
                 for mint in list(self.etat["positions"]):
-                    if ouvertes is not None and mint not in ouvertes and time.time() - self.etat["positions"][mint]["t"] > 60:
+                    if ouvertes is not None and mint not in ouvertes and maj > self.etat["positions"][mint]["t"] + 30:
                         self.vendre({"token": mint, "reason": "rattrapage : position papier fermée"})
             except Exception as exc:
                 self.noter({"event": "erreur", "erreur": repr(exc)[:300]})
                 time.sleep(30)
-            time.sleep(5)
 
     def ouvertes_papier(self):
+        """(positions ouvertes de la caisse papier, heure de dernière écriture de state.json)."""
+        f = self.d / "state.json"
         try:
-            s = json.loads((self.d / "state.json").read_text())
-            return set(s["books"][self.cfg.get("caisse", "ia")]["open"])
+            maj = f.stat().st_mtime
+            s = json.loads(f.read_text())
+            return set(s["books"][self.cfg.get("caisse", "ia")]["open"]), maj
         except Exception:
-            return None
+            return None, 0
 
 
 def main():
