@@ -105,12 +105,13 @@ Jusqu'ici, tu choisissais ta règle sur le passé puis tu la jouais : une règle
 sur des tokens que personne n'avait vus au moment où tu l'as écrite.
 
 - **La championne** = ta règle active (`ia_regle.json`), jouée par les caisses « ia » et « ia_filtre ».
-- **Les challengeuses** = jusqu'à 3 règles que tu écris dans `ia_challengeuses.json` sur le VPS :
+- **Les challengeuses** = jusqu'à 6 règles (3 jusqu'au 06/11) que tu écris dans `ia_challengeuses.json` sur le VPS :
   `{"challengeuses": [{"nom": "court et clair", "regle": {même format que ia_regle.json}}, ...]}`. Le VPS donne à
-  chacune sa caisse fantôme « defi_1 », « defi_2 », « defi_3 » (10 000 $, mêmes tailles et mêmes coûts) qui achète
+  chacune sa caisse fantôme « defi_1 » … « defi_6 » (10 000 $, mêmes tailles et mêmes coûts) qui achète
   et vend en direct. Lis leurs résultats dans state.json (books "defi_N", et "defis" pour savoir quelle règle est où ;
   les challengeuses terminées et leur bilan sont dans "defis_finis").
-- **Une place est figée** tant que sa challengeuse n'a pas 15 trades fermés ou 48 h d'âge : si tu changes une règle
+- **Une place est figée** tant que sa challengeuse n'a pas 15 trades fermés ou 48 h d'âge (ou qu'elle n'est pas
+  éliminée ou morte, voir « Ce qui change le 06/11 ») : si tu changes une règle
   plus tôt dans le fichier, le VPS garde l'ancienne (c'est voulu : une idée se juge sur assez de trades).
 - **Promotion** : pour remplacer la championne, écris dans `ia_regle.json` exactement la règle d'une challengeuse
   (mêmes conditions, score, sortie, tri, positions ; seuls "version" et "pourquoi" changent). Le serveur l'accepte
@@ -151,8 +152,39 @@ sur des tokens que personne n'avait vus au moment où tu l'as écrite.
    du tournoi ; elle sera promue si elle gagne en direct.
 7. Écris dans ton carnet une entrée datée (heure de Paris) de 3 à 8 lignes : autopsies, hypothèses testées (avec le
    nombre total d'essais), état du tournoi, décision. Garde le carnet sous 200 lignes en résumant les plus anciennes.
-8. N'écris que ton carnet, `ia_challengeuses.json` et (pour une promotion) `ia_regle.json`, sur le VPS. Jamais le
+8. N'écris que ton carnet, `ia_registre.json`, `ia_challengeuses.json` et (pour une promotion) `ia_regle.json`, sur le VPS. Jamais le
    code, jamais les autres caisses.
+
+## Ce qui change le 06/11 (demandé par l'utilisateur : « qu'elle trouve vraiment quelque chose »)
+
+- **XTEN et PREDICT sont interdits définitivement** (et leurs copies, par le nom) : toutes les caisses les refusent, le
+  banc les exclut par défaut (`--avec-interdits` pour les revoir). Ce sont des jumeaux à volume de robots (62
+  portefeuilles, 77 % d'allers-retours, tailles toutes identiques) dont les pools sont vidés un à un : PREDICT deux
+  fois le 05/11, XTEN le 06/11 à 06:49 UTC (−100 % dans 4 caisses). Sans eux, tes résultats tournent autour de 0 % :
+  c'est le vrai point de départ. Cherche ailleurs.
+- **Vrais acheteurs**, mesurés par le VPS sur les ~300 dernières transactions de quelques pools par cycle (champs
+  absents des lignes plus anciennes) : `tx_portefeuilles` (portefeuilles distincts), `tx_part_aller_retour` (part de
+  ceux qui achètent ET vendent ; ~0,77 = robots), `tx_tailles_uniformes` (part des transactions à ±30 % de la
+  taille médiane ; ~0,95 = robots), `tx_part_top5` (part du volume des 5 plus gros), `tx_minutes_300` (minutes
+  couvertes par ces 300 transactions). C'est la piste la plus prometteuse : de la vraie demande, pas un volume fabriqué.
+- **Évolutions sur 30 min**, recalculées sur tout l'historique : `evol_liquidite_30m`, `evol_acheteurs_h1_30m`,
+  `evol_detenteurs_30m`, `evol_prix_30m` (0,1 = +10 %). Une liquidité qui baisse avant un rug, des acheteurs qui
+  accélèrent…
+- **Tournoi à 6 places** (le fichier accepte 6 challengeuses ; les 3 premières gardent leurs places). Une place se
+  libère après 15 trades ou 48 h, **ou plus tôt** : au moins 8 trades et une moyenne sous −15 % (élimination), ou
+  aucun achat depuis 24 h (place morte). Garde **au moins une place pour une famille d'idées différente** du momentum
+  (rebond après une chute sur des tokens à vrais acheteurs, tokens neufs « propres » : autorisations révoquées,
+  détenteurs répartis, peu d'allers-retours, etc.) : c'est là qu'un vrai avantage peut se cacher.
+- **Test hors échantillon** : `banc.py ... --depuis 2026-11-06T10:00` ne garde que les signaux après cette date (UTC).
+  Pour une idée écrite à une date T, c'est un vrai test sur des données que tu n'avais pas vues, sans attendre ses
+  trades en direct. Utilise-le à chaque passage sur les hypothèses de ton registre.
+- **Registre des hypothèses** `ia_registre.json` (sur le VPS, 512 Ko au plus, envoi comme ton carnet) : ta mémoire
+  longue, pour ne jamais retester ce qui a échoué. Format :
+  `{"hypotheses": [{"id": "h12", "date": "2026-11-06T10:00", "idee": "une phrase", "regle": {...},
+  "banc": {"n": 14, "moyenne": 0.21, "t": 2.4, "essais": 40}, "hors_echantillon": {"depuis": "...", "n": 5,
+  "moyenne": 0.03}, "direct": {"place": "defi_4", "trades": 0, "moyenne": null}, "statut": "en jeu|rejetée|promue",
+  "pourquoi": "chiffré"}]}`. Lis-le au début de chaque passage, mets-le à jour à la fin ; avant de tester une idée,
+  vérifie qu'elle n'y est pas déjà rejetée.
 
 ## Nouveaux outils et nouvelles données (04/11)
 

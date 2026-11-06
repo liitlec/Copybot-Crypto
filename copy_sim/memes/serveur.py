@@ -18,8 +18,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import apprend  # noqa: E402
 
-ECRITURE = re.compile(r"^(ia_regle\.json|ia_challengeuses\.json|ia_carnet\.md|juge_lecons\.md|juge_idees\.json|juge_\d{4}-\d{2}-\d{2}(_\d{2})?\.json|juge2_\d{4}-\d{2}-\d{2}_\d{2}\.json|juge2_lecons\.md)$")
+ECRITURE = re.compile(r"^(ia_regle\.json|ia_challengeuses\.json|ia_registre\.json|ia_carnet\.md|juge_lecons\.md|juge_idees\.json|juge_\d{4}-\d{2}-\d{2}(_\d{2})?\.json|juge2_\d{4}-\d{2}-\d{2}_\d{2}\.json|juge2_lecons\.md)$")
 TAILLE_MAX = 64 * 1024
+TAILLE_MAX_PAR_FICHIER = {"ia_registre.json": 512 * 1024}  # registre des hypothèses de la chercheuse (06/11)
 # tableau commun des IA (01-02/11) : chacune y ajoute des observations, sans pouvoir effacer celles des autres
 COMMUN, COMMUN_AJOUT_MAX, COMMUN_LIGNES_MAX = "commun.md", 2048, 400
 AUTEURS = ("chercheuse", "juge", "juge2")
@@ -73,6 +74,9 @@ def verifier(name, body, d=None):
         why = promotion(rule, d) if d is not None else None
         if why:
             raise ValueError(f"promotion refusée : {why}")
+    if name == "ia_registre.json":
+        if not isinstance(data, dict) or not isinstance(data.get("hypotheses"), list):
+            raise ValueError('il faut {"hypotheses": [...]} (voir MISSION.md)')
     if name == "ia_challengeuses.json":
         cs = data.get("challengeuses") if isinstance(data, dict) else None
         if not isinstance(cs, list) or not 0 < len(cs) <= apprend.DEFIS_MAX:
@@ -126,7 +130,7 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.jeton or not hmac.compare_digest(self.headers.get("X-Jeton", ""), self.jeton):
             return self.send_error(403, "jeton invalide")
         n = int(self.headers.get("Content-Length") or 0)
-        if not 0 < n <= TAILLE_MAX:
+        if not 0 < n <= TAILLE_MAX_PAR_FICHIER.get(m.group(1), TAILLE_MAX):
             return self.send_error(413, "taille invalide")
         try:
             content = verifier(m.group(1), self.rfile.read(n), self.directory)

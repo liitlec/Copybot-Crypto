@@ -69,6 +69,7 @@ ABSENT_MAX, VIDE_CONFIRME, GRPC_ECART, GRPC_REF_S = 12, 2, (0.7, 1 / 0.7), 60
 # data/archive_avant_remise_<REMISE>/. Les données de marché (univers.jsonl, ohlcv/) et les fichiers des IA restent.
 REMISE = "2026-11-04"
 SECU_PAR_CYCLE = 5  # relevés de sécurité des tokens par cycle (04/11)
+TX_PAR_CYCLE, TX_CACHE_S = 4, 1800  # relevés « vrais acheteurs » (transactions récentes) par cycle, gardés 30 min (06/11)
 # noms vidés (05/11) : des escrocs relancent le même nom (PIRATE, HIGH, AI…) et vident le pool en 10 à 20 min, encore
 # et encore. Pour toutes les caisses : un nom est bloqué NOM_BLOQUE_1_H heures après un premier pool vidé (un rug
 # isolé, comme une copie de PREDICT le 05/11, ne doit pas écarter le token pour deux jours), et NOM_BLOQUE_H heures
@@ -82,6 +83,9 @@ def nom_base(name):
 
 
 def nom_bloque(name, now):
+    import apprend
+    if apprend.nom_interdit(name):  # XTEN et PREDICT : interdits définitivement (06/11)
+        return True
     ts = [t for t in NOMS_VIDES[0].get(nom_base(name), []) if now - t < NOM_BLOQUE_H * 3600]
     return len(ts) >= 2 or any(now - t < NOM_BLOQUE_1_H * 3600 for t in ts)
 
@@ -91,7 +95,10 @@ def noter_rug(name, now):
     if k:
         ts = [t for t in NOMS_VIDES[0].get(k, []) if now - t < NOM_BLOQUE_H * 3600 and abs(now - t) > 60]
         NOMS_VIDES[0][k] = (ts + [now])[-10:]
-DEFIS_MAX, DEFI_MIN_TRADES, DEFI_MIN_H = 3, 15, 48  # tournoi des règles de l'IA chercheuse (04/11)
+DEFIS_MAX, DEFI_MIN_TRADES, DEFI_MIN_H = 6, 15, 48  # tournoi des règles de l'IA chercheuse (04/11 ; 6 places le 06/11)
+# 06/11 : une place se libère aussi plus tôt si sa challengeuse perd nettement (au moins ELIM_TRADES trades et moyenne
+# sous ELIM_MOYENNE) ou si elle n'a rien acheté depuis MORTE_H heures (une place morte n'apprend rien)
+ELIM_TRADES, ELIM_MOYENNE, MORTE_H = 8, -0.15, 24
 RULE_BANK = [10000.0]  # mise de départ des caisses (--bank), pour les caisses des challengeuses
 # 04/11 soir : un pool vidé affichait un prix absurde et la caisse « auto » a « vendu » Impeach +36 millions de % ;
 # correction des ventes déjà enregistrées (une seule fois) : un pool vidé rend au plus 5 % de la mise
@@ -521,15 +528,42 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
               if not (hc.get(a["token"]) and "top10" in hc[a["token"]] and now - hc[a["token"]]["t"] < RULE["holders_cache_s"])]
     for a in manque[:SECU_PAR_CYCLE]:
         holders(a["token"], hc, now, full=True)
+    # vrais acheteurs (06/11) : ~300 dernières transactions du pool, pour TX_PAR_CYCLE pools par cycle (les plus échangés
+    # d'abord, sauf noms interdits), gardées TX_CACHE_S secondes
+    import apprend
+    txc = state.setdefault("txcache", {})
+    for k in [k for k, v in txc.items() if now - v["t"] > 4 * 3600]:
+        del txc[k]
+    a_mesurer = [a for a in sorted(uni_all, key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
+                 if not apprend.nom_interdit(a.get("name")) and not (a["pool"] in txc and now - txc[a["pool"]]["t"] < TX_CACHE_S)]
+    for a in a_mesurer[:TX_PAR_CYCLE]:
+        try:
+            d = get(f"{GT}/pools/{a['pool']}/trades", tries=1)
+            txc[a["pool"]] = {"t": now, "m": apprend.mesure_transactions([x["attributes"] for x in d.get("data", [])])}
+        except Exception:
+            txc[a["pool"]] = {"t": now - TX_CACHE_S + 600, "m": {}}  # nouvel essai dans 10 min
+    histo = state.setdefault("histo", {})
+    for k in [k for k, v in histo.items() if not v or now - v[-1]["t"] > 3600]:
+        del histo[k]
     recs = []
     with (out_dir / "univers.jsonl").open("a") as f:
         for a in uni_all:
             r, hg, pg = scores.get(a["token"], (None, None, None))
             rec = dict(dossier(r or 0.0, a, hg, pg, None, state.get("hcache", {}).get(a["token"], {})),
                        t=round(now), classe=r is not None, essouffle=fading(a), univers_post=bool(a.get("_post")))
+            tx = txc.get(a["pool"])
+            if tx and now - tx["t"] < 2 * TX_CACHE_S:
+                rec.update(tx["m"])
+            h = histo.setdefault(a["token"], [])
+            rec.update(apprend.evolutions(rec, h))
+            h.append({"t": rec["t"], "liquidite": rec.get("liquidite"), "detenteurs": rec.get("detenteurs"),
+                      "prix": rec.get("prix"), "transactions": {"h1": (rec.get("transactions") or {}).get("h1")}})
+            del h[:-12]
             recs.append((rec, a))
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     state.pop("snaps", None)
+    extra = {rec["token"]: {k: rec[k] for k in apprend.TRANSACTIONS + apprend.EVOLUTIONS if rec.get(k) is not None}
+             for rec, _ in recs}  # aussi dans les dossiers des juges
     recs = [x for x in recs if not nom_bloque(x[1].get("name"), now)]  # les caisses à règle passent au suivant
     # 3. entrées (une par cycle et par caisse). « classement » suit le cadran comme dans le post ; « sans_cadran » prend
     #    les mêmes choix tous les jours ; « temoin » tire au hasard dans le filtre à chaque entrée de « sans_cadran ».
@@ -556,11 +590,13 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
                 continue
             bk = books[name]
             recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
-            pick = next((r for r in ranked_post if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent), None)
+            pick = next((r for r in ranked_post if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent
+                         and not nom_bloque(r[1].get("name"), now)), None)  # nom bloqué : le suivant (06/11)
             if pick and enter(bk, pick[1], mult, {"score": round(pick[0], 4), "detenteurs": pick[2], "prix": pick[3]}) \
                     and name == "sans_cadran":
                 recent_t = {r["token"] for r in books["temoin"]["closed"] if now - r["t_out"] < 24 * 3600}
-                pool = [x for x in uni_post if x["token"] not in books["temoin"]["open"] and x["token"] not in recent_t]
+                pool = [x for x in uni_post if x["token"] not in books["temoin"]["open"] and x["token"] not in recent_t
+                        and not nom_bloque(x.get("name"), now)]
                 if pool:
                     enter(books["temoin"], random.choice(pool), 1.0, {"hasard": True})
     # 3 bis. caisse « auto » : un achat par cycle parmi les candidats qui passent la règle du jour
@@ -615,7 +651,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
             if enter(bf, a, 1.0, {"ia_version": ia["version"], "filtre": "ok"}):
                 bf["open"][a["token"]]["sortie_ia"] = ia
             break
-    # 3 quater. tournoi (04/11) : jusqu'à 3 challengeuses écrites par l'IA chercheuse (ia_challengeuses.json) tradent
+    # 3 quater. tournoi (04/11) : jusqu'à DEFIS_MAX (6) challengeuses écrites par l'IA chercheuse (ia_challengeuses.json) tradent
     #    chacune dans sa caisse fantôme « defi_N », sur des tokens que personne n'a encore vus. La règle active ne peut
     #    être remplacée que par une challengeuse qui a fait ses preuves en direct (contrôlé par serveur.py). Une place
     #    ne peut changer de règle qu'après DEFI_MIN_TRADES trades fermés ou DEFI_MIN_H heures, pour qu'aucune idée ne
@@ -632,7 +668,11 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         if new and (not cur or cur["cle"] != new["cle"]):
             b = books.get(slot)
             n_fermes = len(b["closed"]) if b else 0
-            if not cur or n_fermes >= DEFI_MIN_TRADES or now - cur["debut"] >= DEFI_MIN_H * 3600:
+            xs = [r["ret"] for r in b["closed"]] if b else []
+            achats = [r["t_in"] for r in b["closed"]] + [q["t"] for q in b["open"].values()] if b else []
+            perd = n_fermes >= ELIM_TRADES and sum(xs) / n_fermes < ELIM_MOYENNE
+            morte = cur and now - max(achats + [cur["debut"]]) >= MORTE_H * 3600
+            if not cur or n_fermes >= DEFI_MIN_TRADES or now - cur["debut"] >= DEFI_MIN_H * 3600 or perd or morte:
                 if cur and b:
                     xs = [r["ret"] for r in b["closed"]]
                     state.setdefault("defis_finis", []).append(
@@ -664,8 +704,8 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     key = f"{day}_{slot[:2]}" if slot else None
     if key and state.get("creneau") != key:
         state["creneau"] = key
-        snap = [dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {}))
-                for i, (r, a, hg, pg) in enumerate(ranked[:RULE["candidats_max"]])]
+        snap = [dict(dossier(r, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {})), **extra.get(a["token"], {}))
+                for i, (r, a, hg, pg) in enumerate([x for x in ranked if not apprend.nom_interdit(x[1].get("name"))][:RULE["candidats_max"]])]
         doc = json.dumps({"date": day, "creneau": key, "t": now, "cadran": dial_v,
                           "cadran_verts": state["dial"]["verts"], "candidats": snap}, ensure_ascii=False, indent=1)
         (out_dir / "candidats_jour.json").write_text(doc, encoding="utf-8")
@@ -674,7 +714,8 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         state["candidats_jour"] = {c["token"]: c["pool"] for c in snap}
         bk = books["un_par_jour"]
         recent = {r["token"] for r in bk["closed"] if now - r["t_out"] < 24 * 3600}
-        pick = next((r for r in ranked if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent), None)
+        pick = next((r for r in ranked if r[1]["token"] not in bk["open"] and r[1]["token"] not in recent
+                     and not nom_bloque(r[1].get("name"), now)), None)
         if not daily_mult:
             log({"event": "jour", "book": "un_par_jour", "creneau": key, "rien": "cadran sous 0,5"})
         elif not pick:
@@ -732,9 +773,9 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         classes = {a["token"] for _, a, _, _ in ranked}
         autres = sorted((a for a in uni_all if a["token"] not in classes),
                         key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
-        liste2 = ranked + [(None, a, None, None) for a in autres]
+        liste2 = [x for x in ranked + [(None, a, None, None) for a in autres] if not apprend.nom_interdit(x[1].get("name"))]
         snap2 = [dict(dossier(r or 0.0, a, hg, pg, i + 1, state.setdefault("hcache", {}).get(a["token"], {})),
-                      classe=r is not None, essouffle=fading(a))
+                      classe=r is not None, essouffle=fading(a), **extra.get(a["token"], {}))
                  for i, (r, a, hg, pg) in enumerate(liste2[:RULE["candidats_max_v2"]])]
         doc2 = json.dumps({"date": day, "creneau": key2, "t": now, "cadran": dial_v,
                            "cadran_verts": state["dial"]["verts"], "candidats": snap2}, ensure_ascii=False, indent=1)

@@ -33,8 +33,67 @@ IDEES_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/po
 DERIVES = ("rotation_h1", "volume_par_trader_h1", "liq_sur_mcap", "part_vendeurs_h1", "part_vendeurs_m5")
 # sécurité du token (relevée par le VPS depuis le 04/11, absente des lignes plus anciennes : condition fausse si absente)
 SECURITE = ("top10_pct", "autorite_mint", "autorite_gel")
+# vrais acheteurs (06/11) : mesurés par le VPS sur les ~300 dernières transactions du pool (GeckoTerminal), pour
+# quelques tokens par cycle ; XTEN le 05/11 : 62 portefeuilles, 77 % d'allers-retours, tailles toutes entre 630 et
+# 820 $ = volume de robots. Absents des lignes plus anciennes (condition fausse si absente).
+TRANSACTIONS = ("tx_portefeuilles", "tx_part_aller_retour", "tx_tailles_uniformes", "tx_part_top5", "tx_minutes_300")
+# évolutions sur ~30 min (06/11), recalculées depuis l'historique d'univers.jsonl (donc aussi sur le passé)
+EVOLUTIONS = ("evol_liquidite_30m", "evol_acheteurs_h1_30m", "evol_detenteurs_30m", "evol_prix_30m")
 CHAMPS = ("age_h", "liquidite", "mcap", "detenteurs", "croissance_detenteurs_1h", "variation_prix_1h", "score",
-          "ratio_acheteurs_1h", "acceleration_volume", "volume.", "variation_prix_pct.", "transactions.") + DERIVES + SECURITE
+          "ratio_acheteurs_1h", "acceleration_volume", "volume.", "variation_prix_pct.", "transactions.") + DERIVES + \
+    SECURITE + TRANSACTIONS + EVOLUTIONS
+# tokens interdits pour toutes les caisses et exclus du banc par défaut (06/11, décision de l'utilisateur) : jumeaux à
+# volume de robots dont les copies ont été vidées une à une (PREDICT deux fois le 05/11, XTEN le 06/11)
+NOMS_INTERDITS = ("XTEN", "PREDICT")
+
+
+def nom_interdit(name):
+    return (name or "").split(" / ")[0].strip().upper() in NOMS_INTERDITS
+
+
+def mesure_transactions(tr):
+    """tr = attributs des dernières transactions d'un pool (GeckoTerminal /trades). Renvoie les champs tx_*."""
+    import collections
+    tr = [t for t in tr if t.get("tx_from_address") and t.get("volume_in_usd") is not None]
+    if len(tr) < 20:
+        return {}
+    w = collections.defaultdict(lambda: [0, 0, 0.0])
+    tailles = []
+    for t in tr:
+        v = float(t["volume_in_usd"])
+        x = w[t["tx_from_address"]]
+        x[0 if t.get("kind") == "buy" else 1] += 1
+        x[2] += v
+        tailles.append(v)
+    tailles.sort()
+    med = tailles[len(tailles) // 2] or 1e-9
+    vol = sum(tailles) or 1e-9
+    top5 = sum(sorted((x[2] for x in w.values()), reverse=True)[:5])
+    ts = sorted(t.get("block_timestamp", "") for t in tr)
+    try:
+        from datetime import datetime
+        duree = (datetime.fromisoformat(ts[-1].replace("Z", "+00:00")) - datetime.fromisoformat(ts[0].replace("Z", "+00:00"))).total_seconds()
+    except Exception:
+        duree = None
+    return {"tx_portefeuilles": len(w), "tx_part_aller_retour": round(sum(1 for x in w.values() if x[0] and x[1]) / len(w), 3),
+            "tx_tailles_uniformes": round(sum(1 for v in tailles if 0.7 * med <= v <= 1.3 * med) / len(tailles), 3),
+            "tx_part_top5": round(top5 / vol, 3), "tx_minutes_300": round(duree / 60, 1) if duree is not None else None}
+
+
+def evolutions(rec, passe):
+    """Champs evol_* de `rec` à partir des lignes précédentes du même token (`passe`, ordre chronologique) : écart avec
+    la ligne la plus proche de 30 min avant (entre 20 et 45 min). Valeurs relatives (0,1 = +10 %)."""
+    cible = [p_ for p_ in passe if 1200 <= rec["t"] - p_["t"] <= 2700]
+    if not cible:
+        return {}
+    o = min(cible, key=lambda p_: abs(rec["t"] - p_["t"] - 1800))
+    def rel(a, b):
+        return round(a / b - 1, 4) if a is not None and b else None
+    ach = lambda r: ((r.get("transactions") or {}).get("h1") or {}).get("buyers")
+    return {"evol_liquidite_30m": rel(rec.get("liquidite"), o.get("liquidite")),
+            "evol_acheteurs_h1_30m": rel(ach(rec), ach(o)),
+            "evol_detenteurs_30m": rel(rec.get("detenteurs"), o.get("detenteurs")),
+            "evol_prix_30m": rel(rec.get("prix"), o.get("prix"))}
 OPS = {"<": lambda a, b: a < b, "<=": lambda a, b: a <= b, ">": lambda a, b: a > b, ">=": lambda a, b: a >= b}
 
 GRILLE = {
@@ -242,6 +301,14 @@ def charger(path, since):
             if r.get("t", 0) >= since and r.get("prix"):
                 rows.append(r)
     rows.sort(key=lambda r: r["t"])
+    passe = {}
+    for r in rows:  # champs d'évolution sur 30 min, recalculés sur tout l'historique (06/11)
+        h = passe.setdefault(r["token"], [])
+        if not any(k in r for k in EVOLUTIONS):
+            r.update(evolutions(r, h))
+        h.append(r)
+        if len(h) > 20:
+            del h[:-20]
     return rows
 
 
@@ -456,12 +523,12 @@ def cle_regle(rule):
     return json.dumps(d, sort_keys=True)
 
 
-DEFIS_MAX = 3  # challengeuses en même temps (tournoi du 04/11)
+DEFIS_MAX = 6  # challengeuses en même temps (tournoi du 04/11 ; 6 places depuis le 06/11)
 
 
 def lire_challengeuses(local):
     """ia_challengeuses.json écrit par l'IA chercheuse : {"challengeuses": [{"nom": str, "regle": {même format que
-    ia_regle.json}}]}, 3 au plus, chacune validée comme la règle active. Une entrée invalide laisse sa place vide."""
+    ia_regle.json}}]}, DEFIS_MAX (6) au plus, chacune validée comme la règle active. Une entrée invalide laisse sa place vide."""
     try:
         raw = json.loads(Path(local).read_text())
     except (OSError, ValueError):

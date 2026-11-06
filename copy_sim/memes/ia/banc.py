@@ -100,11 +100,23 @@ def main():
     ap.add_argument("regles", nargs="+")
     ap.add_argument("--test-heures", type=float, default=24)
     ap.add_argument("--optimiste", action="store_true", help="seulement l'ancien mode (prix du signal, sans rugs ni glissement)")
+    ap.add_argument("--depuis", default=None,
+                    help="ne garder que les signaux après cette date (AAAA-MM-JJTHH:MM, heure UTC, ou secondes Unix) : "
+                         "test vraiment hors échantillon d'une règle écrite à cette date")
+    ap.add_argument("--avec-interdits", action="store_true", help="garder XTEN et PREDICT (exclus par défaut)")
     ap.add_argument("--essais", type=int, default=0,
                     help="nombre total de variantes testées pendant ce passage (toi et tes agents) : relève le seuil")
     a = ap.parse_args()
     d = Path(a.data)
     rows = A.charger(d / "univers.jsonl", 0)
+    if not a.avec_interdits:  # 06/11 : interdits pour toutes les caisses, donc hors du banc aussi
+        rows = [r for r in rows if not A.nom_interdit(r.get("nom"))]
+    if a.depuis:
+        from datetime import datetime, timezone
+        t_dep = float(a.depuis) if a.depuis.replace(".", "").isdigit() else \
+            datetime.fromisoformat(a.depuis).replace(tzinfo=timezone.utc).timestamp()
+        rows = [r for r in rows if r["t"] >= t_dep]
+        print(f"hors échantillon : signaux après {datetime.fromtimestamp(t_dep, timezone.utc):%d/%m %H:%M} UTC seulement")
     paths = {}
     for f in (d / "ohlcv").glob("*.json"):
         try:  # un fichier mal téléchargé (page d'erreur, coupure) est ignoré

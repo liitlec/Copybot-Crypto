@@ -86,6 +86,15 @@ Les trois IA (chercheuse, juge, juge2) partagent un tableau `http://140.82.38.41
   rugs), `part_vendeurs_h1` et `part_vendeurs_m5`, et quand le VPS l'a relevée la sécurité du token :
   `top10_pct` (part des 10 plus gros détenteurs, %), `autorite_mint` et `autorite_gel` (1 = encore active).
 
+## Nouveautés du 06/11
+
+- **XTEN et PREDICT sont interdits** pour toutes les caisses (jumeaux à volume de robots, pools vidés un à un) : ils
+  n'apparaissent plus dans tes dossiers, et un choix de ces noms ne serait pas acheté.
+- **Vrais acheteurs** dans les dossiers quand le VPS les a mesurés : `tx_portefeuilles`, `tx_part_aller_retour`
+  (~0,77 = robots), `tx_tailles_uniformes` (~0,95 = robots), `tx_part_top5`, `tx_minutes_300` ; et **évolutions sur
+  30 min** : `evol_liquidite_30m`, `evol_acheteurs_h1_30m`, `evol_detenteurs_30m`, `evol_prix_30m`. Une hausse portée
+  par de vrais portefeuilles, sans allers-retours en boucle, vaut mieux qu'un volume fabriqué.
+
 ## Apprendre (avant de choisir, à chaque créneau)
 
 Le VPS publie `resultats_candidats.json` : pour chacun de tes dossiers passés (clé = créneau), ce que chaque candidat a fait
