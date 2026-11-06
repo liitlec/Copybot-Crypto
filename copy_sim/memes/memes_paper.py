@@ -537,11 +537,11 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     a_mesurer = [a for a in sorted(uni_all, key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
                  if not apprend.nom_interdit(a.get("name")) and not (a["pool"] in txc and now - txc[a["pool"]]["t"] < TX_CACHE_S)]
     for a in a_mesurer[:TX_PAR_CYCLE]:
-        try:
-            d = get(f"{GT}/pools/{a['pool']}/trades", tries=1)
+        try:  # 2 essais : sur le VPS, 6 relevés sur 8 étaient refusés au premier essai (limite de débit, 06/11)
+            d = get(f"{GT}/pools/{a['pool']}/trades", tries=2)
             txc[a["pool"]] = {"t": now, "m": apprend.mesure_transactions([x["attributes"] for x in d.get("data", [])])}
-        except Exception:
-            txc[a["pool"]] = {"t": now - TX_CACHE_S + 600, "m": {}}  # nouvel essai dans 10 min
+        except Exception as exc:
+            txc[a["pool"]] = {"t": now - TX_CACHE_S + 600, "m": {}, "err": repr(exc)[:80]}  # nouvel essai dans 10 min
     histo = state.setdefault("histo", {})
     for k in [k for k, v in histo.items() if not v or now - v[-1]["t"] > 3600]:
         del histo[k]
