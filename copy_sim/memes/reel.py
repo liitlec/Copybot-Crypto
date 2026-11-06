@@ -194,7 +194,7 @@ class Reel:
             raison = "positions au maximum"
         elif self.etat["achats"] >= min(int(cfg.get("max_achats", MAX_ACHATS)), MAX_ACHATS):
             raison = f"{MAX_ACHATS} achats atteints : fin du test, faire le bilan"
-        elif time.time() - ev.get("t", time.time()) > RETARD_MAX_S:
+        elif time.time() - ev.get("t_reel", ev.get("t", time.time())) > RETARD_MAX_S:  # 06/11 : heure réelle
             raison = "achat papier trop ancien"
         if raison:
             return self.noter({"event": "achat_ignore", "token": mint, "nom": ev.get("name"), "raison": raison})

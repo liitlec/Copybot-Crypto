@@ -545,7 +545,8 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
             return None
         open_pos(book, a, dollars, now, why)
         log({"event": "achat", "book": book["name"], "token": a["token"], "name": a.get("name"), "dollars": round(dollars, 2),
-             "pool": a["pool"], "px_in": book["open"][a["token"]]["px_in"], "t": round(now, 1)})
+             "pool": a["pool"], "px_in": book["open"][a["token"]]["px_in"], "t": round(now, 1),
+             "t_reel": round(time.time(), 1)})  # heure réelle de l'achat (now = début du cycle, parfois 6 min avant)
         return dollars
 
     books = state["books"]
