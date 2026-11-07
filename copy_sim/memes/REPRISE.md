@@ -32,6 +32,9 @@ chose est prête (une erreur non testée a déjà bloqué le test réel une jour
 - **Installateur** : `copy_sim/memes/installer.sh` (VERSION figée). Installé : af150ae (06/11). **En attente** :
   `6fe2d5e` (refus d'achat réel si le devis dépasse le papier de plus de 10 % ; dossier réel en setgid). À installer
   depuis une session sur son PC : https://raw.githubusercontent.com/liitlec/Copybot-Crypto/6fe2d5e/copy_sim/memes/installer.sh
+- **Décidé le 07/11 10 h 40** : le réel suivra **defi_3** au lieu de « ia » (simple réglage `"caisse"` dans
+  `/opt/memes_reel/reel.json`, lu au démarrage, puis `systemctl restart memes-reel` ; à faire depuis son PC après
+  l'installation). Risque : la chercheuse peut changer la règle d'une case defi_x ; vérifier avant de la remplacer.
 
 ## Caisses (remise à zéro le 04/11, 10 000 $ chacune)
 - **ia** = championne de la chercheuse (règle v15), **ia_filtre** = même règle + filtre anti-pièges.
