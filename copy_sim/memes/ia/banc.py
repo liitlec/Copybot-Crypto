@@ -74,15 +74,20 @@ def entrees(rule, rows, paths, realiste=True):
     return out
 
 
-def resultat(rule, r, c, rugs, realiste=True):
-    """(rendement net de coûts, rug ?) d'un achat avec la sortie de `rule`, ou None si le trade n'est pas terminé."""
+def detail(rule, r, c, rugs, realiste=True):
+    """(rendement net de coûts, rug ?, heure de sortie) d'un achat avec la sortie de `rule`, ou None si le trade
+    n'est pas terminé. Avec un palier (07/11) : sa part est vendue au premier relevé au-dessus de son objectif, le
+    reste suit la sortie normale ; un rug après le palier ne touche que le reste."""
     t0, p0 = (c[0][0], c[0][1]) if realiste else (r["t"], r["prix"])
+    pal, x_pal = rule.get("palier"), None
     pic, x, why, t_fin = 0.0, 0.0, None, c[-1][0]
     for ts, px in c[1:] if realiste else c:
         if px / p0 - 1 > GAIN_MAX:  # prix aberrant (pool vidé, bougie fausse) : ignoré, comme sur le VPS
             continue
         x = px / p0 - 1
         pic = max(pic, x)
+        if pal and x_pal is None and x >= pal["objectif"]:
+            x_pal = x
         why = A.sortir_ia(rule, x, pic, (ts - t0) / 3600, False)
         if why:
             t_fin = ts
@@ -91,10 +96,92 @@ def resultat(rule, r, c, rugs, realiste=True):
     t_rug = rugs.get(r["pool"])
     rug = realiste and t_rug is not None and t0 <= t_rug <= (t_fin if why else fin_prevue)
     if rug:
-        x = PERTE_RUG
+        x, t_fin = PERTE_RUG, t_rug
     elif not why and (c[-1][0] - t0) / 3600 < rule["duree_max_h"]:
         return None  # trade pas encore terminé
-    return x - (A.couts(r.get("liquidite")) + (SURCOUT[0] if realiste else 0)), rug
+    if x_pal is not None:
+        x = pal["part"] * x_pal + (1 - pal["part"]) * x
+    return x - (A.couts(r.get("liquidite")) + (SURCOUT[0] if realiste else 0)), rug, t_fin
+
+
+def resultat(rule, r, c, rugs, realiste=True):
+    """(rendement net de coûts, rug ?) d'un achat avec la sortie de `rule`, ou None si le trade n'est pas terminé."""
+    d = detail(rule, r, c, rugs, realiste)
+    return None if d is None else d[:2]
+
+
+def rejoue(rule, rows, paths, rugs, debut, fin=None):
+    """Rejoue une règle comme le VPS la joue (07/11, demande D4) : un achat au plus par cycle (le premier selon son
+    classement), au plus max_positions positions ouvertes, pas de rachat d'un token vendu depuis moins de
+    delai_rachat_h heures (compté depuis la VENTE), achat au prix de la bougie suivante. Renvoie
+    [(heure d'achat, token, nom, rendement ou None si pas fini, heure de sortie)]."""
+    cycles = defaultdict(list)
+    for r in rows:
+        if r["t"] >= debut and (fin is None or r["t"] <= fin):
+            cycles[r["t"]].append(r)
+    ouvertes, vendus, out = {}, {}, []
+    delai = rule.get("delai_rachat_h", 24) * 3600
+    for t in sorted(cycles):
+        for tok in [k for k, v in ouvertes.items() if v[3] is not None and v[3] <= t]:
+            vendus[tok] = ouvertes.pop(tok)[3]
+        if len(ouvertes) >= rule["max_positions"]:
+            continue
+        ok = [r for r in cycles[t] if A.entre_ia(rule, r) and r["token"] not in ouvertes
+              and t - vendus.get(r["token"], -1e18) >= delai]
+        ok.sort(key=lambda r: A.valeur_tri(rule, r) * (-1 if rule["tri_desc"] else 1))
+        for r in ok:
+            c = nettoie([(ts, px) for ts, px in paths.get(r["pool"], []) if ts >= r["t"] + 300])
+            if not c:
+                continue
+            d = detail(rule, r, c, rugs)
+            ouvertes[r["token"]] = (r["t"], r.get("nom"), None if d is None else d[0], None if d is None else d[2])
+            out.append((r["t"], r["token"], r.get("nom"), None if d is None else d[0], None if d is None else d[2]))
+            break
+    return out
+
+
+def compare_direct(d, slot, rows, paths, rugs):
+    """--direct defi_N (ou ia) : rejoue la règle en place depuis son début et la compare trade par trade au direct."""
+    state = json.loads((d / "state.json").read_text())
+    if slot == "ia":
+        rule, debut = state.get("ia"), 0
+        for ln in (d / "ia_regles.jsonl").read_text().splitlines() if (d / "ia_regles.jsonl").exists() else []:
+            try:
+                x = json.loads(ln)
+            except ValueError:
+                continue
+            if rule and x.get("version") == rule.get("version"):
+                debut = x.get("t", 0)
+    else:
+        dfi = (state.get("defis") or {}).get(slot)
+        if not dfi:
+            sys.exit(f"{slot} : aucune règle en place")
+        rule, debut = dfi["regle"], dfi["debut"]
+    b = (state.get("books") or {}).get(slot) or {}
+    direct = [(r["t_in"], r["token"], r.get("name"), r["ret"]) for r in b.get("closed", []) if r["t_in"] >= debut]
+    direct += [(q["t"], tok, q.get("name"), None) for tok, q in (b.get("open") or {}).items() if q["t"] >= debut]
+    direct.sort()
+    sim = rejoue(rule, rows, paths, rugs, debut)
+    print(f"{slot} : règle en place depuis {time.strftime('%d/%m %H:%M', time.gmtime(debut))} UTC ; "
+          f"{len(direct)} trades en direct, {len(sim)} rejoués")
+    pris = set()
+    f = lambda v: "en cours" if v is None else f"{v:+.1%}"  # noqa: E731
+    for t, tok, nom, ret in direct:
+        m = next((i for i, x in enumerate(sim) if i not in pris and x[1] == tok and abs(x[0] - t) <= 900), None)
+        if m is None:
+            print(f"  {time.strftime('%d/%m %H:%M', time.gmtime(t))}  {str(nom)[:18]:18}  direct {f(ret):>8}   "
+                  f"rejoué : ABSENT")
+        else:
+            pris.add(m)
+            print(f"  {time.strftime('%d/%m %H:%M', time.gmtime(t))}  {str(nom)[:18]:18}  direct {f(ret):>8}   "
+                  f"rejoué {f(sim[m][3]):>8}")
+    for i, (t, tok, nom, ret, _) in enumerate(sim):
+        if i not in pris:
+            print(f"  {time.strftime('%d/%m %H:%M', time.gmtime(t))}  {str(nom)[:18]:18}  direct   ABSENT   "
+                  f"rejoué {f(ret):>8}")
+    print(f"  accord : {len(pris)} trades communs sur {len(direct)} directs et {len(sim)} rejoués. Un trade absent du"
+          " rejeu vient le plus souvent d'un relevé manquant ou d'un prix différent à la seconde près (le direct"
+          " vérifie la sortie toutes les secondes à 15 s, le rejeu sur des bougies de 5 min).")
 
 
 def simule(rule, rows, paths, rugs=None, realiste=True, avec_ligne=False):
@@ -125,6 +212,16 @@ def donnees(d, depuis=None, avec_interdits=False):
         except (ValueError, KeyError, TypeError):
             continue
     rugs = rugs_connus(d)
+    # champs de fourchette (07/11) : bougies d'avant chaque relevé + relevés plus récents, comme le VPS
+    propres = {pool: A.nettoie(sorted(c)) for pool, c in paths.items()}
+    releves = defaultdict(list)
+    for r in rows:
+        for k in A.FOURCHETTES:
+            r.pop(k, None)
+        r.update(A.fourchettes_bougies(r["t"], r.get("prix"), propres.get(r["pool"], []), releves[r["token"]]))
+        releves[r["token"]].append((r["t"], r.get("prix")))
+        if len(releves[r["token"]]) > 200:
+            del releves[r["token"]][:-150]
     n_reel, ec = A.ecart_reel(d / "reel.jsonl")
     if ec is not None:
         print(f"test réel : {n_reel} ventes, le papier surestime de {ec:+.1%} par aller-retour"
@@ -146,18 +243,23 @@ def resume(xs):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("data")
-    ap.add_argument("regles", nargs="+")
+    ap.add_argument("regles", nargs="*")
     ap.add_argument("--test-heures", type=float, default=24)
     ap.add_argument("--optimiste", action="store_true", help="seulement l'ancien mode (prix du signal, sans rugs ni glissement)")
     ap.add_argument("--depuis", default=None,
                     help="ne garder que les signaux après cette date (AAAA-MM-JJTHH:MM, heure UTC, ou secondes Unix) : "
                          "test vraiment hors échantillon d'une règle écrite à cette date")
     ap.add_argument("--avec-interdits", action="store_true", help="garder XTEN et PREDICT (exclus par défaut)")
+    ap.add_argument("--direct", default=None,
+                    help="defi_N ou ia : rejoue la règle en place comme le VPS (un achat par cycle, positions max, "
+                         "rachat compté depuis la vente) et compare trade par trade au direct (07/11)")
     ap.add_argument("--essais", type=int, default=0,
                     help="nombre total de variantes testées pendant ce passage (toi et tes agents) : relève le seuil")
     a = ap.parse_args()
     d = Path(a.data)
     rows, paths, rugs = donnees(d, a.depuis, a.avec_interdits)
+    if a.direct:
+        return compare_direct(d, a.direct, rows, paths, rugs)
     now = max(r["t"] for r in rows)
     split = now - a.test_heures * 3600
     print(f"{len(rows)} lignes, {len(paths)} pools avec prix, {len(rugs)} pools vidés connus, "

@@ -95,6 +95,10 @@ comp = ch(12, {"champ": "c_flux", "op": ">=", "val": 0.05})  # champ composé (0
 comp["regle"]["entree"]["composes"] = [{"nom": "c_flux", "a": "transactions.m5.buyers", "op": "/", "b": "transactions.h1.buyers"}]
 comp["regle"]["classement"] = {"champ": "c_flux"}
 chal.append(comp)
+pal = chal[10]  # defi_11 : même règle que defi_10, avec un premier palier (07/11)
+pal["regle"]["sortie"] = dict(pal["regle"]["sortie"], palier={"objectif": 0.04, "part": 0.5})
+pal["regle"]["entree"]["conditions"][-1]["val"] = chal[9]["regle"]["entree"]["conditions"][-1]["val"]
+assert A.regle_ia(pal["regle"])["palier"] == {"objectif": 0.04, "part": 0.5}
 assert len(chal) == 12 and A.regle_ia(comp["regle"]) is not None
 (OUT / "ia_challengeuses.json").write_text(json.dumps({"challengeuses": chal}))
 
@@ -125,6 +129,13 @@ for c in range(14):  # 70 min de cycles de 5 min
 print("appels", APPELS)
 
 L = [json.loads(l) for l in (OUT / "trades.jsonl").read_text().splitlines()]
+
+
+def palier_ok(ventes):
+    """Bravo, vendu sur stop par defi_10 (sans palier) et defi_11 (palier à +4 %) : defi_11 doit faire mieux."""
+    a = [r["ret"] for r in ventes if r["book"] == "defi_10" and r["name"].startswith("Bravo")]
+    b = [r["ret"] for r in ventes if r["book"] == "defi_11" and r["name"].startswith("Bravo")]
+    return bool(a and b and b[0] > a[0])
 achats = [r for r in L if r.get("event") == "achat"]
 ventes = [r for r in L if "ret" in r]
 caisses = {r["book"] for r in achats}
@@ -143,6 +154,12 @@ verifs = {
     "évolutions 30 min": any(u.get("evol_prix_30m") is not None for u in U),
     "page de suivi": (OUT / "suivi.html").exists() and (OUT / "suivi.html").stat().st_size > 5000,
     "champ composé utilisé": "defi_12" in caisses,
+    "volatilité 1 h": any(u.get("volatilite_1h") is not None for u in U),
+    "vente partielle au palier": any(r.get("event") == "vente_partielle" and r["book"] == "defi_11" for r in L),
+    "palier compté dans le rendement": palier_ok(ventes),
+    "équité cohérente après palier": all(abs(M.equity(b, {}) - (b["cash"] + sum(q["dollars"] * q["qty"] / q.get("qty0", q["qty"])
+                                                                                for q in b["open"].values()))) < 1e-6
+                                        for b in state["books"].values()),
 }
 for k, v in verifs.items():
     print(("ok   " if v else "ÉCHEC"), k)

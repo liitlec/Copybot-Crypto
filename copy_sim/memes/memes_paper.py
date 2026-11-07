@@ -295,6 +295,44 @@ def open_pos(book, a, dollars, now, why):
                                 "px_in": px, "fill_in": fill, "liq_in": liq, "why": why}
 
 
+_BOUGIES = {}  # pool -> (date du fichier, bougies nettoyées)
+
+
+def bougies_pool(out_dir, pool):
+    """Bougies 5 min nettoyées du pool (data/ohlcv/, rafraîchies chaque heure par l'apprentissage), relues seulement
+    quand le fichier change ; [] si absentes. Pour les champs de fourchette (07/11)."""
+    f = out_dir / "ohlcv" / f"{pool}.json"
+    try:
+        m = f.stat().st_mtime
+    except OSError:
+        return []
+    if pool not in _BOUGIES or _BOUGIES[pool][0] != m:
+        import apprend
+        try:
+            c = apprend.nettoie(sorted(tuple(x) for x in json.loads(f.read_text())["c"]))
+        except (ValueError, KeyError, TypeError):
+            c = []
+        _BOUGIES[pool] = (m, c)
+    return _BOUGIES[pool][1]
+
+
+def vendre_part(book, token, p, a, now, part, log):
+    """Vente d'une part de la position au premier palier de sortie (07/11, demande D2 de la chercheuse). Le produit est
+    crédité tout de suite et compté dans le rendement du trade quand le reste sera vendu. Le journal la note en
+    « vente_partielle » sans « ret » : le test réel n'en tient pas compte et ne vend qu'à la sortie finale."""
+    liq, px = fnum(a.get("reserve_in_usd")) or 0.0, fnum(a.get("base_token_price_usd")) or 0.0
+    p.setdefault("qty0", p["qty"])
+    q = p["qty"] * part
+    gross = min(q * px * (1 - impact(q * px, liq)), liq / 2, p["dollars"] * part * (1 + GAIN_MAX))
+    recu = max(gross - cost(gross) if gross > 0 else 0.0, 0.0)
+    p["qty"] -= q
+    p["palier_fait"] = True
+    p["recu_palier"] = round(p.get("recu_palier", 0.0) + recu, 4)
+    book["cash"] += recu
+    log({"event": "vente_partielle", "book": book["name"], "token": token, "name": p.get("name"), "part": part,
+         "recu": round(recu, 4), "x": round(px / p["px_in"] - 1, 4) if p.get("px_in") else None, "t": round(now, 1)})
+
+
 def close_pos(book, token, a, now, reason, log):
     p = book["open"].pop(token)
     if reason.startswith(("pool vidé", "pool disparu")):
@@ -308,6 +346,7 @@ def close_pos(book, token, a, now, reason, log):
     gross = min(gross, p["dollars"] * (1 + GAIN_MAX))  # jamais plus de +1 000 % crédité (05/11)
     proceeds = max(gross - cost(gross) if gross > 0 else 0.0, 0.0)
     book["cash"] += proceeds
+    proceeds += p.get("recu_palier", 0.0)  # part déjà vendue au premier palier (07/11)
     rec = {"book": book["name"], "token": token, "pool": p["pool"], "name": p["name"], "t_in": p["t"], "t_out": now,
            "minutes": round((now - p["t"]) / 60), "dollars": p["dollars"], "proceeds": round(proceeds, 4),
            "ret": round(proceeds / p["dollars"] - 1, 5), "reason": reason, "why": p["why"], "px_out": px}
@@ -320,7 +359,7 @@ def equity(book, live):
     for token, p in book["open"].items():
         a = live.get(p["pool"])
         # position achetée pendant ce cycle (pas encore de cotation relevée) : comptée à son prix d'achat
-        val += p["qty"] * (fnum(a["base_token_price_usd"]) or 0) if a else p["dollars"]
+        val += p["qty"] * (fnum(a["base_token_price_usd"]) or 0) if a else p["dollars"] * p["qty"] / p.get("qty0", p["qty"])
     return val
 
 
@@ -351,6 +390,9 @@ def sortie_regle(b, token, p, a, now, log):
         x = (fnum(a["base_token_price_usd"]) or 0) / p["px_in"] - 1
         p["pic"] = max(p.get("pic", 0.0), x)
         v24, v6 = fnum(a["volume_usd"]["h24"]) or 0, fnum(a["volume_usd"]["h6"]) or 0
+        pal = p["sortie_ia"].get("palier")
+        if pal and not p.get("palier_fait") and x >= pal["objectif"]:
+            vendre_part(b, token, p, a, now, pal["part"], log)  # 07/11 : premier palier, le reste continue
         why = apprend.sortir_ia(p["sortie_ia"], x, p["pic"], (now - p["t"]) / 3600,
                                 v24 > 0 and v6 / (v24 / 4) < RULE["sortie_ratio_volume"])
         if why:
@@ -546,6 +588,9 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     histo = state.setdefault("histo", {})
     for k in [k for k, v in histo.items() if not v or now - v[-1]["t"] > 3600]:
         del histo[k]
+    hprix = state.setdefault("histo_prix", {})  # (t, prix) sur 12 h par token, pour les champs de fourchette (07/11)
+    for k in [k for k, v in hprix.items() if not v or now - v[-1][0] > 12 * 3600]:
+        del hprix[k]
     recs = []
     with (out_dir / "univers.jsonl").open("a") as f:
         for a in uni_all:
@@ -557,13 +602,19 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
                 rec.update(tx["m"])
             h = histo.setdefault(a["token"], [])
             rec.update(apprend.evolutions(rec, h))
+            hp = hprix.setdefault(a["token"], [])
+            rec.update(apprend.fourchettes_bougies(rec["t"], rec.get("prix"), bougies_pool(out_dir, a["pool"]), hp))
+            if rec.get("prix"):
+                hp.append([rec["t"], float(f"{rec['prix']:.6g}")])
+            del hp[:-150]
             h.append({"t": rec["t"], "liquidite": rec.get("liquidite"), "detenteurs": rec.get("detenteurs"),
                       "prix": rec.get("prix"), "transactions": {"h1": (rec.get("transactions") or {}).get("h1")}})
             del h[:-12]
             recs.append((rec, a))
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     state.pop("snaps", None)
-    extra = {rec["token"]: {k: rec[k] for k in apprend.TRANSACTIONS + apprend.EVOLUTIONS if rec.get(k) is not None}
+    extra = {rec["token"]: {k: rec[k] for k in apprend.TRANSACTIONS + apprend.EVOLUTIONS + apprend.FOURCHETTES
+                            if rec.get(k) is not None}
              for rec, _ in recs}  # aussi dans les dossiers des juges
     recs = [x for x in recs if not nom_bloque(x[1].get("name"), now)]  # les caisses à règle passent au suivant
     # 3. entrées (une par cycle et par caisse). « classement » suit le cadran comme dans le post ; « sans_cadran » prend

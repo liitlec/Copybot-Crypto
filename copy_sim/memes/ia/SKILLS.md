@@ -77,6 +77,31 @@ se libère, remplace l'une des deux d'une paire trop proche par une autre famill
 v15, defi_3 et defi_5 sont « FRAGILE » : chacune ne gagne que sur une période. À passer avant toute promotion, avec
 le test contre le hasard.
 
+## 13. Position dans la fourchette (07/11, demandes D1 et D5)
+Champs calculés par le VPS et par le banc depuis l'historique 5 min du token (jamais le futur) :
+`pos6`, `pos12` (0 = au plus bas des 6 / 12 dernières heures, 1 = au plus haut), `prix_sur_haut_6h`, `prix_sur_bas_6h`
+(0,1 = +10 %), `anciennete_bas_6h` (heures depuis le plus bas de 6 h), `volatilite_1h` (écart type des variations de
+5 min sur 1 h). Absents tant que l'historique ne couvre pas la moitié de la fenêtre (un token neuf n'a pas de pos12).
+Exemple de ta piste D5 : `{"champ": "pos12", "op": "<=", "val": 0.3}`, `{"champ": "anciennete_bas_6h", "op": ">=",
+"val": 0.5}`. Attention aux copies mortes (même nom, prix figé) : leur fourchette est plate, pos absent.
+Les `tx_*` couvrent maintenant ~70 % des lignes récentes (39 tokens sur 45 en 2 h, depuis le correctif du 06/11) ; la
+faible couverture de l'historique vient seulement de la date de début (06/11 16 h).
+
+## 14. Sortie en deux paliers (07/11, demande D2)
+Dans `sortie` : `"palier": {"objectif": 0.6, "part": 0.5}` = vendre la moitié dès +60 %, le reste continue avec la
+sortie normale (stop, stop suiveur, objectif final s'il est AU-DESSUS du palier, durée). Le rendement du trade compte
+les deux ventes ; un rug après le palier ne touche que le reste. Le banc, les outils et le VPS le gèrent. Le test réel
+(qui ne copie que la championne) ne vend pas en deux fois : il vend tout à la sortie finale. Exemple de ta D2 :
+`"sortie": {"stop": -0.35, "suiveur": 0.4, "duree_max_h": 12, "palier": {"objectif": 0.6, "part": 0.5}}`.
+
+## 15. Rejouer une place comme le VPS (07/11, demande D4)
+`python3 ia/banc.py /tmp/d --direct defi_7` (ou `--direct ia`) : rejoue la règle en place depuis son début comme le
+VPS la joue (un achat au plus par cycle, le premier selon son classement ; positions max ; pas de rachat d'un token
+vendu depuis moins de `delai_rachat_h`, compté depuis la VENTE ; achat à la bougie suivante), puis aligne trade par
+trade avec le direct (même token à 15 min près). Le banc normal, lui, compte TOUS les signaux, rachat compté depuis le
+signal : c'est pour cela que ton COGE de defi_7 n'y était pas au bon moment. Utilise --direct pour savoir si le banc
+« voit » vraiment ce que la place fait en direct avant de lui faire confiance.
+
 ## Ordre conseillé pour une idée
 criblage ou pièges (piste) → règle → banc `--essais N` → hasard → glissante → sorties → challengeuse → 15 trades en
 direct → promotion. Note chaque étape au registre.

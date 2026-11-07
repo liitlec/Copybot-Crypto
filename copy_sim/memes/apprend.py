@@ -40,9 +40,16 @@ SECURITE = ("top10_pct", "autorite_mint", "autorite_gel")
 TRANSACTIONS = ("tx_portefeuilles", "tx_part_aller_retour", "tx_tailles_uniformes", "tx_part_top5", "tx_minutes_300")
 # évolutions sur ~30 min (06/11), recalculées depuis l'historique d'univers.jsonl (donc aussi sur le passé)
 EVOLUTIONS = ("evol_liquidite_30m", "evol_acheteurs_h1_30m", "evol_detenteurs_30m", "evol_prix_30m")
+# position du prix dans sa fourchette (07/11, demandes D1 et D5 de la chercheuse), depuis les bougies de 5 min du pool
+# antérieures au relevé (complétées par les relevés d'univers.jsonl plus récents que la dernière bougie ; jamais le
+# futur), calculée de la même façon par le VPS et par le banc : pos6 / pos12 = (prix − plus bas) / (plus haut − plus bas) sur
+# 6 h / 12 h (0 = au plus bas, 1 = au plus haut), prix_sur_haut_6h / prix_sur_bas_6h (0,1 = +10 %), heures depuis le
+# plus bas de 6 h, volatilité 1 h (écart type des variations entre relevés de 5 min). Absent si l'historique ne couvre
+# pas au moins la moitié de la fenêtre.
+FOURCHETTES = ("pos6", "pos12", "prix_sur_haut_6h", "prix_sur_bas_6h", "anciennete_bas_6h", "volatilite_1h")
 CHAMPS = ("age_h", "liquidite", "mcap", "detenteurs", "croissance_detenteurs_1h", "variation_prix_1h", "score",
           "ratio_acheteurs_1h", "acceleration_volume", "volume.", "variation_prix_pct.", "transactions.") + DERIVES + \
-    SECURITE + TRANSACTIONS + EVOLUTIONS
+    SECURITE + TRANSACTIONS + EVOLUTIONS + FOURCHETTES
 # tokens interdits pour toutes les caisses et exclus du banc par défaut (06/11, décision de l'utilisateur) : jumeaux à
 # volume de robots dont les copies ont été vidées une à une (PREDICT deux fois le 05/11, XTEN le 06/11)
 NOMS_INTERDITS = ("XTEN", "PREDICT")
@@ -95,6 +102,44 @@ def evolutions(rec, passe):
             "evol_acheteurs_h1_30m": rel(ach(rec), ach(o)),
             "evol_detenteurs_30m": rel(rec.get("detenteurs"), o.get("detenteurs")),
             "evol_prix_30m": rel(rec.get("prix"), o.get("prix"))}
+def fourchettes(t, prix, passe):
+    """Champs FOURCHETTES au temps t pour le prix `prix`, `passe` = [(t, prix)] précédents du même token (ordre
+    chronologique, 12 h ou plus)."""
+    out = {}
+    if not prix:
+        return out
+    for nom_h, h in (("6", 6), ("12", 12)):
+        pts = [(ts, px) for ts, px in passe if t - h * 3600 <= ts < t and px] + [(t, prix)]
+        if len(pts) < h * 3 or t - pts[0][0] < h * 1800:  # au moins la moitié de la fenêtre (relevés toutes les 5 min)
+            continue
+        hi, lo = max(px for _, px in pts), min(px for _, px in pts)
+        if hi > lo:
+            out[f"pos{nom_h}"] = round((prix - lo) / (hi - lo), 4)
+        if h == 6:
+            out["prix_sur_haut_6h"] = round(prix / hi - 1, 4)
+            out["prix_sur_bas_6h"] = round(prix / lo - 1, 4)
+            t_bas = max(ts for ts, px in pts if px == lo)
+            out["anciennete_bas_6h"] = round((t - t_bas) / 3600, 3)
+    pts = [px for ts, px in passe if t - 3600 <= ts < t and px] + [prix]
+    if len(pts) >= 7:
+        r = [math.log(b / a) for a, b in zip(pts, pts[1:])]
+        m = sum(r) / len(r)
+        out["volatilite_1h"] = round((sum((x - m) ** 2 for x in r) / (len(r) - 1)) ** 0.5, 5)
+    return out
+
+
+def fourchettes_bougies(t, prix, bougies, releves=()):
+    """FOURCHETTES au temps t : bougies (ts, clôture) du pool d'avant t sur 12 h, puis les relevés (ts, prix) plus
+    récents que la dernière bougie."""
+    import bisect
+    ts_b = [b[0] for b in bougies]
+    i, j = bisect.bisect_left(ts_b, t - 12 * 3600), bisect.bisect_left(ts_b, t)
+    passe = list(bougies[i:j])
+    dernier = passe[-1][0] if passe else -1
+    passe += [(ts, px) for ts, px in releves if dernier < ts < t]
+    return fourchettes(t, prix, passe)
+
+
 OPS = {"<": lambda a, b: a < b, "<=": lambda a, b: a <= b, ">": lambda a, b: a > b, ">=": lambda a, b: a >= b}
 
 GRILLE = {
@@ -310,7 +355,7 @@ def charger(path, since):
         h.append(r)
         if len(h) > 20:
             del h[:-20]
-    return rows
+    return rows  # les champs de fourchette (07/11) demandent les bougies : calculés par ia/banc.py (donnees)
 
 
 BUDGET = [0, 0.0, 0]  # appels GeckoTerminal permis dans ce passage, heure limite, échecs de suite
@@ -577,6 +622,12 @@ def regle_ia(raw):
             out[k] = None if v is None else min(max(float(v), lo), hi)
         if out["stop"] is None or out["duree_max_h"] is None:
             return None
+        if sx.get("palier") is not None:  # 07/11 (demande D2) : vendre une part à un premier objectif, laisser courir le reste
+            pa = sx["palier"]
+            pal = {"objectif": min(max(float(pa["objectif"]), 0.03), 20.0), "part": min(max(float(pa["part"]), 0.1), 0.9)}
+            if out["objectif"] is not None and out["objectif"] <= pal["objectif"]:
+                return None  # l'objectif final doit être au-dessus du palier
+            out["palier"] = pal
         return out
     except (KeyError, TypeError, ValueError):
         return None
@@ -589,6 +640,8 @@ def cle_regle(rule):
     d = {k: rule.get(k) for k in garde}
     if rule.get("composes"):  # absent ou vide : les règles d'avant le 06/11 gardent leur clé
         d["composes"] = rule["composes"]
+    if rule.get("palier"):
+        d["palier"] = rule["palier"]
     if rule.get("delai_rachat_h", 24) != 24:  # absent = 24 h : les règles d'avant le 05/11 gardent leur clé
         d["delai_rachat_h"] = rule["delai_rachat_h"]
     return json.dumps(d, sort_keys=True)
