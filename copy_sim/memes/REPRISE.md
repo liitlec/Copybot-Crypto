@@ -24,7 +24,8 @@ chose est prête (une erreur non testée a déjà bloqué le test réel une jour
   `memes_paper.py`, `apprend.py`, `memes_page.py`, `flux.py` au commit nommé dans `copy_sim/memes/AUTO_VERSION`
   (« numéro commit », numéro croissant), après `tests/test_cycle.py` hors ligne (doit dire TEST OK), redémarrage entre
   deux cycles, retour arrière si pas de cycle sain en 20 min. Jamais reel.py, serveur.py, maj_auto.py, installer.sh.
-  Dernière : SEQ 3 = e98c9ba (07/11 9 h 46, « cycle sain »).
+  SEQ 3 = e98c9ba (07/11 9 h 46, « cycle sain »). SEQ 4 = f2ab38d (poussée le 07/11 13 h 35) : décisions d'achat sur
+  des prix relus juste avant (avant : données vieilles d'environ 6 min) ; ligne « Données des décisions » dans status.md.
 - **Test réel** (`/opt/memes_reel`, utilisateur **memesreel**, isolé : le code de recherche ne peut ni lire la clé ni
   modifier le réel) : copie la caisse **« ia »** (championne) avec 2 $ par achat via Jupiter (3 positions max, 20
   achats, plancher 50 %). Arrêt : `touch /opt/memes_reel/STOP_REEL`. Bilan au 07/11 : 4 trades (401kinu −30 %,
