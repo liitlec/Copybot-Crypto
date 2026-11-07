@@ -1,0 +1,816 @@
+"""Caisse « auto » : une règle d'entrée et de sortie réapprise chaque jour sur les données collectées (univers.jsonl),
+choisie uniquement sur le passé et vérifiée sur les 2 derniers jours avant d'être utilisée.
+
+Chaque heure (dans la boucle du VPS) :
+1. on prend tous les candidats enregistrés (chaque token qui a passé le filtre, à chaque cycle) et l'historique de prix
+   5 min de chaque pool (GeckoTerminal, mis en cache) ;
+2. on rejoue une grille fixe de règles (entrée × sortie, voir GRILLE), chaque token au plus une fois par 24 h et par
+   règle, sortie vérifiée sur le cours de clôture de chaque bougie de 5 min (comme le VPS, qui ne voit le prix que
+   toutes les 5 min), frais 0,45 % par côté + impact sur la liquidité + 1 % de glissement ;
+3. depuis le 03/11 (demande de l'utilisateur) : dès 1,5 jour de collecte, on prend la règle dont la borne basse
+   (moyenne − 2 marges d'erreur, au moins 15 trades, coûts réalistes) est la meilleure sur tout le passé, et on la
+   trade si sa moyenne est positive ; sinon la caisse reste en cash (avant : 3 jours, borne basse positive exigée
+   et vérification sur les 2 derniers jours) ;
+4. les 12 dernières heures sont recalculées à part pour la règle retenue (« verification »), à titre d'information.
+Les positions ouvertes gardent la sortie de la règle sous laquelle elles ont été achetées. Le seul juge est le
+résultat de la caisse après chaque choix : il porte sur des jours que la règle n'avait pas vus.
+
+L'IA juge (tâche Claude quotidienne) peut proposer jusqu'à 3 idées d'entrée dans memes/juge/idees.json (conditions
+simples sur les chiffres du dossier, voir lire_idees) : elles sont ajoutées à la grille et passent les mêmes
+épreuves que les autres. L'IA propose, les données décident. resultats_candidats() publie aussi, pour chaque jour,
+ce que chaque candidat du dossier de l'IA a fait ensuite, pour qu'elle apprenne de ses choix."""
+import itertools
+import math
+import re
+import json
+import os
+import time
+import urllib.request
+from pathlib import Path
+
+IDEES_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
+             "copy_sim/memes/juge/idees.json")
+# champs calculés (04/11) : signes de volume de robots et de pièges, recalculables sur tout l'historique d'univers.jsonl
+DERIVES = ("rotation_h1", "volume_par_trader_h1", "liq_sur_mcap", "part_vendeurs_h1", "part_vendeurs_m5")
+# sécurité du token (relevée par le VPS depuis le 04/11, absente des lignes plus anciennes : condition fausse si absente)
+SECURITE = ("top10_pct", "autorite_mint", "autorite_gel")
+# vrais acheteurs (06/11) : mesurés par le VPS sur les ~300 dernières transactions du pool (GeckoTerminal), pour
+# quelques tokens par cycle ; XTEN le 05/11 : 62 portefeuilles, 77 % d'allers-retours, tailles toutes entre 630 et
+# 820 $ = volume de robots. Absents des lignes plus anciennes (condition fausse si absente).
+TRANSACTIONS = ("tx_portefeuilles", "tx_part_aller_retour", "tx_tailles_uniformes", "tx_part_top5", "tx_minutes_300")
+# évolutions sur ~30 min (06/11), recalculées depuis l'historique d'univers.jsonl (donc aussi sur le passé)
+EVOLUTIONS = ("evol_liquidite_30m", "evol_acheteurs_h1_30m", "evol_detenteurs_30m", "evol_prix_30m")
+# position du prix dans sa fourchette (07/11, demandes D1 et D5 de la chercheuse), depuis les bougies de 5 min du pool
+# antérieures au relevé (complétées par les relevés d'univers.jsonl plus récents que la dernière bougie ; jamais le
+# futur), calculée de la même façon par le VPS et par le banc : pos6 / pos12 = (prix − plus bas) / (plus haut − plus bas) sur
+# 6 h / 12 h (0 = au plus bas, 1 = au plus haut), prix_sur_haut_6h / prix_sur_bas_6h (0,1 = +10 %), heures depuis le
+# plus bas de 6 h, volatilité 1 h (écart type des variations entre relevés de 5 min). Absent si l'historique ne couvre
+# pas au moins la moitié de la fenêtre.
+FOURCHETTES = ("pos6", "pos12", "prix_sur_haut_6h", "prix_sur_bas_6h", "anciennete_bas_6h", "volatilite_1h")
+CHAMPS = ("age_h", "liquidite", "mcap", "detenteurs", "croissance_detenteurs_1h", "variation_prix_1h", "score",
+          "ratio_acheteurs_1h", "acceleration_volume", "volume.", "variation_prix_pct.", "transactions.") + DERIVES + \
+    SECURITE + TRANSACTIONS + EVOLUTIONS + FOURCHETTES
+# tokens interdits pour toutes les caisses et exclus du banc par défaut (06/11, décision de l'utilisateur) : jumeaux à
+# volume de robots dont les copies ont été vidées une à une (PREDICT deux fois le 05/11, XTEN le 06/11)
+NOMS_INTERDITS = ("XTEN", "PREDICT")
+
+
+def nom_interdit(name):
+    return (name or "").split(" / ")[0].strip().upper() in NOMS_INTERDITS
+
+
+def mesure_transactions(tr):
+    """tr = attributs des dernières transactions d'un pool (GeckoTerminal /trades). Renvoie les champs tx_*."""
+    import collections
+    tr = [t for t in tr if t.get("tx_from_address") and t.get("volume_in_usd") is not None]
+    if len(tr) < 20:
+        return {}
+    w = collections.defaultdict(lambda: [0, 0, 0.0])
+    tailles = []
+    for t in tr:
+        v = float(t["volume_in_usd"])
+        x = w[t["tx_from_address"]]
+        x[0 if t.get("kind") == "buy" else 1] += 1
+        x[2] += v
+        tailles.append(v)
+    tailles.sort()
+    med = tailles[len(tailles) // 2] or 1e-9
+    vol = sum(tailles) or 1e-9
+    top5 = sum(sorted((x[2] for x in w.values()), reverse=True)[:5])
+    ts = sorted(t.get("block_timestamp", "") for t in tr)
+    try:
+        from datetime import datetime
+        duree = (datetime.fromisoformat(ts[-1].replace("Z", "+00:00")) - datetime.fromisoformat(ts[0].replace("Z", "+00:00"))).total_seconds()
+    except Exception:
+        duree = None
+    return {"tx_portefeuilles": len(w), "tx_part_aller_retour": round(sum(1 for x in w.values() if x[0] and x[1]) / len(w), 3),
+            "tx_tailles_uniformes": round(sum(1 for v in tailles if 0.7 * med <= v <= 1.3 * med) / len(tailles), 3),
+            "tx_part_top5": round(top5 / vol, 3), "tx_minutes_300": round(duree / 60, 1) if duree is not None else None}
+
+
+def evolutions(rec, passe):
+    """Champs evol_* de `rec` à partir des lignes précédentes du même token (`passe`, ordre chronologique) : écart avec
+    la ligne la plus proche de 30 min avant (entre 20 et 45 min). Valeurs relatives (0,1 = +10 %)."""
+    cible = [p_ for p_ in passe if 1200 <= rec["t"] - p_["t"] <= 2700]
+    if not cible:
+        return {}
+    o = min(cible, key=lambda p_: abs(rec["t"] - p_["t"] - 1800))
+    def rel(a, b):
+        return round(a / b - 1, 4) if a is not None and b else None
+    ach = lambda r: ((r.get("transactions") or {}).get("h1") or {}).get("buyers")
+    return {"evol_liquidite_30m": rel(rec.get("liquidite"), o.get("liquidite")),
+            "evol_acheteurs_h1_30m": rel(ach(rec), ach(o)),
+            "evol_detenteurs_30m": rel(rec.get("detenteurs"), o.get("detenteurs")),
+            "evol_prix_30m": rel(rec.get("prix"), o.get("prix"))}
+def fourchettes(t, prix, passe):
+    """Champs FOURCHETTES au temps t pour le prix `prix`, `passe` = [(t, prix)] précédents du même token (ordre
+    chronologique, 12 h ou plus)."""
+    out = {}
+    if not prix:
+        return out
+    for nom_h, h in (("6", 6), ("12", 12)):
+        pts = [(ts, px) for ts, px in passe if t - h * 3600 <= ts < t and px] + [(t, prix)]
+        if len(pts) < h * 3 or t - pts[0][0] < h * 1800:  # au moins la moitié de la fenêtre (relevés toutes les 5 min)
+            continue
+        hi, lo = max(px for _, px in pts), min(px for _, px in pts)
+        if hi > lo:
+            out[f"pos{nom_h}"] = round((prix - lo) / (hi - lo), 4)
+        if h == 6:
+            out["prix_sur_haut_6h"] = round(prix / hi - 1, 4)
+            out["prix_sur_bas_6h"] = round(prix / lo - 1, 4)
+            t_bas = max(ts for ts, px in pts if px == lo)
+            out["anciennete_bas_6h"] = round((t - t_bas) / 3600, 3)
+    pts = [px for ts, px in passe if t - 3600 <= ts < t and px] + [prix]
+    if len(pts) >= 7:
+        r = [math.log(b / a) for a, b in zip(pts, pts[1:])]
+        m = sum(r) / len(r)
+        out["volatilite_1h"] = round((sum((x - m) ** 2 for x in r) / (len(r) - 1)) ** 0.5, 5)
+    return out
+
+
+def fourchettes_bougies(t, prix, bougies, releves=()):
+    """FOURCHETTES au temps t : bougies (ts, clôture) du pool d'avant t sur 12 h, puis les relevés (ts, prix) plus
+    récents que la dernière bougie."""
+    import bisect
+    ts_b = [b[0] for b in bougies]
+    i, j = bisect.bisect_left(ts_b, t - 12 * 3600), bisect.bisect_left(ts_b, t)
+    passe = list(bougies[i:j])
+    dernier = passe[-1][0] if passe else -1
+    passe += [(ts, px) for ts, px in releves if dernier < ts < t]
+    return fourchettes(t, prix, passe)
+
+
+OPS = {"<": lambda a, b: a < b, "<=": lambda a, b: a <= b, ">": lambda a, b: a > b, ">=": lambda a, b: a >= b}
+
+GRILLE = {
+    "age_max_h": (2, 12, 72),
+    "prix_1h": ("tout", "baisse", "hausse"),        # variation du prix sur 1 h au moment de l'achat
+    "acheteurs_1h": ("tout", "plus"),               # plus d'acheteurs distincts que de vendeurs sur 1 h
+    "classe": ("tout", "oui"),                      # détenteurs plus vite que le prix (classement du post)
+    "idee": (None,),                                # + les idées de l'IA (lire_idees), ajoutées au moment d'apprendre
+    "stop": (-0.15, -0.25),
+    "objectif": (0.20, 0.40, 0.80),
+    "duree_max_h": (1, 4),
+}
+TEST_H, MIN_TRAIN, TICKET = 12, 15, 300.0
+MIN_JOURS = 1.5  # 3 jusqu'au 03/11
+
+
+def regles(idees=()):
+    g = dict(GRILLE, idee=(None,) + tuple(idees))
+    keys = list(g)
+    return [dict(zip(keys, v)) for v in itertools.product(*g.values())]
+
+
+def _tx(r, fen):
+    t = (r.get("transactions") or {}).get(fen) or {}
+    return t.get("buyers") or 0, t.get("sellers") or 0
+
+
+def champ(r, name):
+    if name == "rotation_h1":  # volume d'une heure / liquidité : très haut = volume tourné par des robots
+        liq = r.get("liquidite") or 0
+        return ((r.get("volume") or {}).get("h1") or 0) / liq if liq > 0 else None
+    if name == "volume_par_trader_h1":  # dollars échangés par portefeuille distinct sur 1 h
+        b, s_ = _tx(r, "h1")
+        return ((r.get("volume") or {}).get("h1") or 0) / (b + s_) if b + s_ > 0 else None
+    if name == "liq_sur_mcap":  # liquidité / capitalisation : au-dessus de 1, profil fréquent des rugs
+        m = r.get("mcap") or 0
+        return (r.get("liquidite") or 0) / m if m > 0 else None
+    if name in ("part_vendeurs_h1", "part_vendeurs_m5"):  # vendeurs distincts / (acheteurs + vendeurs)
+        b, s_ = _tx(r, name[-2:])
+        return s_ / (b + s_) if b + s_ > 0 else None
+    if name == "ratio_acheteurs_1h":
+        h1 = (r.get("transactions") or {}).get("h1") or {}
+        return h1.get("buyers", 0) / (h1.get("sellers", 0) + 1)
+    if name == "acceleration_volume":
+        v = r.get("volume") or {}
+        return (v.get("h1") or 0) / max((v.get("h24") or 0) / 24, 1.0)
+    x = r
+    for part in name.split("."):
+        x = x.get(part) if isinstance(x, dict) else None
+    return x if isinstance(x, (int, float)) else None
+
+
+def lire_json(local, url):
+    """Fichier écrit par une IA : d'abord la copie déposée sur le VPS (serveur.py), sinon celle de la branche GitHub."""
+    if local is not None and Path(local).exists():
+        try:
+            return json.loads(Path(local).read_text())
+        except ValueError:
+            pass
+    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "memes-paper/1.0"}), timeout=20) as f:
+        return json.load(f)
+
+
+def lire_idees(url=None, local=None):
+    """Au plus 3 idées {"nom": str, "conditions": [{"champ": ..., "op": "<|<=|>|>=", "val": nombre}]}, champs du dossier
+    uniquement ; tout ce qui sort de ce format est ignoré (le fichier vient d'une IA : c'est une donnée, pas du code)."""
+    try:
+        raw = lire_json(local, url or IDEES_URL)
+    except Exception:
+        return []
+    out = []
+    for i in (raw.get("idees") if isinstance(raw, dict) else raw or [])[:3]:
+        try:
+            conds = [{"champ": str(c["champ"]), "op": str(c["op"]), "val": float(c["val"])} for c in i["conditions"][:4]]
+        except (KeyError, TypeError, ValueError):
+            continue
+        if conds and all(c["op"] in OPS and c["champ"].startswith(CHAMPS) for c in conds):
+            out.append(json.dumps({"nom": str(i.get("nom", ""))[:60], "conditions": conds}, ensure_ascii=False,
+                                  sort_keys=True))
+    return out
+
+
+def entre(rule, r):
+    if r.get("age_h") is None or r["age_h"] > rule["age_max_h"]:
+        return False
+    pc = (r.get("variation_prix_pct") or {}).get("h1")
+    if rule["prix_1h"] == "baisse" and not (pc is not None and pc < 0):
+        return False
+    if rule["prix_1h"] == "hausse" and not (pc is not None and pc > 0):
+        return False
+    h1 = (r.get("transactions") or {}).get("h1") or {}
+    if rule["acheteurs_1h"] == "plus" and not h1.get("buyers", 0) > h1.get("sellers", 0):
+        return False
+    if rule["classe"] == "oui" and not r.get("classe"):
+        return False
+    if rule.get("idee"):
+        for c in json.loads(rule["idee"])["conditions"]:
+            v = champ(r, c["champ"])
+            if v is None or not OPS[c["op"]](v, c["val"]):
+                return False
+    return not r.get("essouffle")
+
+
+def couts(liq):
+    imp = min(TICKET / max((liq or 0) / 2, 1.0), 0.95)
+    return 2 * (0.0045 + imp) + 0.01
+
+
+# Simulation réaliste (02/11) : achat à la bougie suivante, pics de données retirés, rugs connus à −95 %, glissement
+# de 2 % par côté et frais réseau. L'ancienne simulation (prix du signal, sans rugs) annonçait +27 % par trade pour
+# une règle qui perdait en réel.
+GLISSEMENT, FRAIS_RESEAU, PERTE_RUG = 0.02, 0.001, -0.95
+
+
+def nettoie(c):
+    """Retire les bougies aberrantes : pics isolés (×5 ou ÷5 face à deux voisines qui s'accordent) et hausses de plus
+    de ×20 d'une bougie à l'autre (erreurs de données) ; les chutes brutales sont gardées (souvent de vrais rugs)."""
+    out = []
+    for i, (ts, px) in enumerate(c):
+        if not px or px <= 0:
+            continue
+        if 0 < i < len(c) - 1:
+            a, b = c[i - 1][1], c[i + 1][1]
+            if a and b and 0.5 < a / b < 2 and (px > 5 * max(a, b) or px < min(a, b) / 5):
+                continue
+        if out and px > 20 * out[-1][1]:
+            continue
+        out.append((ts, px))
+    return out
+
+
+def rug_confirme(c, t_in, t_out):
+    """Le pool s'est-il vraiment effondré ? Bougies 5 min (ts, prix) : plus bas des 2 h après la sortie sous 30 % du
+    dernier prix avant l'achat. Sans bougie pour juger : on garde le trade comme rug (prudence)."""
+    avant = [px for ts, px in c if ts <= t_in] or [px for ts, px in c if ts <= t_out]
+    apres = [px for ts, px in c if t_out - 300 <= ts <= t_out + 7200]
+    if not avant or not apres:
+        return True
+    return min(apres) < 0.3 * avant[-1]
+
+
+def rugs_connus(path, cache_dir=None):
+    """Pool -> premier instant où un trade réel (toutes caisses) l'a vu vidé ou effondré d'au moins 80 %. Depuis le
+    04/11, avec `cache_dir` (bougies data/ohlcv), seulement si les bougies confirment l'effondrement : une partie des
+    « pools vidés » venaient d'une réponse GeckoTerminal ratée ou d'un prix gRPC faux, pas d'un vrai rug."""
+    out = {}
+    if Path(path).exists():
+        for ln in Path(path).read_text().splitlines():
+            try:
+                r = json.loads(ln)
+            except ValueError:
+                continue
+            if "ret" in r and r.get("pool") and (r["reason"].startswith("pool vidé") or r["ret"] <= -0.8):
+                if cache_dir is not None:
+                    f = Path(cache_dir) / f"{r['pool']}.json"
+                    try:
+                        c = [tuple(x) for x in json.loads(f.read_text())["c"]] if f.exists() else []
+                    except ValueError:
+                        c = []
+                    if c and not rug_confirme(c, r.get("t_in", r["t_out"]), r["t_out"]):
+                        continue
+                out[r["pool"]] = min(out.get(r["pool"], 1e18), r["t_out"])
+    return out
+
+
+def fenetre(bougies, t_signal):
+    """Bougies nettoyées utilisables pour un signal : à partir de 5 min après lui, sur au plus 73 h (la plus longue
+    durée permise est 72 h). Calculée une fois par signal et réutilisée pour toutes les règles (voir trades)."""
+    w = [x for x in bougies if t_signal < x[0] <= t_signal + 73 * 3600]
+    return [x for x in nettoie(w) if x[0] >= t_signal + 300]
+
+
+def sortie(rule, bougies, t_signal, t_rug=None, c=None):
+    """Rendement brut d'un trade réaliste : achat à la première bougie au moins 5 min après le signal, sortie au
+    stop, à l'objectif ou à la durée maximale (clôtures de 5 min) ; −95 % si le pool a été vidé pendant le trade.
+    None si pas de bougie après le signal. `c` : fenêtre déjà calculée (fenetre)."""
+    if c is None:
+        c = fenetre(bougies, t_signal)
+    if not c:
+        return None
+    t0, p0 = c[0]
+    fin = t0 + rule["duree_max_h"] * 3600
+    last, t_out = p0, fin
+    for ts, px in c[1:]:
+        if ts > fin:
+            break
+        last = px
+        x = px / p0 - 1
+        if x <= rule["stop"] or x >= rule["objectif"]:
+            t_out = ts
+            break
+    if t_rug is not None and t0 <= t_rug <= t_out:
+        return PERTE_RUG
+    return last / p0 - 1
+
+
+def charger(path, since):
+    rows = []
+    with open(path) as f:
+        for ln in f:
+            try:
+                r = json.loads(ln)
+            except ValueError:
+                continue
+            if r.get("t", 0) >= since and r.get("prix"):
+                rows.append(r)
+    rows.sort(key=lambda r: r["t"])
+    passe = {}
+    for r in rows:  # champs d'évolution sur 30 min, recalculés sur tout l'historique (06/11)
+        h = passe.setdefault(r["token"], [])
+        if not any(k in r for k in EVOLUTIONS):
+            r.update(evolutions(r, h))
+        h.append(r)
+        if len(h) > 20:
+            del h[:-20]
+    return rows  # les champs de fourchette (07/11) demandent les bougies : calculés par ia/banc.py (donnees)
+
+
+BUDGET = [0, 0.0, 0]  # appels GeckoTerminal permis dans ce passage, heure limite, échecs de suite
+ECHECS_MAX, PAUSE_ECHEC = 4, 8.0
+
+
+def appels_bougies(n, secondes=150):
+    """Au plus n appels et `secondes` de téléchargement par passage. Le 03/11 au matin, des appels ratés (retentés 4
+    fois, 30 s d'attente chacun) ont bloqué la boucle du VPS 12 minutes : un seul essai par appel. Mais arrêter au
+    premier échec a presque gelé le cache (9 pools rafraîchis en 22 h, GeckoTerminal refusant souvent un appel) :
+    depuis le 04/11, après un refus on attend PAUSE_ECHEC secondes et on continue ; on n'arrête qu'après ECHECS_MAX
+    refus de suite, et toujours dans la limite de `secondes`."""
+    BUDGET[0], BUDGET[1], BUDGET[2] = n, time.time() + secondes, 0
+
+
+def bougies(pool, cache_dir, get, now, recent=True, age_max=50 * 60):
+    """Historique 5 min d'un pool, mis en cache ; complété au plus toutes les `age_max` secondes tant que le pool est
+    récent, sinon une fois pour toutes, et dans la limite du budget d'appels du passage (au-delà : le cache sert).
+    Sans limite, l'élargissement de l'univers (150 pools et plus) saturait l'API gratuite et bloquait le cycle."""
+    f = cache_dir / f"{pool}.json"
+    try:  # un fichier abîmé (écriture coupée) est refait au lieu de tout faire échouer
+        old = json.loads(f.read_text()) if f.exists() else {"t": 0, "c": []}
+    except ValueError:
+        old = {"t": 0, "c": []}
+    if ((recent and now - old["t"] > age_max) or not old["c"]) and BUDGET[0] > 0 and time.time() < BUDGET[1]:
+        BUDGET[0] -= 1
+        try:
+            url = (f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/minute"
+                   f"?aggregate=5&limit=1000&currency=usd")
+            try:
+                d = get(url, tries=1)
+            except TypeError:  # get sans paramètre tries (essais hors du VPS)
+                d = get(url)
+            new = [(int(x[0]), float(x[4])) for x in d["data"]["attributes"]["ohlcv_list"]]
+            merged = dict(map(tuple, old["c"]))
+            merged.update(new)
+            old = {"t": now, "c": sorted(merged.items())}
+            f.write_text(json.dumps(old))
+            BUDGET[2] = 0
+        except Exception:
+            BUDGET[2] += 1
+            if BUDGET[2] >= ECHECS_MAX:
+                BUDGET[0] = 0  # GeckoTerminal refuse sans arrêt : le passage continue avec le cache
+            elif time.time() + PAUSE_ECHEC < BUDGET[1]:
+                time.sleep(PAUSE_ECHEC)
+    return old["c"]
+
+
+ENTREE = ("age_max_h", "prix_1h", "acheteurs_1h", "classe", "idee")
+
+
+def entrees(rule, rows, paths):
+    out, last = [], {}
+    for r in rows:
+        if r["t"] - last.get(r["token"], -1e18) < 24 * 3600 or not paths.get(r["pool"]) or not entre(rule, r):
+            continue
+        last[r["token"]] = r["t"]
+        out.append(r)
+    return out
+
+
+def trades(rule, rows, paths, until, cache=None, rugs=None):
+    key = tuple(rule.get(k) for k in ENTREE)
+    if cache is None or key not in cache:
+        ent = entrees(rule, rows, paths)
+        if cache is None:
+            cache = {}
+        cache[key] = ent
+    out = []
+    for r in cache[key]:
+        if r["t"] > until - rule["duree_max_h"] * 3600 - 300:  # trades terminés seulement
+            continue
+        fk = ("fenetre", r["pool"], r["t"])
+        if fk not in cache:
+            cache[fk] = fenetre(paths[r["pool"]], r["t"])
+        x = sortie(rule, None, r["t"], (rugs or {}).get(r["pool"]), cache[fk])
+        if x is not None:
+            out.append((r["t"], x - couts(r.get("liquidite")) - 2 * GLISSEMENT - 2 * FRAIS_RESEAU))
+    return out
+
+
+def stats(xs):
+    n = len(xs)
+    if n < 2:
+        return {"n": n, "m": xs[0] if xs else None, "bas": None}
+    m = sum(xs) / n
+    se = (sum((x - m) ** 2 for x in xs) / (n - 1)) ** 0.5 / n ** 0.5
+    return {"n": n, "m": round(m, 4), "bas": round(m - 2 * se, 4)}
+
+
+def apprendre(out_dir, get, now):
+    path = out_dir / "univers.jsonl"
+    if not path.exists():
+        return {"t": now, "regle": None, "raison": "pas encore de données collectées"}
+    rows = charger(path, now - 21 * 86400)
+    # les prix 5 min sont relevés dès le premier jour (GeckoTerminal n'en garde qu'environ 3 jours), même si la
+    # règle attend MIN_JOURS de collecte : l'IA chercheuse en a besoin pour son banc d'essai
+    cache = out_dir / "ohlcv"
+    cache.mkdir(exist_ok=True)
+    seen = {}
+    for r in rows:
+        seen[r["pool"]] = r["t"]
+    # au plus 40 appels par heure : d'abord les pools vus récemment ; vus depuis 6 h : toutes les 50 min,
+    # vus il y a 6 à 26 h : toutes les 6 h (GeckoTerminal garde environ 3 jours de bougies de 5 min)
+    appels_bougies(40)
+    paths = {p: bougies(p, cache, get, now, now - t < 26 * 3600, 50 * 60 if now - t < 6 * 3600 else 6 * 3600)
+             for p, t in sorted(seen.items(), key=lambda kv: -kv[1])}
+    if not rows or now - rows[0]["t"] < MIN_JOURS * 86400:
+        return {"t": now, "regle": None, "raison": f"moins de {MIN_JOURS} jours de collecte"}
+    rugs = rugs_connus(out_dir / "trades.jsonl", out_dir / "ohlcv")
+    idees = lire_idees(local=out_dir / "juge_idees.json")
+    grille = regles(idees)
+    cache, best = {}, None
+    for rule in grille:
+        s = stats([x for _, x in trades(rule, rows, paths, now, cache, rugs)])
+        if s["n"] >= MIN_TRAIN and s["bas"] is not None and (best is None or s["bas"] > best[1]["bas"]):
+            best = (rule, s)
+    if best is None:
+        return {"t": now, "regle": None, "raison": f"aucune règle n'a {MIN_TRAIN} trades terminés",
+                "regles_testees": len(grille), "idees_ia": len(idees)}
+    recent = now - TEST_H * 3600
+    te = stats([x for t, x in trades(best[0], rows, paths, now, rugs=rugs) if t >= recent])
+    s = best[1]
+    ok = s["m"] > 0  # 03/11 : une règle qui perd déjà sur les données où elle a été choisie n'est pas tradée
+    return {"t": now, "regle": best[0] if ok else None, "meilleure": best[0], "apprentissage": s, "verification": te,
+            "regles_testees": len(grille), "idees_ia": len(idees),
+            "raison": f"meilleure des {len(grille)} règles : {s['n']} trades, moyenne {s['m']:+.1%}, borne basse "
+                      f"{s['bas']:+.1%}" + ("" if ok else " ; même elle perd sur le passé : en cash")}
+
+
+# ------------------------------------------------------------------ caisse « ia » : règle écrite par l'IA chercheuse
+IA_URL = ("https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/"
+          "copy_sim/memes/ia/regle.json")
+CONDITIONS_MAX = 12  # 8 jusqu'au 03/11 : les conditions en trop étaient ignorées sans erreur
+BORNES = {"stop": (-0.9, -0.03), "objectif": (0.03, 20.0), "suiveur": (0.03, 0.9), "duree_max_h": (0.25, 72.0)}
+# score pondéré (04/11) : en plus des conditions, une somme bornée de termes poids × champ (ou × log10(1 + champ)),
+# comparée à un seuil ; permet un vrai modèle appris (par exemple une régression ajustée sur l'ancien et vérifiée sur
+# le récent) sans exécuter de code venu de l'IA. Un champ absent rend le score faux (pas d'achat).
+TERMES_MAX, POIDS_MAX = 10, 1e6
+
+
+def score_ia(sc, r):
+    tot = 0.0
+    for t in sc["termes"]:
+        v = champ(r, t["champ"])
+        if v is None:
+            return None
+        if t["log"]:
+            v = math.log10(1 + max(v, 0.0))
+        tot += t["poids"] * v
+    return tot
+
+
+# champs composés (06/11) : l'IA définit elle-même jusqu'à COMPOSES_MAX nouveaux champs « c_<nom> » = a op b, où a et b
+# sont des champs connus (ou des composés définis avant) et b peut être un nombre ; utilisables partout où un champ
+# l'est (conditions, score, classement). Aucun code venu de l'IA : seulement + - * / min max sur des nombres.
+COMPOSES_MAX = 10
+OPS_COMPOSES = {"+": lambda a, b: a + b, "-": lambda a, b: a - b, "*": lambda a, b: a * b,
+                "/": lambda a, b: a / b if b else None, "min": min, "max": max}
+_NOM_COMPOSE = re.compile(r"^c_[a-z0-9_]{1,30}$")
+
+
+def _composes_valides(raw):
+    """[] si absent ; None si invalide ; sinon la liste normalisée."""
+    if raw is None:
+        return []
+    if not isinstance(raw, list) or len(raw) > COMPOSES_MAX:
+        return None
+    out, noms = [], ()
+    for c in raw:
+        try:
+            nom, op, a = str(c["nom"]), str(c["op"]), str(c["a"])
+            b = c["b"]
+            b = float(b) if isinstance(b, (int, float)) and not isinstance(b, bool) else str(b)
+        except (KeyError, TypeError, ValueError):
+            return None
+        connus = CHAMPS + noms
+        if (not _NOM_COMPOSE.match(nom) or nom in noms or op not in OPS_COMPOSES or not a.startswith(connus)
+                or (isinstance(b, str) and not b.startswith(connus)) or (isinstance(b, float) and not math.isfinite(b))):
+            return None
+        out.append({"nom": nom, "op": op, "a": a, "b": b, "log": bool(c.get("log", False))})
+        noms += (nom,)
+    return out
+
+
+def avec_composes(rule, r):
+    """Le dossier r avec les champs composés de la règle (absent si un opérande manque)."""
+    cs = rule.get("composes") or []
+    if not cs:
+        return r
+    r = dict(r)
+    for c in cs:
+        a = champ(r, c["a"])
+        b = c["b"] if isinstance(c["b"], float) else champ(r, c["b"])
+        v = None
+        if a is not None and b is not None:
+            try:
+                v = OPS_COMPOSES[c["op"]](float(a), float(b))
+            except (ArithmeticError, ValueError):
+                v = None
+            if v is not None and c["log"]:
+                v = math.log10(1 + max(v, 0.0))
+            if v is not None and not math.isfinite(v):
+                v = None
+        if v is not None:
+            r[c["nom"]] = v
+        else:
+            r.pop(c["nom"], None)
+    return r
+
+
+def valeur_tri(rule, r):
+    """Valeur de classement d'un dossier pour la règle (avec ses champs composés), 0 si absente."""
+    return champ(avec_composes(rule, r), rule["tri"]) or 0
+
+
+def _score_valide(raw, noms=()):
+    """None si pas de score ; False si invalide ; sinon le score normalisé."""
+    if raw is None:
+        return None
+    try:
+        termes = [{"champ": str(t["champ"]), "poids": float(t["poids"]), "log": bool(t.get("log", False))}
+                  for t in raw["termes"]]
+        seuil = float(raw["seuil"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    if not 0 < len(termes) <= TERMES_MAX or not all(t["champ"].startswith(CHAMPS + noms) and abs(t["poids"]) <= POIDS_MAX
+                                                    and math.isfinite(t["poids"]) for t in termes) or not math.isfinite(seuil):
+        return False
+    return {"termes": termes, "seuil": seuil}
+
+
+def regle_ia(raw):
+    """Valide la règle écrite par l'IA (memes/ia/regle.json). C'est une donnée : seuls ces champs, bornés, sont lus ;
+    la taille (6 % de la caisse, 2 % de la liquidité au plus) n'est pas entre ses mains. None si invalide."""
+    try:
+        if len(raw["entree"]["conditions"]) > CONDITIONS_MAX:  # refusée, et non tronquée en silence
+            return None
+        composes = _composes_valides(raw["entree"].get("composes"))
+        if composes is None:
+            return None
+        noms = tuple(c["nom"] for c in composes)
+        conds = [{"champ": str(c["champ"]), "op": str(c["op"]), "val": float(c["val"])}
+                 for c in raw["entree"]["conditions"]]
+        if not all(c["op"] in OPS and c["champ"].startswith(CHAMPS + noms) for c in conds):
+            return None
+        sx = raw["sortie"]
+        sc = _score_valide(raw["entree"].get("score"), noms)
+        if sc is False:
+            return None
+        out = {"version": int(raw.get("version", 0)), "score": sc, "pause": bool(raw.get("pause", False)), "conditions": conds,
+               "composes": composes,
+               "pourquoi": str(raw.get("pourquoi", ""))[:300],
+               "tri": str(raw.get("classement", {}).get("champ", "score")),
+               "tri_desc": raw.get("classement", {}).get("ordre", "desc") != "asc",
+               "max_positions": max(1, min(10, int(raw.get("max_positions", 10)))),
+               "sortie_volume": bool(sx.get("sortie_volume", False)),
+               # délai avant de racheter un token déjà vendu (05/11 : 24 h fixes jusqu'ici), entre 2 et 48 h
+               "delai_rachat_h": min(max(float(raw.get("delai_rachat_h", 24)), 2.0), 48.0)}
+        if not out["tri"].startswith(CHAMPS + noms):
+            return None
+        for k, (lo, hi) in BORNES.items():
+            v = sx.get(k)
+            out[k] = None if v is None else min(max(float(v), lo), hi)
+        if out["stop"] is None or out["duree_max_h"] is None:
+            return None
+        if sx.get("palier") is not None:  # 07/11 (demande D2) : vendre une part à un premier objectif, laisser courir le reste
+            pa = sx["palier"]
+            pal = {"objectif": min(max(float(pa["objectif"]), 0.03), 20.0), "part": min(max(float(pa["part"]), 0.1), 0.9)}
+            if out["objectif"] is not None and out["objectif"] <= pal["objectif"]:
+                return None  # l'objectif final doit être au-dessus du palier
+            out["palier"] = pal
+        return out
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def cle_regle(rule):
+    """Ce qui fait une règle (entrée, score, sortie, tri, positions) sans sa version ni son « pourquoi » : deux règles
+    de même clé sont la même stratégie."""
+    garde = ("conditions", "score", "tri", "tri_desc", "max_positions", "sortie_volume") + tuple(BORNES)
+    d = {k: rule.get(k) for k in garde}
+    if rule.get("composes"):  # absent ou vide : les règles d'avant le 06/11 gardent leur clé
+        d["composes"] = rule["composes"]
+    if rule.get("palier"):
+        d["palier"] = rule["palier"]
+    if rule.get("delai_rachat_h", 24) != 24:  # absent = 24 h : les règles d'avant le 05/11 gardent leur clé
+        d["delai_rachat_h"] = rule["delai_rachat_h"]
+    return json.dumps(d, sort_keys=True)
+
+
+DEFIS_MAX = 12  # challengeuses en même temps (tournoi du 04/11 ; 6 places le 06/11, 12 le soir du 06/11)
+
+
+def lire_challengeuses(local):
+    """ia_challengeuses.json écrit par l'IA chercheuse : {"challengeuses": [{"nom": str, "regle": {même format que
+    ia_regle.json}}]}, DEFIS_MAX (12) au plus, chacune validée comme la règle active. Une entrée invalide laisse sa place vide."""
+    try:
+        raw = json.loads(Path(local).read_text())
+    except (OSError, ValueError):
+        return []
+    out = []
+    for c in (raw.get("challengeuses") if isinstance(raw, dict) else None) or []:
+        if len(out) >= DEFIS_MAX:
+            break
+        r = regle_ia(c.get("regle")) if isinstance(c, dict) else None
+        out.append(None if r is None else {"nom": str(c.get("nom", ""))[:40], "regle": r, "cle": cle_regle(r)})
+    return out
+
+
+def lire_regle_ia(url=None, local=None):
+    try:
+        return regle_ia(lire_json(local, url or IA_URL))
+    except Exception:
+        return None
+
+
+def entre_ia(rule, r):
+    if r.get("essouffle"):
+        return False
+    r = avec_composes(rule, r)
+    for c in rule["conditions"]:
+        v = champ(r, c["champ"])
+        if v is None or not OPS[c["op"]](v, c["val"]):
+            return False
+    if rule.get("score"):
+        v = score_ia(rule["score"], r)
+        return v is not None and v >= rule["score"]["seuil"]
+    return True
+
+
+def sortir_ia(rule, x, pic, age_h, essouffle):
+    """x = variation depuis l'achat, pic = plus haut vu depuis l'achat (en variation). Raison de sortie, ou None."""
+    if x <= rule["stop"]:
+        return f"stop {x:+.0%}"
+    if rule["objectif"] is not None and x >= rule["objectif"]:
+        return f"objectif {x:+.0%}"
+    if rule["suiveur"] is not None and pic > 0 and (1 + x) <= (1 + pic) * (1 - rule["suiveur"]):
+        return f"stop suiveur {x:+.0%} (plus haut {pic:+.0%})"
+    if age_h >= rule["duree_max_h"]:
+        return f"durée max {x:+.0%}"
+    if rule["sortie_volume"] and essouffle:
+        return f"volume essoufflé {x:+.0%}"
+    return None
+
+
+REEL_MIN = 5  # ventes réelles terminées avant que leur écart remplace l'hypothèse de coût du banc (06/11)
+
+
+def ecart_reel(path):
+    """Coût réel mesuré au-delà du papier, par aller-retour : moyenne de (rendement papier − rendement réel) sur les
+    ventes du test réel (reel.jsonl). Renvoie (n, écart moyen) ; écart None s'il n'y a aucune vente."""
+    xs = []
+    try:
+        with open(path) as f:
+            for ln in f:
+                try:
+                    e = json.loads(ln)
+                except ValueError:
+                    continue
+                if e.get("event") == "vente" and e.get("ret_reel") is not None and e.get("ret_papier") is not None:
+                    xs.append(e["ret_papier"] - e["ret_reel"])
+    except OSError:
+        pass
+    return len(xs), (sum(xs) / len(xs) if xs else None)
+
+
+def resultats_candidats(out_dir, get, now, jours=72):
+    """Pour chaque dossier quotidien de l'IA (candidats/AAAA-MM-JJ.json) : ce que chaque candidat a fait ensuite
+    (cours de clôture 5 min, avant frais). Publié dans resultats_candidats.json pour que l'IA apprenne de ses choix."""
+    d = out_dir / "candidats"
+    if not d.exists():
+        return
+    cache = out_dir / "ohlcv"
+    cache.mkdir(exist_ok=True)
+    appels_bougies(20, secondes=60)
+    res = {}
+    fichiers = sorted(d.glob("*.json"))
+    # 05/11 : les dossiers horaires du juge v2 (« h_… ») évinçaient ceux du juge v1 des 72 derniers ; chaque juge garde
+    # maintenant ses propres derniers dossiers
+    v1 = [f for f in fichiers if not f.name.startswith("h_")][-jours:]
+    v2 = [f for f in fichiers if f.name.startswith("h_")][-jours:]
+    for f in v1 + v2:
+        snap = json.loads(f.read_text())
+        t0, day = snap["t"], {}
+        for c in snap["candidats"]:
+            path = [(ts, px) for ts, px in bougies(c["pool"], cache, get, now, now - t0 < 26 * 3600) if ts > t0]
+            if not path or not c.get("prix"):
+                day[c["token"]] = {"nom": c.get("nom"), "rang": c.get("rang"), "donnees": "aucune"}
+                continue
+            def at(h):
+                xs = [px for ts, px in path if ts <= t0 + h * 3600]
+                return round(xs[-1] / c["prix"] - 1, 3) if xs and now - t0 >= h * 3600 else None
+            # bougies relevées trop tard (GeckoTerminal n'en garde qu'environ 3 jours) : pas de plus haut ni de plus bas
+            # sur 24 h (avant le 03/11, ce cas faisait échouer tout le fichier et les juges n'avaient plus de résultats)
+            day24 = [px for ts, px in path if ts <= t0 + 86400]
+            day[c["token"]] = {"nom": c.get("nom"), "rang": c.get("rang"), "1h": at(1), "4h": at(4), "24h": at(24),
+                               "max_24h": round(max(day24) / c["prix"] - 1, 3) if day24 else None,
+                               "min_24h": round(min(day24) / c["prix"] - 1, 3) if day24 else None}
+        res[f.stem] = day  # « 2026-11-02_14 » pour le juge (toutes les 4 h), « h_2026-11-02_14 » pour le juge v2 (horaire)
+    (out_dir / "resultats_candidats.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+SEUIL_GAIN, HORIZON = 0.03, "4h"  # un candidat « gagne » s'il a fait plus de +3 % (environ les frais) 4 h après
+TRANCHES = ((0.0, 0.2), (0.2, 0.4), (0.4, 0.55), (0.55, 1.01))
+
+
+def calibration_juges(out_dir):
+    """Note de calibration des juges (04/11) : pour chaque probabilité donnée par un juge à un candidat (champ "probas"
+    de ses choix), le candidat a-t-il gagné plus de SEUIL_GAIN au bout de HORIZON (resultats_candidats.json, bougies) ?
+    Score de Brier (moyenne de (proba − résultat)², 0 = parfait) comparé à celui d'un juge qui dirait toujours la
+    fréquence moyenne : un juge utile fait mieux que cette référence. Par tranche de probabilité : fréquence réelle."""
+    out_dir = Path(out_dir)
+    try:
+        res = json.loads((out_dir / "resultats_candidats.json").read_text())
+    except (OSError, ValueError):
+        return None
+    note = {"horizon": HORIZON, "seuil_gain": SEUIL_GAIN, "juges": {}}
+    for juge, motif, prefixe in (("juge", "juge_20*.json", ""), ("juge2", "juge2_20*.json", "h_")):
+        pts = []
+        for f in sorted(out_dir.glob(motif)):
+            try:
+                d = json.loads(f.read_text())
+            except ValueError:
+                continue
+            dossier = res.get(prefixe + str(d.get("creneau", "")), {})
+            for tok, pr in (d.get("probas") or {}).items():
+                x = (dossier.get(tok) or {}).get(HORIZON)
+                try:
+                    pr = min(max(float(pr), 0.0), 1.0)
+                except (TypeError, ValueError):
+                    continue
+                if x is not None:
+                    pts.append((pr, 1.0 if x > SEUIL_GAIN else 0.0))
+        if not pts:
+            note["juges"][juge] = {"n": 0}
+            continue
+        freq = sum(y for _, y in pts) / len(pts)
+        brier = sum((p_ - y) ** 2 for p_, y in pts) / len(pts)
+        ref = sum((freq - y) ** 2 for _, y in pts) / len(pts)
+        tr = []
+        for lo, hi in TRANCHES:
+            xs = [(p_, y) for p_, y in pts if lo <= p_ < hi]
+            if xs:
+                tr.append({"tranche": f"{lo:.2f}-{min(hi, 1):.2f}", "n": len(xs),
+                           "proba_moyenne": round(sum(p_ for p_, _ in xs) / len(xs), 3),
+                           "frequence_reelle": round(sum(y for _, y in xs) / len(xs), 3)})
+        note["juges"][juge] = {"n": len(pts), "brier": round(brier, 4), "brier_reference": round(ref, 4),
+                               "utile": brier < ref, "frequence_gain": round(freq, 3), "tranches": tr}
+    (out_dir / "calibration_juges.json").write_text(json.dumps(note, ensure_ascii=False, indent=1), encoding="utf-8")
+    return note
+
+
+if __name__ == "__main__":  # essai manuel : python3 apprend.py DOSSIER_DATA
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from memes_paper import get
+    print(json.dumps(apprendre(Path(sys.argv[1]), get, time.time()), ensure_ascii=False, indent=1))

@@ -1,0 +1,14 @@
+{
+  "nom": "E et F : moitié vendue à ×2, reste stop suiveur −40 % ; sans ×2 à 60 s, sortie de C ; max 9 min",
+  "debut_ts": 1792137701,
+  "debut": "2026-10-16 10:01 (heure de Paris)",
+  "regle_E": {
+    "entree": "celle de B : +5 s après le bloc de création, au moins 1 acheteur autre que le créateur, moins de 2,5 SOL dans la courbe, aucun achat dans le slot de création",
+    "sortie": "dès le premier passage à ×2 (+100 %) : moitié revendue ; l'autre moitié revendue quand elle retombe de 40 % sous son plus haut. Si ×2 n'est pas atteint à 60 s : revente totale si le gain < +20 % (comme C), sinon on garde avec un stop suiveur −30 % en attendant ×2. Au plus tard 9 min.",
+    "mise_et_frais": "0,1 SOL ; 1,25 % par côté ; 0,000105 SOL par transaction"
+  },
+  "regle_F": "sélection de D (score de qualité, 20 % meilleurs, réappris toutes les 30 min) + sortie de E",
+  "evaluation": "lancements créés après debut_ts uniquement ; E comparé à B et F comparé à D sur les mêmes lancements",
+  "verdict": "E après au moins 1 000 trades, F après au moins 300 : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, reste positive sans les 3 meilleurs trades ET bat sa comparaison",
+  "origine": "16/10 matin, 500 trades à l'entrée de B : B −1,4 % / −0,5 %, C +0,0 % / +0,5 %, E +1,2 % / +0,8 % (1re / 2e moitié), mais −0,2 % sans les 3 meilleurs. Une première analyse donnait +10 % / +4 % : elle était biaisée (revente à 60 s décidée en sachant si ×2 viendrait plus tard), corrigée avant fixation."
+}
