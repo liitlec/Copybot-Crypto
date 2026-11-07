@@ -494,6 +494,7 @@ def apprentissage(state, out_dir, now):
 
 def cycle(state, out_dir, now, avec_apprentissage=True):
     log_path = out_dir / "trades.jsonl"
+    horloge0 = time.time()  # pour avancer « now » du temps réellement écoulé (étape 2 ter)
 
     def log(rec):
         with log_path.open("a") as f:
@@ -536,6 +537,46 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
                 close_pos(b, token, a, now, f"volume 6 h à {v6 / (v24 / 4):.0%} de la normale", log)
     # 2. candidats
     uni = [a for a in pools_universe() if passes(a, now)]
+    # 07/11 : les relevés lents (détenteurs, sécurité, transactions : plusieurs minutes à cause des limites de
+    # GeckoTerminal) se font d'abord ; les prix et compteurs sont ensuite relus juste avant de décider (étape 2 ter),
+    # pour que les règles et le prix d'achat portent sur le marché du moment, pas sur celui du début du cycle.
+    hc = state.setdefault("hcache", {})
+    for a in uni:
+        tx = a["transactions"]
+        if not (tx["m30"]["sells"] > tx["m30"]["buys"] and tx["h1"]["sells"] > tx["h1"]["buys"]):
+            holders(a["token"], hc, now)
+    uni_lent = uni
+    # sécurité des tokens (part des 10 plus gros détenteurs, autorisations encore actives) : relevée pour SECU_PAR_CYCLE
+    # tokens par cycle au plus (les plus échangés d'abord), gardée 1 h en cache, pour ne pas saturer GeckoTerminal
+    manque = [a for a in sorted(uni_lent, key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
+              if not (hc.get(a["token"]) and "top10" in hc[a["token"]] and now - hc[a["token"]]["t"] < RULE["holders_cache_s"])]
+    for a in manque[:SECU_PAR_CYCLE]:
+        holders(a["token"], hc, now, full=True)
+    # vrais acheteurs (06/11) : ~300 dernières transactions du pool, pour TX_PAR_CYCLE pools par cycle (les plus échangés
+    # d'abord, sauf noms interdits), gardées TX_CACHE_S secondes
+    import apprend
+    txc = state.setdefault("txcache", {})
+    for k in [k for k, v in txc.items() if now - v["t"] > 4 * 3600]:
+        del txc[k]
+    a_mesurer = [a for a in sorted(uni_lent, key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
+                 if not apprend.nom_interdit(a.get("name")) and not (a["pool"] in txc and now - txc[a["pool"]]["t"] < TX_CACHE_S)]
+    for a in a_mesurer[:TX_PAR_CYCLE]:
+        try:  # 2 essais : sur le VPS, 6 relevés sur 8 étaient refusés au premier essai (limite de débit, 06/11)
+            d = get(f"{GT}/pools/{a['pool']}/trades", tries=2)
+            txc[a["pool"]] = {"t": now, "m": apprend.mesure_transactions([x["attributes"] for x in d.get("data", [])])}
+        except Exception as exc:
+            txc[a["pool"]] = {"t": now - TX_CACHE_S + 600, "m": {}, "err": repr(exc)[:80]}  # nouvel essai dans 10 min
+    # 2 ter. données du moment : prix, liquidité, volumes et transactions relus (1 appel par 30 pools) ; la suite du
+    #        cycle (classement, règles, achats, prix d'achat) part de là. Un pool non relu garde sa donnée du début.
+    t_debut = now
+    frais = pools_now([a["pool"] for a in uni_lent])
+    now = t_debut + (time.time() - horloge0)
+    for a in uni_lent:
+        if a["pool"] in frais:
+            a.update(frais[a["pool"]])
+    state["fraicheur"] = {"relus": sum(a["pool"] in frais for a in uni_lent), "sur": len(uni_lent),
+                          "retard_s": round(now - t_debut)}
+    uni = [a for a in uni_lent if passes(a, now)]
     # Classement. Le nombre de détenteurs de GeckoTerminal n'est rafraîchi que toutes les 1 à 19 h : on mesure donc la
     # croissance des détenteurs sur la dernière heure par les portefeuilles distincts acheteurs moins vendeurs (donnée en
     # continu), rapportés au nombre de détenteurs, et on la compare à la variation de prix sur la même heure.
@@ -564,27 +605,6 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     # 2 bis. collecte : chaque token qui passe le filtre, à chaque cycle, pour chercher plus tard une meilleure règle
     #        d'entrée et de sortie sur des données qu'aucune règle n'a encore vues (jamais utilisé pour trader ici).
     scores = {a["token"]: (r, hg, pg) for r, a, hg, pg in ranked}
-    # sécurité des tokens (part des 10 plus gros détenteurs, autorisations encore actives) : relevée pour SECU_PAR_CYCLE
-    # tokens par cycle au plus (les plus échangés d'abord), gardée 1 h en cache, pour ne pas saturer GeckoTerminal
-    hc = state.setdefault("hcache", {})
-    manque = [a for a in sorted(uni_all, key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
-              if not (hc.get(a["token"]) and "top10" in hc[a["token"]] and now - hc[a["token"]]["t"] < RULE["holders_cache_s"])]
-    for a in manque[:SECU_PAR_CYCLE]:
-        holders(a["token"], hc, now, full=True)
-    # vrais acheteurs (06/11) : ~300 dernières transactions du pool, pour TX_PAR_CYCLE pools par cycle (les plus échangés
-    # d'abord, sauf noms interdits), gardées TX_CACHE_S secondes
-    import apprend
-    txc = state.setdefault("txcache", {})
-    for k in [k for k, v in txc.items() if now - v["t"] > 4 * 3600]:
-        del txc[k]
-    a_mesurer = [a for a in sorted(uni_all, key=lambda a: -(fnum(a["volume_usd"].get("h1")) or 0))
-                 if not apprend.nom_interdit(a.get("name")) and not (a["pool"] in txc and now - txc[a["pool"]]["t"] < TX_CACHE_S)]
-    for a in a_mesurer[:TX_PAR_CYCLE]:
-        try:  # 2 essais : sur le VPS, 6 relevés sur 8 étaient refusés au premier essai (limite de débit, 06/11)
-            d = get(f"{GT}/pools/{a['pool']}/trades", tries=2)
-            txc[a["pool"]] = {"t": now, "m": apprend.mesure_transactions([x["attributes"] for x in d.get("data", [])])}
-        except Exception as exc:
-            txc[a["pool"]] = {"t": now - TX_CACHE_S + 600, "m": {}, "err": repr(exc)[:80]}  # nouvel essai dans 10 min
     histo = state.setdefault("histo", {})
     for k in [k for k, v in histo.items() if not v or now - v[-1]["t"] > 3600]:
         del histo[k]
@@ -935,6 +955,10 @@ def write_status(state, out_dir, live):
              f"Cadran du jour : {state['dial']['cadran']:.2f} {state['dial']['verts']}",
              f"Dernier cycle : {state['last_universe']} tokens passent le filtre (dont {state.get('last_universe_post', '?')} "
              f"dans l'univers du post), {state['last_ranked']} classés", ""]
+    fr = state.get("fraicheur")
+    if fr:  # 07/11 : décisions sur des prix relus juste avant (voir l'étape 2 ter du cycle)
+        lines[-1:-1] = [f"Données des décisions : {fr['relus']}/{fr['sur']} pools relus, "
+                        f"{fr['retard_s']} s après le début du cycle"]
     fx = FLUX[0]
     lines += ["Prix en direct (gRPC) : " + ("non configuré, suivi par GeckoTerminal toutes les 15 s" if fx is None else
               f"{'connecté' if fx.actif else 'déconnecté'}, {len(fx.pools)} pools suivis, "
