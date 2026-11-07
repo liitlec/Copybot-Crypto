@@ -592,7 +592,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         tx = a["transactions"]
         if tx["m30"]["sells"] > tx["m30"]["buys"] and tx["h1"]["sells"] > tx["h1"]["buys"]:
             continue
-        n = holders(a["token"], state.setdefault("hcache", {}), now)
+        n = holders(a["token"], state.setdefault("hcache", {}), t_debut)  # relevé avant la relecture : pas de nouvel appel
         pg = (fnum(a["price_change_percentage"].get("h1")) or 0.0) / 100
         if not n:
             continue
@@ -680,7 +680,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         ok = sorted((x for x in recs if apprend.entre(rule, x[0]) and x[1]["token"] not in bk["open"]
                      and x[1]["token"] not in recent), key=lambda x: -(x[0]["score"] or 0))
         for rec, a in ok[:3]:  # 05/11 : filtre anti-pièges (14 rugs sur 18 achats sans lui)
-            if securite(a["token"], state.setdefault("hcache", {}), now):
+            if securite(a["token"], state.setdefault("hcache", {}), t_debut):
                 continue
             if enter(bk, a, 1.0, {"regle": rule, "filtre": "ok"}):
                 bk["open"][a["token"]]["sortie"] = rule
@@ -715,7 +715,7 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
         for rec, a in ok_f:
             if len(bf["open"]) >= ia["max_positions"]:
                 break
-            why = securite(a["token"], state.setdefault("hcache", {}), now)
+            why = securite(a["token"], state.setdefault("hcache", {}), t_debut)
             if why:
                 refus.append({"t": round(now), "token": a["token"], "nom": a.get("name"), "raison": why})
                 del refus[:-50]
