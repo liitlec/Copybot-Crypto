@@ -7,6 +7,8 @@ Sécurités écrites dans le code (en plus du réglage reel.json, qui ne peut qu
 - plus aucun achat si la valeur du portefeuille passe sous PLANCHER de sa valeur de départ (les ventes continuent) ;
 - glissement limité (GLISSEMENT_BPS à l'achat ; à la vente, essais à 3 %, 6 % puis 15 % pour toujours sortir) ;
 - un achat papier vieux de plus de RETARD_MAX_S secondes n'est pas copié (le prix a déjà bougé) ;
+- pas d'achat si le prix du devis Jupiter dépasse le prix papier de plus de ECART_ACHAT_MAX (07/11 : GLITCHPEPE acheté
+  32 % plus cher que le papier, en pleine flambée, puis vidé à −95 %) ;
 - arrêt d'urgence : fichier STOP_REEL à côté de reel.py ou dans data/ (plus aucun achat), ou "actif": false dans reel.json.
 
 Depuis le 06/11 (mises à jour automatiques du papier) : ce script tourne sous son propre utilisateur, dans son propre
@@ -37,6 +39,7 @@ RPC_DEFAUT = "https://api.mainnet-beta.solana.com"
 # plafonds durs : reel.json peut les baisser, jamais les dépasser
 MISE_MAX_USD, MAX_POSITIONS, MAX_ACHATS, PLANCHER = 25.0, 3, 20, 0.5
 GLISSEMENT_BPS, VENTE_BPS, RETARD_MAX_S = 300, (300, 600, 1500), 120
+ECART_ACHAT_MAX = 0.10  # devis au plus 10 % au-dessus du prix papier (07/11) ; reel.json peut seulement le baisser
 FRAIS_PRIO_MAX = 100_000  # lamports (0,0001 SOL, ~0,01 $) par transaction au plus
 MISE_MIN_USD, MISE_DEFAUT_USD = 1.0, 2.0  # premier test (05/11) : de toutes petites mises
 PROGRAMMES_JETON = ("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
@@ -68,6 +71,9 @@ class Rpc:
         r = self("getTokenAccountsByOwner", [pub, {"mint": mint}, {"encoding": "jsonParsed", "commitment": "confirmed"}])
         return [(acc["pubkey"], acc["account"]["owner"], int(acc["account"]["data"]["parsed"]["info"]["tokenAmount"]["amount"]))
                 for acc in r["value"]]
+
+    def decimales(self, mint):
+        return int(self("getTokenSupply", [mint])["value"]["decimals"])
 
     def solde_jeton(self, pub, mint):
         """(montant brut, décimales) du jeton détenu, tous comptes confondus."""
@@ -128,10 +134,17 @@ def prix_sol():
     return int(q["outAmount"]) / 1e6 / 0.1
 
 
-def echanger(rpc, kp, entree, sortie, montant_brut, bps):
-    """Échange montant_brut (unités de base) du jeton `entree` contre `sortie`. Renvoie (signature, devis)."""
+class Refus(Exception):
+    """Devis refusé avant tout envoi (rien n'a été signé)."""
+
+
+def echanger(rpc, kp, entree, sortie, montant_brut, bps, garde=None):
+    """Échange montant_brut (unités de base) du jeton `entree` contre `sortie`. Renvoie (signature, devis).
+    `garde(devis)` peut lever Refus pour annuler avant la signature."""
     from solders.transaction import VersionedTransaction
     q = http(f"{JUP}/quote?inputMint={entree}&outputMint={sortie}&amount={int(montant_brut)}&slippageBps={bps}")
+    if garde:
+        garde(q)
     sw = http(f"{JUP}/swap", {"quoteResponse": q, "userPublicKey": str(kp.pubkey()), "wrapAndUnwrapSol": True,
                               "dynamicComputeUnitLimit": True,
                               "prioritizationFeeLamports": {"priorityLevelWithMaxLamports": {
@@ -210,9 +223,23 @@ class Reel:
         lamports = int(mise / psol * 1e9)
         if self.rpc.solde_sol(self.pub) * 1e9 < lamports + 10_000_000:  # garder 0,01 SOL pour les frais
             return self.noter({"event": "achat_ignore", "token": mint, "nom": ev.get("name"), "raison": "solde SOL insuffisant"})
+        ecart_max = min(float(cfg.get("ecart_achat_max", ECART_ACHAT_MAX)), ECART_ACHAT_MAX)
+
+        def garde(q):  # 07/11 : prix du devis comparé au prix papier, avant toute signature
+            if not ev.get("px_in"):
+                return
+            try:
+                dec = self.rpc.decimales(mint)
+                px = mise / (int(q["outAmount"]) / 10 ** dec)
+            except Exception as exc:
+                raise Refus(f"prix du devis illisible ({str(exc)[:80]})")
+            if px / ev["px_in"] - 1 > ecart_max:
+                raise Refus(f"devis {px / ev['px_in'] - 1:+.0%} au-dessus du prix papier (au plus {ecart_max:+.0%})")
         t0 = time.time()
         try:
-            sig, q = echanger(self.rpc, self.kp, SOL, mint, lamports, GLISSEMENT_BPS)
+            sig, q = echanger(self.rpc, self.kp, SOL, mint, lamports, GLISSEMENT_BPS, garde)
+        except Refus as exc:
+            return self.noter({"event": "achat_ignore", "token": mint, "nom": ev.get("name"), "raison": str(exc)})
         except Exception as exc:
             # 06/11 : une transaction confirmée en retard arrive quand même ; sans cette vérification, les jetons
             # resteraient dans le portefeuille sans jamais être revendus
