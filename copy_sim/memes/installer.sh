@@ -15,8 +15,8 @@
 #   fichiers du papier. reel.py, serveur.py, maj_auto.py et ce script ne changent que par ce script (donc validé).
 set -e
 [ -n "$1" ] || { echo "usage : sh installer.sh JETON"; exit 1; }
-VERSION=c0835be067b40e07860b7077e7e615d5ecef6989
-SEQ=1  # numéro de la version automatique incluse (AUTO_VERSION) : maj_auto.py n'installe que les numéros suivants
+VERSION=e4ee65379697acf94910ef5834ea418021321ae0
+SEQ=3  # numéro de la version automatique incluse (AUTO_VERSION) : maj_auto.py n'installe que les numéros suivants
 D=/opt/memes_paper
 R=/opt/memes_reel
 L=/usr/local/lib/memes
