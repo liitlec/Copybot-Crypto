@@ -85,3 +85,8 @@ Claude Code, Remote Control) ou une session ouverte sur le PC dans MQL5, et un 2
   de la caisse copiée change ; pour reprendre, choisir à nouveau la caisse) et perte réalisée max 6 $/jour (Paris).
 - `ia/BUDGET.md` : MODE normal / economie / pause, lu en premier par la chercheuse et l'ingénieure. Mis sur
   « economie » jusqu'au 11/11 16 h ; le remettre sur « normal » ensuite.
+
+## Prochain chantier : « l'élargissement de l'IA » (mercredi 11/11 après 16 h)
+Plan dans `ia/ELARGISSEMENT.md` : budget remis sur normal, détecteur gRPC des nouveaux pools, caisse papier
+« baleines » (copie de portefeuilles smart money, idée d'un post viral « Grok $77 → $1 963 » jugé publicitaire),
+univers plus large pour le tournoi. Aucune tâche planifiée liée à cette conversation : Baptiste relancera lui-même.
