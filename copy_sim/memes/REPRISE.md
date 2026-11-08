@@ -35,7 +35,10 @@ chose est prête (une erreur non testée a déjà bloqué le test réel une jour
   depuis une session sur son PC : https://raw.githubusercontent.com/liitlec/Copybot-Crypto/6fe2d5e/copy_sim/memes/installer.sh
 - **Décidé le 07/11 10 h 40** : le réel suivra **defi_3** au lieu de « ia » (simple réglage `"caisse"` dans
   `/opt/memes_reel/reel.json`, lu au démarrage, puis `systemctl restart memes-reel` ; à faire depuis son PC après
-  l'installation). Risque : la chercheuse peut changer la règle d'une case defi_x ; vérifier avant de la remplacer.
+  l'installation). Le 07/11 à 23 h 58 la chercheuse a remplacé la règle de defi_3 (rebond : 15 trades, +5,2 %) : le réel a
+  suivi la nouvelle règle sans prévenir. **08/11 11 h** : Baptiste veut suivre « la meilleure caisse » → defi_5 (6 trades,
+  +14,3 % ± 17) malgré mon conseil de pause ; même risque de changement de règle à 15 trades. Piste : reel.py qui suit
+  une règle (sa clé) et non une place.
 
 ## Caisses (remise à zéro le 04/11, 10 000 $ chacune)
 - **ia** = championne de la chercheuse (règle v15), **ia_filtre** = même règle + filtre anti-pièges.
