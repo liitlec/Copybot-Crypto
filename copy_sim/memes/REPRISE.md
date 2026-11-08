@@ -90,3 +90,8 @@ Claude Code, Remote Control) ou une session ouverte sur le PC dans MQL5, et un 2
 Plan dans `ia/ELARGISSEMENT.md` : budget remis sur normal, détecteur gRPC des nouveaux pools, caisse papier
 « baleines » (copie de portefeuilles smart money, idée d'un post viral « Grok $77 → $1 963 » jugé publicitaire),
 univers plus large pour le tournoi. Aucune tâche planifiée liée à cette conversation : Baptiste relancera lui-même.
+
+## Tournoi fantôme (lancé le 08/11 au soir, mise à jour automatique 6)
+576 variantes (liquidité x prix x flux d'acheteurs x âge x heure x sortie), sans IA, dans `memes_paper.py`
+(`tournoi_fantome`) ; résultats `data/fantomes.md`, `fantomes.json`, `fantomes_trades.jsonl` (port 8787). Preuve :
+30 trades, t >= 3,57, positif sans les 3 meilleurs. Sorties vérifiées une fois par cycle (un peu pessimiste).
