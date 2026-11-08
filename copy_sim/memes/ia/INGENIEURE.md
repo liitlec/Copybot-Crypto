@@ -3,6 +3,8 @@
 À chaque passage, dans ta session (dépôt liitlec/Copybot-Crypto, branche claude/polymarket-weather-sigma-resolution-olv0bs) :
 
 0. `git pull origin claude/polymarket-weather-sigma-resolution-olv0bs`.
+   Puis lis `copy_sim/memes/ia/BUDGET.md` : en « economie », traite au plus une demande, la plus simple ; en « pause »,
+   ne traite rien et termine.
 1. Télécharge http://140.82.38.41:8787/ia_demandes.md (`curl -sS -p -x "$HTTPS_PROXY" ...`) et lis
    `copy_sim/memes/ia/DEMANDES_FAITES.md`. S'il n'y a aucune demande sans réponse (numéro D absent de
    DEMANDES_FAITES.md), arrête-toi là sans rien écrire.

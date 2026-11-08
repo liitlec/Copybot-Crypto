@@ -9,6 +9,9 @@ Sécurités écrites dans le code (en plus du réglage reel.json, qui ne peut qu
 - un achat papier vieux de plus de RETARD_MAX_S secondes n'est pas copié (le prix a déjà bougé) ;
 - pas d'achat si le prix du devis Jupiter dépasse le prix papier de plus de ECART_ACHAT_MAX (07/11 : GLITCHPEPE acheté
   32 % plus cher que le papier, en pleine flambée, puis vidé à −95 %) ;
+- règle épinglée (08/11) : le réel retient la règle de la caisse copiée au moment où l'utilisateur la choisit et
+  n'achète plus si la chercheuse la remplace (07/11 : la règle de defi_3 changée sans prévenir) ;
+- perte réalisée au plus PERTE_JOUR_MAX_USD par jour (heure de Paris) : au-delà, plus d'achat jusqu'au lendemain ;
 - arrêt d'urgence : fichier STOP_REEL à côté de reel.py ou dans data/ (plus aucun achat), ou "actif": false dans reel.json.
 
 Depuis le 06/11 (mises à jour automatiques du papier) : ce script tourne sous son propre utilisateur, dans son propre
@@ -40,6 +43,7 @@ RPC_DEFAUT = "https://api.mainnet-beta.solana.com"
 MISE_MAX_USD, MAX_POSITIONS, MAX_ACHATS, PLANCHER = 25.0, 3, 20, 0.5
 GLISSEMENT_BPS, VENTE_BPS, RETARD_MAX_S = 300, (300, 600, 1500), 120
 ECART_ACHAT_MAX = 0.10  # devis au plus 10 % au-dessus du prix papier (07/11) ; reel.json peut seulement le baisser
+PERTE_JOUR_MAX_USD = 6.0  # 08/11 : perte réalisée par jour (heure de Paris) au-delà de laquelle on n'achète plus ce jour-là
 FRAIS_PRIO_MAX = 100_000  # lamports (0,0001 SOL, ~0,01 $) par transaction au plus
 MISE_MIN_USD, MISE_DEFAUT_USD = 1.0, 2.0  # premier test (05/11) : de toutes petites mises
 PROGRAMMES_JETON = ("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
@@ -200,6 +204,50 @@ class Reel:
             self.sauver()
             self.noter({"event": "depart", "adresse": self.pub, "valeur_usd": self.etat["depart_usd"]})
 
+    def regle_caisse(self):
+        """Empreinte de la règle que suit la caisse papier copiée (08/11, après le remplacement silencieux de la règle
+        de defi_3) : clé de la règle pour une place du tournoi, version de la règle pour « ia ». None si illisible."""
+        caisse = self.cfg.get("caisse", "ia")
+        try:
+            s = json.loads((self.d / "state.json").read_text())
+            if caisse.startswith("defi_"):
+                return s["defis"][caisse]["cle"]
+            if caisse in ("ia", "ia_filtre"):
+                return f"version {s['ia']['version']}"
+        except Exception:
+            return None
+        return "sans règle"
+
+    def regle_changee(self):
+        """La règle de la caisse a-t-elle changé depuis que l'utilisateur a choisi de la suivre ? La première lecture
+        après un changement de caisse dans reel.json fixe la règle suivie ; une autre règle ensuite bloque les achats
+        (les ventes continuent) jusqu'à ce que l'utilisateur confirme (en remettant la caisse dans reel.json et en
+        supprimant regle_suivie de reel_etat.json, ou en choisissant une autre caisse)."""
+        caisse, regle = self.cfg.get("caisse", "ia"), self.regle_caisse()
+        if regle is None:
+            return "règle de la caisse illisible"
+        suivie = self.etat.get("regle_suivie")
+        if not suivie or suivie.get("caisse") != caisse:
+            self.etat["regle_suivie"] = {"caisse": caisse, "regle": regle, "depuis": round(time.time())}
+            self.sauver()
+            self.noter({"event": "regle_suivie", "caisse": caisse, "regle": regle[:300]})
+            return None
+        if suivie["regle"] != regle:
+            return f"la règle de {caisse} a changé depuis le choix de l'utilisateur : plus d'achat avant son accord"
+        return None
+
+    def perte_du_jour(self):
+        """Perte réalisée aujourd'hui (heure de Paris), en dollars, d'après les ventes de reel.jsonl."""
+        jour, perte = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 3600)), 0.0
+        try:
+            for ln in (self.out / "reel.jsonl").read_text().splitlines():
+                r = json.loads(ln)
+                if r.get("event") == "vente" and time.strftime("%Y-%m-%d", time.gmtime(r["t"] + 3600)) == jour:
+                    perte += r["usd_mise"] - r["usd_recu"]
+        except Exception:
+            pass
+        return perte
+
     def acheter(self, ev):
         mint, cfg = ev["token"], self.cfg
         mise = min(max(float(cfg.get("mise_usd", MISE_DEFAUT_USD)), MISE_MIN_USD), MISE_MAX_USD)
@@ -214,6 +262,10 @@ class Reel:
             raison = f"{MAX_ACHATS} achats atteints : fin du test, faire le bilan"
         elif time.time() - ev.get("t_reel", ev.get("t", time.time())) > RETARD_MAX_S:  # 06/11 : heure réelle
             raison = "achat papier trop ancien"
+        elif self.perte_du_jour() >= min(float(cfg.get("perte_jour_max_usd", PERTE_JOUR_MAX_USD)), PERTE_JOUR_MAX_USD):
+            raison = "perte du jour au maximum : reprise demain"
+        else:
+            raison = self.regle_changee()
         if raison:
             return self.noter({"event": "achat_ignore", "token": mint, "nom": ev.get("name"), "raison": raison})
         psol = prix_sol()
