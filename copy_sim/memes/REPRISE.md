@@ -79,3 +79,9 @@ Claude Code, Remote Control) ou une session ouverte sur le PC dans MQL5, et un 2
 ## Autres points
 - Environnement cloud « Par défaut » : script de démarrage réparé le 07/11 (il contenait une liste d'hôtes).
 - Plugin « FREE LLM API » demandé le 07/11 : introuvable dans le catalogue de plugins ; demander un lien.
+
+## Repris d'« Automaton » (Conway-Research, 08/11)
+- `reel.py` (installateur figé sur `0c7350f`, **à installer depuis son PC**) : règle épinglée (plus d'achat si la règle
+  de la caisse copiée change ; pour reprendre, choisir à nouveau la caisse) et perte réalisée max 6 $/jour (Paris).
+- `ia/BUDGET.md` : MODE normal / economie / pause, lu en premier par la chercheuse et l'ingénieure. Mis sur
+  « economie » jusqu'au 11/11 16 h ; le remettre sur « normal » ensuite.
