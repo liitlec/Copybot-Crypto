@@ -131,6 +131,15 @@ print("appels", APPELS)
 L = [json.loads(l) for l in (OUT / "trades.jsonl").read_text().splitlines()]
 
 
+def fantome_ok():
+    try:
+        f = json.loads((OUT / "fantomes.json").read_text())
+        n = sum(len(v["rets"]) for v in f["variantes"].values())
+        return len(f["variantes"]) == 576 and n > 0 and (OUT / "fantomes.md").exists()
+    except Exception:
+        return False
+
+
 def palier_ok(ventes):
     """Bravo, vendu sur stop par defi_10 (sans palier) et defi_11 (palier à +4 %) : defi_11 doit faire mieux."""
     a = [r["ret"] for r in ventes if r["book"] == "defi_10" and r["name"].startswith("Bravo")]
@@ -160,6 +169,7 @@ verifs = {
     "équité cohérente après palier": all(abs(M.equity(b, {}) - (b["cash"] + sum(q["dollars"] * q["qty"] / q.get("qty0", q["qty"])
                                                                                 for q in b["open"].values()))) < 1e-6
                                         for b in state["books"].values()),
+    "tournoi fantôme (576 variantes, achats et ventes)": fantome_ok(),
 }
 for k, v in verifs.items():
     print(("ok   " if v else "ÉCHEC"), k)

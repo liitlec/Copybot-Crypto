@@ -492,6 +492,159 @@ def apprentissage(state, out_dir, now):
             f.write(json.dumps(state["auto"], ensure_ascii=False) + "\n")
 
 
+# ------------------------------------------------------------------ tournoi fantôme (08/11)
+# Demandé par Baptiste le 08/11 : les 12 places du tournoi ne font qu'une cinquantaine de trades par jour, il faudrait
+# des mois pour juger une règle. Ici, des centaines de variantes de règles (grille fixe, sans IA, donc sans coût) sont
+# appliquées à chaque cycle sur les mêmes candidats et les mêmes prix relus que les vraies caisses. Chaque variante a sa
+# caisse fantôme à mise fixe (600 $, mêmes frais, même impact de prix, mêmes plafonds que close_pos). Les sorties sont
+# vérifiées une fois par cycle (5-7 min), pas toutes les 15 s : les stops y sortent donc un peu plus bas qu'en vrai.
+# Résultats : data/fantomes.md (classement), data/fantomes.json (état), data/fantomes_trades.jsonl (trades fermés).
+# Seuil de preuve affiché : t >= sqrt(2 ln N) pour N variantes (sinon, sur 576 essais, certaines gagnent par hasard).
+FANT_MISE, FANT_MAX_POS, FANT_DELAI_H = 600.0, 5, 24.0
+PARIS = ZoneInfo("Europe/Paris")
+FANT = [None]  # état chargé : {"variantes": {id: {...}}, "debut": t}
+
+
+def grille_fantome():
+    """Variantes : liquidité x configuration du prix x flux d'acheteurs x âge x heure x sortie (576)."""
+    liqs = (20_000, 50_000, 100_000)
+    prix = {"tout": [],
+            "creux": [("variation_prix_pct.h1", "<=", -5), ("variation_prix_pct.m5", ">=", 0)],
+            "elan": [("variation_prix_pct.h1", ">=", 10), ("variation_prix_pct.m5", ">=", 0)],
+            "calme": [("variation_prix_pct.h1", ">", -5), ("variation_prix_pct.h1", "<", 10)]}
+    flux = {"-": [], "acheteurs": [("ratio_acheteurs_1h", ">=", 1.2)],
+            "detenteurs": [("croissance_detenteurs_1h", ">", 0), ("rotation_h1", "<=", 1.0)]}
+    ages = {"-": [], "12h+": [("age_h", ">=", 12)]}
+    heures = {"toute": None, "8-12h": (8, 12)}
+    sorties = {"s15/o30/6h": {"stop": -0.15, "objectif": 0.30, "suiveur": None, "duree_max_h": 6},
+               "s25/o50/6h": {"stop": -0.25, "objectif": 0.50, "suiveur": None, "duree_max_h": 6},
+               "s30/o100/12h": {"stop": -0.30, "objectif": 1.00, "suiveur": None, "duree_max_h": 12},
+               "s20/suiv25/12h": {"stop": -0.20, "objectif": None, "suiveur": 0.25, "duree_max_h": 12}}
+    out = {}
+    for liq in liqs:
+        for kp, cp in prix.items():
+            for kf, cf in flux.items():
+                for ka, ca in ages.items():
+                    for kh, h in heures.items():
+                        for ks, sx in sorties.items():
+                            vid = f"liq{liq // 1000}k|{kp}|{kf}|{ka}|{kh}|{ks}"
+                            conds = [{"champ": c, "op": o, "val": float(v)}
+                                     for c, o, v in [("liquidite", ">=", liq)] + cp + cf + ca]
+                            out[vid] = {"conditions": conds, "heures": h, "score": None, "composes": [],
+                                        "sortie_volume": False, **sx}
+    return out
+
+
+def _fant_charger(out_dir):
+    if FANT[0] is None:
+        f = out_dir / "fantomes.json"
+        try:
+            FANT[0] = json.loads(f.read_text())
+        except Exception:
+            FANT[0] = {"debut": time.time(), "variantes": {}}
+    return FANT[0]
+
+
+def _fant_fermer(st, vid, v, token, p, a, now, raison, log_f):
+    liq = fnum(a.get("reserve_in_usd")) if a else 0.0
+    px = fnum(a.get("base_token_price_usd")) if a else 0.0
+    gross = p["qty"] * (px or 0) * (1 - impact(p["qty"] * (px or 0), liq or 0))
+    gross = min(gross, (liq or 0) / 2)
+    if raison.startswith("pool vidé"):
+        gross = min(gross, FANT_MISE * (1 + PERTE_VIDE))
+    gross = min(gross, FANT_MISE * (1 + GAIN_MAX))
+    proceeds = max(gross - cost(gross) if gross > 0 else 0.0, 0.0)
+    ret = round(proceeds / FANT_MISE - 1, 5)
+    del v["open"][token]
+    v["rets"].append(ret)
+    v["vendus"][token] = now
+    log_f.write(json.dumps({"v": vid, "name": p.get("name"), "t_in": round(p["t"]), "t_out": round(now), "ret": ret,
+                            "raison": raison}, ensure_ascii=False) + "\n")
+
+
+def tournoi_fantome(out_dir, recs, frais, now):
+    """Une passe du tournoi fantôme : sorties sur les prix relus (frais), puis au plus un achat par variante."""
+    import apprend
+    st = _fant_charger(out_dir)
+    grille = grille_fantome()
+    for vid in grille:
+        st["variantes"].setdefault(vid, {"open": {}, "rets": [], "vendus": {}})
+    heure = datetime.fromtimestamp(now, PARIS).hour
+    with (out_dir / "fantomes_trades.jsonl").open("a") as log_f:
+        for vid, v in st["variantes"].items():
+            regle = grille.get(vid)
+            if regle is None:
+                continue
+            for token, p in list(v["open"].items()):
+                a = frais.get(p["pool"])
+                if a is None:
+                    p["absent"] = p.get("absent", 0) + 1
+                    if p["absent"] >= ABSENT_MAX:
+                        _fant_fermer(st, vid, v, token, p, None, now, "pool disparu", log_f)
+                    continue
+                p["absent"] = 0
+                liq = fnum(a.get("reserve_in_usd"))
+                if liq is not None and liq < RULE["vide_liquidite"]:
+                    _fant_fermer(st, vid, v, token, p, a, now, "pool vidé", log_f)
+                    continue
+                x = (fnum(a.get("base_token_price_usd")) or 0) / p["px_in"] - 1
+                p["pic"] = max(p.get("pic", 0.0), x)
+                why = apprend.sortir_ia(regle, x, p["pic"], (now - p["t"]) / 3600, False)
+                if why:
+                    _fant_fermer(st, vid, v, token, p, a, now, why, log_f)
+            for k in [k for k, t in v["vendus"].items() if now - t > FANT_DELAI_H * 3600]:
+                del v["vendus"][k]
+            h = regle["heures"]
+            if len(v["open"]) >= FANT_MAX_POS or (h and not h[0] <= heure < h[1]):
+                continue
+            ok = [x for x in recs if x[1]["token"] not in v["open"] and x[1]["token"] not in v["vendus"]
+                  and apprend.entre_ia(regle, x[0])]
+            if not ok:
+                continue
+            rec, a = max(ok, key=lambda x: apprend.champ(x[0], "ratio_acheteurs_1h") or 0)
+            liq, px = fnum(a.get("reserve_in_usd")), fnum(a.get("base_token_price_usd"))
+            if not liq or not px:
+                continue
+            fill = px * (1 + impact(FANT_MISE, liq))
+            v["open"][a["token"]] = {"pool": a["pool"], "name": a.get("name"), "t": now, "px_in": px,
+                                     "qty": (FANT_MISE - cost(FANT_MISE)) / fill}
+    tmp = out_dir / "fantomes.json.tmp"
+    tmp.write_text(json.dumps(st))
+    tmp.replace(out_dir / "fantomes.json")
+    ecrire_classement_fantome(out_dir, st, now)
+
+
+def ecrire_classement_fantome(out_dir, st, now):
+    import math
+    n_var = len(st["variantes"]) or 1
+    seuil = math.sqrt(2 * math.log(n_var))
+    lignes = []
+    for vid, v in st["variantes"].items():
+        xs = v["rets"]
+        n = len(xs)
+        if n < 2:
+            continue
+        m = sum(xs) / n
+        sd = math.sqrt(sum((x - m) ** 2 for x in xs) / (n - 1))
+        t = m / (sd / math.sqrt(n)) if sd > 0 else 0.0
+        sans3 = sorted(xs)[:-3]
+        lignes.append((t, vid, n, m, sum(x > 0 for x in xs) / n, sum(sans3) / len(sans3) if sans3 else None, len(v["open"])))
+    lignes.sort(reverse=True)
+    tous = [x for v in st["variantes"].values() for x in v["rets"]]
+    out = [f"# Tournoi fantôme — {datetime.fromtimestamp(now, PARIS):%d/%m %H:%M} (Paris)", "",
+           f"{n_var} variantes depuis le {datetime.fromtimestamp(st['debut'], PARIS):%d/%m %H:%M}, "
+           f"{len(tous)} trades fermés au total, moyenne {100 * sum(tous) / len(tous) if tous else 0:+.1f} % par trade.",
+           f"Preuve exigée : au moins 30 trades, t >= {seuil:.2f} (= racine(2 ln {n_var}), pour ne pas retenir un gagnant "
+           "dû au hasard), et moyenne positive sans les 3 meilleurs trades.", "",
+           "| t | variante | trades | moyenne | gagnants | sans 3 meilleurs | ouvertes | preuve |",
+           "|---|---|---|---|---|---|---|---|"]
+    for t, vid, n, m, g, s3, o in lignes[:40]:
+        preuve = "OUI" if n >= 30 and t >= seuil and s3 is not None and s3 > 0 else ""
+        out.append(f"| {t:+.2f} | {vid} | {n} | {100 * m:+.1f} % | {100 * g:.0f} % | "
+                   f"{'' if s3 is None else f'{100 * s3:+.1f} %'} | {o} | {preuve} |")
+    (out_dir / "fantomes.md").write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
 def cycle(state, out_dir, now, avec_apprentissage=True):
     log_path = out_dir / "trades.jsonl"
     horloge0 = time.time()  # pour avancer « now » du temps réellement écoulé (étape 2 ter)
@@ -569,7 +722,13 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     # 2 ter. données du moment : prix, liquidité, volumes et transactions relus (1 appel par 30 pools) ; la suite du
     #        cycle (classement, règles, achats, prix d'achat) part de là. Un pool non relu garde sa donnée du début.
     t_debut = now
-    frais = pools_now([a["pool"] for a in uni_lent])
+    fant_pools = []
+    try:  # positions du tournoi fantôme : relues avec l'univers, dans le même appel groupé
+        fant_pools = sorted({p["pool"] for v in _fant_charger(out_dir)["variantes"].values() for p in v["open"].values()}
+                            - {a["pool"] for a in uni_lent})
+    except Exception:
+        pass
+    frais = pools_now([a["pool"] for a in uni_lent] + fant_pools)
     now = t_debut + (time.time() - horloge0)
     for a in uni_lent:
         if a["pool"] in frais:
@@ -637,6 +796,11 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
                             if rec.get(k) is not None}
              for rec, _ in recs}  # aussi dans les dossiers des juges
     recs = [x for x in recs if not nom_bloque(x[1].get("name"), now)]  # les caisses à règle passent au suivant
+    try:
+        tournoi_fantome(out_dir, recs, frais, now)
+    except Exception as exc:
+        with (out_dir / "erreurs.log").open("a") as f:
+            f.write(f"{datetime.now(timezone.utc).isoformat()} fantome {exc!r}\n")
     # 3. entrées (une par cycle et par caisse). « classement » suit le cadran comme dans le post ; « sans_cadran » prend
     #    les mêmes choix tous les jours ; « temoin » tire au hasard dans le filtre à chaque entrée de « sans_cadran ».
     def enter(book, a, dial_mult, why):
