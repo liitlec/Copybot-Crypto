@@ -428,7 +428,9 @@ def surveiller(state, out_dir, now):
 
 
 def pools_suivis(state):
-    return {p["pool"]: token for b in state["books"].values() for token, p in b["open"].items() if suivie(p)}
+    d = pools_fantomes()  # 09/11 : positions du tournoi fantôme suivies aussi par le flux gRPC
+    d.update({p["pool"]: token for b in state["books"].values() for token, p in b["open"].items() if suivie(p)})
+    return d
 
 
 def gardien(state, out_dir):
@@ -458,8 +460,10 @@ def gardien(state, out_dir):
                         if not usd or not ref or not GRPC_ECART[0] * ref <= usd <= GRPC_ECART[1] * ref:
                             continue  # prix gRPC trop loin de GeckoTerminal : probablement faux, ignoré
                         sortie_regle(b, token, p, dict(g, base_token_price_usd=str(usd)), now, log)
+                fermes_f = gardien_fantome(out_dir, fx, now)
                 if sum(len(b["closed"]) for b in state["books"].values()) != n:
                     (out_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
+                if fermes_f or sum(len(b["closed"]) for b in state["books"].values()) != n:
                     fx.suivre(pools_suivis(state))
         except Exception as exc:
             with (out_dir / "erreurs.log").open("a") as f:
@@ -503,6 +507,8 @@ def apprentissage(state, out_dir, now):
 FANT_MISE, FANT_MAX_POS, FANT_DELAI_H = 600.0, 5, 24.0
 PARIS = ZoneInfo("Europe/Paris")
 FANT = [None]  # état chargé : {"variantes": {id: {...}}, "debut": t}
+GRILLE_F = [None]
+FANT_ECART = (0.15, 6.0)  # prix gRPC accepté entre 0,15 et 6 fois le dernier prix GeckoTerminal (relevé du cycle)
 
 
 def grille_fantome():
@@ -566,7 +572,7 @@ def tournoi_fantome(out_dir, recs, frais, now):
     """Une passe du tournoi fantôme : sorties sur les prix relus (frais), puis au plus un achat par variante."""
     import apprend
     st = _fant_charger(out_dir)
-    grille = grille_fantome()
+    grille = GRILLE_F[0] = GRILLE_F[0] or grille_fantome()
     for vid in grille:
         st["variantes"].setdefault(vid, {"open": {}, "rets": [], "vendus": {}})
     heure = datetime.fromtimestamp(now, PARIS).hour
@@ -612,6 +618,46 @@ def tournoi_fantome(out_dir, recs, frais, now):
     tmp.write_text(json.dumps(st))
     tmp.replace(out_dir / "fantomes.json")
     ecrire_classement_fantome(out_dir, st, now)
+
+
+def gardien_fantome(out_dir, fx, now):
+    """09/11 : sorties des positions fantômes au prix gRPC (chaque seconde, comme les vraies caisses), au lieu d'une
+    fois par cycle ; la nuit du 08/11, un stop à −15 % sortait en moyenne à −28 % faute de suivi entre deux cycles.
+    Le prix gRPC (en jeton de cotation) est converti en dollars avec le prix de la cotation relevé par GeckoTerminal ;
+    il est ignoré s'il s'écarte trop du dernier prix GeckoTerminal du pool (FANT_ECART). Rien ne se passe si le flux
+    n'est pas configuré : le cycle tranche alors comme avant."""
+    import apprend
+    st, grille = FANT[0], GRILLE_F[0]
+    if not st or not grille:
+        return 0
+    fermes = 0
+    with (out_dir / "fantomes_trades.jsonl").open("a") as log_f:
+        for vid, v in st["variantes"].items():
+            regle = grille.get(vid)
+            for token, p in list(v["open"].items()):
+                pr, g = fx.prix.get(p["pool"]), LAST_GT.get(p["pool"])
+                if regle is None or not pr or now - pr[0] > 20 or not g:
+                    continue
+                q, ref = fnum(g.get("quote_token_price_usd")), fnum(g.get("base_token_price_usd"))
+                usd = pr[1] * (q or 0)
+                if not usd or not ref or not FANT_ECART[0] * ref <= usd <= FANT_ECART[1] * ref:
+                    continue
+                x = usd / p["px_in"] - 1
+                p["pic"] = max(p.get("pic", 0.0), x)
+                why = apprend.sortir_ia(regle, x, p["pic"], (now - p["t"]) / 3600, False)
+                if why:
+                    _fant_fermer(st, vid, v, token, p, dict(g, base_token_price_usd=str(usd)), now, why + " (gRPC)", log_f)
+                    fermes += 1
+    if fermes:
+        tmp = out_dir / "fantomes.json.tmp"
+        tmp.write_text(json.dumps(st))
+        tmp.replace(out_dir / "fantomes.json")
+    return fermes
+
+
+def pools_fantomes():
+    st = FANT[0]
+    return {p["pool"]: token for v in st["variantes"].values() for token, p in v["open"].items()} if st else {}
 
 
 def ecrire_classement_fantome(out_dir, st, now):
