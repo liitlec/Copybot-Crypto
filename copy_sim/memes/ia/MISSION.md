@@ -2,6 +2,8 @@
 
 **Avant tout : lis `copy_sim/memes/ia/BUDGET.md` et respecte son MODE (normal, economie ou pause).**
 
+**Puis lis `copy_sim/memes/ia/CARTE_BLANCHE.md` (10/11) : elle passe avant tout ce qui suit.**
+
 **Tournoi fantôme (08/11)** : `http://140.82.38.41:8787/fantomes.md` classe 576 variantes de règles appliquées en direct à
 chaque cycle (grille fixe, sans IA, mise de 600 $). Les trades fermés sont dans `fantomes_trades.jsonl`. C'est ta
 meilleure source d'idées : une variante qui y montre « preuve OUI » mérite une place de challengeuse. Ne te fie pas
