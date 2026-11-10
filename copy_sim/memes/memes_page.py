@@ -216,8 +216,10 @@ def page(state, status_md, regles, juges, erreurs, prix, now, calib=None, reel=N
     grpc = re.search(r"Prix en direct \(gRPC\) : ([^\n]+)", status_md)
     minuit = datetime.fromtimestamp(now, PARIS).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
     for slot, dfi in sorted((state.get("defis") or {}).items(), key=lambda kv: int(kv[0].split("_")[1])):  # tournoi (04/11) : challengeuses de la chercheuse
-        LABELS[slot] = f"Défi {slot.split('_')[1]} : {dfi.get('nom') or 'sans nom'}"
-        DETAIL[slot] = f"challengeuse de la chercheuse, depuis le {heure(dfi.get('debut', now))}"
+        LABELS[slot] = (f"Défi {slot.split('_')[1]} : {dfi.get('nom') or 'sans nom'}"
+                        + (" (en veille)" if dfi.get("veille") else ""))  # 10/11 (demande D8) : plus d'achat
+        DETAIL[slot] = (f"challengeuse de la chercheuse, depuis le {heure(dfi.get('debut', now))}"
+                        + (" ; en veille : n'achète plus, ses positions se ferment normalement" if dfi.get("veille") else ""))
     books = {}
     for k in LABELS:
         b = state["books"].get(k)

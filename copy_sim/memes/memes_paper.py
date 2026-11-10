@@ -548,7 +548,33 @@ def _fant_charger(out_dir):
             FANT[0] = json.loads(f.read_text())
         except Exception:
             FANT[0] = {"debut": time.time(), "variantes": {}}
+        _fant_rattraper_tokens(out_dir, FANT[0])
     return FANT[0]
+
+
+def _fant_rattraper_tokens(out_dir, st):
+    """10/11 (demande D6) : chaque variante garde, à côté de ses rendements, [token, vidé] par trade (« tr »). Pour les
+    trades d'avant, relu une fois dans fantomes_trades.jsonl : ils n'ont que le nom du token (« nom:<nom> »)."""
+    manque = {vid for vid, v in st["variantes"].items() if len(v.setdefault("tr", [])) != len(v["rets"])}
+    if not manque:
+        return
+    par_v = {}
+    try:
+        with (out_dir / "fantomes_trades.jsonl").open(encoding="utf-8", errors="replace") as f:
+            for ligne in f:
+                try:
+                    r = json.loads(ligne)
+                except ValueError:
+                    continue
+                if isinstance(r, dict) and r.get("v") in manque and (r.get("t_out") or 0) >= st.get("debut", 0) - 1:
+                    par_v.setdefault(r["v"], []).append(
+                        [r.get("token") or f"nom:{r.get('name')}", str(r.get("raison", "")).startswith("pool vidé")])
+    except OSError:
+        pass
+    for vid in manque:
+        v, n = st["variantes"][vid], len(st["variantes"][vid]["rets"])
+        tr = par_v.get(vid, [])[-n:] if n else []
+        v["tr"] = [[None, False]] * (n - len(tr)) + tr
 
 
 def _fant_fermer(st, vid, v, token, p, a, now, raison, log_f):
@@ -563,9 +589,25 @@ def _fant_fermer(st, vid, v, token, p, a, now, raison, log_f):
     ret = round(proceeds / FANT_MISE - 1, 5)
     del v["open"][token]
     v["rets"].append(ret)
+    v.setdefault("tr", []).append([token, raison.startswith("pool vidé")])  # 10/11 (D6), aligné sur rets
     v["vendus"][token] = now
-    log_f.write(json.dumps({"v": vid, "name": p.get("name"), "t_in": round(p["t"]), "t_out": round(now), "ret": ret,
-                            "raison": raison}, ensure_ascii=False) + "\n")
+    log_f.write(json.dumps({"v": vid, "name": p.get("name"), "token": token, "pool": p.get("pool"), "t_in": round(p["t"]),
+                            "t_out": round(now), "ret": ret, "raison": raison, "achat": p.get("achat")},
+                           ensure_ascii=False) + "\n")
+
+
+def _fant_achat(rec):
+    """10/11 (demande D6) : chiffres du token au moment de l'achat fantôme, recopiés dans fantomes_trades.jsonl."""
+    import apprend
+    out = {}
+    for k, c in (("age_h", "age_h"), ("liquidite", "liquidite"), ("detenteurs", "detenteurs"),
+                 ("rotation_h1", "rotation_h1"), ("variation_h1", "variation_prix_pct.h1"), ("top10", "top10_pct")):
+        try:
+            x = apprend.champ(rec, c)
+        except Exception:
+            x = None
+        out[k] = None if x is None else float(f"{float(x):.4g}")
+    return out
 
 
 def tournoi_fantome(out_dir, recs, frais, now):
@@ -613,7 +655,7 @@ def tournoi_fantome(out_dir, recs, frais, now):
                 continue
             fill = px * (1 + impact(FANT_MISE, liq))
             v["open"][a["token"]] = {"pool": a["pool"], "name": a.get("name"), "t": now, "px_in": px,
-                                     "qty": (FANT_MISE - cost(FANT_MISE)) / fill}
+                                     "qty": (FANT_MISE - cost(FANT_MISE)) / fill, "achat": _fant_achat(rec)}
     tmp = out_dir / "fantomes.json.tmp"
     tmp.write_text(json.dumps(st))
     tmp.replace(out_dir / "fantomes.json")
@@ -660,13 +702,41 @@ def pools_fantomes():
     return {p["pool"]: token for v in st["variantes"].values() for token, p in v["open"].items()} if st else {}
 
 
+FANT_TOKENS_MIN = 20  # 10/11 (demande D6) : « preuve OUI » exige au moins 20 tokens différents
+FANT_DIMENSIONS = ("liquidité", "prix", "flux", "âge", "heure", "sortie")  # morceaux de l'identifiant de variante
+
+
+def _par_token(paires):
+    """[(token, rendement, vidé)] -> (tokens, moyenne des moyennes par token, erreur type, part de tokens vidés)."""
+    import math
+    d = {}
+    for tok, x, vide in paires:
+        if tok is None:
+            continue
+        e = d.setdefault(tok, [0.0, 0, False])
+        e[0] += x
+        e[1] += 1
+        e[2] = e[2] or vide
+    n = len(d)
+    if not n:
+        return 0, None, None, None
+    ms = [s_ / k for s_, k, _ in d.values()]
+    m = sum(ms) / n
+    se = math.sqrt(sum((x - m) ** 2 for x in ms) / (n - 1) / n) if n > 1 else None
+    return n, m, se, sum(e[2] for e in d.values()) / n
+
+
 def ecrire_classement_fantome(out_dir, st, now):
     import math
     n_var = len(st["variantes"]) or 1
     seuil = math.sqrt(2 * math.log(n_var))
-    lignes = []
+    lignes, familles = [], {}
     for vid, v in st["variantes"].items():
         xs = v["rets"]
+        tr = v.get("tr") or []
+        paires = [(t[0], x, bool(t[1])) for t, x in zip(tr, xs)] if len(tr) == len(xs) else []
+        for i, morceau in enumerate(vid.split("|")[:len(FANT_DIMENSIONS)]):
+            familles.setdefault((i, morceau), []).extend(paires)
         n = len(xs)
         if n < 2:
             continue
@@ -674,20 +744,39 @@ def ecrire_classement_fantome(out_dir, st, now):
         sd = math.sqrt(sum((x - m) ** 2 for x in xs) / (n - 1))
         t = m / (sd / math.sqrt(n)) if sd > 0 else 0.0
         sans3 = sorted(xs)[:-3]
-        lignes.append((t, vid, n, m, sum(x > 0 for x in xs) / n, sum(sans3) / len(sans3) if sans3 else None, len(v["open"])))
+        nt, mt, _, _ = _par_token(paires)
+        lignes.append((t, vid, n, m, sum(x > 0 for x in xs) / n, sum(sans3) / len(sans3) if sans3 else None,
+                       len(v["open"]), nt, mt))
     lignes.sort(reverse=True)
     tous = [x for v in st["variantes"].values() for x in v["rets"]]
+    toutes_paires = [p for (i, _), ps in familles.items() if i == 0 for p in ps]
+    nt_g, mt_g, se_g, vid_g = _par_token(toutes_paires)
     out = [f"# Tournoi fantôme — {datetime.fromtimestamp(now, PARIS):%d/%m %H:%M} (Paris)", "",
            f"{n_var} variantes depuis le {datetime.fromtimestamp(st['debut'], PARIS):%d/%m %H:%M}, "
            f"{len(tous)} trades fermés au total, moyenne {100 * sum(tous) / len(tous) if tous else 0:+.1f} % par trade.",
-           f"Preuve exigée : au moins 30 trades, t >= {seuil:.2f} (= racine(2 ln {n_var}), pour ne pas retenir un gagnant "
-           "dû au hasard), et moyenne positive sans les 3 meilleurs trades.", "",
-           "| t | variante | trades | moyenne | gagnants | sans 3 meilleurs | ouvertes | preuve |",
-           "|---|---|---|---|---|---|---|---|"]
-    for t, vid, n, m, g, s3, o in lignes[:40]:
-        preuve = "OUI" if n >= 30 and t >= seuil and s3 is not None and s3 > 0 else ""
-        out.append(f"| {t:+.2f} | {vid} | {n} | {100 * m:+.1f} % | {100 * g:.0f} % | "
+           (f"Compté par token (moyenne des tokens, chacun pesant pareil) : {nt_g} tokens différents, "
+            f"{100 * mt_g:+.1f} %" + (f" ± {100 * se_g:.1f}" if se_g is not None else "")
+            + f", {100 * vid_g:.0f} % des tokens vidés au moins une fois." if nt_g else
+            "Compté par token : pas encore de trade identifié par token."),
+           f"Preuve exigée : au moins 30 trades sur au moins {FANT_TOKENS_MIN} tokens différents, t >= {seuil:.2f} "
+           f"(= racine(2 ln {n_var}), pour ne pas retenir un gagnant dû au hasard), et moyenne positive sans les 3 "
+           "meilleurs trades.", "",
+           "| t | variante | trades | tokens | moyenne | par token | gagnants | sans 3 meilleurs | ouvertes | preuve |",
+           "|---|---|---|---|---|---|---|---|---|---|"]
+    for t, vid, n, m, g, s3, o, nt, mt in lignes[:40]:
+        preuve = ("OUI" if n >= 30 and nt >= FANT_TOKENS_MIN and t >= seuil and s3 is not None and s3 > 0 else "")
+        out.append(f"| {t:+.2f} | {vid} | {n} | {nt} | {100 * m:+.1f} % | "
+                   f"{'' if mt is None else f'{100 * mt:+.1f} %'} | {100 * g:.0f} % | "
                    f"{'' if s3 is None else f'{100 * s3:+.1f} %'} | {o} | {preuve} |")
+    out += ["", "## Par famille (toutes les variantes qui ont ce morceau ; moyenne par token ± erreur type)", "",
+            "| famille | valeur | trades | tokens | moyenne par token | ± erreur type | tokens vidés |",
+            "|---|---|---|---|---|---|---|"]
+    for (i, morceau), ps in sorted(familles.items()):
+        nt, mt, se, pv = _par_token(ps)
+        if not nt:
+            continue
+        out.append(f"| {FANT_DIMENSIONS[i]} | {morceau} | {len(ps)} | {nt} | {100 * mt:+.1f} % | "
+                   f"{'' if se is None else f'{100 * se:.1f}'} | {100 * pv:.0f} % |")
     (out_dir / "fantomes.md").write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
@@ -938,15 +1027,26 @@ def cycle(state, out_dir, now, avec_apprentissage=True):
     #    être remplacée que par une challengeuse qui a fait ses preuves en direct (contrôlé par serveur.py). Une place
     #    ne peut changer de règle qu'après DEFI_MIN_TRADES trades fermés ou DEFI_MIN_H heures, pour qu'aucune idée ne
     #    soit jugée sur trop peu ; l'ancienne est rangée avec son bilan dans state["defis_finis"].
+    #    10/11 (demande D8) : une place est EN VEILLE si, dans un fichier lisible, sa règle porte "pause": true, ou si
+    #    son entrée est null (ou invalide, ou absente d'une liste plus courte) : plus d'achat, ses positions se ferment
+    #    normalement, sa caisse et sa règle sont gardées (pas de remise à zéro). Le test réel n'est pas concerné.
     try:
         import apprend
         defis = apprend.lire_challengeuses(out_dir / "ia_challengeuses.json")
+        lisible = apprend.challengeuses_lisibles(out_dir / "ia_challengeuses.json")
     except Exception:
-        defis = []
+        defis, lisible = [], False
     st_d = state.setdefault("defis", {})
     for i in range(DEFIS_MAX):
         slot = f"defi_{i + 1}"
         cur, new = st_d.get(slot), (defis[i] if i < len(defis) else None)
+        veille = lisible and (new is None or bool(new["regle"].get("pause")))
+        if cur:
+            if bool(cur.get("veille")) != veille:
+                log({"event": "veille" if veille else "reveil", "place": slot, "nom": cur["nom"]})
+            cur["veille"] = veille
+        if veille:
+            continue
         if new and (not cur or cur["cle"] != new["cle"]):
             b = books.get(slot)
             n_fermes = len(b["closed"]) if b else 0
@@ -1173,7 +1273,10 @@ def write_status(state, out_dir, live):
     lines += ["Prix en direct (gRPC) : " + ("non configuré, suivi par GeckoTerminal toutes les 15 s" if fx is None else
               f"{'connecté' if fx.actif else 'déconnecté'}, {len(fx.pools)} pools suivis, "
               f"{sum(1 for t, *_ in fx.prix.values() if time.time() - t < 60)} prix reçus dans la dernière minute"), ""]
+    defis = state.get("defis") or {}
     for b in state["books"].values():
+        if (defis.get(b["name"]) or {}).get("veille"):  # 10/11 (demande D8) : la page lit « ## nom » tel quel
+            lines.append(f"(place {b['name']} en veille : plus d'achat, positions ouvertes fermées normalement)")
         lines += [f"## {b['name']}", f"- caisse {b['cash']:.2f} $, valeur {equity(b, live):.2f} $ (départ {b['start']:.0f} $), "
                   f"{len(b['open'])} positions ouvertes", f"- {stats(b['closed'])}", ""]
     lines.append("Verdict prévu : " + RULE["verdict"])

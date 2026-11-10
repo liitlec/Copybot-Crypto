@@ -666,6 +666,16 @@ def lire_challengeuses(local):
     return out
 
 
+def challengeuses_lisibles(local):
+    """10/11 (demande D8) : vrai si ia_challengeuses.json est lisible et porte une liste « challengeuses » (même vide).
+    Seul un fichier lisible peut mettre des places en veille ; un fichier absent ou abîmé ne change rien au tournoi."""
+    try:
+        raw = json.loads(Path(local).read_text())
+    except (OSError, ValueError):
+        return False
+    return isinstance(raw, dict) and isinstance(raw.get("challengeuses"), list)
+
+
 def lire_regle_ia(url=None, local=None):
     try:
         return regle_ia(lire_json(local, url or IA_URL))

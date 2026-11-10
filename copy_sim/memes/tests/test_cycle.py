@@ -121,6 +121,12 @@ for c in range(14):  # 70 min de cycles de 5 min
     NOW[0] = T0 + c * 300
     for t in PX:
         PX[t] *= 1.01
+    if c == 10:  # 10/11 (D8) : defi_4 en pause, defi_5 null -> en veille, sans remise à zéro
+        veille = json.loads((OUT / "ia_challengeuses.json").read_text())
+        veille["challengeuses"][3]["regle"]["pause"] = True
+        veille["challengeuses"][4] = None
+        (OUT / "ia_challengeuses.json").write_text(json.dumps(veille))
+        T_VEILLE, DEBUT_4 = NOW[0], state["defis"]["defi_4"]["debut"]
     if c == 8:  # Bravo chute de 40 % : les caisses qui le détiennent doivent sortir sur leur stop
         PX[next(t for t, n in TOK.items() if n == "Bravo")] *= 0.6
     M.cycle(state, OUT, NOW[0], avec_apprentissage=False)
@@ -148,6 +154,8 @@ def palier_ok(ventes):
 achats = [r for r in L if r.get("event") == "achat"]
 ventes = [r for r in L if "ret" in r]
 caisses = {r["book"] for r in achats}
+F = [json.loads(l) for l in (OUT / "fantomes_trades.jsonl").read_text().splitlines()]
+FM = (OUT / "fantomes.md").read_text()
 U = [json.loads(l) for l in (OUT / "univers.jsonl").read_text().splitlines()]
 verifs = {
     "aucune erreur": not (OUT / "erreurs.log").exists(),
@@ -166,6 +174,13 @@ verifs = {
     "volatilité 1 h": any(u.get("volatilite_1h") is not None for u in U),
     "vente partielle au palier": any(r.get("event") == "vente_partielle" and r["book"] == "defi_11" for r in L),
     "palier compté dans le rendement": palier_ok(ventes),
+    "places en veille sans achat ni remise à zéro (D8)":
+        state["defis"]["defi_4"].get("veille") is True and state["defis"]["defi_5"].get("veille") is True
+        and not state["defis"]["defi_6"].get("veille") and state["defis"]["defi_4"]["debut"] == DEBUT_4
+        and not any(r["book"] in ("defi_4", "defi_5") and r.get("t_in", r.get("t", 0)) >= T_VEILLE for r in achats)
+        and "defi_4 en veille" in (OUT / "status.md").read_text() and "(en veille)" in (OUT / "suivi.html").read_text(),
+    "fantômes lisibles par token (D6)": bool(F) and all(r.get("token") and r.get("pool") and "achat" in r for r in F)
+        and "| tokens |" in FM and "Par famille" in FM,
     "équité cohérente après palier": all(abs(M.equity(b, {}) - (b["cash"] + sum(q["dollars"] * q["qty"] / q.get("qty0", q["qty"])
                                                                                 for q in b["open"].values()))) < 1e-6
                                         for b in state["books"].values()),
