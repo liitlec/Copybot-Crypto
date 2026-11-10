@@ -95,3 +95,10 @@ univers plus large pour le tournoi. Aucune tâche planifiée liée à cette conv
 576 variantes (liquidité x prix x flux d'acheteurs x âge x heure x sortie), sans IA, dans `memes_paper.py`
 (`tournoi_fantome`) ; résultats `data/fantomes.md`, `fantomes.json`, `fantomes_trades.jsonl` (port 8787). Preuve :
 30 trades, t >= 3,57, positif sans les 3 meilleurs. Sorties vérifiées une fois par cycle (un peu pessimiste).
+
+## Carte blanche à la chercheuse (10/11)
+Baptiste : « mettre Fable 5.2 au cœur de notre IA, carte blanche, même pour migrer vers le forex ». Fait : tâche
+chercheuse passée sur ce modèle avec une consigne allégée ; mandat dans `ia/CARTE_BLANCHE.md` (avis en tête du carnet
+`ia_carnet.md` : continuer / veille / migrer) ; `ia/BUDGET.md` sur normal. Limites inchangées (papier seulement, réel
+intouchable). **Toutes les tâches IA échouent « limite d'usage » depuis le 09/11** : reprise attendue le 11/11 16 h.
+Sorties fantômes par gRPC en service (SEQ 7 = c8851a7). Réel au 10/11 : 15 achats, −6,20 $, suit defi_5.
