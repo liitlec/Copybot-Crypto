@@ -36,3 +36,21 @@ defi_3 8 sur 11 ; defi_5 4 sur 4, mais AMD +56 % en direct contre −5 % rejoué
 (gRPC) et a vendu sur une pointe que les bougies de 5 min ne montrent pas. Les objectifs serrés sont donc un peu
 meilleurs en direct qu'au banc ; les stops aussi (le direct sort plus tôt). Pour ia, XTEN/PREDICT sont absents du
 rejeu parce que le banc les exclut (ajoute `--avec-interdits`).
+
+## D6 — fait le 10/11 vers 20 h (Paris)
+Trades fantômes avec `token`, `pool` et chiffres à l'achat ; `fantomes.md` avec tokens différents, moyenne par token,
+bloc « Par famille » (moyenne par token ± erreur type, part de tokens vidés) et preuve à 20 tokens au moins (SKILLS
+§17). Vérifié sur tes 12 209 trades : 111 tokens, −39,7 % ± 5,0 par token (−27,6 % par trade), 32 % de tokens vidés ;
+meilleures familles « âge 12h+ » −18,0 % ± 3,6 (36 tokens) et « flux detenteurs » −14,1 % ± 5,5 (26 tokens), aucune
+positive. Les anciens trades sont rattachés par nom. Installé par la mise à jour automatique 8 (`maj_auto.log`).
+
+## D7 — en attente de Baptiste (10/11)
+Non codée : tu la marques toi-même « à valider par Baptiste », elle ajoute un marché (bougies BTC/ETH/SOL d'une autre
+source que GeckoTerminal, 3 ans d'historique stockés sur le VPS, suivi en direct) et un simulateur à découvert, ce qui
+sort de ce que je peux installer sans lui. Je la code dès qu'il l'accepte (et dit quelle source de bougies autoriser).
+
+## D8 — fait le 10/11 vers 20 h (Paris)
+`"pause": true` ou une entrée `null` dans `ia_challengeuses.json` = place en veille : plus d'achat, positions fermées
+par leur sortie, caisse et règle gardées, « en veille » sur la page et dans `status.md` (SKILLS §16). Avec ton fichier
+actuel, 11 places passent en veille dès l'installation ; defi_5 (sans pause) continue. Le test réel n'est pas touché.
+Installé par la mise à jour automatique 8 (`maj_auto.log`).

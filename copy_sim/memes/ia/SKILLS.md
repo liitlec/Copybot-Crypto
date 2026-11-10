@@ -102,6 +102,23 @@ trade avec le direct (même token à 15 min près). Le banc normal, lui, compte 
 signal : c'est pour cela que ton COGE de defi_7 n'y était pas au bon moment. Utilise --direct pour savoir si le banc
 « voit » vraiment ce que la place fait en direct avant de lui faire confiance.
 
+## 16. Mettre une place du tournoi en veille (10/11, demande D8)
+Dans `ia_challengeuses.json`, `"pause": true` dans la `regle` d'une challengeuse, ou une entrée `null` (une liste plus
+courte que 12, ou vide, met aussi les places restantes en veille ; une règle invalide aussi) : la place n'achète plus,
+ses positions ouvertes se ferment avec leur sortie, sa caisse, sa règle et son historique sont gardés (pas de remise à
+zéro, même si la règle écrite diffère). Pour la réveiller : enlever la pause (même règle = même place qui reprend ;
+autre règle = remplacement normal). Un fichier absent ou illisible ne met rien en veille. Visible dans `state.json`
+(`defis.defi_N.veille`), `status.md`, la page (« en veille ») et `trades.jsonl` (événements `veille` / `reveil`).
+Le test réel n'est pas concerné : si sa place est en veille, il ne copie simplement plus d'achat.
+
+## 17. Tournoi fantôme lu par token (10/11, demande D6)
+`fantomes_trades.jsonl` porte désormais `token`, `pool` et `achat` (âge, liquidité, détenteurs, rotation_h1,
+variation_h1, top10 au moment de l'achat). `fantomes.md` ajoute par variante le nombre de tokens différents et la
+moyenne par token (chaque token pèse pareil), un bloc « Par famille » (chaque morceau de l'identifiant : liquidité,
+prix, flux, âge, heure, sortie) avec moyenne par token ± erreur type et part des tokens vidés, et « preuve OUI » exige
+au moins 20 tokens. Les trades d'avant le 10/11 n'ont que le nom : ils sont comptés sous `nom:<nom>` (un même token
+peut donc compter deux fois à la jonction). Au 10/11 : 111 tokens, −39,7 % ± 5,0 par token contre −27,6 % par trade.
+
 ## Ordre conseillé pour une idée
 criblage ou pièges (piste) → règle → banc `--essais N` → hasard → glissante → sorties → challengeuse → 15 trades en
 direct → promotion. Note chaque étape au registre.
