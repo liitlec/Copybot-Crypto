@@ -21,6 +21,11 @@
 4. Vraies conditions STARTRADER (écarts, swaps) : à demander à Baptiste seulement si un montage passe.
 5. Bougies 5 min (histdata.com) seulement si une piste horaire survit.
 
+## MT5 démo (section ajoutée à MISSION.md le 11/11, commit 36b30f3)
+- Cible : compte démo via le pont (`labo/mt5/consigne.json` → pont ; `etat.json`, `executions.jsonl`, `donnees/` ← pont).
+- Au 11/11 : pas de dossier `mt5/`, pont non installé. Ne rien envoyer tant qu'aucun montage n'est solide hors échantillon.
+- Dès que `etat.json` existe : demander par `demandes_donnees.json` les bougies et spreads réels du courtier pour recaler les coûts.
+
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.
 - Indices en 1 h : 7 barres par jour seulement, « 24 barres » ≈ 3,5 jours.

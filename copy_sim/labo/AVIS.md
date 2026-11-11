@@ -4,7 +4,7 @@
 2. **Réfuté** : le scalp simple à l'heure (162 variantes : 0 avant coûts, donc perdant après) et le suivi de tendance en CFD (−1,8 %/an depuis 2016, le financement mange tout).
 3. **Ce qui gagne vraiment** pour l'instant : simplement détenir un panier indices + or + bitcoin, ≈ +8 à +13 %/an depuis 2016 avec des baisses de −12 à −39 %. C'est 0,03 à 0,05 % par jour, pas 1 %.
 4. Suite : je teste le portage (encaisser le financement au lieu de le payer) et les effets de séance sur or et indices.
-5. Rien à te demander pour l'instant. Le registre papier démarre demain (12/11).
+5. Rien à te demander. Registre papier dès le 12/11 ; le pont MT5 démo ne tourne pas encore (pas de `mt5/etat.json`) et je n'y enverrai rien tant qu'aucun montage n'est prouvé.
 
 ## Meilleur montage du moment : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
 
