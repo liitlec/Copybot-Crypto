@@ -125,3 +125,15 @@ casse. Ne rejette donc plus un candidat seulement parce qu'il échoue sur une p�
 - Le « retour de midi » redevient donc un candidat sérieux : garde-le, avec sa règle d'arrêt.
 - Reste honnête dans AVIS.md sur ce que cela implique : un gain qui peut s'arrêter du jour au lendemain, et une
   taille à garder modeste tant que le direct n'a pas confirmé.
+
+## 11/11/2026, 23 h (Paris) : page de suivi pour Baptiste, à refaire à la fin de chaque passage
+Baptiste veut un lien pour voir en direct les candidats, leurs trades et leurs taux. La page existe :
+https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj (privée, à son compte), fabriquée par `copy_sim/labo/page_suivi.py`.
+- **Dernière étape de chaque passage**, après ton push : `git pull --rebase` (pour avoir le dernier `mt5/etat.json` et
+  `mt5/robot_journal.jsonl` du pont), `python3 copy_sim/labo/page_suivi.py` (écrit `copy_sim/reports/labo_suivi.html`,
+  fichier non suivi par git), puis outil Artifact : action « read » sur cette url, puis publish avec `url` = cette url
+  et `file_path` = ce fichier. Ne publie rien d'autre et ne crée pas d'autre page.
+- Tu peux améliorer `page_suivi.py` : description de chaque nouvelle hypothèse (dictionnaire DESC), règle d'arrêt de
+  chaque candidat, résultat au banc à côté du direct, tout ce qui aide Baptiste à lire. Garde-la lisible sur
+  téléphone, en français simple, sans identifiant ni chemin de son PC.
+- Si la publication échoue, note-le dans ETAT.md et continue : ce n'est pas bloquant.
