@@ -102,3 +102,11 @@ chercheuse passée sur ce modèle avec une consigne allégée ; mandat dans `ia/
 `ia_carnet.md` : continuer / veille / migrer) ; `ia/BUDGET.md` sur normal. Limites inchangées (papier seulement, réel
 intouchable). **Toutes les tâches IA échouent « limite d'usage » depuis le 09/11** : reprise attendue le 11/11 16 h.
 Sorties fantômes par gRPC en service (SEQ 7 = c8851a7). Réel au 10/11 : 15 achats, −6,20 $, suit defi_5.
+
+## Migration forex (11/11)
+Chercheuse (Fable 5.2) le 11/11 : aucune règle memecoin ne gagne (18 196 trades fantômes, t max 1,26), 11 places en
+veille, championne en pause, recommandation MIGRER. Baptiste : « on lance la mise à jour vers le forex et Fable 5.2 ».
+Mandat pour la session PC : `copy_sim/forex/MISSION.md` (démo seulement). Rien n'est faisable depuis le cloud : aucun
+dossier du PC n'est partagé. En attente côté Baptiste : ouvrir Claude Code dans le dossier MQL5, `/model
+claude-fable-5-2`, coller le message de lancement ; arrêter le réel (STOP_REEL) ; oui/non à D7 (papier BTC/ETH/SOL),
+rythme de la chercheuse (elle propose 1 passage par jour), test papier « baleines ».
