@@ -71,6 +71,7 @@ def verdict(nom, xs, temoin):
 def lire():
     etat = json.loads((ICI / "mt5" / "etat.json").read_text(encoding="utf-8"))
     par_hyp, par_heure, derniers, ouvertures, actives = defaultdict(list), defaultdict(list), [], defaultdict(int), []
+    tickets = {}
     f = ICI / "mt5" / "robot_journal.jsonl"
     for ln in f.read_text(encoding="utf-8").splitlines() if f.exists() else []:
         try:
@@ -78,6 +79,15 @@ def lire():
         except ValueError:
             continue
         ev = d.get("evenement")
+        if d.get("type") == "ordre" and d.get("action") == "ouverture" and d.get("ticket"):
+            tickets[d["ticket"]] = d.get("id")  # pour rattacher une fermeture sans nom à son hypothèse
+        if ev == "orpheline fermee" and isinstance(d.get("profit"), (int, float)):
+            # position fermée par le robot à un changement de version : comptée dans son hypothèse
+            d = dict(d, evenement="sortie", hypothese=tickets.get(d.get("ticket")) or "autres",
+                     raison="changement de version")
+            ev = "sortie"
+        if ev == "sortie" and d.get("profit") is None and isinstance(d.get("dernier_profit"), (int, float)):
+            d = dict(d, profit=d["dernier_profit"])  # sortie au stop chez le courtier : dernier résultat connu
         if ev == "demarrage":
             actives = d.get("hypotheses") or actives
         elif ev == "ouverture" and d.get("ok"):
@@ -139,8 +149,8 @@ def page():
         f"<td class='n {'pos' if (p.get('profit') or 0) > 0 else 'neg'}'>{usd(p.get('profit') or 0)}</td></tr>"
         for p in etat.get("positions_robot") or [])
     recents = "".join(
-        f"<tr><td>{paris(d['heure']):%H:%M}</td><td>{e(d['hypothese'])}</td><td>{'achat' if d.get('sens') == 1 else 'vente'}</td>"
-        f"<td class='n'>{d.get('entree')}</td><td class='n'>{d.get('prix_sortie')}</td><td>{e(d.get('raison', ''))}</td>"
+        f"<tr><td>{paris(d['heure']):%H:%M}</td><td>{e(d['hypothese'])}</td><td>{'achat' if d.get('sens') == 1 else 'vente' if d.get('sens') == -1 else '—'}</td>"
+        f"<td class='n'>{d.get('entree', '—')}</td><td class='n'>{d.get('prix_sortie', '—')}</td><td>{e(d.get('raison', ''))}</td>"
         f"<td class='n {'pos' if d['profit'] > 0 else 'neg'}'>{usd(d['profit'])}</td></tr>"
         for d in derniers[-20:][::-1])
     etat_robot = ("en marche" if rob.get("en_marche") else "arrêté") if rob else "pas installé"
@@ -210,9 +220,9 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
 {alerte}
 <section class="chiffres">
   <div class="chiffre"><span>Valeur du compte démo</span><b>{usd(etat.get('valeur', 0), False)}</b></div>
-  <div class="chiffre"><span>Résultat du jour</span><b class="{'pos' if gf.get('perte_du_jour', 0) > 0 else 'neg'}">{usd(gf.get('perte_du_jour', 0))}</b></div>
+  <div class="chiffre"><span>En cours sur les positions ouvertes</span><b class="{'pos' if etat.get('valeur', 0) - etat.get('solde', 0) > 0 else 'neg'}">{usd(etat.get('valeur', 0) - etat.get('solde', 0))}</b></div>
   <div class="chiffre"><span>Trades fermés</span><b>{n_t}</b></div>
-  <div class="chiffre"><span>Total des trades</span><b class="{'pos' if sum(tous) > 0 else 'neg'}">{usd(sum(tous)) if tous else '—'}</b></div>
+  <div class="chiffre"><span>Total des trades fermés</span><b class="{'pos' if sum(tous) > 0 else 'neg'}">{usd(sum(tous)) if tous else '—'}</b></div>
   <div class="chiffre"><span>Trades gagnants</span><b>{f"{100 * sum(x > 0 for x in tous) / n_t:.0f} %" if tous else '—'}</b></div>
   <div class="chiffre"><span>Positions ouvertes</span><b>{len(etat.get('positions_robot') or [])}</b></div>
 </section>
@@ -222,6 +232,7 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
     <tr><th>Hypothèse</th><th class="n">Trades</th><th class="n">Total</th><th class="n">Moyenne par trade</th><th class="n">Gagnants</th><th>Verdict</th></tr>
     {''.join(lignes)}
   </table></div>
+  <p class="note">Le total des trades compte tous les trades fermés, y compris ceux fermés à un changement de version du robot et les sorties au stop. La valeur du compte ajoute le résultat en cours des positions encore ouvertes.</p>
   <p class="note">Le verdict compare chaque hypothèse au témoin à pile ou face. Il faut au moins 30 trades pour un premier avis, et 100 trades avec une nette avance pour « en avance sur le hasard ». Le chiffre après ± est la marge d'erreur de la moyenne.</p>
 </section>
 <section class="avis">
