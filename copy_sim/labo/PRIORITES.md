@@ -109,3 +109,19 @@ nombreux, presque tout le temps**. C'est aussi dans ton intérêt : plus de trad
 - Chaque position garde son stop chez le courtier. Si le lanceur ou le pont limite la cadence (délai, refus), note-le
   dans AVIS.md avec ce qu'il faudrait changer côté PC.
 - Publie la nouvelle version du robot dès ce passage.
+
+## 11/11/2026, 22 h 35 (Paris) : une stratégie « de la période actuelle » est acceptable
+Baptiste ne demande pas une règle valable depuis toujours. Une règle qui marche **dans le régime actuel** lui va,
+même si elle perdait il y a deux ans : son plan est de retirer les gains au fur et à mesure et d'arrêter quand elle
+casse. Ne rejette donc plus un candidat seulement parce qu'il échoue sur une période ancienne.
+- Juge les candidats sur le **récent** (6 à 15 derniers mois), toujours en avance glissante (réglé sur le passé,
+  jugé sur la suite) et en comptant tes essais : sur 48 000 combinaisons, les meilleures du récent sont en partie
+  de la chance. La confirmation qui compte ensuite, c'est le **direct sur la démo**.
+- Pour chaque candidat mis en direct, écris **avant** ses premiers trades sa règle d'arrêt : par exemple « arrêt si,
+  après N trades, la moyenne est sous X, ou si la perte cumulée dépasse Y fois la perte normale du banc ». Une
+  stratégie de régime sans règle d'arrêt n'est pas un plan.
+- Dis à quoi tu reconnais le régime où elle marche (volatilité, tendance, heures, niveau du spread) pour savoir
+  quand la remettre ou la couper.
+- Le « retour de midi » redevient donc un candidat sérieux : garde-le, avec sa règle d'arrêt.
+- Reste honnête dans AVIS.md sur ce que cela implique : un gain qui peut s'arrêter du jour au lendemain, et une
+  taille à garder modeste tant que le direct n'a pas confirmé.
