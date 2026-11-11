@@ -98,7 +98,7 @@ gagne.** Le faible coût ouvre quand même la porte : il suffit d'un avantage br
 Le lanceur du robot est apparu dans `etat.json` (champ `robot`, interface `copy_sim/forex/ROBOT_INTERFACE.md`) en fin
 de passage : pas encore de robot écrit. Registre papier : pas de jour terminé depuis l'ouverture.
 
-## Passage 3 — 11/11/2026 (≈ 18 h 15 – 18 h 45 Paris) — premier robot sur la démo MT5
+## Passage 3 — 11/11/2026 (≈ 18 h 12 – 18 h 20 Paris) — premier robot sur la démo MT5
 
 Priorités de Baptiste relues dans `PRIORITES.md` (entrées de 18 h, 18 h 05, 18 h 10, 18 h 15 ; commit 19f76a7) :
 trader sur la démo dès maintenant, petite taille, hypothèses étiquetées, apprendre des résultats ; recherche massive
@@ -126,3 +126,5 @@ Risque en jeu : démo seulement ; 0,01 lot d'or = 1 once, soit 1 $ par dollar de
 
 Demandes d'historique ajoutées : `NAS100+`, `SP500+`, `GER40+`, `XAGUSD` en M1, `NAS100+` M5, XAUUSD H1.
 Pas encore fait : la recherche massive de combinaisons (prochain passage). Total des essais inchangé : 263.
+
+Suite : le lanceur a installé la version 1 et démarré le robot à 18 h 16 (Paris), sans refus ni erreur ; premiers trades attendus à la bougie M15 de 18 h 30.

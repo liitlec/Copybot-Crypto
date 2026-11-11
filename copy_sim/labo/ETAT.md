@@ -34,7 +34,7 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 - Cible : compte démo via le pont (`labo/mt5/consigne.json` → pont ; `etat.json`, `executions.jsonl`, `donnees/` ← pont).
 - Le pont tourne depuis le 11/11 17 h 10 ; lanceur de robot présent (champ `robot` de `etat.json`), aucun robot installé.
 - Demandes d'historique : 90 000 bougies passent, 200 000 non. Serveur = UTC+2. Bougies en prix vendeur.
-- `consigne.json` : rien envoyé. Robot v1 poussé le 11/11 ≈ 18 h 45 (4 hypothèses XAUUSD, 0,01 lot, non prouvées).
+- `consigne.json` : rien envoyé. Robot v1 installé et en marche le 11/11 à 18 h 16 (Paris) (4 hypothèses XAUUSD, 0,01 lot, non prouvées).
 - Indices : `NAS100+`, `SP500+`, `DJ30+`, `GER40+` (et variantes `ft+`).
 
 ## Pièges notés

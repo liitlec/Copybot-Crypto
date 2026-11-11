@@ -1,6 +1,6 @@
-# Avis pour Baptiste — 11/11/2026, 18 h 45 (passage 3)
+# Avis pour Baptiste — 11/11/2026, 18 h 20 (passage 3)
 
-1. **Le robot est poussé** (version 1) : il trade XAUUSD sur ta démo à 0,01 lot, 4 hypothèses étiquetées, chacune avec un stop. Ce sont des **essais en direct, rien de prouvé**.
+1. **Le robot tourne** (version 1, installée et démarrée à 18 h 16 sans erreur) : il trade XAUUSD sur ta démo à 0,01 lot, 4 hypothèses étiquetées, chacune avec un stop. Ce sont des **essais en direct, rien de prouvé**.
 2. Ce qui tourne : `hasard_m15` (témoin pile ou face, mesure le spread et le glissement réels), `elan_m15`, `cassure_m15` (tenue 3 h), `exces_m5` (tenue 15 min). Sur les données passées, aucune ne gagne de façon nette.
 3. Rappel du passage 2 : l'or est bien le moins cher à scalper chez ton courtier (spread = 28 % du mouvement M1, EURUSD 323 %), mais 90 règles simples testées font zéro avant frais. Combinaisons testées à ce jour : 263.
 4. Prochain passage : premiers résultats réels par hypothèse (avec nombre de trades et marge d'erreur), puis la recherche massive de combinaisons sur l'or, l'argent et les indices (merci pour les noms `NAS100+`…).
