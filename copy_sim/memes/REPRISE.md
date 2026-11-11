@@ -119,3 +119,14 @@ montage rentable. Fait : mandat `copy_sim/labo/MISSION.md` (tout marché, papier
 10 h 12, 16 h 12, 22 h 12 (Paris). Données joignables du cloud : Yahoo Finance, Hyperliquid, stooq, histdata.
 Pour « Bilan » : lire aussi `copy_sim/labo/AVIS.md` (git pull). La chercheuse memecoins reste à 8 passages par jour
 tant que Baptiste n'a pas dit de la ralentir (elle propose 1 par jour).
+
+## État au 11/11 19 h (Paris) : memecoins en pause, laboratoire sur MT5 démo
+- **Tâches memecoins désactivées** à la demande de Baptiste (réactivables par update_trigger enabled=true) :
+  chercheuse, juge, juge v2, ingénieure, page et alertes horaire, bilan du soir. « Bureau papier crypto (matin) » reste
+  actif. Le VPS (papier, tournoi fantôme) tourne seul, sans coût. Arrêt du réel (`STOP_REEL`) demandé à la session PC,
+  non vérifiable d'ici.
+- **Laboratoire autonome** : un passage par heure (minute 10). Priorités de Baptiste dans `copy_sim/labo/PRIORITES.md`
+  (scalp XAUUSD, trader sur la démo tout de suite, 100 à 200 trades par jour). Sur son PC : pont MT5
+  (`copy_sim/forex/pont_mt5.py`) et lanceur du robot ; le labo écrit `copy_sim/labo/mt5/robot/` (VERSION 2 en marche
+  depuis 18 h 47, 8 hypothèses M1 à 0,01 lot). État : `copy_sim/labo/mt5/etat.json`, `robot_journal.jsonl`,
+  `copy_sim/labo/AVIS.md` (git pull). Coût observé : ≈ 11 $ en 2 h, limite des 5 h atteinte (dépassement).
