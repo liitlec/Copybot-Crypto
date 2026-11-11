@@ -694,6 +694,11 @@ def main() -> None:
     sys.modules.setdefault("pont_mt5", sys.modules[__name__])   # une seule copie du module (même VERROU, DEPOT)
     import lanceur_robot
     lanceur = lanceur_robot.Lanceur(mt5, sortie)
+    try:                                       # tableau de bord en direct, lecture seule, 127.0.0.1 seulement
+        import tableau_bord
+        tableau_bord.demarrer(mt5, lanceur)
+    except Exception:
+        log.exception("tableau de bord (le pont continue sans)")
     dernier_push = 0.0
     log.info("pont demarre")
     while True:

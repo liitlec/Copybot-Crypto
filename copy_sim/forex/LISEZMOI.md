@@ -22,5 +22,11 @@ Installation (MT5 ouvert sur le compte démo, bouton « Algo Trading » activé,
 Essais : `python essais_lanceur.py` (faux terminal, 8 sur 8) et `python essais_lanceur.py --reel` (démo, 1 sur 1 :
 0,01 lot XAUUSD avec stop, fermé après une minute).
 
+**Tableau de bord en direct (depuis le 11/11/2026)** : `tableau_bord.py` (+ `.html`, `.js`), lancé dans le pont,
+sert http://127.0.0.1:8765/ (raccourci « Robot du labo en direct » sur le bureau) : prix de l'or, graphique M1 avec
+les trades du robot, positions, résultats du jour et par hypothèse (historique MT5, stops compris), 20 derniers
+trades. Lecture seule : GET seulement, 127.0.0.1 seulement, aucun identifiant affiché. Essai seul :
+`python tableau_bord.py`.
+
 Arrêter : créer un fichier vide `%USERPROFILE%\pont_mt5\STOP_PONT` (plus aucun ordre, robot arrêté, l'état continue
 d'être publié), ou `Stop-ScheduledTask -TaskName PontMT5` pour tout couper. Journal : `%USERPROFILE%\pont_mt5\pont.log`.
