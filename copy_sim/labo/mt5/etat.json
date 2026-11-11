@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-11T16:29:24Z",
+ "ecrit": "2026-11-11T16:35:08Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,34 +9,27 @@
   "positions": 10,
   "lots_par_position": 0.5
  },
- "solde": 66674.76,
- "valeur": 66674.76,
- "marge_libre": 66674.76,
+ "solde": 66674.82,
+ "valeur": 66674.82,
+ "marge_libre": 66674.82,
  "devise": "USD",
  "levier": 500,
  "positions": [],
- "symboles": {
-  "EURUSD": {
-   "bid": 1.1095,
-   "ask": 1.10964,
-   "spread_points": 14.0,
-   "point": 1e-05,
-   "chiffres": 5,
-   "lot_min": 0.01,
-   "pas_lot": 0.01,
-   "taille_contrat": 100000.0,
-   "heure_serveur": 1794421762
-  },
-  "XAUUSD": {
-   "bid": 4003.45,
-   "ask": 4003.64,
-   "spread_points": 19.0,
-   "point": 0.01,
-   "chiffres": 2,
-   "lot_min": 0.01,
-   "pas_lot": 0.01,
-   "taille_contrat": 100.0,
-   "heure_serveur": 1794421764
-  }
+ "symboles": {},
+ "positions_robot": [],
+ "garde_fou": {
+  "jour_paris": "2026-11-11",
+  "perte_du_jour": 0,
+  "seuil": -3333.74,
+  "ouvertures_bloquees": false
+ },
+ "robot": {
+  "version_installee": null,
+  "version_precedente": null,
+  "en_marche": false,
+  "dernier_refus": null,
+  "derniere_erreur": null,
+  "plantages_10_min": 0,
+  "interface": "copy_sim/forex/ROBOT_INTERFACE.md"
  }
 }

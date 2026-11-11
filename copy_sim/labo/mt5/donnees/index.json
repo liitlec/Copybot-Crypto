@@ -83,5 +83,70 @@
   "premiere": 1786939920,
   "derniere": 1794421740,
   "fichier": "eur_m1_90k.csv.gz"
+ },
+ "eur_m5_90k": {
+  "cle": "6f1a054e2f9a",
+  "ecrit": "2026-11-11T16:30:17Z",
+  "symbole": "EURUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1756356300,
+  "derniere": 1794421800,
+  "fichier": "eur_m5_90k.csv.gz"
+ },
+ "xau_m15_50k": {
+  "cle": "5a79c6cc19cc",
+  "ecrit": "2026-11-11T16:30:20Z",
+  "symbole": "XAUUSD",
+  "periode": "M15",
+  "lignes": 50000,
+  "premiere": 1727733600,
+  "derniere": 1794421800,
+  "fichier": "xau_m15_50k.csv.gz"
+ },
+ "jpy_m1_90k": {
+  "cle": "d22cf5a55b2a",
+  "ecrit": "2026-11-11T16:31:17Z",
+  "symbole": "USDJPY",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786939080,
+  "derniere": 1794421860,
+  "fichier": "jpy_m1_90k.csv.gz"
+ },
+ "essai_ustec": {
+  "cle": "d6566bf8395e",
+  "ecrit": "2026-11-11T16:31:20Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_us100": {
+  "cle": "4cf9165e16e1",
+  "ecrit": "2026-11-11T16:32:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_sp500": {
+  "cle": "3433a90f2d85",
+  "ecrit": "2026-11-11T16:32:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_us30": {
+  "cle": "04da8cc31f05",
+  "ecrit": "2026-11-11T16:32:50Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_ger40": {
+  "cle": "8b7467b2d31e",
+  "ecrit": "2026-11-11T16:32:50Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_nas100_r": {
+  "cle": "ddcee27eb1b8",
+  "ecrit": "2026-11-11T16:33:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_xauusd_r": {
+  "cle": "01829d608fbb",
+  "ecrit": "2026-11-11T16:33:17Z",
+  "erreur": "symbole absent chez le courtier"
  }
 }
