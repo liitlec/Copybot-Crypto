@@ -51,3 +51,49 @@ Le panier CFD ×3 ne fait pas mieux que le S&P 500 seul ; le comptant diversifi�
 
 **Registre papier ouvert** (`registre.py` → `registre.csv`, ajout seulement) : P1 panier CFD ×3, P2 idem + filtre
 200 j, P3 panier comptant, T0 tendance (témoin réfuté). Départ 10 000 le 11/11/2026, premier jour compté le 12/11.
+
+## Passage 2 — 11/11/2026 (≈ 17 h 15 – 17 h 45 Paris) — priorité de Baptiste : scalp sur l'or, données du courtier
+
+Passage supplémentaire signalé par la conversation de suivi ; vérifié dans le dépôt (`PRIORITES.md`, commits 10c7bd4
+et 7ef96c9, référencé par `MISSION.md`). Le pont MT5 démo tourne (solde démo 66 674 $, aucune position).
+
+**Données du courtier** (`mt5/demandes_donnees.json` → `mt5/donnees/`). 200 000 bougies : refusé par le terminal
+(« aucune bougie ») ; 90 000 passe. Reçu : XAUUSD M1 (91 jours), M5 (462 jours), M15 (771 jours), EURUSD M1 et M5,
+USDJPY M1. Aucun indice trouvé sous les noms NAS100, US500, USTEC, US100, SP500, US30, GER40 → demander à Baptiste
+le nom exact d'un indice dans sa fenêtre « Observation du marché ». Horloge du serveur = UTC+2 = Paris + 1 h.
+
+**Banc D, partie 1 — l'or est-il le moins cher à scalper ? Oui, nettement** (`banc_or.py`).
+
+| | Spread médian | Mouvement médian de la bougie | Spread / mouvement |
+|---|---|---|---|
+| XAUUSD M1 | 0,46 bp (≈ 19 points, 0,19 $) | 1,66 bp | **28 %** |
+| XAUUSD M5 | 0,46 bp | 4,07 bp | **11 %** |
+| XAUUSD M15 | 0,50 bp | 6,04 bp | **8 %** |
+| EURUSD M1 | 1,15 bp | 0,36 bp | 323 % |
+| EURUSD M5 | 1,12 bp | 0,96 bp | 117 % |
+| USDJPY M1 | 1,13 bp | 0,51 bp | 222 % |
+
+Meilleures heures pour l'or (heure de Paris) : 14 h – 17 h (ouverture de New York, ratio 16 à 18 % en M1, 6,6 % en
+M5) et 2 h – 4 h (Asie, ≈ 18-21 %). Pires : 22 h – 1 h (45 à 50 %). EURUSD et USDJPY : spread à minuit serveur ×3 à ×5.
+Réserve : le spread d'une bougie MT5 est quasi constant (p95 = 0,51 bp), il ne montre sans doute pas les
+élargissements pendant les annonces ; commission et glissement réels inconnus → à mesurer en vrai à 0,01 lot.
+
+**Banc D, partie 2 — scalp sur l'or, 30 règles × 3 périodes = 90 essais.** Élan, retour, cassure de fourchette
+(12 et 48 bougies), fausse cassure, excès > 3 écarts-types suivi ou contré ; tenue 1, 3, 12 bougies ; entrée à
+l'ouverture suivante, spread réel payé ; réglage sur les 60 % premiers, verdict sur les 40 % derniers.
+
+| Période | Règles gagnantes nettes au réglage | … encore gagnantes au verdict | Meilleure au réglage → verdict | Hasard même fréquence |
+|---|---|---|---|---|
+| M1 (91 j) | 2 / 30 (à +0,03 bp) | 0 | excès contré h12 : −1,01 bp/trade (t = −1,2) | −0,56 bp |
+| M5 (462 j) | 3 / 30 | 1 | cassure n48 h12 : −1,29 bp (t = −1,2) | −0,42 bp |
+| M15 (771 j) | 4 / 30 | 2 | excès suivi h12 : −5,99 bp (t = −1,1) | −0,93 bp |
+
+Partout le gain brut est à ≈ 0 ± 0,2 bp par trade : les règles ne prévoient rien, on perd donc le spread
+(−0,45 à −0,5 bp par trade ; à 100 trades par jour ≈ −0,5 % par jour à levier 1). Aucun t positif > 1,3 au verdict.
+**Conclusion : l'or est bien le marché le moins cher (Baptiste a raison), mais aucune règle simple de bougies n'y
+gagne.** Le faible coût ouvre quand même la porte : il suffit d'un avantage brut de 0,5 bp par trade.
+
+**Total des essais : 173 + 90 = 263.**
+
+Le lanceur du robot est apparu dans `etat.json` (champ `robot`, interface `copy_sim/forex/ROBOT_INTERFACE.md`) en fin
+de passage : pas encore de robot écrit. Registre papier : pas de jour terminé depuis l'ouverture.
