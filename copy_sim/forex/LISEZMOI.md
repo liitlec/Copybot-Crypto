@@ -1,15 +1,20 @@
 # Pont MT5 (démo) : mise en route sur le PC
 
-État au 11/11/2026 : le code est écrit et sa logique est vérifiée sur un faux MT5 (`python essais_pont.py --faux`,
-8 essais sur 8). **Les essais réels sur la démo et l'installation sur le PC restent à faire** : la session qui a
-écrit le pont tournait dans le cloud, sans accès au PC.
+État au 11/11/2026 : installé sur le PC de Baptiste.
+- Essais sur faux MT5 (`python essais_pont.py --faux`) : 8 sur 8.
+- Essais réels sur le compte démo (`python essais_pont.py`) : 7 sur 7 (0,01 lot EURUSD ouvert puis fermé par
+  consigne, deux refus de plafond, `STOP_PONT`, compte non démo simulé, version ancienne / consigne illisible
+  ignorées, rien d'identifiant écrit). Il n'y avait aucune position d'autres robots pendant l'essai 6.
 
-Sur le PC, MT5 ouvert sur le compte démo, bouton « Algo Trading » activé, dépôt sur la branche du labo :
+Le pont **tourne depuis une copie figée hors du dépôt** (`%USERPROFILE%\pont_mt5\pont_mt5.py`, lancé avec
+`--depot <chemin du dépôt>`) : le `git pull` qu'il fait chaque minute ne peut donc pas modifier son propre code.
+Une nouvelle version du pont n'est installée que si Baptiste relance `.\installer_tache.ps1` sur son PC.
+
+Installation (MT5 ouvert sur le compte démo, bouton « Algo Trading » activé, dépôt sur la branche du labo) :
 1. `pip install MetaTrader5`
-2. `python essais_pont.py` : les essais réels (0,01 lot ouvert puis fermé, refus de plafond, `STOP_PONT`, compte
-   non démo simulé, positions des autres robots intactes). Tout doit être « REUSSI ».
-3. `python pont_mt5.py --une-fois` puis vérifier que `copy_sim/labo/mt5/etat.json` arrive sur la branche.
-4. `.\installer_tache.ps1` : lancement à chaque ouverture de session Windows (tâche « PontMT5 »).
+2. `python essais_pont.py` : tout doit être « REUSSI ».
+3. `.\installer_tache.ps1` : copie le pont dans `%USERPROFILE%\pont_mt5` et le lance à chaque ouverture de session
+   Windows (tâche « PontMT5 »).
 
-Arrêter : créer un fichier vide `STOP_PONT` dans ce dossier (plus aucun ordre, l'état continue d'être publié), ou
-`Stop-ScheduledTask -TaskName PontMT5` pour tout couper. Journal local : `pont.log`.
+Arrêter : créer un fichier vide `%USERPROFILE%\pont_mt5\STOP_PONT` (plus aucun ordre, l'état continue d'être
+publié), ou `Stop-ScheduledTask -TaskName PontMT5` pour tout couper. Journal : `%USERPROFILE%\pont_mt5\pont.log`.

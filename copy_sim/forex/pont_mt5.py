@@ -48,6 +48,8 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 ICI = Path(__file__).resolve().parent
+# Le pont installé tourne depuis une COPIE figée hors du dépôt (installer_tache.ps1) : un `git pull` ne peut donc pas
+# changer son code. `--depot` donne alors le chemin du dépôt ; sinon, le dépôt qui contient ce fichier.
 DEPOT = ICI.parents[1]
 BRANCHE = "claude/polymarket-weather-sigma-resolution-olv0bs"
 REL_MT5 = "copy_sim/labo/mt5"
@@ -605,7 +607,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Pont MT5 (demo uniquement)")
     ap.add_argument("--une-fois", action="store_true", help="un seul tour puis arret")
     ap.add_argument("--sans-push", action="store_true", help="ne pousse rien (essais)")
+    ap.add_argument("--depot", help="chemin du depot (quand le pont tourne depuis une copie figee hors du depot)")
     args = ap.parse_args()
+    global DEPOT
+    if args.depot:
+        DEPOT = Path(args.depot).resolve()
 
     log.setLevel(logging.INFO)
     for h in (RotatingFileHandler(ICI / "pont.log", maxBytes=2_000_000, backupCount=2, encoding="utf-8"),
