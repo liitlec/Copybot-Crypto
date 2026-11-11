@@ -110,3 +110,12 @@ Mandat pour la session PC : `copy_sim/forex/MISSION.md` (démo seulement). Rien 
 dossier du PC n'est partagé. En attente côté Baptiste : ouvrir Claude Code dans le dossier MQL5, `/model
 claude-fable-5-2`, coller le message de lancement ; arrêter le réel (STOP_REEL) ; oui/non à D7 (papier BTC/ETH/SOL),
 rythme de la chercheuse (elle propose 1 passage par jour), test papier « baleines ».
+
+## Laboratoire autonome (11/11, remplace le plan « session PC sur BlockTrend »)
+Baptiste : pas BlockTrend, base neuve, une IA entièrement autonome et libre (Fable 5.2) pour trouver le meilleur
+montage rentable. Fait : mandat `copy_sim/labo/MISSION.md` (tout marché, papier seulement, n'écrit que dans
+`copy_sim/labo/`, avis dans `labo/AVIS.md`) ; session dédiée « Laboratoire autonome »
+(session_01FgaWoz5WwTWneB2uqX7uwf, pousse sur la branche) ; tâche « Laboratoire autonome : passage » à 4 h 12,
+10 h 12, 16 h 12, 22 h 12 (Paris). Données joignables du cloud : Yahoo Finance, Hyperliquid, stooq, histdata.
+Pour « Bilan » : lire aussi `copy_sim/labo/AVIS.md` (git pull). La chercheuse memecoins reste à 8 passages par jour
+tant que Baptiste n'a pas dit de la ralentir (elle propose 1 par jour).
