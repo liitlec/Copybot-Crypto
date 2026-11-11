@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-11T17:53:26Z",
+ "ecrit": "2026-11-11T17:58:32Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 10,
   "lots_par_position": 0.5
  },
- "solde": 66672.56,
- "valeur": 66670.11,
- "marge_libre": 66654.12,
+ "solde": 66669.58,
+ "valeur": 66665.33,
+ "marge_libre": 66649.35,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3996.84,
-   "ask": 3997.04,
+   "bid": 3993.99,
+   "ask": 3994.19,
    "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794426806
+   "heure_serveur": 1794427112
   }
  },
  "positions_robot": [
@@ -33,50 +33,50 @@
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3998.22,
-   "prix_actuel": 3996.84,
-   "stop": 3993.01,
+   "prix_entree": 3996.54,
+   "prix_actuel": 3993.99,
+   "stop": 3991.24,
    "objectif": null,
-   "profit": -1.38,
-   "ouverte_heure_serveur": 1794426660
+   "profit": -2.55,
+   "ouverte_heure_serveur": 1794426960
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3997.36,
-   "prix_actuel": 3996.84,
-   "stop": 3992.16,
+   "prix_entree": 3995.3,
+   "prix_actuel": 3993.99,
+   "stop": 3989.99,
    "objectif": null,
-   "profit": -0.52,
-   "ouverte_heure_serveur": 1794426720
+   "profit": -1.31,
+   "ouverte_heure_serveur": 1794427020
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3997.16,
-   "prix_actuel": 3997.04,
-   "stop": 4002.4,
+   "prix_entree": 3995.11,
+   "prix_actuel": 3994.19,
+   "stop": 4000.42,
    "objectif": null,
-   "profit": 0.12,
-   "ouverte_heure_serveur": 1794426720
+   "profit": 0.92,
+   "ouverte_heure_serveur": 1794427020
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3997.51,
-   "prix_actuel": 3996.84,
-   "stop": 3992.12,
+   "prix_entree": 3995.3,
+   "prix_actuel": 3993.99,
+   "stop": 3989.99,
    "objectif": null,
-   "profit": -0.67,
-   "ouverte_heure_serveur": 1794426720
+   "profit": -1.31,
+   "ouverte_heure_serveur": 1794427020
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-11",
-  "perte_du_jour": -4.71,
+  "perte_du_jour": -9.49,
   "seuil": -3333.74,
   "ouvertures_bloquees": false
  },
