@@ -72,6 +72,7 @@ def lire():
     etat = json.loads((ICI / "mt5" / "etat.json").read_text(encoding="utf-8"))
     par_hyp, par_heure, derniers, ouvertures, actives = defaultdict(list), defaultdict(list), [], defaultdict(int), []
     tickets = {}
+    par_jour = defaultdict(list)
     f = ICI / "mt5" / "robot_journal.jsonl"
     for ln in f.read_text(encoding="utf-8").splitlines() if f.exists() else []:
         try:
@@ -95,6 +96,7 @@ def lire():
         elif ev == "sortie" and isinstance(d.get("profit"), (int, float)):
             par_hyp[d["hypothese"]].append(d["profit"])
             par_heure[paris(d["heure"]).hour].append(d["profit"])
+            par_jour[paris(d["heure"]).date()].append((d["hypothese"], d["profit"]))
             derniers.append(d)
     avis = []
     a = ICI / "AVIS.md"
@@ -108,7 +110,7 @@ def lire():
                 avis.append(m.group(1))
             elif avis and ln.startswith("## "):
                 break
-    return etat, par_hyp, par_heure, derniers, actives, titre_avis, avis
+    return etat, par_hyp, par_heure, derniers, actives, titre_avis, avis, par_jour
 
 
 def gras(t):
@@ -116,7 +118,22 @@ def gras(t):
 
 
 def page():
-    etat, par_hyp, par_heure, derniers, actives, titre_avis, avis = lire()
+    etat, par_hyp, par_heure, derniers, actives, titre_avis, avis, par_jour = lire()
+    JOURS = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
+
+    def ligne_jour(j, xs):
+        tot = sum(p for _, p in xs)
+        ph = defaultdict(float)
+        for h, p in xs:
+            ph[h] += p
+        best = max(ph.items(), key=lambda kv: kv[1])
+        worst = min(ph.items(), key=lambda kv: kv[1])
+        return (f"<tr><td>{JOURS[j.weekday()]} {j:%d/%m}</td><td class='n'>{len(xs)}</td>"
+                f"<td class='n {'pos' if tot > 0 else 'neg'}'>{usd(tot)}</td>"
+                f"<td class='n'>{100 * sum(p > 0 for _, p in xs) / len(xs):.0f}\u00a0%</td>"
+                f"<td>{e(best[0])} <span class='pos'>{usd(best[1])}</span></td>"
+                f"<td>{e(worst[0])} <span class='neg'>{usd(worst[1])}</span></td></tr>")
+    jours = "".join(ligne_jour(j, xs) for j, xs in sorted(par_jour.items(), reverse=True))
     rob, gf = etat.get("robot") or {}, etat.get("garde_fou") or {}
     tous = [x for xs in par_hyp.values() for x in xs]
     temoin = par_hyp.get(TEMOIN, [])
@@ -234,6 +251,13 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
   </table></div>
   <p class="note">Le total des trades compte tous les trades fermés, y compris ceux fermés à un changement de version du robot et les sorties au stop. La valeur du compte ajoute le résultat en cours des positions encore ouvertes.</p>
   <p class="note">Le verdict compare chaque hypothèse au témoin à pile ou face. Il faut au moins 30 trades pour un premier avis, et 100 trades avec une nette avance pour « en avance sur le hasard ». Le chiffre après ± est la marge d'erreur de la moyenne.</p>
+</section>
+<section>
+  <h2>Résultats par jour (Paris)</h2>
+  <div class="defile"><table>
+    <tr><th>Jour</th><th class="n">Trades</th><th class="n">Total</th><th class="n">Gagnants</th><th>Meilleure hypothèse</th><th>Pire hypothèse</th></tr>
+    {jours or "<tr><td colspan='6'>Pas encore de trade fermé.</td></tr>"}
+  </table></div>
 </section>
 <section class="avis">
   <h2>{e(titre_avis) or "Avis de l'IA"}</h2>
