@@ -97,3 +97,32 @@ gagne.** Le faible coût ouvre quand même la porte : il suffit d'un avantage br
 
 Le lanceur du robot est apparu dans `etat.json` (champ `robot`, interface `copy_sim/forex/ROBOT_INTERFACE.md`) en fin
 de passage : pas encore de robot écrit. Registre papier : pas de jour terminé depuis l'ouverture.
+
+## Passage 3 — 11/11/2026 (≈ 18 h 15 – 18 h 45 Paris) — premier robot sur la démo MT5
+
+Priorités de Baptiste relues dans `PRIORITES.md` (entrées de 18 h, 18 h 05, 18 h 10, 18 h 15 ; commit 19f76a7) :
+trader sur la démo dès maintenant, petite taille, hypothèses étiquetées, apprendre des résultats ; recherche massive
+de combinaisons avec garde-fous. Indices chez le courtier : `NAS100+`, `SP500+`, `DJ30+`, `GER40+`.
+
+**Robot version 1** (`mt5/robot/robot.py`, essais `essais_robot.py`, `VERSION` = 1). XAUUSD, **0,01 lot** par
+hypothèse, une position au plus par hypothèse (4 au maximum), stop de secours chez le courtier (4 × amplitude moyenne
+de 48 bougies, 3 $ au moins), sortie au temps, pas d'ouverture si spread > 0,60 $. Toutes sont des **essais non
+prouvés** (le banc D ne trouve d'avantage pour aucune) :
+
+| Étiquette | Règle | Tenue | Ce que dit le banc D (net par trade, réglage → verdict) |
+|---|---|---|---|
+| `hasard_m15` | pile ou face à chaque bougie M15 | 5 min | témoin : attendu ≈ −0,5 bp ; sert à mesurer spread et glissement réels |
+| `elan_m15` | sens du rendement de 12 bougies M15 | 3 h | +0,42 → +0,17 bp (t = 0,1) |
+| `cassure_m15` | clôture au-delà du haut/bas de 48 bougies M15, on suit | 3 h | −0,12 → +2,86 bp (t = 1,0) |
+| `exces_m5` | bougie M5 > 3 écarts-types, on suit | 15 min | +0,81 → +0,47 bp (t = 0,5) |
+
+Essais hors ligne : signaux, premier tour sans ordre, ouvertures à 0,01 lot avec stop, pas de double ouverture,
+reprise après redémarrage, sorties au temps, stop touché, position orpheline fermée, spread trop large, ouverture
+sans stop refusée → « ESSAIS OK », y compris dans le bac à sable du lanceur (ici il faut lui laisser lire le dossier
+des fuseaux horaires de Linux ; sur le PC Windows l'exemple passe sans cela). Contrôle du texte source : rien d'interdit.
+
+Risque en jeu : démo seulement ; 0,01 lot d'or = 1 once, soit 1 $ par dollar de mouvement ; le témoin coûte environ
+0,19 $ de spread par trade, ≈ 18 $ par jour sur un compte démo de 66 674 $.
+
+Demandes d'historique ajoutées : `NAS100+`, `SP500+`, `GER40+`, `XAGUSD` en M1, `NAS100+` M5, XAUUSD H1.
+Pas encore fait : la recherche massive de combinaisons (prochain passage). Total des essais inchangé : 263.

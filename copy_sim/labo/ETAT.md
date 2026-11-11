@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 2, 11/11/2026
+# État du laboratoire (réécrit à chaque passage) — après le passage 3, 11/11/2026
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -13,23 +13,29 @@
 ## À chaque passage, d'abord
 `python3 donnees.py && python3 registre.py` puis recopier le tableau du registre dans AVIS.md.
 
-## Pistes suivantes (par ordre ; priorité de Baptiste = scalp XAUUSD, voir PRIORITES.md)
-1. **Robot de mesure 0,01 lot sur XAUUSD** (`mt5/robot/` : `robot.py`, `essais_robot.py`, `VERSION`) : lire d'abord
-   `copy_sim/forex/ROBOT_INTERFACE.md` et `MISSION_ROBOT.md`. But : spread, glissement et délai réels, y compris
-   pendant les annonces. À présenter comme « mesure », pas « stratégie ». Stop obligatoire sur chaque position.
-2. **Scalp or, familles pas encore essayées** (banc D = 90 essais, tous nuls) : effets d'heure (fixing de Londres
-   16 h Paris, ouverture NY, heure pleine), fourchette d'Asie cassée à Londres, retour vers le prix moyen de séance,
-   filtre de volatilité (ne trader que 14 h – 17 h Paris), sorties par stop/objectif plutôt qu'à durée fixe (il faut
-   alors simuler dans la bougie : prudence, haut/bas en prix vendeur). Seuil à battre : 0,5 bp brut par trade.
-3. Demander plus d'historique M1 par tranches (`debut`/`fin`) si le terminal en a ; 90 000 bougies par demande max.
-4. Portage (financement des perpétuels Hyperliquid) ; effets de calendrier sur indices.
-5. Nom d'un indice chez le courtier : demandé à Baptiste dans AVIS.md.
+## À chaque passage, ensuite (priorité de Baptiste du 11/11 18 h 15)
+Lire `mt5/etat.json` (champ `robot` : version installée, en marche, dernier refus), `mt5/robot_journal.jsonl`,
+`mt5/executions.jsonl`. Tenir dans AVIS.md le tableau **par hypothèse** : trades, gain moyen après spread, erreur
+type. Couper ce qui perd nettement, garder ce qui tient, ne monter la taille que si direct ET banc concordent.
+Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ juste avant la fermeture, `raison`).
+Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
+
+## Pistes suivantes (par ordre)
+1. **Écrire `analyse_robot.py`** : lit `robot_journal.jsonl`, sort le tableau par hypothèse et le glissement
+   (prix demandé contre obtenu, spread à l'entrée). Comparer `hasard_m15` au coût attendu (−0,19 $ par trade).
+2. **Recherche massive sur l'or** (`banc_or.py` à étendre en grille) : règles × réglages × heures (14-17 h, 2-4 h,
+   fixing 16 h Paris, ouverture NY) × sens × volatilité × tendance de fond × stop/objectif × M1/M5/M15 ; puis argent
+   et indices (`NAS100+`, `SP500+`, `GER40+` : données demandées). Garde-fous : plateau et non pic, réglage puis
+   verdict jamais touché, comparer le meilleur de N au meilleur de N tirages au hasard, annoncer N, viser t > 2.
+3. Ce qui passe remplace les hypothèses du robot (toujours 0,01 lot d'abord).
+4. Portage (Hyperliquid), effets de calendrier sur indices : après.
 
 ## MT5 démo (section ajoutée à MISSION.md le 11/11, commit 36b30f3)
 - Cible : compte démo via le pont (`labo/mt5/consigne.json` → pont ; `etat.json`, `executions.jsonl`, `donnees/` ← pont).
 - Le pont tourne depuis le 11/11 17 h 10 ; lanceur de robot présent (champ `robot` de `etat.json`), aucun robot installé.
 - Demandes d'historique : 90 000 bougies passent, 200 000 non. Serveur = UTC+2. Bougies en prix vendeur.
-- `consigne.json` : rien envoyé, aucun montage prouvé.
+- `consigne.json` : rien envoyé. Robot v1 poussé le 11/11 ≈ 18 h 45 (4 hypothèses XAUUSD, 0,01 lot, non prouvées).
+- Indices : `NAS100+`, `SP500+`, `DJ30+`, `GER40+` (et variantes `ft+`).
 
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.

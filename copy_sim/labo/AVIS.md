@@ -1,12 +1,21 @@
-# Avis pour Baptiste — 11/11/2026, 17 h 45 (passage 2)
+# Avis pour Baptiste — 11/11/2026, 18 h 45 (passage 3)
 
-1. **Tu as raison sur l'or** : chez ton courtier le spread de XAUUSD (≈ 19 points) ne mange que 28 % du mouvement d'une bougie M1 et 11 % en M5, contre 323 % et 117 % sur EURUSD. Meilleures heures : 14 h – 17 h (Paris), puis 2 h – 4 h ; à éviter : 22 h – 1 h.
-2. **Mais aucun scalp simple n'y gagne encore** : 90 variantes testées sur les vraies bougies (élan, retour, cassures, excès, en M1, M5, M15) prévoient 0 avant frais, donc perdent le spread (≈ −0,5 % par jour à 100 trades).
-3. La bonne nouvelle : sur l'or il suffit d'un tout petit avantage (0,5 point de base par trade) pour passer ; je cherche maintenant du côté des heures (fixing de Londres, ouverture de New York, fourchette d'Asie).
-4. Prochain passage : j'écris un robot de **mesure** à 0,01 lot sur la démo (spread et glissement réels, surtout pendant les annonces). Ce ne sera pas une stratégie.
-5. Besoin de toi : le nom exact d'un indice (Nasdaq ou S&P) dans ta fenêtre « Observation du marché » de MT5 — NAS100, US500, USTEC… n'existent pas chez STARTRADER.
+1. **Le robot est poussé** (version 1) : il trade XAUUSD sur ta démo à 0,01 lot, 4 hypothèses étiquetées, chacune avec un stop. Ce sont des **essais en direct, rien de prouvé**.
+2. Ce qui tourne : `hasard_m15` (témoin pile ou face, mesure le spread et le glissement réels), `elan_m15`, `cassure_m15` (tenue 3 h), `exces_m5` (tenue 15 min). Sur les données passées, aucune ne gagne de façon nette.
+3. Rappel du passage 2 : l'or est bien le moins cher à scalper chez ton courtier (spread = 28 % du mouvement M1, EURUSD 323 %), mais 90 règles simples testées font zéro avant frais. Combinaisons testées à ce jour : 263.
+4. Prochain passage : premiers résultats réels par hypothèse (avec nombre de trades et marge d'erreur), puis la recherche massive de combinaisons sur l'or, l'argent et les indices (merci pour les noms `NAS100+`…).
+5. Pour tout arrêter : le fichier `STOP_PONT` côté PC. Rien à faire d'autre.
 
-## Meilleur montage du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés)
+
+| Hypothèse | Trades | Gain moyen après spread | Marge d'erreur | Décision |
+|---|---|---|---|---|
+| hasard_m15 (témoin) | 0 | — | — | vient de démarrer |
+| elan_m15 | 0 | — | — | vient de démarrer |
+| cassure_m15 | 0 | — | — | vient de démarrer |
+| exces_m5 | 0 | — | — | vient de démarrer |
+
+## Meilleur montage prouvé du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
 
 | Version | 2016-2026 par an | Pire baisse | Remarque |
 |---|---|---|---|
@@ -14,7 +23,7 @@
 | P2 CFD ×3 + filtre 200 j | +8,9 % | −28 % | filtre non prouvé depuis 2016 |
 | P3 comptant sans levier | +7,6 % | −12 % | le plus régulier |
 
-Aucun scalp n'a encore le droit d'entrer dans ce tableau. Rien n'a été envoyé sur la démo MT5.
+Aucun scalp n'a encore le droit d'entrer dans ce tableau : ceux du robot sont des essais.
 
 ## Registre papier (départ 10 000 le 11/11/2026, premier jour compté : 12/11)
 
