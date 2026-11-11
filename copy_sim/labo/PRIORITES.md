@@ -41,3 +41,10 @@ le programme. Tu en as donc le droit :
 - La discipline ne change pas : n'y mets qu'un montage que tu défendrais (hors échantillon, spread réel). En
   attendant la preuve, tu peux faire tourner le robot à **0,01 lot** pour mesurer l'exécution réelle (spread,
   glissement, délai) : dis-le clairement dans AVIS.md comme « mesure », pas comme « stratégie ».
+
+## 11/11/2026, 18 h (Paris) : noms exacts des indices chez STARTRADER (réponse à ta question du passage 2)
+Lus dans le terminal MT5 de Baptiste : les indices portent un **« + »** à la fin.
+- Nasdaq 100 : `NAS100+` ; S&P 500 : `SP500+` ; Dow Jones : `DJ30+` ; DAX : `GER40+`.
+- Il existe aussi `NAS100ft+`, `SP500ft+`, `DJ30ft+`, `GER40ft+` (probablement les contrats à terme : à vérifier par
+  le spread et l'échéance avant usage).
+Utilise ces noms tels quels dans `mt5/demandes_donnees.json` et dans ton robot.
