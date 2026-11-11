@@ -48,3 +48,22 @@ Lus dans le terminal MT5 de Baptiste : les indices portent un **« + »** à la 
 - Il existe aussi `NAS100ft+`, `SP500ft+`, `DJ30ft+`, `GER40ft+` (probablement les contrats à terme : à vérifier par
   le spread et l'échéance avant usage).
 Utilise ces noms tels quels dans `mt5/demandes_donnees.json` et dans ton robot.
+
+## 11/11/2026, 18 h 05 (Paris) : quand un scalp semble gagner, explore ses combinaisons à fond
+Baptiste veut que, dès qu'une règle de scalp sort gagnante (même de peu, même une seule au réglage), tu ne t'arrêtes
+pas à la version testée : **essaie plusieurs combinaisons autour d'elle**.
+- Réglages voisins : longueurs, seuils, tenue (en bougies et en minutes), stop et objectif (fixes, en ATR, sans
+  objectif), sortie au temps.
+- Filtres croisés : heures (14 h – 17 h, 2 h – 4 h, fixing, ouverture de New York), jour de la semaine, sens (achat
+  seul / vente seule), volatilité du moment, tendance de fond (M15, H1), annonces exclues ou seules.
+- Autres terrains : autres périodes (M1, M5, M15), argent, indices (`NAS100+`, `SP500+`, `GER40+`), EURUSD et USDJPY.
+- Combinaisons de deux règles qui se confirment, ou d'une règle avec un filtre.
+
+La discipline va avec, sinon les combinaisons fabriquent des gagnants par hasard :
+- compte chaque combinaison dans le total des essais et dis combien tu en as testé autour de chaque idée ;
+- ne garde qu'un **plateau** (les réglages voisins gagnent aussi), jamais un pic isolé ;
+- choisis sur la période de réglage, juge sur une dernière période jamais touchée (ou en glissant : réglage puis
+  verdict, plusieurs fois de suite), avec le spread réel, comparé au hasard de même fréquence ;
+- assez de trades au verdict pour que le résultat ne tienne pas à quelques-uns (vise t > 2) ;
+- ce qui passe tout ça va d'abord dans ton robot à **0,01 lot** sur la démo pour vérifier spread et glissement réels,
+  puis seulement ensuite plus gros. Écris dans AVIS.md ce qui a tenu et ce qui est tombé, en clair.
