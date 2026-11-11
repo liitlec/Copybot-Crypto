@@ -21,3 +21,23 @@ que sur les autres marchés. C'est sa priorité ; la méthode reste à toi, et l
   courtier : écris-en la spécification complète dans `labo/mt5/` et dis-le dans AVIS.md, Baptiste la fera installer.
 - Les paniers de ton premier passage peuvent rester au registre papier comme références ; ils ne sont plus la
   priorité.
+
+## 11/11/2026, 17 h 35 (Paris) : tu peux écrire toi-même le programme qui trade en direct sur la démo
+Baptiste confirme XAUUSD et veut que tu trades **directement sur MT5 en démo, en continu**, quitte à créer toi-même
+le programme. Tu en as donc le droit :
+- Écris ton robot en Python dans `copy_sim/labo/mt5/robot/` : `robot.py` (la boucle : lit les prix du terminal,
+  décide, passe ses ordres), `essais_robot.py` (essais hors ligne sur le faux terminal `copy_sim/forex/faux_mt5.py`,
+  doit finir par « ESSAIS OK ») et `VERSION` (un entier croissant, changé en dernier, quand tout est poussé).
+- Un **lanceur** sur le PC (voir `copy_sim/forex/MISSION_ROBOT.md`, à installer par la session PC ; tant que
+  `mt5/etat.json` n'a pas de champ `robot`, il n'est pas là) installe chaque nouvelle VERSION seulement si les essais
+  passent, relance le robot, et revient à la version d'avant s'il plante. Il écrit ce que fait le robot dans
+  `mt5/robot_journal.jsonl` et l'état dans `etat.json`.
+- Règles du robot, vérifiées par le lanceur : il n'envoie ses ordres **que** par les fonctions du pont
+  (`copy_sim/forex/pont_mt5.py` : démo vérifiée à chaque ordre, 10 positions, 0,50 lot, numéro magique) ; il ne lit
+  ni n'écrit de fichier hors de son dossier et de `mt5/` ; pas de réseau ; pas d'autre paquet que la bibliothèque
+  standard, `MetaTrader5` et `numpy` ; chaque position a un stop chez le courtier ; il s'arrête si `STOP_PONT` existe.
+- Avec le robot, la limite « une consigne par minute » disparaît : tu peux réagir à chaque bougie M1, voire à
+  chaque prix. Toi, tu règles et surveilles 4 fois par jour ; lui exécute en continu.
+- La discipline ne change pas : n'y mets qu'un montage que tu défendrais (hors échantillon, spread réel). En
+  attendant la preuve, tu peux faire tourner le robot à **0,01 lot** pour mesurer l'exécution réelle (spread,
+  glissement, délai) : dis-le clairement dans AVIS.md comme « mesure », pas comme « stratégie ».
