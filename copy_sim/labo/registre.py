@@ -55,7 +55,10 @@ if __name__ == "__main__":
                         **{a: round(v, 3) for a, v in wj.dropna().items()}))
     if ajout:
         pd.DataFrame(ajout).to_csv(REG, mode="a", header=False, index=False)
-    pd.DataFrame(pos).to_csv(POS, mode="a", header=not os.path.exists(POS), index=False)
+    deja = set(pd.read_csv(POS)["decide_le"].astype(str)) if os.path.exists(POS) else set()
+    neuf = [p for p in pos if str(p["decide_le"]) not in deja]      # une seule fois par jour de decision
+    if neuf:
+        pd.DataFrame(neuf).to_csv(POS, mode="a", header=not os.path.exists(POS), index=False)
     reg = pd.read_csv(REG)
     print("Lignes ajoutees :", len(ajout))
     print(reg.groupby("montage").agg(dernier_jour=("jour", "last"), jours=("jour", "count"), capital=("capital", "last")))

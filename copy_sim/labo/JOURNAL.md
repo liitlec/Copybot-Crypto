@@ -164,3 +164,54 @@ glissement à l'entrée). Données reçues pour la recherche massive : `NAS100+`
 (90 000 bougies chacun), `NAS100+` M5, XAUUSD H1 (26 663). Recherche massive : toujours à faire. Essais : 263.
 
 Suite : v2 installée à 18 h 46 (Paris) sans refus ; orphelines de la v1 fermées (+3,08 $ et −0,11 $). À 18 h 58 : 14 ouvertures, 0 refus, spread moyen 0,199 $, glissement moyen +0,007 $ (max +0,15). Une erreur passagère venue du pont (remplacement de `garde_jour.json` refusé par Windows), le robot a continué ; le message contenait un chemin avec le nom d'utilisateur Windows → à masquer dans la v3.
+
+## Passage 5 — 11/11/2026 (≈ 21 h 10 – 21 h 30 Paris) — résultats du robot, grille de 47 628 combinaisons, robot v3
+
+(Les passages planifiés de 19 h 10 et 20 h 10 n'ont pas abouti : le processus de la session a redémarré. Rien de perdu.)
+Registre papier : aucun jour terminé à ajouter. `registre.py` corrigé (positions notées une fois par jour).
+
+**Robot v2 en direct, 18 h 46 → 21 h 03** (0,01 lot, $ par trade après spread ; `analyse_robot.py`) :
+
+| Hypothèse | Trades | Gain moyen | ± 1 erreur type | Total |
+|---|---|---|---|---|
+| hasard_m1 (témoin) | 27 | −0,66 $ | 0,34 | −17,80 $ |
+| elan_m1 | 27 | −0,01 $ | 0,36 | −0,20 $ |
+| retour_m1 | 27 | −0,22 $ | 0,35 | −5,86 $ |
+| fcassure_m1 | 9 | −0,50 $ | 0,66 | −4,53 $ |
+| exces_m1 | 1 (stop) | ≈ −4,10 $ | — | −4,10 $ |
+| elan_m15 (v1) | 1 | +3,07 $ | — | +3,07 $ |
+
+99 ouvertures, 0 refus, spread moyen 0,198 $, glissement moyen −0,002 $ (nul). Compte démo 66 674,76 → 66 643,93 $
+(−31 $ en ≈ 3 h, conforme au coût attendu). Aucune hypothèse ne se distingue du témoin : les écarts sont de l'ordre
+d'une erreur type. Cadence réelle ≈ 10 trades par heure et par hypothèse continue (≈ 700 par jour au total).
+
+**Banc E — grille massive** (`banc_grille.py`). Par fichier : 18 signaux (élan 1 à 60 bougies, cassure de 10 à 240,
+excès 2-3-4 écarts-types, écart à la moyenne 20-60-240) × suivre/contrer × 7 tenues (1 à 60 bougies) × 9 filtres
+d'heure (tout, 8 tranches de 3 h) × 3 filtres de volatilité = 6 804 combinaisons ; 7 fichiers = **47 628**.
+Spread réel payé, réglage 60 % / verdict 40 %, t divisé par √tenue (trades chevauchants), au moins 300 trades.
+Référence « hasard » : mêmes entrées, sens tiré à pile ou face, meilleur t de toute la grille (5 tirages).
+
+| Fichier | Spread / mouvement | Positives au réglage | t > 2 au réglage | Meilleur t réglage | Meilleur t du hasard | t > 2 au verdict |
+|---|---|---|---|---|---|---|
+| XAUUSD M1 | 28 % | 14 % | 0 | 1,48 | 0,9 – 1,2 | 0 |
+| XAUUSD M5 | 11 % | 32 % | 13 | 3,25 | 1,5 – 2,3 | 0 |
+| XAGUSD M1 | 115 % | 3 % | 0 | 1,47 | 0,1 – 0,5 | 0 |
+| NAS100+ M1 | **21 %** | 18 % | 0 | 1,65 | 0,7 – 2,3 | 0 |
+| NAS100+ M5 | 10 % | 29 % | 0 | 1,76 | 1,4 – 2,1 | 0 |
+| SP500+ M1 | 71 % | 8 % | 0 | 1,65 | 0,3 – 0,6 | 0 |
+| GER40+ M1 | 55 % | 5 % | 0 | 1,81 | 0,2 – 0,8 | 0 |
+
+Lecture : **aucune des 47 628 combinaisons ne passe le verdict (t > 2)**. Le Nasdaq (`NAS100+`) est encore moins cher
+que l'or à scalper ; l'argent, le S&P et le DAX sont nettement plus chers. Un seul groupe dépasse le hasard au
+réglage et forme un petit plateau : **XAUUSD M5, de 12 h à 15 h serveur (11 h – 14 h Paris), contrer un écart de plus
+de 2 écarts-types à la moyenne de 20 bougies (ou une cassure de 20 bougies), tenue 15 min** : réglage +2,9 à +3,6 bp
+(t = 2,5 à 3,25), verdict +0,4 à +1,3 bp (t = 0,4 à 1,1) → positif mais non prouvé (4 voisins sur 13 à t > 2 ; 6 des
+13 restent positifs au verdict). C'est le meilleur candidat du moment, rien de plus.
+Non couvert par la grille : stops et objectifs dans la bougie, jour de la semaine, tendance de fond, combinaisons de
+deux règles, sens seul (achat/vente : biaisé par la hausse de l'or sur la période).
+
+**Total des essais : 263 + 47 628 = 47 891.**
+
+**Robot version 3** (`VERSION` = 3) : les 8 hypothèses de la v2 sont gardées (aucune n'est encore nettement sous le
+témoin : trop peu de trades), plus `ecart_midi_m5` (le candidat de la grille, 12 h – 15 h serveur seulement, tenue
+15 min). Les messages d'erreur ne contiennent plus de chemin de fichier. Essais « ESSAIS OK » dans le bac à sable.

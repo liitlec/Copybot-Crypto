@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 4, 11/11/2026
+# État du laboratoire (réécrit à chaque passage) — après le passage 5, 11/11/2026 (21 h 30)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -8,7 +8,8 @@
   ≈ +8 à +13 %/an depuis 2016 selon le levier, mais c'est la prime de risque en période de hausse, pas un avantage.
 - Réfuté aussi (passage 2) : 30 règles simples de bougies sur XAUUSD en M1, M5, M15 avec le spread réel.
 - Mesuré : l'or est le moins cher (spread 0,46 bp = 28 % du mouvement M1, 11 % en M5 ; EURUSD 323 %).
-- 263 essais comptés. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
+- Réfuté (passage 5) : grille de 47 628 combinaisons (or, argent, Nasdaq, S&P, DAX) : aucune à t > 2 au verdict.
+- 47 891 essais comptés. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
 ## À chaque passage, d'abord
 `python3 donnees.py && python3 registre.py` puis recopier le tableau du registre dans AVIS.md.
@@ -21,14 +22,16 @@ Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ 
 Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
 
 ## Pistes suivantes (par ordre)
-1. **`python3 analyse_robot.py`** à chaque passage : tableau par hypothèse à recopier dans AVIS.md. Comparer chaque
-   hypothèse M1 au témoin `hasard_m1` (attendu −0,19 $ par trade). Ajouter le découpage par heure (`h_serveur` des
-   notes, serveur = Paris + 1 h). Couper ce qui est nettement sous le témoin après ≈ 300 trades.
-2. **Recherche massive sur l'or** (`banc_or.py` à étendre en grille) : règles × réglages × heures (14-17 h, 2-4 h,
-   fixing 16 h Paris, ouverture NY) × sens × volatilité × tendance de fond × stop/objectif × M1/M5/M15 ; puis argent
-   et indices (`NAS100+`, `SP500+`, `GER40+` : données demandées). Garde-fous : plateau et non pic, réglage puis
-   verdict jamais touché, comparer le meilleur de N au meilleur de N tirages au hasard, annoncer N, viser t > 2.
-3. Ce qui passe remplace les hypothèses du robot (toujours 0,01 lot d'abord).
+1. **Résultats du robot** : `python3 analyse_robot.py` ; attendre ≈ 300 trades par hypothèse continue (≈ 30 h de
+   marché) avant de couper ; couper alors ce qui est sous le témoin `hasard_m1` de plus de 2 erreurs types.
+   Ajouter à `analyse_robot.py` le découpage par heure (`h_serveur` dans les notes ; serveur = Paris + 1 h).
+   `ecart_midi_m5` ne trade que de 11 h à 14 h Paris : premiers trades le 12/11.
+2. **Affiner autour du seul plateau trouvé** (XAUUSD M5, 12-15 h serveur, contrer écart/cassure 20, tenue 3 bougies) :
+   seuils 1,5 / 2 / 2,5, longueurs 15 / 20 / 30, tenues 2 à 6, heures voisines, par jour de semaine, en glissant
+   (réglage puis verdict plusieurs fois), sur M15 (771 jours) pour plus d'historique. Compter chaque essai.
+3. **Étendre la grille** (`banc_grille.py`) : stops/objectifs dans la bougie, tendance de fond (M15/H1), deux règles
+   qui se confirment, jour de semaine ; `NAS100+` en priorité (spread = 21 % du mouvement M1, moins cher que l'or).
+   Demander plus d'historique par tranches (`debut`/`fin`) si le terminal en a.
 4. Portage (Hyperliquid), effets de calendrier sur indices : après.
 
 ## MT5 démo (section ajoutée à MISSION.md le 11/11, commit 36b30f3)
@@ -38,10 +41,10 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 - `consigne.json` : rien envoyé. Robot v1 en marche le 11/11 à 18 h 16 ; **v2 poussée ≈ 19 h** (8 hypothèses, ≈ 850 trades/jour, coût attendu ≈ 160 $/jour de démo) : vérifier `etat.json` → `robot.version_installee` = 2 (4 hypothèses XAUUSD, 0,01 lot, non prouvées).
 - Indices : `NAS100+`, `SP500+`, `DJ30+`, `GER40+` (et variantes `ft+`).
 
-## À corriger au prochain passage (robot v3)
-- Masquer les chemins dans les notes d'erreur du robot (une erreur du pont a écrit `C:\Users\<nom>` dans le journal public).
-- Erreur passagère du pont : `PermissionError` au remplacement de `garde_jour.json` (côté PC, signalée dans AVIS.md).
-- v2 installée le 11/11 à 18 h 46 (Paris), en marche.
+## Robot
+- v3 poussée le 11/11 ≈ 21 h 30 (9 hypothèses, 0,01 lot) : vérifier `robot.version_installee` = 3 dans `etat.json`.
+- Toujours à signaler côté PC : erreur passagère du pont au remplacement de `garde_jour.json` (une fois, 18 h 53).
+- Le processus de la session peut redémarrer en plein passage : committer tôt, ne rien laisser de non commité.
 
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.

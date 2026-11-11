@@ -1,14 +1,15 @@
-"""Robot du labo, version 2 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
+"""Robot du labo, version 3 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
 
-Huit hypotheses en parallele, une position au plus chacune, stop chez le courtier sur chaque position, sortie au temps.
-Trois tournent en continu en M1 (dont le temoin au hasard, a la meme cadence), cinq attendent un evenement.
+Neuf hypotheses en parallele, une position au plus chacune, stop chez le courtier sur chaque position, sortie au temps.
+Trois tournent en continu en M1 (dont le temoin au hasard, a la meme cadence), six attendent un evenement.
+ecart_midi_m5 vient de la grille du banc E (labo/banc_grille.py) : seul groupe au-dessus du hasard au reglage.
 Le banc D (labo/banc_or.py) ne trouve d'avantage prouve pour aucune : le but est d'apprendre du vrai marche.
 Chaque ouverture et chaque sortie est notee par pont.noter avec le nom de l'hypothese et l'heure du serveur."""
 import json
 import random
 import time
 
-VERSION = 2
+VERSION = 3
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -25,7 +26,9 @@ HYPOTHESES = {
     "exces_m5":    ("M5", 900, "exces", 3, 1),        # bougie M5 > 3 ecarts-types : on la suit, 15 min
     "cassure_m15": ("M15", 10800, "cassure", 48, 1),  # sortie de la fourchette de 12 h : on la suit, 3 h
     "elan_m15":    ("M15", 10800, "elan", 12, 1),     # sens des 3 dernieres heures, 3 h
-}
+    "ecart_midi_m5": ("M5", 900, "ecart", 20, -1),    # a plus de 2 ecarts-types de la moyenne de 20 bougies M5 :
+}                                                     # on parie sur le retour, 15 min, de 12 h a 15 h serveur seulement
+HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
 def regle(nom_regle, k, b, hasard=random):
@@ -44,6 +47,16 @@ def regle(nom_regle, k, b, hasard=random):
         haut = max(x[2] for x in b[-k - 1:-1])
         bas = min(x[3] for x in b[-k - 1:-1])
         return (c[-1] > haut) - (c[-1] < bas)
+    if nom_regle == "ecart":
+        if len(c) < k:
+            return 0
+        v = c[-k:]
+        m = sum(v) / k
+        e = (sum((x - m) ** 2 for x in v) / (k - 1)) ** 0.5
+        if e <= 0:
+            return 0
+        z = (c[-1] - m) / e
+        return (z > 2) - (z < -2)
     if nom_regle == "exces":
         if len(c) < 102:
             return 0
@@ -181,6 +194,8 @@ class Robot:
             for nom, hyp in HYPOTHESES.items():
                 if hyp[0] != periode or nom in self.ouvert:
                     continue
+                if nom in HEURES and time.gmtime(maintenant).tm_hour not in HEURES[nom]:
+                    continue
                 s = signal(nom, b, self.hasard)
                 if s:
                     self.ouvrir(nom, s, b, maintenant)
@@ -197,7 +212,8 @@ def lancer(pont):
         except Exception as e:                           # ne jamais planter : on note et on attend
             erreurs += 1
             if erreurs <= 3 or erreurs % 100 == 0:
-                pont.noter(evenement="erreur", texte=("%s: %s" % (type(e).__name__, e))[:200], suite=erreurs)
+                texte = ("%s: %s" % (type(e).__name__, e)).split("'")[0][:160]      # sans chemin de fichier
+                pont.noter(evenement="erreur", texte=texte, suite=erreurs)
             time.sleep(min(60, 5 * erreurs))
         time.sleep(PAUSE)
     pont.noter(evenement="arret demande")

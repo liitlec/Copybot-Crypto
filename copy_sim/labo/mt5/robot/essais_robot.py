@@ -41,6 +41,13 @@ assert robot.signal("fcassure_m1", barres(130, 60, dernier_saut=5.0)[:-1]) == -1
 assert robot.signal("fcassure_m1", plat) == 0
 assert robot.signal("elan_m1", haus) == 1 and robot.signal("retour_m1", haus) == -1
 assert robot.signal("hasard_m1", plat, h) in (-1, 1)
+pic = [list(x) for x in calme[:-1]]
+pic[-1][4] = pic[-1][1] + 3.0
+assert robot.signal("ecart_midi_m5", pic) == -1 and robot.signal("ecart_midi_m5", calme[:-1]) == 0
+creux = [list(x) for x in calme[:-1]]
+creux[-1][4] = creux[-1][1] - 3.0
+assert robot.signal("ecart_midi_m5", creux) == 1
+assert set(robot.HEURES) <= set(robot.HYPOTHESES)
 assert len(robot.HYPOTHESES) <= 9 and all(v[0] in robot.PERIODES and v[1] >= 60 for v in robot.HYPOTHESES.values())
 assert robot.ecart_stop(plat, 3.0) >= 3.0
 
@@ -61,6 +68,7 @@ m1b = [[x[0] + 60] + x[1:] for x in m1]
 r.tour({"M1": m1b, "M5": m5b, "M15": m15b})
 ps = pont.positions()
 assert len(ps) == len(r.ouvert) == 8, (len(ps), sorted(r.ouvert))
+assert "ecart_midi_m5" not in r.ouvert, "hors de ses heures"
 assert set(r.ouvert) <= set(robot.HYPOTHESES)
 for o in faux_mt5.ordres_recus:
     assert o["volume"] == 0.01 and o["sl"] > 0 and o["symbol"] == "XAUUSD", o
@@ -100,6 +108,19 @@ x = pont.ouvrir("XAUUSD", "achat", 0.01, stop=2600.0, id="inconnue")
 assert x["ok"]
 r.reconcilier()
 assert not pont.positions(), "orpheline fermee"
+
+# 5 bis) l'hypothese de midi ouvre dans ses heures (12-14 h serveur)
+faux_mt5.positions.clear()
+r3 = robot.Robot(pont, hasard=random.Random(3), fichier="etat_essai.json")
+t3 = [1794000000 - 1794000000 % 86400 + 13 * 3600]
+r3.heure = lambda: t3[0]
+r3.ouvert = {}
+r3.tour({"M1": m1, "M5": m5, "M15": m15})
+m5d = [[x[0] + 300] + x[1:] for x in m5]
+r3.tour({"M1": m1, "M5": m5d, "M15": m15})
+assert "ecart_midi_m5" in r3.ouvert and r3.ouvert["ecart_midi_m5"]["sens"] == -1, sorted(r3.ouvert)
+faux_mt5.positions.clear()
+r3.reconcilier()
 
 # 6) spread trop large : pas d'ouverture ; ouverture sans stop refusee par le pont
 faux_mt5._prix["XAUUSD"] = (2650.10, 2651.50)
