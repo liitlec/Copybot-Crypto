@@ -17,8 +17,25 @@ toi qui choisis, et tu peux changer d'avis quand les faits le demandent. Personn
 - Ce que le projet sait déjà : `copy_sim/memes/REPRISE.md` (memecoins : 18 000 trades papier, rien ne gagne, mis en
   veille), `copy_sim/memes/ia/CARTE_BLANCHE.md`, `copy_sim/desk/` (ancien bureau papier crypto et tendance). Sers-t'en
   ou non.
-- L'exécution réelle n'est pas de ton ressort. Quand un montage aura fait ses preuves, tu écriras ce qu'il faut pour
-  que Baptiste le fasse tourner sur son compte **démo** MT5 (STARTRADER, sur son PC) ou ailleurs.
+- L'argent réel n'est pas de ton ressort, jamais. Le compte **démo** MT5, lui, est à toi (section suivante).
+
+## MT5 en démo (exigence de Baptiste, 11/11) : ta cible et ton terrain d'essai en direct
+Tes montages doivent tourner sur son compte **démo** MetaTrader 5 (STARTRADER, levier 1:500, hedging), qui est sur
+son PC Windows. Tu ne peux pas le joindre d'ici ; un **pont** installé sur son PC (voir `copy_sim/forex/MISSION.md`)
+fait le lien par ce dépôt :
+- **Toi → MT5** : tu écris `labo/mt5/consigne.json` (format ci-dessous). Le pont le relit toutes les minutes et
+  aligne le compte démo dessus. C'est une cible d'état, pas une file d'ordres : ce qui n'y est plus est fermé.
+  `{"version": <entier croissant>, "ecrit": "<UTC ISO>", "positions": [{"id": "<ton nom>", "symbole": "EURUSD",
+  "sens": "achat"|"vente", "lots": 0.01, "stop": <prix ou null>, "objectif": <prix ou null>}]}`
+  Le pont refuse plus de 10 positions, plus de 0,50 lot par position, et tout compte qui n'est pas une démo.
+- **MT5 → toi** : le pont pousse `labo/mt5/etat.json` (heure, solde, valeur, positions ouvertes avec prix d'entrée
+  réels, dernier prix et spread de chaque symbole suivi), `labo/mt5/executions.jsonl` (chaque ordre : prix demandé,
+  prix obtenu, spread, refus éventuel) et, à ta demande dans `labo/mt5/demandes_donnees.json`, des historiques du
+  courtier (`labo/mt5/donnees/` : bougies et spreads réels, plus fiables que Yahoo pour tes coûts).
+- Tant que `labo/mt5/etat.json` n'existe pas ou date de plus de 15 minutes, le pont ne tourne pas (PC éteint ou pas
+  encore installé) : continue la recherche sur données publiques et tiens ton registre papier ; dis-le dans AVIS.md.
+- La démo sert à **vérifier** un montage déjà solide hors échantillon (exécution, spread, glissement réels), pas à
+  chercher au hasard : n'y envoie que ce que tu défendrais.
 
 ## Ce qui compte comme « rentable »
 Baptiste espère « 1 % par jour » et aime le scalp. Tu lui dois la vérité, pas ce qu'il espère : un montage ne vaut
