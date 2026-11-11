@@ -43,5 +43,25 @@
   "cle": "7223ee4d845d",
   "ecrit": "2026-11-11T16:19:17Z",
   "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "xau_m1_20k": {
+  "cle": "aacd64ac786d",
+  "ecrit": "2026-11-11T16:28:18Z",
+  "symbole": "XAUUSD",
+  "periode": "M1",
+  "lignes": 20000,
+  "premiere": 1792651020,
+  "derniere": 1794421680,
+  "fichier": "xau_m1_20k.csv.gz"
+ },
+ "xau_m1_90k": {
+  "cle": "76e1b297412f",
+  "ecrit": "2026-11-11T16:28:18Z",
+  "symbole": "XAUUSD",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786523820,
+  "derniere": 1794421680,
+  "fichier": "xau_m1_90k.csv.gz"
  }
 }

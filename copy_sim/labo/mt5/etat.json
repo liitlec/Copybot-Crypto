@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-11T16:22:18Z",
+ "ecrit": "2026-11-11T16:28:20Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -15,5 +15,17 @@
  "devise": "USD",
  "levier": 500,
  "positions": [],
- "symboles": {}
+ "symboles": {
+  "XAUUSD": {
+   "bid": 4002.78,
+   "ask": 4002.98,
+   "spread_points": 20.0,
+   "point": 0.01,
+   "chiffres": 2,
+   "lot_min": 0.01,
+   "pas_lot": 0.01,
+   "taille_contrat": 100.0,
+   "heure_serveur": 1794421700
+  }
+ }
 }
