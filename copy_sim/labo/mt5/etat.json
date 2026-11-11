@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-11T17:16:33Z",
+ "ecrit": "2026-11-11T17:22:36Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -15,30 +15,7 @@
  "devise": "USD",
  "levier": 500,
  "positions": [],
- "symboles": {
-  "NAS100+": {
-   "bid": 28530.21,
-   "ask": 28531.01,
-   "spread_points": 80.0,
-   "point": 0.01,
-   "chiffres": 2,
-   "lot_min": 0.1,
-   "pas_lot": 0.1,
-   "taille_contrat": 1.0,
-   "heure_serveur": 1794424593
-  },
-  "SP500+": {
-   "bid": 7631.21,
-   "ask": 7631.57,
-   "spread_points": 36.0,
-   "point": 0.01,
-   "chiffres": 2,
-   "lot_min": 0.1,
-   "pas_lot": 0.1,
-   "taille_contrat": 10.0,
-   "heure_serveur": 1794424593
-  }
- },
+ "symboles": {},
  "positions_robot": [],
  "garde_fou": {
   "jour_paris": "2026-11-11",
