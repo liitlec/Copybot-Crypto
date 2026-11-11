@@ -711,7 +711,8 @@ def main() -> None:
                 if mt5.terminal_info() is None:
                     mt5.initialize()
             try:
-                lanceur.tour()
+                if not args.une_fois:              # un tour unique (essai) ne démarre jamais de second robot
+                    lanceur.tour()
             except Exception:
                 log.exception("lanceur du robot (le pont continue)")
             with VERROU:
