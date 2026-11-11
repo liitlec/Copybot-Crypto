@@ -1,3 +1,7 @@
 {"heure": "2026-11-11T17:16:28Z", "type": "lanceur", "evenement": "installee", "version": 1}
 {"heure": "2026-11-11T17:16:28Z", "type": "lanceur", "evenement": "demarre", "version": 1}
 {"heure": "2026-11-11T17:16:28Z", "type": "note", "evenement": "demarrage", "version": 1, "hypotheses": ["cassure_m15", "elan_m15", "exces_m5", "hasard_m15"], "lots": 0.01, "repris": []}
+{"heure": "2026-11-11T17:30:01Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD", "sens": "achat", "lots": 0.01, "stop": 3979.73, "id": "hasard_m15", "prix_demande": 4003.94, "spread_points": 20.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": 4003.93, "ticket": 495000441}
+{"heure": "2026-11-11T17:30:01Z", "type": "note", "evenement": "ouverture", "hypothese": "hasard_m15", "sens": 1, "ok": true, "refus": null, "bid": 4003.74, "ask": 4003.94, "spread": 0.2, "stop": 3979.73, "prix_obtenu": 4003.93, "essai": "non prouve"}
+{"heure": "2026-11-11T17:30:01Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "stop": 4027.95, "id": "elan_m15", "prix_demande": 4003.75, "spread_points": 19.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": 4003.75, "ticket": 495000444}
+{"heure": "2026-11-11T17:30:01Z", "type": "note", "evenement": "ouverture", "hypothese": "elan_m15", "sens": -1, "ok": true, "refus": null, "bid": 4003.75, "ask": 4003.94, "spread": 0.19, "stop": 4027.95, "prix_obtenu": 4003.75, "essai": "non prouve"}
