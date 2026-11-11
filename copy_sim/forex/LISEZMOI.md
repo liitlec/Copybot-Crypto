@@ -16,5 +16,11 @@ Installation (MT5 ouvert sur le compte démo, bouton « Algo Trading » activé,
 3. `.\installer_tache.ps1` : copie le pont dans `%USERPROFILE%\pont_mt5` et le lance à chaque ouverture de session
    Windows (tâche « PontMT5 »).
 
-Arrêter : créer un fichier vide `%USERPROFILE%\pont_mt5\STOP_PONT` (plus aucun ordre, l'état continue d'être
-publié), ou `Stop-ScheduledTask -TaskName PontMT5` pour tout couper. Journal : `%USERPROFILE%\pont_mt5\pont.log`.
+**Robot du labo (lanceur, depuis le 11/11/2026)** : le pont installe aussi `copy_sim/labo/mt5/robot/` quand son
+`VERSION` augmente, après contrôle du texte et essais sur le faux terminal, et le fait tourner dans un bac à sable
+(`bac_a_sable.py`) ; ses ordres passent par `acces_robot.py` (fonctions du pont). Interface : `ROBOT_INTERFACE.md`.
+Essais : `python essais_lanceur.py` (faux terminal, 8 sur 8) et `python essais_lanceur.py --reel` (démo, 1 sur 1 :
+0,01 lot XAUUSD avec stop, fermé après une minute).
+
+Arrêter : créer un fichier vide `%USERPROFILE%\pont_mt5\STOP_PONT` (plus aucun ordre, robot arrêté, l'état continue
+d'être publié), ou `Stop-ScheduledTask -TaskName PontMT5` pour tout couper. Journal : `%USERPROFILE%\pont_mt5\pont.log`.

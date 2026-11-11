@@ -40,12 +40,12 @@ import logging
 import math
 import os
 import re
-import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ICI = Path(__file__).resolve().parent
 # Le pont installé tourne depuis une COPIE figée hors du dépôt (installer_tache.ps1) : un `git pull` ne peut donc pas
@@ -57,6 +57,11 @@ FICHIER_STOP = ICI / "STOP_PONT"
 
 VERSION_PONT = 1
 MAGIQUE = 20261111          # numéro magique du pont : il ne touche à rien d'autre
+MAGIQUE_ROBOT = 20261112    # positions du robot du labo (lanceur_robot.py), hors consigne
+MAGIQUES = (MAGIQUE, MAGIQUE_ROBOT)
+PERTE_MAX_JOUR = 0.05       # garde-fou : perte du jour (heure de Paris) des positions du pont et du robot
+FICHIER_GARDE = ICI / "garde_jour.json"
+VERROU = threading.RLock()  # un seul fil à la fois parle au terminal (boucle du pont, serveur du robot)
 MAX_POSITIONS = 10          # plafond dur
 MAX_LOTS = 0.50             # plafond dur, par position
 MAX_ESSAIS = 3              # essais d'ouverture ou de modification par version
@@ -129,6 +134,40 @@ def positions_pont(mt5) -> list:
     return [p for p in (mt5.positions_get() or []) if p.magic == MAGIQUE]
 
 
+def positions_toutes(mt5) -> list:
+    return [p for p in (mt5.positions_get() or []) if p.magic in MAGIQUES]
+
+
+def jour_paris() -> str:
+    return datetime.now(ZoneInfo("Europe/Paris")).date().isoformat()
+
+
+def garde_jour(mt5, nouveau=None) -> dict:
+    """Perte du jour (heure de Paris) des positions du pont et du robot : réalisée sur les positions suivies et
+    fermées, plus le flottant des ouvertes. Prudent : une position ouverte la veille compte en entier."""
+    g = lire_json(FICHIER_GARDE, {})
+    jour = jour_paris()
+    ouvertes = positions_toutes(mt5)
+    if not isinstance(g, dict) or g.get("jour") != jour:
+        info = mt5.account_info()
+        g = {"jour": jour, "base": float(info.equity) if info else 0.0, "suivies": [], "realise": {}}
+    suivies = set(g["suivies"]) | {p.ticket for p in ouvertes} | ({int(nouveau)} if nouveau else set())
+    ouverts = {p.ticket for p in ouvertes}
+    histo = getattr(mt5, "history_deals_get", None)
+    for t in suivies - ouverts:
+        if str(t) not in g["realise"] and histo is not None:
+            deals = histo(position=t) or []
+            if deals:
+                g["realise"][str(t)] = round(sum(d.profit + d.swap + d.commission + getattr(d, "fee", 0.0)
+                                                 for d in deals), 2)
+    flottant = sum(p.profit + p.swap for p in ouvertes)
+    g["suivies"] = sorted(suivies)
+    g["perte"] = round(sum(g["realise"].values()) + flottant, 2)
+    g["bloque"] = g["base"] > 0 and g["perte"] < -PERTE_MAX_JOUR * g["base"]
+    ecrire_json(FICHIER_GARDE, g)
+    return g
+
+
 def envoyer(mt5, demande: dict, simuler_reel: bool = False):
     """SEUL endroit qui appelle order_send. Revérifie toutes les sécurités juste avant l'ordre."""
     if FICHIER_STOP.exists():
@@ -136,14 +175,15 @@ def envoyer(mt5, demande: dict, simuler_reel: bool = False):
     _, arret = compte_demo(mt5, simuler_reel)
     if arret:
         raise Refus(arret)
-    if demande.get("magic") != MAGIQUE:
+    magie = demande.get("magic")
+    if magie not in MAGIQUES:
         raise Refus("numero magique absent")
     action = demande.get("action")
     if "position" in demande:                      # fermeture ou modification : une position du pont seulement
         if action not in (mt5.TRADE_ACTION_DEAL, mt5.TRADE_ACTION_SLTP):
             raise Refus("action non permise")
         pos = mt5.positions_get(ticket=demande["position"]) or []
-        if len(pos) != 1 or pos[0].magic != MAGIQUE:
+        if len(pos) != 1 or pos[0].magic != magie:
             raise Refus("position hors pont : pas touche")
         if action == mt5.TRADE_ACTION_DEAL and demande.get("volume", 0) > pos[0].volume + 1e-9:
             raise Refus("volume de fermeture superieur a la position")
@@ -151,11 +191,20 @@ def envoyer(mt5, demande: dict, simuler_reel: bool = False):
         vol = demande.get("volume")
         if not nombre(vol) or not 0 < vol <= MAX_LOTS + 1e-9:
             raise Refus(f"plafond : {MAX_LOTS} lot par position")
-        if len(positions_pont(mt5)) >= MAX_POSITIONS:
-            raise Refus(f"plafond : {MAX_POSITIONS} positions")
+        if len(positions_toutes(mt5)) >= MAX_POSITIONS:
+            raise Refus(f"plafond : {MAX_POSITIONS} positions (pont et robot ensemble)")
+        if magie == MAGIQUE_ROBOT and not (nombre(demande.get("sl")) and demande["sl"] > 0):
+            raise Refus("ouverture sans stop refusee")
+        g = garde_jour(mt5)
+        if g["bloque"]:
+            raise Refus(f"garde-fou : perte du jour {g['perte']:.2f} au-dela de {PERTE_MAX_JOUR:.0%} : "
+                        "plus d'ouverture jusqu'a demain (heure de Paris)")
     else:
         raise Refus("action non permise")
-    return mt5.order_send(demande)
+    res = mt5.order_send(demande)
+    if res is not None and "position" not in demande and res.retcode in RETCODES_OK and res.order:
+        garde_jour(mt5, nouveau=res.order)
+    return res
 
 
 # ------------------------------------------------------------------ validation de la consigne
@@ -251,7 +300,7 @@ def _resultat(mt5, res) -> dict:
     return d
 
 
-def ouvrir(mt5, v: dict, simuler_reel: bool) -> dict:
+def ouvrir(mt5, v: dict, simuler_reel: bool, magique: int = MAGIQUE, prefixe: str = "pont:") -> dict:
     t, si, spread = _spread(mt5, v["symbole"])
     base = {"action": "ouverture", "id": v["id"], "symbole": v["symbole"], "sens": v["sens"], "lots": v["lots"]}
     if t is None:
@@ -260,8 +309,8 @@ def ouvrir(mt5, v: dict, simuler_reel: bool) -> dict:
     prix = t.ask if achat else t.bid
     demande = {"action": mt5.TRADE_ACTION_DEAL, "symbol": v["symbole"], "volume": v["lots"],
                "type": mt5.ORDER_TYPE_BUY if achat else mt5.ORDER_TYPE_SELL, "price": prix,
-               "sl": v["stop"], "tp": v["objectif"], "deviation": 20, "magic": MAGIQUE,
-               "comment": "pont:" + v["id"], "type_time": mt5.ORDER_TIME_GTC}
+               "sl": v["stop"], "tp": v["objectif"], "deviation": 20, "magic": magique,
+               "comment": prefixe + v["id"], "type_time": mt5.ORDER_TIME_GTC}
     base.update(prix_demande=prix, spread_points=spread, stop=v["stop"] or None, objectif=v["objectif"] or None)
     try:
         res = _ordre_marche(mt5, demande, si, simuler_reel)
@@ -273,7 +322,7 @@ def ouvrir(mt5, v: dict, simuler_reel: bool) -> dict:
     return r
 
 
-def fermer(mt5, pos, ident: str, simuler_reel: bool) -> dict:
+def fermer(mt5, pos, ident: str, simuler_reel: bool, magique: int = MAGIQUE) -> dict:
     t, si, spread = _spread(mt5, pos.symbol)
     achat = pos.type == mt5.POSITION_TYPE_BUY
     base = {"action": "fermeture", "id": ident, "symbole": pos.symbol, "sens": "achat" if achat else "vente",
@@ -283,7 +332,7 @@ def fermer(mt5, pos, ident: str, simuler_reel: bool) -> dict:
     prix = t.bid if achat else t.ask
     demande = {"action": mt5.TRADE_ACTION_DEAL, "position": pos.ticket, "symbol": pos.symbol, "volume": pos.volume,
                "type": mt5.ORDER_TYPE_SELL if achat else mt5.ORDER_TYPE_BUY, "price": prix, "deviation": 20,
-               "magic": MAGIQUE, "comment": "pont:fin", "type_time": mt5.ORDER_TIME_GTC}
+               "magic": magique, "comment": "pont:fin", "type_time": mt5.ORDER_TIME_GTC}
     base.update(prix_demande=prix, spread_points=spread, prix_entree=pos.price_open)
     try:
         res = _ordre_marche(mt5, demande, si, simuler_reel)
@@ -292,11 +341,11 @@ def fermer(mt5, pos, ident: str, simuler_reel: bool) -> dict:
     return {**base, **_resultat(mt5, res)}
 
 
-def modifier(mt5, pos, v: dict, simuler_reel: bool) -> dict:
+def modifier(mt5, pos, v: dict, simuler_reel: bool, magique: int = MAGIQUE) -> dict:
     base = {"action": "modification", "id": v["id"], "symbole": pos.symbol, "stop": v["stop"] or None,
             "objectif": v["objectif"] or None}
     demande = {"action": mt5.TRADE_ACTION_SLTP, "position": pos.ticket, "symbol": pos.symbol,
-               "sl": v["stop"], "tp": v["objectif"], "magic": MAGIQUE}
+               "sl": v["stop"], "tp": v["objectif"], "magic": magique}
     try:
         res = envoyer(mt5, demande, simuler_reel)
     except Refus as e:
@@ -400,6 +449,18 @@ def construire_etat(mt5, info, arret, statut: str, local: dict, symboles: set) -
             "sens": "achat" if pos.type == mt5.POSITION_TYPE_BUY else "vente", "lots": pos.volume,
             "prix_entree": pos.price_open, "prix_actuel": pos.price_current, "stop": pos.sl or None,
             "objectif": pos.tp or None, "profit": pos.profit, "swap": pos.swap, "ouverte_heure_serveur": pos.time})
+    e["positions_robot"] = [{
+        "symbole": p.symbol, "sens": "achat" if p.type == mt5.POSITION_TYPE_BUY else "vente", "lots": p.volume,
+        "prix_entree": p.price_open, "prix_actuel": p.price_current, "stop": p.sl or None, "objectif": p.tp or None,
+        "profit": p.profit, "ouverte_heure_serveur": p.time} for p in (mt5.positions_get() or [])
+        if p.magic == MAGIQUE_ROBOT]
+    symboles.update(p["symbole"] for p in e["positions_robot"])
+    try:
+        g = garde_jour(mt5)
+        e["garde_fou"] = {"jour_paris": g["jour"], "perte_du_jour": g["perte"], "seuil": -round(PERTE_MAX_JOUR *
+                          g["base"], 2), "ouvertures_bloquees": g["bloque"]}
+    except Exception:
+        log.exception("garde-fou")
     for sym in sorted(symboles):
         t, si, spread = _spread(mt5, sym)
         if t is None:
@@ -493,7 +554,7 @@ def servir_demandes(mt5, texte: str | None, sortie: Path, symboles: set) -> None
 # ------------------------------------------------------------------ un passage complet
 
 def passage(mt5, sortie: Path, texte_consigne: str | None, texte_demandes: str | None, fichier_local: Path,
-            simuler_reel: bool = False) -> dict:
+            simuler_reel: bool = False, robot: dict | None = None) -> dict:
     """Un tour : sécurités, alignement, historiques, etat.json. Renvoie l'état écrit."""
     local = lire_json(fichier_local, {})
     if not isinstance(local, dict):
@@ -547,6 +608,8 @@ def passage(mt5, sortie: Path, texte_consigne: str | None, texte_demandes: str |
         except Exception:
             log.exception("demandes d'historique")
     etat = construire_etat(mt5, info, arret, statut, local, symboles)
+    if robot is not None:
+        etat["robot"] = robot
     ecrire_json(sortie / "etat.json", etat)
     ecrire_json(fichier_local, local)
     return etat
@@ -555,6 +618,7 @@ def passage(mt5, sortie: Path, texte_consigne: str | None, texte_demandes: str |
 # ------------------------------------------------------------------ git
 
 def git(*args, timeout=120):
+    import subprocess   # ici seulement : le module est importable dans le bac à sable du robot
     drapeaux = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     try:
         r = subprocess.run(["git", "-C", str(DEPOT), *args], capture_output=True, text=True, timeout=timeout,
@@ -613,6 +677,7 @@ def main() -> None:
     if args.depot:
         DEPOT = Path(args.depot).resolve()
 
+    from logging.handlers import RotatingFileHandler   # importe socket : pas au chargement du module
     log.setLevel(logging.INFO)
     for h in (RotatingFileHandler(ICI / "pont.log", maxBytes=2_000_000, backupCount=2, encoding="utf-8"),
               logging.StreamHandler()):
@@ -626,6 +691,9 @@ def main() -> None:
     import MetaTrader5 as mt5   # terminal déjà connecté : aucun identifiant, aucun mot de passe ici
 
     sortie, fichier_local = DEPOT / REL_MT5, ICI / "pont_local.json"
+    sys.modules.setdefault("pont_mt5", sys.modules[__name__])   # une seule copie du module (même VERROU, DEPOT)
+    import lanceur_robot
+    lanceur = lanceur_robot.Lanceur(mt5, sortie)
     dernier_push = 0.0
     log.info("pont demarre")
     while True:
@@ -634,16 +702,31 @@ def main() -> None:
             code, _, err = git("fetch", "origin", BRANCHE)
             if code != 0:
                 log.warning("git fetch : %s", err)
-            etat = passage(mt5, sortie, lire_distant("consigne.json"), lire_distant("demandes_donnees.json"),
-                           fichier_local)
+            with VERROU:
+                if mt5.terminal_info() is None:
+                    mt5.initialize()
+            try:
+                lanceur.tour()
+            except Exception:
+                log.exception("lanceur du robot (le pont continue)")
+            with VERROU:
+                etat = passage(mt5, sortie, lire_distant("consigne.json"), lire_distant("demandes_donnees.json"),
+                               fichier_local, robot=lanceur.etat())
             log.info("tour : %s%s", etat["consigne"], " | " + etat["arret"] if etat["arret"] else "")
             if not args.sans_push and time.time() - dernier_push >= PERIODE_PUSH and publier():
                 dernier_push = time.time()
         except Exception:
             log.exception("tour en erreur (le pont continue)")
         if args.une_fois:
+            lanceur.arreter("fin du tour unique")
             break
-        time.sleep(max(5.0, PERIODE_BOUCLE - (time.time() - debut)))
+        # la surveillance du robot tourne plus souvent que la boucle (plantages, STOP_PONT)
+        while time.time() - debut < PERIODE_BOUCLE:
+            time.sleep(5)
+            try:
+                lanceur.surveiller()
+            except Exception:
+                log.exception("surveillance du robot")
 
 
 if __name__ == "__main__":

@@ -7,7 +7,10 @@
 $depot   = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $dossier = Join-Path $env:USERPROFILE "pont_mt5"
 New-Item -ItemType Directory -Force $dossier | Out-Null
-Copy-Item (Join-Path $PSScriptRoot "pont_mt5.py") $dossier -Force
+Stop-ScheduledTask -TaskName "PontMT5" -ErrorAction SilentlyContinue   # l'ancienne version s'arrete d'abord
+foreach ($f in "pont_mt5.py", "lanceur_robot.py", "acces_robot.py", "faux_mt5.py", "bac_a_sable.py") {
+    Copy-Item (Join-Path $PSScriptRoot $f) $dossier -Force
+}
 $script  = Join-Path $dossier "pont_mt5.py"
 # vrai chemin de pythonw (l'alias WindowsApps ne marche pas toujours dans le Planificateur)
 $python  = (& python -c "import sys; print(sys.executable)").Trim()

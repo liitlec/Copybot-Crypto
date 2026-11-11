@@ -21,10 +21,12 @@ Symbole = namedtuple("Symbole", "name visible point digits volume_min volume_ste
 Tick = namedtuple("Tick", "bid ask time")
 Position = namedtuple("Position", "ticket time type magic volume price_open sl tp price_current swap profit symbol comment")
 Resultat = namedtuple("Resultat", "retcode price order comment")
+Deal = namedtuple("Deal", "position profit swap commission fee")
 
 mode_compte = ACCOUNT_TRADE_MODE_DEMO
 positions: list = []
 ordres_recus: list = []          # toutes les demandes passées à order_send
+transactions: list = []          # Deal(...) : historique des positions fermées (garde-fou)
 _ticket = [5000]
 _prix = {"EURUSD": (1.10000, 1.10012), "XAUUSD": (2650.10, 2650.35)}
 
@@ -97,3 +99,7 @@ def copy_rates_from_pos(sym, tf, depart, n):
 
 def copy_rates_range(sym, tf, debut, fin):
     return _barres(500) if sym in _prix else None
+
+
+def history_deals_get(position=None, **k):
+    return tuple(d for d in transactions if position is None or d.position == position)
