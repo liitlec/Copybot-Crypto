@@ -657,3 +657,5 @@
 {"heure": "2026-11-11T21:43:37Z", "type": "lanceur", "evenement": "demarre", "version": 3}
 {"heure": "2026-11-11T21:43:37Z", "type": "note", "evenement": "demarrage", "version": 3, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_m1"], "lots": 0.01, "repris": []}
 {"heure": "2026-11-11T21:43:37Z", "type": "lanceur", "evenement": "arrete", "version": 3, "raison": "fin du tour unique"}
+{"heure": "2026-11-11T21:46:15Z", "type": "lanceur", "evenement": "demarre", "version": 3}
+{"heure": "2026-11-11T21:46:15Z", "type": "note", "evenement": "demarrage", "version": 3, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_m1"], "lots": 0.01, "repris": ["elan_m1", "elan_m15", "hasard_m1", "retour_m1"]}
