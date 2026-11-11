@@ -38,6 +38,11 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 - `consigne.json` : rien envoyé. Robot v1 en marche le 11/11 à 18 h 16 ; **v2 poussée ≈ 19 h** (8 hypothèses, ≈ 850 trades/jour, coût attendu ≈ 160 $/jour de démo) : vérifier `etat.json` → `robot.version_installee` = 2 (4 hypothèses XAUUSD, 0,01 lot, non prouvées).
 - Indices : `NAS100+`, `SP500+`, `DJ30+`, `GER40+` (et variantes `ft+`).
 
+## À corriger au prochain passage (robot v3)
+- Masquer les chemins dans les notes d'erreur du robot (une erreur du pont a écrit `C:\Users\<nom>` dans le journal public).
+- Erreur passagère du pont : `PermissionError` au remplacement de `garde_jour.json` (côté PC, signalée dans AVIS.md).
+- v2 installée le 11/11 à 18 h 46 (Paris), en marche.
+
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.
 - Indices en 1 h : 7 barres par jour seulement, « 24 barres » ≈ 3,5 jours.

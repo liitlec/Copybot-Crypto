@@ -1,18 +1,22 @@
 # Avis pour Baptiste — 11/11/2026, 19 h (passage 4)
 
-1. **Robot version 2 poussé : scalp presque continu** sur XAUUSD en démo, 0,01 lot, 8 hypothèses étiquetées, environ **800 à 900 trades par jour** (3 hypothèses M1 ouvrent toutes les 5 minutes, dont le témoin au hasard).
-2. **Ce sont des essais, rien n'est prouvé** : sur 3 mois de bougies M1 de ton courtier, ces règles font zéro avant frais. Si le direct confirme, la démo perdra environ 0,19 $ par trade, soit ≈ 160 $ par jour : c'est le prix de la mesure.
-3. Premiers chiffres réels (v1, 27 minutes) : 2 ouvertures, spread 0,19-0,20 $ comme prévu, **glissement nul**, aucun refus. 1 trade fermé (−1,27 $) : trop peu pour conclure quoi que ce soit.
-4. Prochain passage : tableau par hypothèse et par heure avec marge d'erreur, coupe de ce qui fait pire que le témoin, puis la recherche massive (or, argent, `NAS100+`, `SP500+`, `GER40+` : données reçues).
-5. Aucune limite du pont ne gêne la cadence pour l'instant. Pour tout arrêter : `STOP_PONT` côté PC.
+1. **Le robot version 2 tourne depuis 18 h 46** : scalp presque continu sur XAUUSD en démo, 0,01 lot, 8 hypothèses étiquetées, environ 800 à 900 trades par jour (3 hypothèses M1 ouvrent toutes les 5 minutes, dont le témoin au hasard).
+2. **Ce sont des essais, rien n'est prouvé** : sur 3 mois de bougies M1 de ton courtier, ces règles font zéro avant frais. Si le direct confirme, la démo perdra environ 0,20 $ par trade, soit ≈ 160 $ par jour : c'est le prix de la mesure.
+3. Exécution réelle sur 14 ouvertures : aucun refus, spread 0,20 $ comme prévu, glissement moyen 0,007 $ (pire cas 0,15 $). Les gains du tableau ci-dessous portent sur 1 ou 2 trades : **ils ne veulent encore rien dire**.
+4. Prochain passage : tableau par hypothèse et par heure sur des centaines de trades, coupe de ce qui fait pire que le témoin, puis la recherche massive (or, argent, `NAS100+`, `SP500+`, `GER40+` : données reçues).
+5. À signaler côté PC (pas urgent) : une erreur passagère du pont à 18 h 53 (« Accès refusé » en remplaçant `garde_jour.json`, le robot a continué), et ce message a écrit le chemin `C:\Users\…` avec ton nom d'utilisateur Windows dans `robot_journal.jsonl`, qui est public. Je masquerai les chemins dans la prochaine version du robot.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés)
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 11/11 18 h 58
 
-| Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur | Décision |
+| Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m15 (témoin v1, retiré) | 1 | −1,27 $ | inconnue (1 trade) | remplacé par hasard_m1 |
-| elan_m15 | 0 (1 ouvert, +2,97 $ latent) | — | — | continue |
-| hasard_m1, elan_m1, retour_m1, exces_m1, fcassure_m1, exces_m5, cassure_m15 | 0 | — | — | démarrent avec la v2 |
+| hasard_m1 (témoin) | 2 | −2,84 $ | ± 0,72 $ | continue |
+| elan_m1 | 2 | +2,45 $ | ± 0,71 $ | continue (2 trades : rien à conclure) |
+| retour_m1 | 2 | −2,95 $ | ± 0,63 $ | continue |
+| fcassure_m1 | 1 | −0,28 $ | inconnue | continue |
+| elan_m15 | 1 | +3,07 $ | inconnue | continue |
+| hasard_m15 (témoin v1, retiré) | 2 | −0,68 $ | ± 0,59 $ | remplacé par hasard_m1 |
+| exces_m1, exces_m5, cassure_m15 | 0 | — | — | attendent leur signal |
 
 ## Meilleur montage prouvé du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
 

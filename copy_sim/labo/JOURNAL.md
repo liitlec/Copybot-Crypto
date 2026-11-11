@@ -162,3 +162,5 @@ double ouverture, reprise, sorties à 3 min / 5 min / plus tard, stop touché, o
 Nouveau : `analyse_robot.py` (tableau par hypothèse : trades, gain moyen en $, erreur type, t ; spread et
 glissement à l'entrée). Données reçues pour la recherche massive : `NAS100+`, `SP500+`, `GER40+`, `XAGUSD` en M1
 (90 000 bougies chacun), `NAS100+` M5, XAUUSD H1 (26 663). Recherche massive : toujours à faire. Essais : 263.
+
+Suite : v2 installée à 18 h 46 (Paris) sans refus ; orphelines de la v1 fermées (+3,08 $ et −0,11 $). À 18 h 58 : 14 ouvertures, 0 refus, spread moyen 0,199 $, glissement moyen +0,007 $ (max +0,15). Une erreur passagère venue du pont (remplacement de `garde_jour.json` refusé par Windows), le robot a continué ; le message contenait un chemin avec le nom d'utilisateur Windows → à masquer dans la v3.
