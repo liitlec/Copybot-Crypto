@@ -1,12 +1,6 @@
 {
  "demandes": [
   {
-   "id": "xau_m1_20k",
-   "symbole": "XAUUSD",
-   "periode": "M1",
-   "nombre": 20000
-  },
-  {
    "id": "xau_m1_90k",
    "symbole": "XAUUSD",
    "periode": "M1",
@@ -77,6 +71,27 @@
    "symbole": "XAUUSD",
    "periode": "H1",
    "nombre": 50000
+  },
+  {
+   "id": "xau_m5_2024",
+   "symbole": "XAUUSD",
+   "periode": "M5",
+   "debut": "2024-01-01",
+   "fin": "2024-12-31"
+  },
+  {
+   "id": "xau_m5_2025a",
+   "symbole": "XAUUSD",
+   "periode": "M5",
+   "debut": "2025-01-01",
+   "fin": "2025-08-06"
+  },
+  {
+   "id": "nas_m5_2025a",
+   "symbole": "NAS100+",
+   "periode": "M5",
+   "debut": "2025-01-01",
+   "fin": "2025-08-06"
   }
  ]
 }

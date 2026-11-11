@@ -1,23 +1,24 @@
-# Avis pour Baptiste — 11/11/2026, 21 h 30 (passage 5)
+# Avis pour Baptiste — 11/11/2026, 22 h 25 (passage 6)
 
-1. **Recherche massive faite : 47 628 combinaisons** (or M1 et M5, argent, Nasdaq, S&P, DAX ; règles × tenues × heures × volatilité, spread réel). **Aucune ne gagne de façon prouvée** sur la période jamais vue.
-2. Le seul groupe au-dessus du hasard : sur l'or en M5, entre 11 h et 14 h (Paris), parier sur le retour après un écart trop fort, tenue 15 min. Gain passé faible (+0,4 à +1,3 point de base par trade) et non prouvé : je l'ai ajouté au robot (version 3) pour le voir en vrai dès demain 11 h.
-3. Le robot en direct (3 heures, 92 trades fermés) : exécution parfaite (0 refus, spread 0,20 $, glissement nul), mais aucune règle ne fait mieux que le pile ou face. La démo a perdu 31 $, comme prévu par le coût du spread.
-4. Découverte utile : le **Nasdaq (`NAS100+`) est encore moins cher à scalper que l'or** chez ton courtier (spread = 21 % du mouvement d'une minute contre 28 %) ; l'argent, le S&P et le DAX sont bien plus chers.
-5. Suite : laisser tourner jusqu'à ≈ 300 trades par règle avant de couper, affiner autour du seul candidat, étendre la grille (stops/objectifs, tendance de fond, Nasdaq). Rien à te demander.
+1. **Toujours aucun scalp prouvé**, après 48 077 combinaisons testées avec le spread réel de ton courtier.
+2. Le seul candidat (« retour de midi » : sur l'or en M5, entre 11 h et 14 h Paris, parier sur le retour après un écart trop fort, 15 min) a gagné dans 5 périodes de 3 mois sur 5 depuis août 2025 (+2,3 points de base par trade, presque significatif), **mais il perd sur la période d'avant** : fragile. Il trade demain dès 11 h à 0,01 lot.
+3. Robot en direct (4 heures, 135 trades fermés) : exécution parfaite (0 refus, glissement nul). Les trois règles M1 font comme le pile ou face ; les deux règles M15 ont gagné 17 $ sur 3 trades, ce qui ne prouve rien. Compte démo : 66 673 $ (départ 66 675 $).
+4. Ordre de grandeur honnête : même si le candidat était vrai, il rapporterait environ 0,1 % par jour sans levier. 1 % par jour demanderait un fort levier, donc un fort risque.
+5. Suite : refaire l'épreuve du candidat sur l'or de 2024 (données demandées au pont), laisser le robot accumuler ≈ 300 trades par règle, puis grille élargie sur le Nasdaq.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 11/11 21 h 03
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 11/11 22 h 07
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 27 | −0,66 $ | ± 0,34 $ | référence |
-| elan_m1 | 27 | −0,01 $ | ± 0,36 $ | continue (pas distinguable du témoin) |
-| retour_m1 | 27 | −0,22 $ | ± 0,35 $ | continue (idem) |
-| fcassure_m1 | 9 | −0,50 $ | ± 0,66 $ | continue |
+| hasard_m1 (témoin) | 40 | −0,17 $ | ± 0,29 $ | référence |
+| elan_m1 | 40 | −0,03 $ | ± 0,28 $ | continue (pas distinguable du témoin) |
+| retour_m1 | 40 | −0,12 $ | ± 0,29 $ | continue (idem) |
+| fcassure_m1 | 11 | −0,03 $ | ± 0,65 $ | continue |
+| elan_m15 | 2 | +4,97 $ | ± 1,90 $ | continue (2 trades : rien à conclure) |
+| cassure_m15 | 1 | +6,86 $ | inconnue | continue |
 | exces_m1 | 1 (sorti au stop) | ≈ −4,10 $ | inconnue | continue |
-| elan_m15 | 1 | +3,07 $ | inconnue | continue |
-| exces_m5, cassure_m15 | 0 | — | — | attendent leur signal |
-| ecart_midi_m5 (nouveau, v3) | 0 | — | — | commence le 12/11 à 11 h |
+| exces_m5 | 0 | — | — | attend son signal |
+| ecart_midi_m5 (candidat) | 0 | — | — | commence le 12/11 à 11 h |
 
 ## Meilleur montage prouvé du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
 

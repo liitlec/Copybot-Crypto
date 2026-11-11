@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 5, 11/11/2026 (21 h 30)
+# État du laboratoire (réécrit à chaque passage) — après le passage 6, 11/11/2026 (22 h 25)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -9,7 +9,7 @@
 - Réfuté aussi (passage 2) : 30 règles simples de bougies sur XAUUSD en M1, M5, M15 avec le spread réel.
 - Mesuré : l'or est le moins cher (spread 0,46 bp = 28 % du mouvement M1, 11 % en M5 ; EURUSD 323 %).
 - Réfuté (passage 5) : grille de 47 628 combinaisons (or, argent, Nasdaq, S&P, DAX) : aucune à t > 2 au verdict.
-- 47 891 essais comptés. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
+- 48 077 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
 ## À chaque passage, d'abord
 `python3 donnees.py && python3 registre.py` puis recopier le tableau du registre dans AVIS.md.
@@ -26,9 +26,11 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
    marché) avant de couper ; couper alors ce qui est sous le témoin `hasard_m1` de plus de 2 erreurs types.
    Ajouter à `analyse_robot.py` le découpage par heure (`h_serveur` dans les notes ; serveur = Paris + 1 h).
    `ecart_midi_m5` ne trade que de 11 h à 14 h Paris : premiers trades le 12/11.
-2. **Affiner autour du seul plateau trouvé** (XAUUSD M5, 12-15 h serveur, contrer écart/cassure 20, tenue 3 bougies) :
-   seuils 1,5 / 2 / 2,5, longueurs 15 / 20 / 30, tenues 2 à 6, heures voisines, par jour de semaine, en glissant
-   (réglage puis verdict plusieurs fois), sur M15 (771 jours) pour plus d'historique. Compter chaque essai.
+2. **Refaire l'épreuve du « retour de midi » sur l'or M5 d'avant août 2025** dès que `mt5/donnees/xau_m5_2024` et
+   `xau_m5_2025a` arrivent (demandés au passage 6) : `banc_plateau.py <ident>`, règle figée (20, 2, 3, 12-15 h
+   serveur) + fenêtre 12-14 h. S'il perd aussi là → le retirer du robot. S'il gagne → t global, puis jour de semaine.
+   État : 5 tranches sur 5 positives depuis août 2025, épreuve glissante +2,28 bp (t = 1,91), mais négatif en M15
+   avant août 2025. Fragile.
 3. **Étendre la grille** (`banc_grille.py`) : stops/objectifs dans la bougie, tendance de fond (M15/H1), deux règles
    qui se confirment, jour de semaine ; `NAS100+` en priorité (spread = 21 % du mouvement M1, moins cher que l'or).
    Demander plus d'historique par tranches (`debut`/`fin`) si le terminal en a.

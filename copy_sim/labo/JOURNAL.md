@@ -215,3 +215,44 @@ deux règles, sens seul (achat/vente : biaisé par la hausse de l'or sur la pér
 **Robot version 3** (`VERSION` = 3) : les 8 hypothèses de la v2 sont gardées (aucune n'est encore nettement sous le
 témoin : trop peu de trades), plus `ecart_midi_m5` (le candidat de la grille, 12 h – 15 h serveur seulement, tenue
 15 min). Les messages d'erreur ne contiennent plus de chemin de fichier. Essais « ESSAIS OK » dans le bac à sable.
+
+## Passage 6 — 11/11/2026 (≈ 22 h 10 – 22 h 25 Paris) — le candidat de midi à l'épreuve
+
+Registre papier : rien à ajouter (premier jour compté le 12/11). Robot v3 en marche depuis 21 h 15, 0 refus, 1 seule
+erreur (celle de 18 h 53). Compte démo 66 672,88 $ (départ 66 674,76 $).
+
+**Robot en direct, cumul 18 h 16 → 22 h 07** (0,01 lot, $ par trade après spread) :
+
+| Hypothèse | Trades | Gain moyen | ± 1 erreur type | Total |
+|---|---|---|---|---|
+| hasard_m1 (témoin) | 40 | −0,17 $ | 0,29 | −6,76 $ |
+| elan_m1 | 40 | −0,03 $ | 0,28 | −1,14 $ |
+| retour_m1 | 40 | −0,12 $ | 0,29 | −4,95 $ |
+| fcassure_m1 | 11 | −0,03 $ | 0,65 | −0,31 $ |
+| elan_m15 | 2 | +4,97 $ | 1,90 | +9,93 $ |
+| cassure_m15 | 1 | +6,86 $ | — | +6,86 $ |
+| exces_m1 | 1 (stop) | ≈ −4,10 $ | — | −4,10 $ |
+
+141 ouvertures, 0 refus, spread 0,198 $, glissement −0,001 $. Rien ne se distingue du témoin ; les deux règles M15
+ont gagné sur 3 trades pris dans le même mouvement de baisse (fermés à chaque changement de version) : aucune preuve.
+
+**Banc F — affinage du candidat « retour de midi » sur l'or M5** (`banc_plateau.py`, 180 combinaisons : longueur
+15/20/30 × seuil 1,5/2/2,5 × tenue 2/3/4/6 × 5 fenêtres d'heures ; 5 tranches de temps de ≈ 3 mois).
+- Combinaison de départ (20, 2, 3 bougies, 12-15 h serveur) : positive dans les 5 tranches (+0,6 / +4,1 / +3,9 /
+  +1,2 / +1,4 bp nets par trade, 225 à 270 trades par tranche).
+- Fenêtre 12-14 h serveur (11-13 h Paris) : 67 à 100 % des 36 réglages positifs dans chaque tranche = vrai plateau.
+  Toutes heures confondues la même règle perd (6 à 39 % de réglages positifs) ; par tranche de 3 h, seule 12-15 h
+  est nettement positive (+2,24 bp), 15-18 h et 06-09 h sont négatives.
+- Épreuve glissante (choix sur le passé, verdict sur la tranche suivante, 4 fois) : **865 trades, +2,28 bp net par
+  trade, t = +1,91**. Proche du seuil, pas dessus. Réserve : la fenêtre d'heures a été repérée sur tout
+  l'échantillon dans le banc E, donc ce verdict n'est pas entièrement « jamais vu ».
+- **Contre-épreuve sur une période vraiment neuve** (M15 d'octobre 2024 à août 2025, 3 traductions de la règle,
+  6 essais) : 12-15 h serveur → −2,65 bp (t = −2,3, 73 trades), −1,40 bp (t = −1,8), +0,34 bp. **Le candidat ne
+  tient pas avant août 2025** en M15. La traduction M5 → M15 n'est pas exacte : j'ai demandé au pont l'or M5 de
+  2024 et de janvier-août 2025 pour refaire l'épreuve à l'identique.
+
+Conclusion : candidat **fragile** (≈ +2 bp par trade au mieux, soit ≈ 0,8 $ par trade à 0,01 lot, 4 à 5 trades par
+jour). Il reste dans le robot à 0,01 lot, à titre d'essai. À +2 bp × 5 trades par jour, même vrai, cela ferait
+≈ 0,1 % par jour à levier 1 : loin de 1 % par jour sans fort levier.
+
+**Total des essais : 47 891 + 180 + 6 = 48 077.**
