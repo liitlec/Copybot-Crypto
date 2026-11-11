@@ -148,5 +148,25 @@
   "cle": "01829d608fbb",
   "ecrit": "2026-11-11T16:33:17Z",
   "erreur": "symbole absent chez le courtier"
+ },
+ "nas_m1_90k": {
+  "cle": "d1ec4d281d8d",
+  "ecrit": "2026-11-11T17:16:28Z",
+  "symbole": "NAS100+",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786529640,
+  "derniere": 1794424560,
+  "fichier": "nas_m1_90k.csv.gz"
+ },
+ "sp_m1_90k": {
+  "cle": "839ed2d67ea4",
+  "ecrit": "2026-11-11T17:16:31Z",
+  "symbole": "SP500+",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786529640,
+  "derniere": 1794424560,
+  "fichier": "sp_m1_90k.csv.gz"
  }
 }
