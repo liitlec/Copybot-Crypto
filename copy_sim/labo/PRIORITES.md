@@ -67,3 +67,17 @@ La discipline va avec, sinon les combinaisons fabriquent des gagnants par hasard
 - assez de trades au verdict pour que le résultat ne tienne pas à quelques-uns (vise t > 2) ;
 - ce qui passe tout ça va d'abord dans ton robot à **0,01 lot** sur la démo pour vérifier spread et glissement réels,
   puis seulement ensuite plus gros. Écris dans AVIS.md ce qui a tenu et ce qui est tombé, en clair.
+
+## 11/11/2026, 18 h 10 (Paris) : recherche la plus large possible, et une première démo dès ton prochain passage
+Baptiste veut **le plus de combinaisons possible** et **une première démo bientôt**. Concrètement :
+1. **Recherche massive** : balaie systématiquement tout ce qui est listé à 18 h 05 (règles × réglages × heures ×
+   sens × filtres × stops/objectifs × périodes × symboles), par milliers de combinaisons si ton temps le permet,
+   par programme (grilles, puis affinage autour des plateaux). Garde les garde-fous de 18 h 05 ; avec autant
+   d'essais, exige un verdict hors échantillon plus net (le meilleur de N essais gagne par hasard : compare à la
+   distribution des meilleurs résultats sur des entrées au hasard, et annonce N).
+2. **Première démo au prochain passage, sans attendre la preuve** : pousse un robot (`mt5/robot/`, voir
+   `copy_sim/forex/ROBOT_INTERFACE.md` et l'exemple `copy_sim/forex/robot_exemple/`) qui fait tourner sur la démo,
+   à **0,01 lot** et avec stop, ta mesure d'exécution ET ton ou tes **meilleurs candidats du moment** (les plus
+   solides, même non prouvés). Étiquette chaque trade dans `pont.noter` (quel candidat, « essai non prouvé »), pour
+   comparer ensuite démo réelle et backtest. Ne monte au-delà de 0,01 lot que pour ce qui passe tous les garde-fous.
+3. Dans AVIS.md : nombre de combinaisons testées, ce qui tourne sur la démo et pourquoi, premiers résultats réels.
