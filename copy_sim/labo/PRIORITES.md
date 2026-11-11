@@ -96,3 +96,16 @@ défendrais » et « mesure seulement » des entrées précédentes.
 - Reste honnête dans AVIS.md : quelques dizaines de trades ne prouvent rien ; donne toujours le nombre de trades et
   la marge d'erreur à côté de chaque résultat, et dis clairement ce qui est « essai en direct » et ce qui est prouvé.
 - Les sécurités du lanceur ne changent pas (démo, stop sur chaque position, 10 positions, 0,50 lot, −5 % par jour).
+
+## 11/11/2026, 18 h 45 (Paris) : beaucoup plus de trades, presque en continu
+Baptiste trouve que le robot v1 trade trop peu (2 trades en 25 minutes). Il veut du **vrai scalp : des trades
+nombreux, presque tout le temps**. C'est aussi dans ton intérêt : plus de trades = un verdict plus rapide.
+- Vise **au moins 100 à 200 trades par jour** sur la démo : hypothèses en M1 (et à la bougie M5), tenues courtes
+  (1 à 15 minutes), plusieurs hypothèses en parallèle dans la limite des 10 positions, et le témoin au hasard à la
+  même cadence pour comparer. Garde 0,01 lot tant que rien n'est prouvé : à cette taille le spread coûte environ
+  0,20 $ par trade, la démo peut en absorber des milliers.
+- Trade aussi en dehors des meilleures heures pour mesurer la différence, mais étiquette l'heure : tu sauras vite
+  quelles séances valent quelque chose.
+- Chaque position garde son stop chez le courtier. Si le lanceur ou le pont limite la cadence (délai, refus), note-le
+  dans AVIS.md avec ce qu'il faudrait changer côté PC.
+- Publie la nouvelle version du robot dès ce passage.
