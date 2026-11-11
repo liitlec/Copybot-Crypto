@@ -81,3 +81,18 @@ Baptiste veut **le plus de combinaisons possible** et **une première démo bien
    solides, même non prouvés). Étiquette chaque trade dans `pont.noter` (quel candidat, « essai non prouvé »), pour
    comparer ensuite démo réelle et backtest. Ne monte au-delà de 0,01 lot que pour ce qui passe tous les garde-fous.
 3. Dans AVIS.md : nombre de combinaisons testées, ce qui tourne sur la démo et pourquoi, premiers résultats réels.
+
+## 11/11/2026, 18 h 15 (Paris) : trade sur la démo dès maintenant, et apprends des résultats
+Baptiste ne veut pas attendre une preuve complète pour voir des trades : **lance dès ce passage des trades réels sur
+la démo** (XAUUSD d'abord) et apprends de ce qu'ils donnent. Cela remplace la consigne « n'y envoie que ce que tu
+défendrais » et « mesure seulement » des entrées précédentes.
+- Mets dans ton robot tes meilleures hypothèses du moment (plusieurs en parallèle si tu veux, chacune avec son
+  étiquette dans le commentaire ou l'identifiant de l'ordre), à **petite taille** (0,01 à 0,05 lot) tant qu'aucune
+  n'est prouvée. Le but est d'apprendre vite sur le vrai marché : exécution, heures, comportement des stops.
+- À chaque passage : lis `mt5/executions.jsonl`, `mt5/robot_journal.jsonl` et `etat.json`, tiens un tableau des
+  résultats **par hypothèse** (trades, gain moyen après spread, erreur type), coupe ce qui perd nettement, garde et
+  affine ce qui tient, ajoute de nouvelles idées. Monte la taille d'une hypothèse seulement quand ses trades en
+  direct **et** ton banc hors échantillon vont dans le même sens.
+- Reste honnête dans AVIS.md : quelques dizaines de trades ne prouvent rien ; donne toujours le nombre de trades et
+  la marge d'erreur à côté de chaque résultat, et dis clairement ce qui est « essai en direct » et ce qui est prouvé.
+- Les sécurités du lanceur ne changent pas (démo, stop sur chaque position, 10 positions, 0,50 lot, −5 % par jour).
