@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 3, 11/11/2026
+# État du laboratoire (réécrit à chaque passage) — après le passage 4, 11/11/2026
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -21,8 +21,9 @@ Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ 
 Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
 
 ## Pistes suivantes (par ordre)
-1. **Écrire `analyse_robot.py`** : lit `robot_journal.jsonl`, sort le tableau par hypothèse et le glissement
-   (prix demandé contre obtenu, spread à l'entrée). Comparer `hasard_m15` au coût attendu (−0,19 $ par trade).
+1. **`python3 analyse_robot.py`** à chaque passage : tableau par hypothèse à recopier dans AVIS.md. Comparer chaque
+   hypothèse M1 au témoin `hasard_m1` (attendu −0,19 $ par trade). Ajouter le découpage par heure (`h_serveur` des
+   notes, serveur = Paris + 1 h). Couper ce qui est nettement sous le témoin après ≈ 300 trades.
 2. **Recherche massive sur l'or** (`banc_or.py` à étendre en grille) : règles × réglages × heures (14-17 h, 2-4 h,
    fixing 16 h Paris, ouverture NY) × sens × volatilité × tendance de fond × stop/objectif × M1/M5/M15 ; puis argent
    et indices (`NAS100+`, `SP500+`, `GER40+` : données demandées). Garde-fous : plateau et non pic, réglage puis
@@ -34,7 +35,7 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 - Cible : compte démo via le pont (`labo/mt5/consigne.json` → pont ; `etat.json`, `executions.jsonl`, `donnees/` ← pont).
 - Le pont tourne depuis le 11/11 17 h 10 ; lanceur de robot présent (champ `robot` de `etat.json`), aucun robot installé.
 - Demandes d'historique : 90 000 bougies passent, 200 000 non. Serveur = UTC+2. Bougies en prix vendeur.
-- `consigne.json` : rien envoyé. Robot v1 installé et en marche le 11/11 à 18 h 16 (Paris) (4 hypothèses XAUUSD, 0,01 lot, non prouvées).
+- `consigne.json` : rien envoyé. Robot v1 en marche le 11/11 à 18 h 16 ; **v2 poussée ≈ 19 h** (8 hypothèses, ≈ 850 trades/jour, coût attendu ≈ 160 $/jour de démo) : vérifier `etat.json` → `robot.version_installee` = 2 (4 hypothèses XAUUSD, 0,01 lot, non prouvées).
 - Indices : `NAS100+`, `SP500+`, `DJ30+`, `GER40+` (et variantes `ft+`).
 
 ## Pièges notés

@@ -1,19 +1,18 @@
-# Avis pour Baptiste — 11/11/2026, 18 h 20 (passage 3)
+# Avis pour Baptiste — 11/11/2026, 19 h (passage 4)
 
-1. **Le robot tourne** (version 1, installée et démarrée à 18 h 16 sans erreur) : il trade XAUUSD sur ta démo à 0,01 lot, 4 hypothèses étiquetées, chacune avec un stop. Ce sont des **essais en direct, rien de prouvé**.
-2. Ce qui tourne : `hasard_m15` (témoin pile ou face, mesure le spread et le glissement réels), `elan_m15`, `cassure_m15` (tenue 3 h), `exces_m5` (tenue 15 min). Sur les données passées, aucune ne gagne de façon nette.
-3. Rappel du passage 2 : l'or est bien le moins cher à scalper chez ton courtier (spread = 28 % du mouvement M1, EURUSD 323 %), mais 90 règles simples testées font zéro avant frais. Combinaisons testées à ce jour : 263.
-4. Prochain passage : premiers résultats réels par hypothèse (avec nombre de trades et marge d'erreur), puis la recherche massive de combinaisons sur l'or, l'argent et les indices (merci pour les noms `NAS100+`…).
-5. Pour tout arrêter : le fichier `STOP_PONT` côté PC. Rien à faire d'autre.
+1. **Robot version 2 poussé : scalp presque continu** sur XAUUSD en démo, 0,01 lot, 8 hypothèses étiquetées, environ **800 à 900 trades par jour** (3 hypothèses M1 ouvrent toutes les 5 minutes, dont le témoin au hasard).
+2. **Ce sont des essais, rien n'est prouvé** : sur 3 mois de bougies M1 de ton courtier, ces règles font zéro avant frais. Si le direct confirme, la démo perdra environ 0,19 $ par trade, soit ≈ 160 $ par jour : c'est le prix de la mesure.
+3. Premiers chiffres réels (v1, 27 minutes) : 2 ouvertures, spread 0,19-0,20 $ comme prévu, **glissement nul**, aucun refus. 1 trade fermé (−1,27 $) : trop peu pour conclure quoi que ce soit.
+4. Prochain passage : tableau par hypothèse et par heure avec marge d'erreur, coupe de ce qui fait pire que le témoin, puis la recherche massive (or, argent, `NAS100+`, `SP500+`, `GER40+` : données reçues).
+5. Aucune limite du pont ne gêne la cadence pour l'instant. Pour tout arrêter : `STOP_PONT` côté PC.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés)
 
-| Hypothèse | Trades | Gain moyen après spread | Marge d'erreur | Décision |
+| Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur | Décision |
 |---|---|---|---|---|
-| hasard_m15 (témoin) | 0 | — | — | vient de démarrer |
-| elan_m15 | 0 | — | — | vient de démarrer |
-| cassure_m15 | 0 | — | — | vient de démarrer |
-| exces_m5 | 0 | — | — | vient de démarrer |
+| hasard_m15 (témoin v1, retiré) | 1 | −1,27 $ | inconnue (1 trade) | remplacé par hasard_m1 |
+| elan_m15 | 0 (1 ouvert, +2,97 $ latent) | — | — | continue |
+| hasard_m1, elan_m1, retour_m1, exces_m1, fcassure_m1, exces_m5, cassure_m15 | 0 | — | — | démarrent avec la v2 |
 
 ## Meilleur montage prouvé du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
 

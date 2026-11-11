@@ -128,3 +128,37 @@ Demandes d'historique ajoutées : `NAS100+`, `SP500+`, `GER40+`, `XAGUSD` en M1,
 Pas encore fait : la recherche massive de combinaisons (prochain passage). Total des essais inchangé : 263.
 
 Suite : le lanceur a installé la version 1 et démarré le robot à 18 h 16 (Paris), sans refus ni erreur ; premiers trades attendus à la bougie M15 de 18 h 30.
+
+## Passage 4 — 11/11/2026 (≈ 18 h 45 – 19 h Paris) — robot version 2, scalp presque continu
+
+Priorité de Baptiste (`PRIORITES.md`, entrée de 18 h 45, commit d6f3124) : le robot v1 trade trop peu ; il veut au
+moins 100 à 200 trades par jour, hypothèses M1, tenues courtes, témoin au hasard à la même cadence, 0,01 lot.
+
+**Premiers résultats réels du robot v1** (18 h 16 → 18 h 43) : 2 ouvertures, 0 refus, spread à l'entrée 0,19-0,20 $
+(conforme aux bougies), glissement nul (−0,005 $ en moyenne, donc légèrement favorable). 1 trade fermé : `hasard_m15`
+−1,27 $. `elan_m15` vendeur ouvert à 4003,75, à +2,97 $ latent. Deux trades : aucune conclusion possible.
+
+**Robot version 2** (`mt5/robot/`, `VERSION` = 2). XAUUSD, 0,01 lot, 8 hypothèses, une position au plus chacune,
+stop chez le courtier, sortie au temps, lecture des bougies toutes les secondes :
+
+| Étiquette | Règle | Tenue | Cadence attendue | Banc D (net/trade, réglage → verdict) |
+|---|---|---|---|---|
+| `hasard_m1` | pile ou face (témoin, même cadence) | 5 min | ≈ 12 par heure | attendu = −spread (≈ −0,19 $) |
+| `elan_m1` | sens des 3 dernières minutes | 5 min | ≈ 12 par heure | élan k3 h3 : −0,55 → −0,51 bp (brut ≈ 0) |
+| `retour_m1` | contre la dernière minute | 5 min | ≈ 12 par heure | retour k1 h3 : −0,45 → −0,48 bp (brut ≈ 0) |
+| `exces_m1` | bougie M1 > 3 écarts-types, on la contre | 12 min | quelques-uns par jour | +0,03 → −1,01 bp |
+| `fcassure_m1` | sortie de la fourchette de 48 min, on la contre | 3 min | ≈ 30-60 par jour | −0,17 → −0,33 bp |
+| `exces_m5` | bougie M5 > 3 écarts-types, on la suit | 15 min | quelques-uns par jour | +0,81 → +0,47 bp |
+| `cassure_m15` | sortie de la fourchette de 12 h, on la suit | 3 h | rare | −0,12 → +2,86 bp |
+| `elan_m15` | sens des 3 dernières heures | 3 h | 8 par jour | +0,42 → +0,17 bp |
+
+Soit ≈ 800 à 900 trades par jour de marché ouvert. Coût attendu si rien n'a d'avantage (ce que dit le banc) :
+≈ 0,19 $ × 850 ≈ **160 $ par jour** sur la démo (0,25 % du compte), loin du garde-fou de 5 %.
+`hasard_m15` est retiré (remplacé par `hasard_m1`). Au changement de version, la position `elan_m15` de la v1
+sera fermée comme « orpheline » par la v2 (la mémoire du robot ne suit pas d'une version à l'autre).
+Essais : « ESSAIS OK » dans le bac à sable (signaux des 8 hypothèses, 8 ouvertures avec stop à 0,01 lot, pas de
+double ouverture, reprise, sorties à 3 min / 5 min / plus tard, stop touché, orpheline, spread large).
+
+Nouveau : `analyse_robot.py` (tableau par hypothèse : trades, gain moyen en $, erreur type, t ; spread et
+glissement à l'entrée). Données reçues pour la recherche massive : `NAS100+`, `SP500+`, `GER40+`, `XAGUSD` en M1
+(90 000 bougies chacun), `NAS100+` M5, XAUUSD H1 (26 663). Recherche massive : toujours à faire. Essais : 263.

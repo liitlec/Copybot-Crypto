@@ -1,43 +1,50 @@
-"""Robot du labo, version 1 : essais en direct sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
+"""Robot du labo, version 2 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
 
-Quatre hypotheses, une position au plus chacune, chaque position a un stop chez le courtier et sort au temps :
-  hasard_m15   : pile ou face a chaque bougie M15, tenue 5 min. Temoin + mesure d'execution (spread, glissement).
-  elan_m15     : sens du rendement des 12 dernieres bougies M15, tenue 3 h.
-  cassure_m15  : cloture M15 au-dela du plus haut / plus bas des 48 bougies precedentes, on suit, tenue 3 h.
-  exces_m5     : bougie M5 de plus de 3 ecarts-types (sur 100 bougies), on suit, tenue 15 min.
+Huit hypotheses en parallele, une position au plus chacune, stop chez le courtier sur chaque position, sortie au temps.
+Trois tournent en continu en M1 (dont le temoin au hasard, a la meme cadence), cinq attendent un evenement.
 Le banc D (labo/banc_or.py) ne trouve d'avantage prouve pour aucune : le but est d'apprendre du vrai marche.
-Chaque ouverture et chaque sortie est notee par pont.noter avec le nom de l'hypothese."""
+Chaque ouverture et chaque sortie est notee par pont.noter avec le nom de l'hypothese et l'heure du serveur."""
 import json
 import random
 import time
 
+VERSION = 2
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
 FICHIER_ETAT = "etat_robot.json"
-PAUSE = 2.0
-#            nom            periode  tenue (s)
-HYPOTHESES = {"hasard_m15": ("M15", 300), "elan_m15": ("M15", 10800), "cassure_m15": ("M15", 10800),
-              "exces_m5": ("M5", 900)}
+PAUSE = 1.0
+PERIODES = ("M1", "M5", "M15")
+#  nom : (periode, tenue en secondes, regle, reglage, sens : +1 on suit le signal, -1 on le contre)
+HYPOTHESES = {
+    "hasard_m1":   ("M1", 300, "hasard", 0, 1),       # temoin : pile ou face, meme cadence que les deux suivantes
+    "elan_m1":     ("M1", 300, "elan", 3, 1),         # sens des 3 dernieres minutes
+    "retour_m1":   ("M1", 300, "elan", 1, -1),        # contre la derniere minute
+    "exces_m1":    ("M1", 720, "exces", 3, -1),       # bougie M1 > 3 ecarts-types : on la contre, 12 min
+    "fcassure_m1": ("M1", 180, "cassure", 48, -1),    # sortie de la fourchette de 48 min : on la contre, 3 min
+    "exces_m5":    ("M5", 900, "exces", 3, 1),        # bougie M5 > 3 ecarts-types : on la suit, 15 min
+    "cassure_m15": ("M15", 10800, "cassure", 48, 1),  # sortie de la fourchette de 12 h : on la suit, 3 h
+    "elan_m15":    ("M15", 10800, "elan", 12, 1),     # sens des 3 dernieres heures, 3 h
+}
 
 
-def signal(nom, b, hasard=random):
-    """Signal +1 / -1 / 0 d'une hypothese sur des bougies FERMEES b (anciennes -> recentes)."""
+def regle(nom_regle, k, b, hasard=random):
+    """Signal brut +1 / -1 / 0 d'une regle sur des bougies FERMEES b (anciennes -> recentes)."""
     c = [x[4] for x in b]
-    if nom == "hasard_m15":
+    if nom_regle == "hasard":
         return hasard.choice((-1, 1))
-    if nom == "elan_m15":
-        if len(c) < 13:
+    if nom_regle == "elan":
+        if len(c) < k + 1:
             return 0
-        d = c[-1] - c[-13]
+        d = c[-1] - c[-1 - k]
         return (d > 0) - (d < 0)
-    if nom == "cassure_m15":
-        if len(b) < 49:
+    if nom_regle == "cassure":
+        if len(b) < k + 1:
             return 0
-        haut = max(x[2] for x in b[-49:-1])
-        bas = min(x[3] for x in b[-49:-1])
+        haut = max(x[2] for x in b[-k - 1:-1])
+        bas = min(x[3] for x in b[-k - 1:-1])
         return (c[-1] > haut) - (c[-1] < bas)
-    if nom == "exces_m5":
+    if nom_regle == "exces":
         if len(c) < 102:
             return 0
         r = [c[i] / c[i - 1] - 1 for i in range(len(c) - 101, len(c))]
@@ -47,8 +54,14 @@ def signal(nom, b, hasard=random):
         if e <= 0:
             return 0
         z = dernier / e
-        return (z > 3) - (z < -3)
+        return (z > k) - (z < -k)
     return 0
+
+
+def signal(nom, b, hasard=random):
+    """Signal final d'une hypothese (regle x sens)."""
+    _, _, nom_regle, k, sens = HYPOTHESES[nom]
+    return sens * regle(nom_regle, k, b, hasard)
 
 
 def ecart_stop(b, minimum):
@@ -115,6 +128,7 @@ class Robot:
                 if r.get("ok"):
                     self.pont.noter(evenement="sortie", hypothese=nom, raison="temps", ticket=o["ticket"],
                                     sens=o["sens"], entree=p.get("prix_entree", o.get("entree")),
+                                    h_serveur=time.gmtime(maintenant).tm_hour,
                                     prix_sortie=r.get("prix_obtenu"), profit=p.get("profit"), essai="non prouve")
                     del self.ouvert[nom]
                     self.sauver()
@@ -135,11 +149,12 @@ class Robot:
         stop = round(px["bid"] - e, ch) if sens > 0 else round(px["ask"] + e, ch)
         r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom)
         if r.get("ok") and r.get("ticket"):
-            self.ouvert[nom] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1],
+            self.ouvert[nom] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
                                 "entree": r.get("prix_obtenu"), "profit": 0.0}
             self.sauver()
         self.pont.noter(evenement="ouverture", hypothese=nom, sens=sens, ok=bool(r.get("ok")), refus=r.get("refus"),
                         bid=px["bid"], ask=px["ask"], spread=round(spread, 3), stop=stop,
+                        h_serveur=time.gmtime(maintenant).tm_hour,
                         prix_obtenu=r.get("prix_obtenu"), essai="non prouve")
         return r
 
@@ -151,7 +166,7 @@ class Robot:
         self.sorties(maintenant, ps)
         if not self.pont.compte().get("ordres_autorises") or self.pont.garde_fou().get("ouvertures_bloquees"):
             return
-        for periode in ("M5", "M15"):
+        for periode in PERIODES:
             b = bougies[periode] if bougies else self.pont.bougies(SYMBOLE, periode, 130)
             b = b[:-1]                                   # la derniere est en cours de formation
             if len(b) < 20:
@@ -163,8 +178,8 @@ class Robot:
             if derniere == self.vu[periode]:
                 continue
             self.vu[periode] = derniere
-            for nom, (per, _) in HYPOTHESES.items():
-                if per != periode or nom in self.ouvert:
+            for nom, hyp in HYPOTHESES.items():
+                if hyp[0] != periode or nom in self.ouvert:
                     continue
                 s = signal(nom, b, self.hasard)
                 if s:
@@ -173,7 +188,7 @@ class Robot:
 
 def lancer(pont):
     robot = Robot(pont)
-    pont.noter(evenement="demarrage", version=1, hypotheses=sorted(HYPOTHESES), lots=LOTS, repris=sorted(robot.ouvert))
+    pont.noter(evenement="demarrage", version=VERSION, hypotheses=sorted(HYPOTHESES), lots=LOTS, repris=sorted(robot.ouvert))
     erreurs = 0
     while not pont.arret_demande():
         try:

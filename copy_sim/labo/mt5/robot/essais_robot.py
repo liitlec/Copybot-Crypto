@@ -36,21 +36,31 @@ for i, x in enumerate(bruit):
 calme = [list(x) for x in bruit]
 bruit[-2][4] = bruit[-2][1] + 8.0
 assert robot.signal("exces_m5", bruit[:-1]) == 1 and robot.signal("exces_m5", calme[:-1]) == 0
-assert robot.signal("hasard_m15", plat, h) in (-1, 1)
+assert robot.signal("exces_m1", bruit[:-1]) == -1 and robot.signal("exces_m1", calme[:-1]) == 0
+assert robot.signal("fcassure_m1", barres(130, 60, dernier_saut=5.0)[:-1]) == -1
+assert robot.signal("fcassure_m1", plat) == 0
+assert robot.signal("elan_m1", haus) == 1 and robot.signal("retour_m1", haus) == -1
+assert robot.signal("hasard_m1", plat, h) in (-1, 1)
+assert len(robot.HYPOTHESES) <= 9 and all(v[0] in robot.PERIODES and v[1] >= 60 for v in robot.HYPOTHESES.values())
 assert robot.ecart_stop(plat, 3.0) >= 3.0
 
 # 2) un tour complet : premier tour sans ordre, puis nouvelle bougie -> ouvertures avec stop a 0,01 lot
 r = robot.Robot(pont, hasard=random.Random(2), fichier="etat_essai.json")
 t0 = [1794000000]
 r.heure = lambda: t0[0]
+m1 = barres(130, 60, pente=0.1, dernier_saut=9.0)
 m5, m15 = barres(130, 300, dernier_saut=9.0), barres(130, 900, pente=0.4, dernier_saut=9.0)
-r.tour({"M5": m5, "M15": m15})
+for i, x in enumerate(m5):                              # un peu de bruit, puis un exces sur la derniere fermee
+    x[4] = x[1] + (0.1 if i % 2 else -0.1)
+m5[-2][4] = m5[-2][1] + 9.0
+r.tour({"M1": m1, "M5": m5, "M15": m15})
 assert not faux_mt5.ordres_recus and not pont.positions(), "aucun ordre au premier tour"
 m5b = [[x[0] + 300] + x[1:] for x in m5]
 m15b = [[x[0] + 900] + x[1:] for x in m15]
-r.tour({"M5": m5b, "M15": m15b})
+m1b = [[x[0] + 60] + x[1:] for x in m1]
+r.tour({"M1": m1b, "M5": m5b, "M15": m15b})
 ps = pont.positions()
-assert len(ps) == len(r.ouvert) >= 3, (ps, r.ouvert)
+assert len(ps) == len(r.ouvert) == 8, (len(ps), sorted(r.ouvert))
 assert set(r.ouvert) <= set(robot.HYPOTHESES)
 for o in faux_mt5.ordres_recus:
     assert o["volume"] == 0.01 and o["sl"] > 0 and o["symbol"] == "XAUUSD", o
@@ -58,7 +68,7 @@ for p in ps:
     assert p["stop"] and ((p["sens"] == "achat" and p["stop"] < p["prix_entree"] - 2.9) or
                           (p["sens"] == "vente" and p["stop"] > p["prix_entree"] + 2.9)), p
 n = len(faux_mt5.ordres_recus)
-r.tour({"M5": m5b, "M15": m15b})
+r.tour({"M1": m1b, "M5": m5b, "M15": m15b})
 assert len(faux_mt5.ordres_recus) == n, "pas de double ouverture sur la meme bougie"
 
 # 3) reprise apres redemarrage : la memoire revient du fichier, rien n'est ferme a tort
@@ -68,17 +78,20 @@ r2.heure = lambda: t0[0]
 r2.reconcilier()
 assert len(pont.positions()) == len(ps)
 
-# 4) sorties au temps : 5 min (hasard), 15 min (exces), 3 h (elan, cassure)
-t0[0] += 301
+# 4) sorties au temps : 3 min (fausse cassure), 5 min (hasard, elan, retour), puis le reste
+t0[0] += 181
 r.sorties(t0[0], r.reconcilier())
-assert "hasard_m15" not in r.ouvert and len(pont.positions()) == len(ps) - 1
+assert "fcassure_m1" not in r.ouvert and len(pont.positions()) == 7
+t0[0] += 120
+r.sorties(t0[0], r.reconcilier())
+assert not {"hasard_m1", "elan_m1", "retour_m1"} & set(r.ouvert) and len(pont.positions()) == 4
 t0[0] += 10800
 r.sorties(t0[0], r.reconcilier())
 assert not r.ouvert and not pont.positions()
 
 # 5) stop touche chez le courtier (la position disparait) : note, memoire nettoyee ; orpheline fermee
 m15c = [[x[0] + 1800] + x[1:] for x in m15]
-r.tour({"M5": m5b, "M15": m15c})
+r.tour({"M1": m1b, "M5": m5b, "M15": m15c})
 assert r.ouvert
 faux_mt5.positions.clear()
 r.reconcilier()
