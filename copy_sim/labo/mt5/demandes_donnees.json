@@ -1,58 +1,88 @@
 {
  "demandes": [
   {
-   "id": "xauusd_m1",
+   "id": "xau_m1_20k",
    "symbole": "XAUUSD",
    "periode": "M1",
-   "nombre": 200000
+   "nombre": 20000
   },
   {
-   "id": "xauusd_m5",
+   "id": "xau_m1_90k",
+   "symbole": "XAUUSD",
+   "periode": "M1",
+   "nombre": 90000
+  },
+  {
+   "id": "xau_m5_90k",
    "symbole": "XAUUSD",
    "periode": "M5",
-   "nombre": 200000
+   "nombre": 90000
   },
   {
-   "id": "xauusd_m15",
-   "symbole": "XAUUSD",
-   "periode": "M15",
-   "nombre": 200000
-  },
-  {
-   "id": "eurusd_m1",
+   "id": "eur_m1_90k",
    "symbole": "EURUSD",
    "periode": "M1",
-   "nombre": 200000
+   "nombre": 90000
   },
   {
-   "id": "eurusd_m5",
+   "id": "eur_m5_90k",
    "symbole": "EURUSD",
    "periode": "M5",
-   "nombre": 200000
+   "nombre": 90000
   },
   {
-   "id": "eurusd_m15",
-   "symbole": "EURUSD",
+   "id": "xau_m15_50k",
+   "symbole": "XAUUSD",
    "periode": "M15",
-   "nombre": 200000
+   "nombre": 50000
   },
   {
-   "id": "nas100_m1",
-   "symbole": "NAS100",
-   "periode": "M1",
-   "nombre": 200000
-  },
-  {
-   "id": "us500_m1",
-   "symbole": "US500",
-   "periode": "M1",
-   "nombre": 200000
-  },
-  {
-   "id": "usdjpy_m1",
+   "id": "jpy_m1_90k",
    "symbole": "USDJPY",
    "periode": "M1",
-   "nombre": 200000
+   "nombre": 90000
+  },
+  {
+   "id": "essai_ustec",
+   "symbole": "USTEC",
+   "periode": "M1",
+   "nombre": 50000
+  },
+  {
+   "id": "essai_us100",
+   "symbole": "US100",
+   "periode": "M1",
+   "nombre": 50000
+  },
+  {
+   "id": "essai_sp500",
+   "symbole": "SP500",
+   "periode": "M1",
+   "nombre": 50000
+  },
+  {
+   "id": "essai_us30",
+   "symbole": "US30",
+   "periode": "M1",
+   "nombre": 50000
+  },
+  {
+   "id": "essai_ger40",
+   "symbole": "GER40",
+   "periode": "M1",
+   "nombre": 50000
+  },
+  {
+   "id": "essai_nas100_r",
+   "symbole": "NAS100.r",
+   "periode": "M1",
+   "nombre": 50000
+  },
+  {
+   "id": "essai_xauusd_r",
+   "symbole": "XAUUSD.r",
+   "periode": "M1",
+   "nombre": 50000
   }
  ]
 }
