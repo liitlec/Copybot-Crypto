@@ -63,5 +63,25 @@
   "premiere": 1786523820,
   "derniere": 1794421680,
   "fichier": "xau_m1_90k.csv.gz"
+ },
+ "xau_m5_90k": {
+  "cle": "ede17f8b7d2d",
+  "ecrit": "2026-11-11T16:29:18Z",
+  "symbole": "XAUUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1754467800,
+  "derniere": 1794421500,
+  "fichier": "xau_m5_90k.csv.gz"
+ },
+ "eur_m1_90k": {
+  "cle": "7d90325cff07",
+  "ecrit": "2026-11-11T16:29:21Z",
+  "symbole": "EURUSD",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786939920,
+  "derniere": 1794421740,
+  "fichier": "eur_m1_90k.csv.gz"
  }
 }

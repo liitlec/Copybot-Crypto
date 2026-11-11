@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-11T16:28:20Z",
+ "ecrit": "2026-11-11T16:29:24Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -16,16 +16,27 @@
  "levier": 500,
  "positions": [],
  "symboles": {
+  "EURUSD": {
+   "bid": 1.1095,
+   "ask": 1.10964,
+   "spread_points": 14.0,
+   "point": 1e-05,
+   "chiffres": 5,
+   "lot_min": 0.01,
+   "pas_lot": 0.01,
+   "taille_contrat": 100000.0,
+   "heure_serveur": 1794421762
+  },
   "XAUUSD": {
-   "bid": 4002.78,
-   "ask": 4002.98,
-   "spread_points": 20.0,
+   "bid": 4003.45,
+   "ask": 4003.64,
+   "spread_points": 19.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794421700
+   "heure_serveur": 1794421764
   }
  }
 }
