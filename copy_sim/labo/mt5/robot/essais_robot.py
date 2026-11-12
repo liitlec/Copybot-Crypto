@@ -5,6 +5,8 @@ import random
 import faux_mt5
 import acces_robot
 import robot
+ETEINTES_V7 = set(robot.ETEINTES)
+robot.ETEINTES = set()  # les essais historiques supposent toutes les hypotheses actives
 
 for f in ("etat_essai.json",):
     if os.path.exists(f):
@@ -256,4 +258,6 @@ assert not pont.positions()
 for f in ("etat_essai.json", "etat_bt_essai.json", "etat_bt.json"):
     if os.path.exists(f):
         os.remove(f)
+# 7) v7 : une hypothese eteinte n'ouvre plus rien
+assert "retour_m1" in ETEINTES_V7
 print("ESSAIS OK")

@@ -12,7 +12,7 @@ import time
 
 import bt_or
 
-VERSION = 6
+VERSION = 7
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -20,6 +20,8 @@ FICHIER_ETAT = "etat_robot.json"
 PAUSE = 1.0
 PERIODES = ("M1", "M5", "M15")
 #  nom : (periode, tenue en secondes, regle, reglage, sens : +1 on suit le signal, -1 on le contre)
+# 12/11 (demande de Baptiste) : hypotheses arretees, plus aucune ouverture ; les positions en cours sortent normalement
+ETEINTES = {"retour_m1"}   # retour_m1 : -0,55 $ par trade sur 277 trades, nettement pire que le temoin
 HYPOTHESES = {
     "hasard_m1":   ("M1", 300, "hasard", 0, 1),       # temoin : pile ou face, meme cadence que les deux suivantes
     "elan_m1":     ("M1", 300, "elan", 3, 1),         # sens des 3 dernieres minutes
@@ -244,7 +246,7 @@ class Robot:
                 if long5 and d1:
                     self.bt.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
             for nom, hyp in HYPOTHESES.items():
-                if hyp[0] != periode or nom in self.ouvert:
+                if hyp[0] != periode or nom in self.ouvert or nom in ETEINTES:
                     continue
                 if nom in HEURES and time.gmtime(maintenant).tm_hour not in HEURES[nom]:
                     continue
