@@ -292,3 +292,15 @@ trouver. Il ajoute que certaines stratégies gagnantes ont **beaucoup de critèr
 - Reste honnête dans AVIS.md : 1 % par jour, c'est environ ×12 par an. Dis ce que donne la meilleure stratégie à un
   risque raisonnable, et ce qu'elle donnerait poussée vers 1 %/jour, avec les risques chiffrés. C'est à Baptiste de
   choisir son niveau de risque en connaissance de cause.
+
+## 12/11/2026, 19 h (Paris) : premier mélange candidat, et optimisation encadrée
+Calcul de la conversation de suivi sur le direct (hors témoin et sans retour_m1) : période calme 11/11 18 h → 12/11
+12 h : +51 $ ; période de chute 12/11 12 h → 18 h 40 : +99 $. Les stratégies se complètent : `elan_m15` gagne quand
+l'or tend (+66 $) et perd un peu au calme (−7 $) ; `exces_m1` fait l'inverse (+26 $ au calme, −8 $ en chute) ;
+`cassure_m15` positive dans les deux (5 trades). Baptiste veut, si ça se confirme, les **combiner puis optimiser**.
+- Suis ce mélange explicitement (`elan_m15` + `cassure_m15` + `exces_m1` + `exces_m5` + `bt_or`) : résultat par
+  jour, par régime (tendance / calme), et corrélation entre ses membres ; vérifie sur l'historique du courtier que
+  leurs bons et mauvais jours se compensent vraiment.
+- **Optimisation** (seuils, durées, poids de chaque stratégie dans le mélange) : seulement en avance glissante
+  (réglé sur une période, jugé sur la suivante), avec peu de paramètres à la fois, essais comptés, et en préférant
+  des réglages stables (un plateau) à un pic isolé. Le réglage retenu est jugé ensuite sur le direct, à petite taille.
