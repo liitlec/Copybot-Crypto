@@ -336,3 +336,27 @@ négative après 40 trades. Taille > 0,01 lot seulement après 100 trades `midi_
 Essais « ESSAIS OK » dans le bac à sable ; avec les vraies bougies H1 la fonction donne bien « calme » aujourd'hui.
 
 **Total des essais : 48 087 + 4 = 48 091.**
+
+## Passage 9 — 12/11/2026 (≈ 4 h 10 – 4 h 25 Paris) — effets d'heure purs : un faux ami à la réouverture
+
+Registre papier : rien à ajouter. Robot v5 installé et en marche (0 refus, aucune nouvelle erreur).
+Page de suivi : non publiée (au passage 8 la demande d'approbation est restée sans réponse et la session a
+redémarré) ; je ne réessaie plus la nuit, seulement en journée.
+
+**Robot en direct, cumul 11/11 18 h 16 → 12/11 4 h 10** : hasard_m1 101 trades −0,36 $ (± 0,25) ; elan_m1 102,
++0,04 $ (± 0,24) ; retour_m1 102, −0,48 $ (± 0,24) ; fcassure_m1 30, +0,21 $ (± 0,40) ; exces_m1 5, +2,20 $ ;
+elan_m15 5, −2,49 $ (± 4,5) ; cassure_m15 2, −4,58 $ ; exces_m5 1. 354 ouvertures, 0 refus, glissement moyen
++0,003 $. Total ≈ −86 $. Toujours rien qui se distingue du témoin (écart elan_m1 − témoin = +0,40 $ ± 0,34).
+
+**Banc G — effet d'heure pur** (acheter à l'ouverture d'une heure, vendre à sa clôture ; 23 heures × 3 fichiers = 69
+essais ; première moitié pour repérer, seconde pour juger). Or H1 (4,5 ans) : une seule heure tient, **1 h serveur
+(minuit – 1 h Paris), +2,8 bp puis +4,3 bp brut (t = 4,2 puis 3,4)**, confirmée sur le fichier M15. Nasdaq : rien.
+Vérification en M5 (12 essais de plus) : tout le gain est dans la **première bougie de 5 minutes après la
+réouverture** (+3,3 bp, t = 3,3) et dans le trou de nuit (+3,5 bp, t = 6,8) ; en entrant à 1 h 05, 1 h 10 ou 1 h 15,
+il ne reste rien de net (2e moitié : −0,2 à +0,8 bp, t < 0,5). C'est un **artefact du spread** : les bougies sont en
+prix vendeur, et à la réouverture le spread réel est large puis se resserre, ce qui fait « monter » le prix vendeur
+sans que l'on puisse l'acheter à ce prix (le spread enregistré dans la bougie, 0,5 bp, est faux à cet instant).
+Le direct l'a confirmé cette nuit : glissement de 0,63 $ et 7 stops autour de la réouverture.
+**Conclusion : pas d'effet d'heure exploitable ; ne jamais croire un gain de backtest situé à la réouverture.**
+
+**Total des essais : 48 091 + 69 + 12 = 48 172.**

@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 8, 12/11/2026 (3 h 30)
+# État du laboratoire (réécrit à chaque passage) — après le passage 9, 12/11/2026 (4 h 25)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -9,7 +9,9 @@
 - Réfuté aussi (passage 2) : 30 règles simples de bougies sur XAUUSD en M1, M5, M15 avec le spread réel.
 - Mesuré : l'or est le moins cher (spread 0,46 bp = 28 % du mouvement M1, 11 % en M5 ; EURUSD 323 %).
 - Réfuté (passage 5) : grille de 47 628 combinaisons (or, argent, Nasdaq, S&P, DAX) : aucune à t > 2 au verdict.
-- 48 091 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
+- Réfuté (passage 9) : effets d'heure purs sur or et Nasdaq ; le « gain » de la réouverture de 1 h serveur est un
+  artefact du spread (bougies en prix vendeur, spread enregistré faux à la réouverture).
+- 48 172 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
 ## À chaque passage, d'abord
 `python3 donnees.py && python3 registre.py` puis recopier le tableau du registre dans AVIS.md.
@@ -30,7 +32,9 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
    Arrêt `midi_agite` : moyenne < −0,50 $ après 60 trades ou −60 $ cumulés ; `midi_calme` : coupé si moyenne négative
    après 40 trades. Taille > 0,01 lot seulement après 100 trades `midi_agite` positifs (t > 1,5).
    Banc : agité +3,8 à +4,2 bp (t ≈ 3, 5 tranches sur 5), calme ≈ +0,7 bp. Régime au 12/11 3 h : calme.
-3. **Étendre la grille** (`banc_grille.py`) : stops/objectifs dans la bougie, tendance de fond (M15/H1), deux règles
+3. **Prochaine idée à tester sur l'or (M5, depuis août 2025)** : la même règle de retour que le candidat de midi mais
+   avec une tendance de fond (H1) et en sortie par objectif/stop ; puis deux règles qui se confirment. Compter les essais.
+3 bis. **Étendre la grille** (`banc_grille.py`) : stops/objectifs dans la bougie, tendance de fond (M15/H1), deux règles
    qui se confirment, jour de semaine ; `NAS100+` en priorité (spread = 21 % du mouvement M1, moins cher que l'or).
    Demander plus d'historique par tranches (`debut`/`fin`) si le terminal en a.
 4. Portage (Hyperliquid), effets de calendrier sur indices : après.
@@ -53,7 +57,8 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 Dernière étape de chaque passage, après le push : `git pull --rebase`, `python3 copy_sim/labo/page_suivi.py`, puis
 outil Artifact : « read » de https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj puis publish avec cette `url` et
 `file_path` = `copy_sim/reports/labo_suivi.html`. Relire le fichier avant de publier (ni identifiant ni chemin du PC).
-Passages 7 et 8 (nuit) : la publication demande une approbation que personne ne donne la nuit → non publiée ; réessayer.
+Passages 7 et 8 (nuit) : la publication demande une approbation que personne ne donne la nuit, et la session
+redémarre → non publiée. **Ne réessayer qu'entre 8 h et 23 h (Paris), une seule fois par passage, en tout dernier.**
 
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.
