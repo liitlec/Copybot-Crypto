@@ -318,3 +318,14 @@ l'or tend (+66 $) et perd un peu au calme (−7 $) ; `exces_m1` fait l'inverse (
   Avance glissante obligatoire, essais comptés, réglages stables préférés. Donne à Baptiste un tableau « version de
   base / version améliorée » : gain par an, pire baisse, trades par an, et ce qu'il faudrait comme taille pour viser
   1 % par jour avec le risque chiffré. Mets la meilleure version prouvée en essai sur la démo (petite taille).
+
+## 12/11/2026, 22 h 40 (Paris) : rythme toutes les 2 h 30 ; repli d'indices en démo maintenant ; mécanique BlockTrend
+- Rythme corrigé par Baptiste : **toutes les 2 h 30** (0 h 10, 2 h 40, 5 h 10, 7 h 40, 10 h 10, 12 h 40, 15 h 10,
+  17 h 40, 20 h 10, 22 h 40, Paris). Remplace « toutes les 4 heures » de l'entrée précédente.
+- **Mets le repli d'indices (BlockRange corrigé) en essai sur la démo dès ce passage** : sa règle de base qui a passé
+  le réglage et le verdict, sur les indices où elle gagne (pas le FTSE), à petite taille, étiquette propre, règle
+  d'arrêt écrite avant. Noms chez le courtier : NAS100+, SP500+, DJ30+, GER40+ (et les autres de `etat.json`). Si un
+  panier `bt_or` est ouvert, attends sa fermeture pour publier la version.
+- **Mécanique BlockTrend** : teste-la tout de suite sur l'argent, le BTC, l'ETH et les indices (données du pont), avec
+  ses vrais coûts ; mets en essai sur la démo, à côté de `bt_or`, les marchés où elle tient.
+- L'amélioration du rendement de BlockRange (entrée précédente) continue aux passages suivants.
