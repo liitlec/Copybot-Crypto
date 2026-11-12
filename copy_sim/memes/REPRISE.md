@@ -142,3 +142,9 @@ tant que Baptiste n'a pas dit de la ralentir (elle propose 1 par jour).
 - Page de suivi : https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj (`copy_sim/labo/page_suivi.py`, à republier
   depuis cette conversation, la session labo n'a pas l'approbation de publier).
 - Baptiste voulait miser 100 € en réel ; conseillé d'attendre 3-4 jours de démo (pont verrouillé sur la démo).
+
+## Labo v2 (12/11, 22 h 15 Paris)
+Ancienne session labo (session_01FgaWoz5WwTWneB2uqX7uwf, ≈ 600 000 éléments de contexte, ≈ 65 $ d'usage estimé, deux
+blocages de limite) remplacée par **session_01FgaWoznHdSUXYXX3DDSYyB** ; tâche « Laboratoire autonome v2 : passage »
+(trig_01HzhRzT8sJujR4E4oGrTrXe) toutes les 2 h, minute 10 des heures impaires (Paris). Ancienne tâche désactivée.
+Règle : pas de nouvelle VERSION du robot pendant qu'un panier `bt_or` est ouvert (la v7 a coupé le premier panier).
