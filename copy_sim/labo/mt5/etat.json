@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-12T19:25:29Z",
+ "ecrit": "2026-11-12T19:30:36Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67190.54,
- "valeur": 70681.01,
- "marge_libre": 67435.71,
+ "solde": 67190.16,
+ "valeur": 70727.58,
+ "marge_libre": 67466.66,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3879.6,
-   "ask": 3879.79,
-   "spread_points": 19.0,
+   "bid": 3879.9,
+   "ask": 3880.1,
+   "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794518729
+   "heure_serveur": 1794519036
   }
  },
  "positions_robot": [
@@ -34,38 +34,38 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3874.17,
-   "prix_actuel": 3879.6,
+   "prix_actuel": 3879.9,
    "stop": 3833.68,
    "objectif": null,
-   "profit": 5.43,
+   "profit": 5.73,
    "ouverte_heure_serveur": 1794513600
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "achat",
-   "lots": 0.01,
-   "prix_entree": 3879.76,
-   "prix_actuel": 3879.6,
-   "stop": 3873.07,
-   "objectif": null,
-   "profit": -0.16,
-   "ouverte_heure_serveur": 1794518521
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3879.58,
-   "prix_actuel": 3879.79,
-   "stop": 3886.26,
+   "prix_entree": 3879.06,
+   "prix_actuel": 3880.1,
+   "stop": 3885.33,
    "objectif": null,
-   "profit": -0.21,
-   "ouverte_heure_serveur": 1794518521
+   "profit": -1.04,
+   "ouverte_heure_serveur": 1794518820
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "vente",
+   "lots": 0.01,
+   "prix_entree": 3879.0,
+   "prix_actuel": 3880.1,
+   "stop": 3885.27,
+   "objectif": null,
+   "profit": -1.1,
+   "ouverte_heure_serveur": 1794518821
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-12",
-  "perte_du_jour": -120.47,
+  "perte_du_jour": -122.32,
   "seuil": -3334.66,
   "ouvertures_bloquees": false
  },
