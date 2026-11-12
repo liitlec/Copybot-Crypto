@@ -516,3 +516,39 @@ puis seront coupées si elles restent dans la marge du témoin.
 fenêtre de midi, pour ne pas fermer des positions en cours.
 
 **Total des essais : 48 267 + 2 + 1 = 48 270.**
+
+## Passage 17 — 12/11/2026 (≈ 12 h 13 – 12 h 30 Paris) — elan_m1 et exces_m1 découpés par régime
+
+Priorité lue (`PRIORITES.md`, 12 h 10) : dire dans quelles conditions `elan_m1` et `exces_m1` gagnent.
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus. Candidat de midi : fenêtre ouverte, aucun signal encore.
+**Robot en direct, cumul → 12 h 10** : hasard_m1 197 trades −0,28 $ (± 0,19) ; elan_m1 198, +0,11 $ (± 0,19) ;
+retour_m1 198, −0,51 $ (± 0,19) ; fcassure_m1 58, −0,09 $ (± 0,26) ; exces_m1 8, +3,23 $ (± 1,7) ; elan_m15 7 ;
+cassure_m15 3 ; exces_m5 1. 676 ouvertures, 0 refus. Total ≈ −110 $.
+
+**Banc J — découpes** (`banc_decoupes.py`, or M1 du courtier, 12/08 → 11/11, spread réel, $ par trade à 0,01 lot ;
+92 cases = 92 essais ; une case ne compte que si elle gagne dans les deux moitiés de la période).
+
+`elan_m1` (17 991 trades) : net −0,19 $ (± 0,02), brut −0,00 $.
+| Découpe | Résultat net par trade |
+|---|---|
+| 14 semaines | de −0,33 à −0,05 $ : **aucune semaine positive** |
+| 23 heures de Paris | de −0,38 à +0,01 $ : une seule à zéro (10 h, +0,01 ± 0,09) |
+| agitation sur 1 h : calme / moyen / agité | −0,18 / −0,16 / −0,22 $ |
+| agitation sur 1 jour : calme / moyen / agité | −0,22 / −0,18 / −0,17 $ |
+| dans le sens de la tendance de 20 h / contre | −0,16 / −0,22 $ (brut +0,03 / −0,03) |
+→ **Aucune condition où `elan_m1` gagne.** Avant spread il fait zéro partout ; le léger mieux dans le sens du fond
+(+0,03 $ brut) est six fois plus petit que le spread. Son +0,11 $ en direct sur 198 trades est du hasard.
+
+`exces_m1` (922 trades) : net −0,15 $ (± 0,23), brut +0,04 $.
+| Découpe | Résultat net par trade |
+|---|---|
+| 14 semaines | de −1,39 à +1,44 $, 5 positives sur 14 |
+| 17 heures avec assez de trades | 7 positives ; meilleures : 15 h +2,22 $ (± 1,48, 52 trades), 19 h +1,86 $ (20 trades), 0 h +1,50 $ (réouverture : artefact du spread, voir passage 9) |
+| agitation sur 1 h : calme / moyen / agité | −0,40 / −0,04 / +0,00 $ |
+| agitation sur 1 jour : calme / moyen / agité | −0,32 / −0,13 / **+0,11 $** (± 0,40 ; +0,17 puis +0,01) |
+| dans le sens du fond / contre | −0,31 / +0,01 $ |
+→ **Rien de net.** Sur 92 cases, on attend plusieurs cases « gagnantes dans les deux moitiés » par hasard ; les
+seules trouvées sont minuscules (jour agité : +0,11 $ ± 0,40) ou reposent sur 50 trades. Son +3,23 $ en direct ne
+porte que sur 8 trades. Aucune case fixée comme nouvelle hypothèse.
+
+**Total des essais : 48 270 + 92 = 48 362.**

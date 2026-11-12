@@ -1,19 +1,19 @@
-# Avis pour Baptiste — 12/11/2026, 11 h 20 (passage 16)
+# Avis pour Baptiste — 12/11/2026, 12 h 30 (passage 17)
 
-1. **Combiner les idées : d'accord, dès qu'il y a de la matière.** Pour l'instant une seule pièce a un petit avantage au banc, le « retour de midi ». J'ai fixé d'avance son mélange : midi × or agité × sens de la tendance de fond. Il sera jugé seulement sur les trades à venir.
-2. Les règles M1 n'ont pas de matière à combiner : sur 18 000 trades passés chacune, `elan_m1` et `retour_m1` perdent exactement le spread (−0,19 $ et −0,14 $). Leurs écarts en direct (+0,13 $ et −0,55 $) sont du bruit ; elles seront coupées à 300 trades si rien ne change.
-3. Mon robot : 629 trades fermés, total ≈ −94 $ à 0,01 lot, 0 refus. Rien de prouvé (48 270 combinaisons testées).
-4. Tes autres robots : rien à reprendre (détail au passage 15) ; la vente en tendance, testée sur 20 ans, perd 3,9 % par an.
-5. Le candidat de midi est dans sa fenêtre (11 h – 14 h), pas encore de trade. Rien à te demander.
+1. **`elan_m1` découpé sur 3 mois (17 991 trades) : il ne gagne dans aucune condition.** Aucune des 14 semaines n'est positive, aucune heure (de −0,38 à +0,01 $ par trade), ni or calme ni or agité (−0,16 à −0,22 $), ni dans le sens de la tendance (−0,16 $) ni contre (−0,22 $). Avant spread il fait zéro partout ; après spread il perd le spread.
+2. **`exces_m1` (922 trades) : rien de net non plus.** Moyenne −0,15 $ (± 0,23). Il est à +0,11 $ (± 0,40) les jours agités et à −0,32 $ les jours calmes : trop petit pour être distingué du hasard. Quelques heures ressortent (15 h : +2,22 $ ± 1,48) mais sur 50 trades et parmi 92 cases examinées.
+3. Leurs bons chiffres en direct (+0,11 $ sur 198 trades, +3,23 $ sur 8 trades) sont donc de la chance pour l'instant. Je n'en tire aucune nouvelle hypothèse.
+4. Mon robot : 672 trades fermés, total ≈ −110 $ à 0,01 lot, 0 refus. Rien de prouvé (48 362 combinaisons testées).
+5. Le candidat de midi est dans sa fenêtre (11 h – 14 h) sans signal pour l'instant. Rien à te demander.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 11 h 08
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 12 h 10
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 185 | −0,25 $ | ± 0,20 $ | référence |
-| elan_m1 | 186 | +0,13 $ | ± 0,19 $ | continue jusqu'à 300 trades (banc : −0,19 $, le spread) |
-| retour_m1 | 186 | −0,55 $ | ± 0,20 $ | continue jusqu'à 300 trades (comme le témoin) |
-| fcassure_m1 | 51 | −0,02 $ | ± 0,30 $ | continue (comme le témoin) |
+| hasard_m1 (témoin) | 197 | −0,28 $ | ± 0,19 $ | référence |
+| elan_m1 | 198 | +0,11 $ | ± 0,19 $ | continue jusqu'à 300 trades (banc : −0,19 $, le spread) |
+| retour_m1 | 198 | −0,51 $ | ± 0,19 $ | continue jusqu'à 300 trades (comme le témoin) |
+| fcassure_m1 | 58 | −0,09 $ | ± 0,26 $ | continue (comme le témoin) |
 | exces_m1 | 8 | +3,23 $ | ± 1,73 $ | continue |
 | elan_m15 | 7 | −1,00 $ | ± 4,48 $ | continue |
 | cassure_m15 | 3 | +4,03 $ | ± 10,8 $ | continue |

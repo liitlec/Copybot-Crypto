@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 16, 12/11/2026 (11 h 20)
+# État du laboratoire (réécrit à chaque passage) — après le passage 17, 12/11/2026 (12 h 30)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -12,7 +12,9 @@
 - Réfuté (passage 9) : effets d'heure purs sur or et Nasdaq ; le « gain » de la réouverture de 1 h serveur est un
   artefact du spread (bougies en prix vendeur, spread enregistré faux à la réouverture).
 - Réfuté (passage 13) : portage Hyperliquid (≈ 6 % par an brut, 4-5 % net = taux sans risque).
-- 48 270 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 17 (banc J, `banc_decoupes.py`) : aucune condition (semaine, heure, agitation, tendance) où `elan_m1` ou
+  `exces_m1` gagne sur 3 mois.
+- 48 362 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
