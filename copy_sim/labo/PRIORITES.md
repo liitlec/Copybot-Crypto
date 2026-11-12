@@ -195,3 +195,14 @@ regarde dans quelles conditions chaque hypothèse gagne ou perd, propose des mé
 robot comme les autres (étiquette propre, petite taille, règle d'arrêt écrite avant).
 Règles : un mélange est **fixé avant** d'être jugé, et jugé sur les trades **suivants** ; compte tous les mélanges
 essayés et corrige pour le hasard ; ne mélange pas des pièces qui n'ont aucun avantage seules.
+
+## 12/11/2026, 12 h 10 (Paris) : découper elan_m1 et exces_m1 par régime
+Baptiste veut savoir **dans quelles conditions** `elan_m1` et `exces_m1` gagnent, pas seulement leur moyenne sur
+3 mois. Au prochain passage, sur l'historique du courtier (et sur le direct quand il y a assez de trades) :
+- découpe leur résultat avant et après spread **par semaine**, **par heure de Paris**, selon **l'agitation de l'or**
+  (par exemple tiers de volatilité sur 1 h et sur 1 jour) et selon **le sens de la tendance de fond** ;
+- donne un tableau simple par découpe (trades, moyenne, marge d'erreur), en comptant toutes les découpes comme des
+  essais ;
+- si une case gagne nettement, fixe-la d'avance comme nouvelle hypothèse ou comme filtre (étiquette propre, règle
+  d'arrêt écrite avant) et juge-la seulement sur les trades suivants. Si rien ne ressort, dis-le simplement.
+Mets le résultat en tête d'AVIS.md.
