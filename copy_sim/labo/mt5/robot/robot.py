@@ -21,7 +21,10 @@ PAUSE = 1.0
 PERIODES = ("M1", "M5", "M15")
 #  nom : (periode, tenue en secondes, regle, reglage, sens : +1 on suit le signal, -1 on le contre)
 # 12/11 (demande de Baptiste) : hypotheses arretees, plus aucune ouverture ; les positions en cours sortent normalement
-ETEINTES = {"retour_m1"}   # retour_m1 : -0,55 $ par trade sur 277 trades, nettement pire que le temoin
+ETEINTES = {"retour_m1", "elan_m1"}
+# retour_m1 : -0,55 $ par trade sur 277 trades, nettement pire que le temoin (v7)
+# elan_m1 : -0,03 $ (+/- 0,18) sur 319 trades, dans la marge du temoin (-0,31 +/- 0,18) et egal au banc
+#           (-0,19 $ sur 18 000 trades) : regle fixee d'avance "coupe a 300 trades" appliquee (v8)
 HYPOTHESES = {
     "hasard_m1":   ("M1", 300, "hasard", 0, 1),       # temoin : pile ou face, meme cadence que les deux suivantes
     "elan_m1":     ("M1", 300, "elan", 3, 1),         # sens des 3 dernieres minutes

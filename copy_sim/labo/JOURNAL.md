@@ -786,3 +786,52 @@ $ à 0,01 lot par position, une position à la fois comme le robot ; 5 essais) :
   qui en a un (au banc) est `bt_or`.
 
 **Total des essais : 48 553 + 27 + 5 = 48 585.**
+
+## Passage 23 — 12/11/2026 (≈ 22 h 15 – 22 h 45 Paris) — session neuve ; BlockRange refait ; robot v8 (`elan_m1` coupé)
+
+Session neuve (l'ancienne était trop lourde ; passages de 21 h 10 manqués pour limite d'usage, rattrapés ici).
+Budget : normal. Registre papier : `donnees.py` + `registre.py` relancés (il faut `mkdir data` dans un clone neuf),
+0 ligne ajoutée (la clôture du 12/11 n'est pas encore comptée).
+**Robot v7 en direct, cumul → 23 h 08 serveur (21 h 08 UTC)** : hasard_m1 317 trades −0,31 $ (± 0,18) ; elan_m1 319,
+−0,03 $ (± 0,18) ; retour_m1 279, −0,55 $ (éteint) ; fcassure_m1 95, +0,10 $ (± 0,25) ; exces_m1 15, +1,38 $
+(± 1,9) ; elan_m15 12, +4,95 $ (± 4,2) ; cassure_m15 5, +8,63 $ (± 9,0) ; exces_m5 4, +4,16 $ ; hasard_m15 2 ;
+midi_agite 1. 1 056 ouvertures, 0 refus, spread moyen 0,204 $, glissement nul. `bt_or` : aucun panier depuis la v7
+(prochaine heure d'entrée : 03:05 serveur).
+
+**Banc R — la mécanique de BlockRange refaite** (`banc_blockrange.py`, clôtures seules, 8 essais ;
+`banc_blockrange_ohlc.py`, vraies bougies jour Yahoo, entrée à l'ouverture du lendemain comme le robot, stop dur
+2 × ATR 20 j dans la bougie, 3 essais). 5 indices (S&P 500, Nasdaq 100, DAX, Nikkei, FTSE), 2000-2026, coûts : 2 bp
++ financement CFD (taux 3 mois + 2,5 %) par nuit.
+
+| RSI 2 j < | Réglage 2000-2015 | Verdict 2016-2026 | Récent (08/2025 →) |
+|---|---|---|---|
+| 5 | 235 trades, +27,6 bp net (t = 2,2) | 230, +36,8 bp (t = 2,8) | 37, +51,9 bp |
+| **10 (réglage de Baptiste)** | 519, +20,3 bp (t = 2,5) | 454, **+20,0 bp (t = 2,3 ; par semaine 2,1)** | 78, +23,6 bp (t = 1,2) |
+| 25 | 1 168, +12,4 bp (t = 2,5) | 970, +17,1 bp (t = 3,3) | 151, +17,9 bp |
+
+- **Premier montage du labo qui passe réglage ET verdict, avec un plateau** (les 11 variantes sont positives sur les
+  deux périodes, avec ou sans filtre 200 j, entrée à la clôture ou à l'ouverture suivante). 66 % de gagnants, 3,8
+  nuits de tenue, pire trade −5 % (verdict). C'est l'effet connu « acheter le repli court d'un indice en hausse ».
+- Témoin (mêmes durées prises au hasard dans les jours au-dessus de la moyenne 200 j) : +9 bp brut, soit ≈ +1 bp
+  net : le repli apporte ≈ +16 à +19 bp par trade au-delà de la simple prime des indices.
+- Par indice (verdict) : Nikkei +36, Nasdaq +31, S&P +26, DAX +12, **FTSE −8 bp**. Années perdantes : 2018, 2019,
+  2022 (−5 à −11 % en somme de trades).
+- **Mais c'est petit** : ≈ 45 trades par an sur 5 indices. À 20 % du compte par trade (levier 1 au plus) :
+  **+1,6 % par an, pire baisse −6,5 %** ; à 100 % du compte par trade (levier 5 au plus) ≈ +8 % par an pour une pire
+  baisse ≈ −30 %. Très loin de 1 % par jour. Le t par semaine (2,1) tient compte du fait que les indices entrent
+  souvent ensemble.
+- Pourquoi BlockRange a perdu 2 307 $ en 4 trades sur la démo : 4 trades ne disent rien (un trade sur trois perd,
+  le pire fait −5 %) ; c'est la taille par trade qui a fait la somme, pas la règle.
+- Suite : demandé au pont les bougies D1 de `NAS100+` et `SP500+` (spread et écart avec Yahoo), et les M5 de
+  XAGUSD, BTCUSD, ETHUSD (mécanique BlockTrend ailleurs que sur l'or). Mise en essai dans le robot à étudier : la
+  position dure plusieurs jours, donc même problème que `bt_or` (un changement de version la ferme).
+
+**Robot version 8** : seul changement `ETEINTES = {"retour_m1", "elan_m1"}`. Règle écrite d'avance (« couper
+`elan_m1` à 300 trades s'il reste dans la marge du témoin ») : 319 trades, −0,03 $ (± 0,18) contre témoin −0,31 $
+(± 0,18), écart 0,28 ± 0,25 (t ≈ 1,1), et banc de 18 000 trades à −0,19 $ = le spread. Coupé. « ESSAIS OK ».
+Vérifié avant de publier : aucun panier `bt_or` ouvert (4 petites positions M1/M15 seront fermées par la mise à
+jour, dont un `elan_m15` : ce trade-là sera une sortie « orpheline », à ne pas compter).
+Effet : ≈ 40 % de trades en moins (il reste `hasard_m1`, `fcassure_m1`, `exces_*`, `elan_m15`, `cassure_m15`,
+`midi_*`, `bt_or`).
+
+**Total des essais : 48 585 + 11 = 48 596.**

@@ -260,4 +260,6 @@ for f in ("etat_essai.json", "etat_bt_essai.json", "etat_bt.json"):
         os.remove(f)
 # 7) v7 : une hypothese eteinte n'ouvre plus rien
 assert "retour_m1" in ETEINTES_V7
+# 8) v8 : elan_m1 eteinte aussi
+assert "elan_m1" in ETEINTES_V7
 print("ESSAIS OK")

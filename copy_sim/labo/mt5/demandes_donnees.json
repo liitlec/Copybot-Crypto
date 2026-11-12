@@ -92,6 +92,36 @@
    "periode": "M5",
    "debut": "2025-01-01",
    "fin": "2025-08-06"
+  },
+  {
+   "id": "xag_m5_90k",
+   "symbole": "XAGUSD",
+   "periode": "M5",
+   "nombre": 90000
+  },
+  {
+   "id": "btc_m5_90k",
+   "symbole": "BTCUSD",
+   "periode": "M5",
+   "nombre": 90000
+  },
+  {
+   "id": "eth_m5_90k",
+   "symbole": "ETHUSD",
+   "periode": "M5",
+   "nombre": 90000
+  },
+  {
+   "id": "nas_d1_5k",
+   "symbole": "NAS100+",
+   "periode": "D1",
+   "nombre": 5000
+  },
+  {
+   "id": "sp_d1_5k",
+   "symbole": "SP500+",
+   "periode": "D1",
+   "nombre": 5000
   }
  ]
 }
