@@ -193,6 +193,51 @@ class Lecteur:
 FICHIERS = {"/": ("tableau_bord.html", "text/html; charset=utf-8"),
             "/app.js": ("tableau_bord.js", "application/javascript; charset=utf-8")}
 
+# ------------------------------------------------------------------ copie publique, pour le téléphone (hors de chez soi)
+# Chaque minute, l'instantané (déjà sans identifiant) part sur la branche `mt5-direct` du dépôt : UN seul commit sans
+# parent, remplacé à chaque fois (la branche ne grossit pas, la branche de travail n'est pas touchée). La même page
+# (index.html + app.js) y est jointe ; elle lit direct.json depuis GitHub.
+BRANCHE_DIRECT = "mt5-direct"
+PERIODE_DIRECT = 60
+
+
+def _publier_direct(lecteur: Lecteur) -> None:
+    dossier = ICI / "direct"
+    dossier.mkdir(exist_ok=True)
+    (dossier / "direct.json").write_bytes(lecteur.instantane())
+    lignes = []
+    for nom, source in (("direct.json", dossier / "direct.json"), ("index.html", ICI / "tableau_bord.html"),
+                        ("app.js", ICI / "tableau_bord.js")):
+        code, sha, err = pont.git("hash-object", "-w", str(source))
+        if code != 0:
+            raise RuntimeError("git hash-object : " + err)
+        lignes.append(f"100644 blob {sha.strip()}\t{nom}")
+    # séparateur nul (-z) : Windows ne transforme pas les fins de ligne envoyées à git
+    (dossier / "arbre.txt").write_text("\0".join(lignes) + "\0", encoding="utf-8", newline="")
+    code, arbre, err = pont.git("mktree", "-z", "--missing", entree=dossier / "arbre.txt")
+    if code != 0:
+        raise RuntimeError("git mktree : " + err)
+    code, commit, err = pont.git("commit-tree", arbre.strip(), "-m", "tableau de bord : instantane")
+    if code != 0:
+        raise RuntimeError("git commit-tree : " + err)
+    code, _, err = pont.git("push", "-q", "-f", "origin", f"{commit.strip()}:refs/heads/{BRANCHE_DIRECT}", timeout=60)
+    if code != 0:
+        raise RuntimeError("git push : " + err)
+
+
+def _boucle_direct(lecteur: Lecteur) -> None:
+    erreurs = 0
+    while True:
+        debut = time.time()
+        try:
+            _publier_direct(lecteur)
+            erreurs = 0
+        except Exception as e:
+            erreurs += 1
+            if erreurs in (1, 10) or erreurs % 60 == 0:      # pas un message par minute si GitHub est injoignable
+                pont.log.warning("tableau de bord, copie publique : %s", str(e)[:200])
+        time.sleep(max(5.0, PERIODE_DIRECT - (time.time() - debut)))
+
 
 def _gestionnaire(lecteur: Lecteur, port: int):
     hotes = {f"127.0.0.1:{port}", f"localhost:{port}"}
@@ -234,9 +279,11 @@ def _gestionnaire(lecteur: Lecteur, port: int):
     return G
 
 
-def demarrer(mt5, lanceur=None, racine_robot: Path | None = None) -> int | None:
-    """Lance le serveur dans un fil à part. Renvoie le port, ou None si aucun n'est libre."""
+def demarrer(mt5, lanceur=None, racine_robot: Path | None = None, direct: bool = True) -> int | None:
+    """Lance le serveur dans un fil à part (et la copie publique pour le téléphone). Renvoie le port."""
     lecteur = Lecteur(mt5, lanceur, racine_robot)
+    if direct:
+        threading.Thread(target=_boucle_direct, args=(lecteur,), daemon=True, name="tableau_bord_direct").start()
     for port in PORTS:
         try:
             serveur = ThreadingHTTPServer(("127.0.0.1", port), _gestionnaire(lecteur, port))
@@ -255,7 +302,7 @@ if __name__ == "__main__":
     import MetaTrader5 as mt5_reel
     if not mt5_reel.initialize():
         raise SystemExit("MT5 injoignable")
-    p = demarrer(mt5_reel, None, Path.home() / "pont_mt5" / "robot")
+    p = demarrer(mt5_reel, None, Path.home() / "pont_mt5" / "robot", direct=False)
     print(f"Tableau de bord : http://127.0.0.1:{p}/  (Ctrl+C pour arreter)")
     try:
         while True:

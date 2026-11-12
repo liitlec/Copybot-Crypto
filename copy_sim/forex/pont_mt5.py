@@ -617,12 +617,13 @@ def passage(mt5, sortie: Path, texte_consigne: str | None, texte_demandes: str |
 
 # ------------------------------------------------------------------ git
 
-def git(*args, timeout=120):
+def git(*args, timeout=120, entree: Path | None = None):
     import subprocess   # ici seulement : le module est importable dans le bac à sable du robot
     drapeaux = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     try:
         r = subprocess.run(["git", "-C", str(DEPOT), *args], capture_output=True, text=True, timeout=timeout,
-                           encoding="utf-8", errors="replace", creationflags=drapeaux)
+                           encoding="utf-8", errors="replace", creationflags=drapeaux,
+                           input=entree.read_text(encoding="utf-8") if entree else None)
         return r.returncode, r.stdout, r.stderr.strip()[-300:]
     except (OSError, subprocess.TimeoutExpired) as e:
         return 99, "", str(e)[:300]

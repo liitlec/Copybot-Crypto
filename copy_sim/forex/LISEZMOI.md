@@ -27,6 +27,9 @@ sert http://127.0.0.1:8765/ (raccourci « Robot du labo en direct » sur le bure
 les trades du robot, positions, résultats du jour et par hypothèse (historique MT5, stops compris), 20 derniers
 trades. Lecture seule : GET seulement, 127.0.0.1 seulement, aucun identifiant affiché. Essai seul :
 `python tableau_bord.py`.
+Depuis le téléphone (hors de chez soi, rien à installer) : chaque minute, le pont envoie l'instantané (sans
+identifiant) et la page sur la branche `mt5-direct` (un seul commit, remplacé à chaque fois) ; ouvrir
+https://htmlpreview.github.io/?https://github.com/liitlec/Copybot-Crypto/blob/mt5-direct/index.html (copie de 1 à 2 min).
 
 Arrêter : créer un fichier vide `%USERPROFILE%\pont_mt5\STOP_PONT` (plus aucun ordre, robot arrêté, l'état continue
 d'être publié), ou `Stop-ScheduledTask -TaskName PontMT5` pour tout couper. Journal : `%USERPROFILE%\pont_mt5\pont.log`.

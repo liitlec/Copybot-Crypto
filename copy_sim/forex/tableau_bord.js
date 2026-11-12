@@ -69,6 +69,7 @@ function afficher(D) {
   $("spread").textContent = P.spread_points + " points";
   $("variation").innerHTML = P.variation === null ? "–" :
     `<span class="${cls(P.variation)}">${P.variation > 0 ? "+" : ""}${nb(P.variation, chiffres)} (${P.variation_pct > 0 ? "+" : ""}${nb(P.variation_pct, 2)} %)</span>`;
+  P.age_s = Math.max(0, Math.round(Date.now() / 1000 - (P.heure_serveur - decalage)));   // âge réel, même sur la copie
   $("age").textContent = P.age_s <= 5 ? "à l'instant" : (P.age_s < 120 ? `il y a ${P.age_s} s` : `il y a ${Math.round(P.age_s / 60)} min (marché fermé ?)`);
   graphique(D.bougies, D.marques);
 
@@ -110,16 +111,46 @@ function afficher(D) {
   $("alerte").textContent = alertes.join(" ");
 }
 
+// En local (PC) : /donnees chaque seconde. Ailleurs (téléphone) : l'instantané publié chaque minute sur GitHub.
+const LOCAL = ["127.0.0.1", "localhost"].includes(location.hostname);
+const DEPOT = "liitlec/Copybot-Crypto", BRANCHE = "mt5-direct";
+const API = `https://api.github.com/repos/${DEPOT}/contents/direct.json?ref=${BRANCHE}`;
+const BRUT = `https://raw.githubusercontent.com/${DEPOT}/${BRANCHE}/direct.json`;
+let dernier = null;
+
+async function lire() {
+  if (LOCAL) return (await fetch("/donnees", { cache: "no-store" })).json();
+  try {   // l'API de GitHub n'a pas de cache (60 lectures par heure et par adresse)
+    const r = await fetch(API, { cache: "no-store", headers: { Accept: "application/vnd.github.raw+json" } });
+    if (r.ok) return r.json();
+  } catch (e) { /* on tente la copie brute */ }
+  const r = await fetch(BRUT + "?t=" + Date.now(), { cache: "no-store" });   // peut avoir jusqu'à 5 min de retard
+  if (!r.ok) throw new Error("GitHub " + r.status);
+  return r.json();
+}
+
+function etat() {
+  if (!dernier) return;
+  const age = Math.max(0, Math.round(Date.now() / 1000 - dernier));
+  const txt = LOCAL ? `en direct · ${heure(Date.now() / 1000 + decalage, true)}`
+    : `mis à jour il y a ${age < 120 ? age + " s" : Math.round(age / 60) + " min"}`;
+  $("etat").innerHTML = `<span class="pastille${age > 300 ? " off" : ""}"></span>${txt}`;
+}
+
 async function boucle() {
   try {
-    const r = await fetch("/donnees", { cache: "no-store" });
-    const D = await r.json();
+    const D = await lire();
     if (D.erreur) throw new Error(D.erreur);
     afficher(D);
-    $("etat").innerHTML = `<span class="pastille"></span>en direct · ${heure(Date.now() / 1000 + decalage, true)}`;
+    dernier = D.ecrit;
+    etat();
   } catch (e) {
     $("etat").innerHTML = `<span class="pastille off"></span>pas de données (${esc(e.message).slice(0, 80)})`;
   }
-  setTimeout(boucle, 1000);
+  setTimeout(boucle, LOCAL ? 1000 : 65000);
+}
+if (!LOCAL) {
+  $("mode").textContent = "Lecture seule · démo · copie mise à jour chaque minute";
+  setInterval(etat, 1000);
 }
 boucle();
