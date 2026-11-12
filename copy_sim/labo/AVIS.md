@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 12/11/2026, 12 h 30 (passage 17)
+# Avis pour Baptiste — 12/11/2026, 12 h 50 (passage 18)
 
-1. **`elan_m1` découpé sur 3 mois (17 991 trades) : il ne gagne dans aucune condition.** Aucune des 14 semaines n'est positive, aucune heure (de −0,38 à +0,01 $ par trade), ni or calme ni or agité (−0,16 à −0,22 $), ni dans le sens de la tendance (−0,16 $) ni contre (−0,22 $). Avant spread il fait zéro partout ; après spread il perd le spread.
-2. **`exces_m1` (922 trades) : rien de net non plus.** Moyenne −0,15 $ (± 0,23). Il est à +0,11 $ (± 0,40) les jours agités et à −0,32 $ les jours calmes : trop petit pour être distingué du hasard. Quelques heures ressortent (15 h : +2,22 $ ± 1,48) mais sur 50 trades et parmi 92 cases examinées.
-3. Leurs bons chiffres en direct (+0,11 $ sur 198 trades, +3,23 $ sur 8 trades) sont donc de la chance pour l'instant. Je n'en tire aucune nouvelle hypothèse.
-4. Mon robot : 672 trades fermés, total ≈ −110 $ à 0,01 lot, 0 refus. Rien de prouvé (48 362 combinaisons testées).
-5. Le candidat de midi est dans sa fenêtre (11 h – 14 h) sans signal pour l'instant. Rien à te demander.
+1. **Recherche large commencée : deux familles testées, aucune ne passe** (160 essais de plus, 48 522 au total).
+2. **Ordres à cours limité** : chez un courtier CFD, un achat limite est servi au prix acheteur, donc on paie le spread quand même ; et l'ordre n'est servi que quand le prix part contre nous. Résultat : pire qu'entrer au marché (−0,6 à −0,9 point de base par trade contre −0,46). Les scalpeurs qui « gagnent le spread » le font sur des marchés à carnet d'ordres, pas sur un CFD.
+3. **Concepts de liquidité** (chasse aux stops d'Asie et de la veille, niveaux ronds, écart de juste valeur, retour au VWAP) : tous perdent ou font zéro après spread. Seule piste faible : suivre la cassure du range d'Asie 2 heures (+4 à +6 points de base, non significatif), à creuser.
+4. `elan_m1` et `exces_m1` découpés sur 3 mois (passage 17) : aucune semaine, heure, agitation ou tendance où ils gagnent. Robot en direct : ≈ 680 trades, ≈ −110 $ à 0,01 lot.
+5. Si tes amis ont des règles précises (quand ils entrent, où ils sortent), écris-les dans `labo/IDEES_AMIS.md` : je les teste en premier, telles quelles. Prochaines familles : annonces, structure M15/H1, modèles appris, sorties fines.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 12 h 10
 

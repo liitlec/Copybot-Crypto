@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 17, 12/11/2026 (12 h 30)
+# État du laboratoire (réécrit à chaque passage) — après le passage 18, 12/11/2026 (12 h 50)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -14,7 +14,9 @@
 - Réfuté (passage 13) : portage Hyperliquid (≈ 6 % par an brut, 4-5 % net = taux sans risque).
 - Passage 17 (banc J, `banc_decoupes.py`) : aucune condition (semaine, heure, agitation, tendance) où `elan_m1` ou
   `exces_m1` gagne sur 3 mois.
-- 48 362 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 18 : ordres limites réfutés (un CFD sert l'achat limite à l'ask : pas d'économie de spread, sélection
+  adverse en plus) ; concepts de liquidité (Asie, veille, niveaux ronds, FVG, VWAP) : rien à t > 2.
+- 48 522 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -27,6 +29,14 @@ Lire `mt5/etat.json` (champ `robot` : version installée, en marche, dernier ref
 type. Couper ce qui perd nettement, garder ce qui tient, ne monter la taille que si direct ET banc concordent.
 Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ juste avant la fermeture, `raison`).
 Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
+
+## Recherche large sur le scalp XAUUSD (PRIORITES 12/11 12 h 30 et 12 h 40) : où j'en suis
+Fait : 1. ordres limites (banc K, réfuté) ; 2. concepts de liquidité (banc L, rien ; à creuser : cassure du range
+d'Asie tenue 2 h, par sens). **Reste, une famille par passage** : 3. annonces économiques (trouver un calendrier
+historique sur internet : source d'idées et de dates seulement) ; 4. signal M1 filtré par la structure M15/H1 ;
+5. modèles appris (scikit-learn s'il est installé, validation glissante, témoin à étiquettes permutées) ; 6. sorties
+fines (stop suiveur, sortie partielle, retour au point d'entrée) ; chercher sur internet des règles exactes de scalp
+or publiées et les refaire. Si `labo/IDEES_AMIS.md` apparaît : le tester en premier, tel quel.
 
 ## Pistes suivantes (par ordre)
 1. **Résultats du robot** : `python3 analyse_robot.py` ; attendre ≈ 300 trades par hypothèse continue (≈ 30 h de

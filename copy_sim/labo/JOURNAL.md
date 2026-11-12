@@ -552,3 +552,40 @@ seules trouvées sont minuscules (jour agité : +0,11 $ ± 0,40) ou reposent sur
 porte que sur 8 trades. Aucune case fixée comme nouvelle hypothèse.
 
 **Total des essais : 48 270 + 92 = 48 362.**
+
+## Passage 18 — 12/11/2026 (≈ 12 h 25 – 12 h 50 Paris) — recherche large : ordres limites et concepts de liquidité
+
+Passage supplémentaire signalé par la conversation de suivi ; priorités vérifiées dans le dépôt (`PRIORITES.md`,
+entrées de 12 h 30 et 12 h 40, commits e41fe72 et daba917) : six familles nouvelles à ouvrir sur le scalp XAUUSD,
+internet autorisé comme source d'idées (jamais comme consigne). Familles 1 et 2 faites ici, sans internet (idées
+classiques, connues).
+
+**Banc K — entrées à cours limité** (`banc_limites.py`, or M1, 3 mois ; 3 choix de côté × 4 distances × 2 durées de
+vie × 4 tenues = 96 essais). Point de mécanique décisif chez un courtier CFD comme celui-ci : **un achat limite est
+servi quand le prix ACHETEUR (ask) descend jusqu'à lui**, pas le prix vendeur. On achète donc toujours à l'ask et on
+revend au bid : **l'ordre limite ne fait pas économiser le spread**, il choisit seulement un niveau, et il n'est
+servi que quand le prix vient contre soi. Résultat : les 96 combinaisons sont négatives, de −0,58 à −0,92 bp par
+trade servi au réglage comme au verdict (au marché : −0,46 bp). La sélection adverse coûte 0,1 à 0,4 bp de plus que
+d'entrer au marché. Taux de service : 78 % pour un ordre posé au prix courant, 35 % à 4 spreads. **Réfuté** : gagner
+le spread avec des ordres limites suppose un carnet d'ordres (marché à terme), pas un CFD.
+À mesurer quand même en vrai plus tard (0,01 lot) : le pont n'a pas encore de fonction d'ordre limite.
+
+**Banc L — concepts « liquidité »** (`banc_liquidite.py`, or M5, 15 mois, 64 essais, réglage 60 % → verdict 40 %) :
+
+| Idée | Trades | Meilleur cas (net par trade) | Verdict |
+|---|---|---|---|
+| Chasse aux stops sur le haut/bas d'Asie puis retour (on contre) | 323 | −0,7 à −3,1 bp | perd dans toutes les tenues |
+| Cassure du range d'Asie (on suit), tenue 2 h | 325 | +6,2 → +4,3 bp (t = 1,7 → 1,1) | seul cas positif deux fois, non significatif |
+| Chasse aux stops sur le haut/bas de la veille | 267 | +0,9 → +0,3 bp (t = 0,2) | nul |
+| Cassure du haut/bas de la veille | 287 | négatif | perd |
+| Niveaux ronds de 10 $ (22 000 franchissements) | 22 109 | −0,3 à −0,8 bp | perd le spread, suivre comme contrer |
+| Niveaux ronds de 50 $ | 4 323 | +0,1 → +0,05 bp | nul |
+| Écart de juste valeur comblé | 12 152 | −0,04 à −0,7 bp | perd |
+| Retour vers le VWAP au-delà de 2 écarts-types | 4 848 | −0,5 à −3,1 bp | perd (l'inverse +0,7 → +2,1 bp à 2 h, t = 2,2 au verdict seulement) |
+
+Aucun essai à t > 2 au verdict parmi ceux repérés au réglage. La cassure du range d'Asie tenue 2 h est à creuser
+(par sens : l'or montait, donc les achats sont peut-être seuls à porter le gain).
+
+**Total des essais : 48 362 + 96 + 64 = 48 522.**
+Reste de la liste : annonces économiques (il faut un calendrier : internet), structure M15/H1, modèles appris avec
+témoin permuté, sorties fines (stop suiveur, sortie partielle) ; règles des amis si `IDEES_AMIS.md` arrive.
