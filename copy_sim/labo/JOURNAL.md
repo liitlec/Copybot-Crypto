@@ -728,3 +728,12 @@ Lecture : **si** ces deux avantages sont réels et durent, 0,1 à 0,3 % par jour
 l'avantage n'existe pas (ce que le direct doit encore dire), plus de taille = plus de pertes, rien d'autre.
 
 **Total des essais : 48 549 + 4 = 48 553.**
+
+Suite du passage 21 (18 h 46 Paris) — information de la conversation de suivi, vérifiée dans le dépôt (commits
+5041adc, c2bb1e7) : robot **version 7** publié par elle à la demande de Baptiste, seul changement `ETEINTES =
+{"retour_m1"}` (plus d'ouverture de `retour_m1` : −0,55 $ par trade sur 277 trades). Installée à 18 h 46, 0 refus.
+**Effet de bord** : le changement de version a fermé comme « orphelines » les 7 positions ouvertes, dont le premier
+panier `bt_or` (3 ventes : +22,24 $, −3,79 $, −19,39 $ = **−0,94 $, soit −0,02 R**). Ce panier n'est donc **pas un
+résultat de la stratégie** (ni stop ni recul : coupé par la mise à jour) ; à ne pas compter dans sa moyenne.
+À corriger : que les paniers survivent à un changement de version (il faut que `pont.positions()` rende l'étiquette
+de chaque position, ou un dossier d'état qui ne change pas avec la version : demande côté PC).

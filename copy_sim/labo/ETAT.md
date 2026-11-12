@@ -35,11 +35,13 @@ type. Couper ce qui perd nettement, garder ce qui tient, ne monter la taille que
 Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ juste avant la fermeture, `raison`).
 Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
 
-## Robot v6 poussé le 12/11 ≈ 14 h 50 : vérifier `version_installee` = 6
+## Robot : version 7 en marche depuis le 12/11 18 h 46 (publiée par la conversation de suivi : `retour_m1` éteint)
 - `bt_or` (mécanique BlockTrend, or, 3 positions au plus, 0,01 lot) : arrêt à −20 R cumulés ou moyenne < −0,3 R après
-  40 paniers. Suivre le cumul par les notes `"evenement": "sortie panier"` de `robot_journal.jsonl` (champ `R`), car
-  le compteur du robot repart de zéro à chaque version. **Éviter de changer de version quand un panier est ouvert**
-  (cela le ferme) : regarder `positions_robot` avant de monter `VERSION`.
+  40 paniers. Suivre le cumul par les notes `"evenement": "sortie panier"` de `robot_journal.jsonl` (champ `R`).
+  Le 1er panier (12/11 14 h 50) a été fermé par le passage à la v7 (−0,94 $) : **ne pas le compter**.
+- **Un changement de version ferme tout ce qui est ouvert** (l'état du robot est dans le dossier de la version).
+  Regarder `positions_robot` avant de monter `VERSION` ; demandé côté PC : rendre l'étiquette des positions dans
+  `pont.positions()` ou offrir un dossier d'état stable, pour que les paniers de plusieurs jours survivent.
 - Candidat de midi étiqueté `midi_agite_f/_c`, `midi_calme_f/_c` ; mélange fixé = `midi_agite_f`.
 - Couper `elan_m1` / `retour_m1` à 300 trades s'ils restent dans la marge du témoin (≈ 223 trades au passage 20).
 - À faire ensuite : `analyse_robot.py` → ajouter un tableau des paniers `bt_or` (R par panier) ; refaire BlockRange
