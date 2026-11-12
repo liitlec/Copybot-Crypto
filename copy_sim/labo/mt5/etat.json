@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-12T18:54:45Z",
+ "ecrit": "2026-11-12T18:59:52Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67191.15,
- "valeur": 70568.62,
- "marge_libre": 67323.32,
+ "solde": 67190.75,
+ "valeur": 70412.21,
+ "marge_libre": 67166.9,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3880.96,
-   "ask": 3881.16,
+   "bid": 3882.64,
+   "ask": 3882.84,
    "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794516885
+   "heure_serveur": 1794517192
   }
  },
  "positions_robot": [
@@ -34,38 +34,38 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3874.17,
-   "prix_actuel": 3880.96,
+   "prix_actuel": 3882.66,
    "stop": 3833.68,
    "objectif": null,
-   "profit": 6.79,
+   "profit": 8.49,
    "ouverte_heure_serveur": 1794513600
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "achat",
-   "lots": 0.01,
-   "prix_entree": 3879.12,
-   "prix_actuel": 3880.96,
-   "stop": 3872.47,
-   "objectif": null,
-   "profit": 1.8399999999999999,
-   "ouverte_heure_serveur": 1794516721
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3878.92,
-   "prix_actuel": 3881.16,
-   "stop": 3885.57,
+   "prix_entree": 3880.82,
+   "prix_actuel": 3882.86,
+   "stop": 3887.32,
    "objectif": null,
-   "profit": -2.24,
-   "ouverte_heure_serveur": 1794516721
+   "profit": -2.04,
+   "ouverte_heure_serveur": 1794517020
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3881.03,
+   "prix_actuel": 3882.66,
+   "stop": 3874.52,
+   "objectif": null,
+   "profit": 1.63,
+   "ouverte_heure_serveur": 1794517020
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-12",
-  "perte_du_jour": -118.53,
+  "perte_du_jour": -117.24,
   "seuil": -3334.66,
   "ouvertures_bloquees": false
  },
