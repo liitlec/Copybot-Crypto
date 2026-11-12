@@ -411,3 +411,31 @@ fourchette, sortie à 18 h, 20 h ou 22 h 55 ; `NAS100+` et or, 12 essais, deux m
 suivi jusqu'à 18 h : +4,8 bp puis −4,1 bp ; toutes les autres variantes à |t| < 1. **Réfuté.**
 
 **Total des essais : 48 240 + 12 = 48 252.**
+
+## Passage 13 — 12/11/2026 (≈ 8 h 12 – 8 h 30 Paris) — portage mesuré, positions multiples examinées
+
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus, aucune nouvelle erreur.
+Priorité lue (`PRIORITES.md`, 8 h 15, commit dcc7bc5) : plusieurs positions par hypothèse autorisées (plafond par
+hypothèse dans le code, pas de moyenne à la baisse), plafond du pont bientôt 30 (encore 10 dans `etat.json`).
+Nouveau : `mt5/autres/` (historique des autres robots de Baptiste, des données) → à lire au prochain passage.
+
+**Robot en direct, cumul → 8 h 10** : hasard_m1 149 trades −0,18 $ (± 0,21) ; elan_m1 150, +0,10 $ (± 0,20) ;
+retour_m1 150, −0,57 $ (± 0,20) ; fcassure_m1 37, +0,13 $ (± 0,33) ; exces_m1 8, +3,23 $ (± 1,7) ; elan_m15 6,
+−4,00 $ ; cassure_m15 2 ; exces_m5 1. 510 ouvertures, 0 refus. Total ≈ −102 $. `retour_m1` − témoin = −0,39 $
+(± 0,29) ; `elan_m1` − témoin = +0,27 $ (± 0,28) : rien au-delà de 2 erreurs types.
+
+**Positions multiples pour le candidat de midi ? Non, pas utile** (2 essais). Sur 15 mois : premier signal (aucun
+dans les 15 minutes précédentes) +2,69 bp, 584 trades, 5 tranches sur 5 positives ; signal répété pendant qu'une
+position est déjà ouverte (donc ajout sur une position qui perd) +1,83 bp, 640 trades, une tranche négative. Une
+seule position à la fois (ce que fait le robot) : +2,27 bp sur 722 trades. Empiler n'ajoute que du risque (jusqu'à
+3 stops d'un coup) pour un gain par trade plus faible → je garde une position à la fois. Pour les règles M1 en
+continu, plusieurs positions ne feraient que multiplier le spread payé. Je réutiliserai la permission pour une idée
+à plusieurs symboles ou à entrées vraiment indépendantes.
+
+**Banc I — portage sur Hyperliquid** (`banc_portage.py` : acheter au comptant, vendre le perpétuel, encaisser le
+financement ; 12 derniers mois, 4 actifs = 4 essais) : BTC +5,8 % par an, ETH +6,4 %, or tokenisé PAXG +7,0 %, SOL
++1,0 % ; par trimestre entre +1 % et +9 % ; positif 81 à 87 % des heures. Après la marge immobilisée (÷ 1,2 à 1,5)
+et les frais (≈ 0,25 % l'aller-retour), il reste ≈ 4 à 5 % par an : **c'est le rendement d'un placement sans
+risque, avec en plus le risque de la plateforme. Pas un avantage.** Réfuté comme piste de gain.
+
+**Total des essais : 48 252 + 6 = 48 258.**
