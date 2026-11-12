@@ -737,3 +737,52 @@ panier `bt_or` (3 ventes : +22,24 $, −3,79 $, −19,39 $ = **−0,94 $, soit �
 résultat de la stratégie** (ni stop ni recul : coupé par la mise à jour) ; à ne pas compter dans sa moyenne.
 À corriger : que les paniers survivent à un changement de version (il faut que `pont.positions()` rende l'étiquette
 de chaque position, ou un dossier d'état qui ne change pas avec la version : demande côté PC).
+
+## Passage 22 — 12/11/2026 (≈ 19 h 11 – 19 h 40 Paris) — critères multiples, le mélange de Baptiste sur l'historique
+
+Priorité lue (`PRIORITES.md`, 19 h, commit 0e3b7d4) : suivre le mélange `elan_m15` + `cassure_m15` + `exces_m1` +
+`exces_m5` + `bt_or`, vérifier sur l'historique que ses membres se compensent, optimisation en avance glissante.
+Registre papier : rien à ajouter. Robot **v7** en marche depuis 18 h 46 (0 refus). Mon message d'information à la
+conversation de suivi (fermeture du panier par la mise à jour) n'est pas parti : l'envoi demande une approbation
+restée sans réponse, puis la session redémarre → je ne l'utilise plus ; l'information est dans AVIS.md.
+**Robot en direct, cumul → 19 h 08** : hasard_m1 281 trades −0,39 $ (± 0,20) ; elan_m1 283, +0,03 $ (± 0,20) ;
+retour_m1 279, −0,55 $ (éteint) ; fcassure_m1 84, +0,00 $ ; exces_m1 14, +1,27 $ (± 2,1) ; exces_m5 4, +4,16 $ ;
+elan_m15 11, +5,37 $ (± 4,6) ; cassure_m15 5, +8,63 $ (± 9,0) ; midi_agite 1 ; `bt_or` : 1 panier coupé par la mise
+à jour (+22,24 −3,79 −19,39 = −0,94 $, non compté). 970 ouvertures, 0 refus.
+
+**Banc P — stratégie à critères multiples, fixée d'avance** (`banc_criteres.py`, or M5, 15 mois, 27 essais) : acheter
+un repli (écart > 1,5 écart-type) dans une tendance établie, seulement si 7 conditions sont réunies (séance active,
+tendance de 20 h, pente de la moyenne, structure M15 ascendante, or agité, spread normal, bougie de confirmation).
+| Tenue | Trades (15 mois) | Réglage | Verdict |
+|---|---|---|---|
+| 15 min | 106 (0,3 par jour) | −0,3 bp (t = −0,2) | +1,9 bp (t = 0,8) |
+| 30 min | 102 | −1,9 bp | +1,3 bp (t = 0,4) |
+| 60 min | 97 | +0,7 bp | +2,0 bp (t = 0,4) |
+| repli seul, aucun critère (15 min) | 11 616 | −0,6 bp | −0,2 bp |
+En retirant un critère à la fois, rien ne change nettement (verdicts de −0,2 à +3,3 bp, tous à t < 2) ; seul le
+filtre de séance compte un peu. **Les critères font passer de « perd le spread » à « à peu près zéro », pas à un
+gain prouvé**, et il ne reste qu'un trade tous les trois jours : impossible à juger vite en direct. Non retenu.
+
+**Banc Q — le mélange de Baptiste sur l'historique** (`banc_melange.py`, or, 06/08/2025 → 11/11/2026, 328 jours,
+$ à 0,01 lot par position, une position à la fois comme le robot ; 5 essais) :
+
+| Membre | Trades | $ par trade | Total 15 mois | Jours de tendance ($/jour) | Jours calmes ($/jour) |
+|---|---|---|---|---|---|
+| elan_m15 | 2 499 | −0,16 | **−398 $** | +10,2 | −12,7 |
+| cassure_m15 | 780 | +0,37 | +285 $ (t = 0,4) | +11,4 | −9,7 |
+| exces_m5 | 1 339 | +0,25 | +340 $ (t = 0,9) | +4,5 | −2,4 |
+| bt_or | 269 paniers | +19,94 | **+5 365 $** (t = 1,8) | +21,6 | +11,1 |
+| exces_m1 (3 mois seulement) | 922 | −0,15 | −136 $ | | |
+| **Mélange (4 premiers)** | | | +5 592 $ | **+47,8** | **−13,7** |
+
+- **96 % du gain du mélange vient de `bt_or` seul.** `elan_m15` perd sur 15 mois, `cassure_m15` et `exces_m5` sont à
+  zéro près, `exces_m1` aussi.
+- **Ils ne se compensent pas** : tous gagnent les jours de tendance et perdent les jours calmes (mélange : +48 $ par
+  jour de tendance, −14 $ par jour calme). Corrélations quotidiennes faibles (0,0 à 0,35) ; seule `exces_m1` va à
+  l'inverse d'`elan_m15` (−0,43), mais les deux valent zéro en moyenne.
+- Par tranche de 3 mois le mélange fait +1 606 / +2 834 / +1 226 / +551 / **−624 $** ; pire creux −2 016 $.
+- Les +150 $ du direct depuis hier viennent d'une seule journée de forte tendance (l'or a perdu 3 %) : c'est le
+  régime, pas une compensation. Rien à optimiser tant que les pièces n'ont pas d'avantage seules ; la seule pièce
+  qui en a un (au banc) est `bt_or`.
+
+**Total des essais : 48 553 + 27 + 5 = 48 585.**

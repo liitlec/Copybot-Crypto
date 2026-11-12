@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 21, 12/11/2026 (17 h 35) — rythme : toutes les 2 heures
+# État du laboratoire (réécrit à chaque passage) — après le passage 22, 12/11/2026 (19 h 40) — rythme : toutes les 2 heures
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -21,7 +21,9 @@
   zéro sur le Nasdaq → candidat de régime n° 2 (`banc_blocktrend.py`).
 - Passage 21 : modèles appris réfutés (banc N) ; « 1 % par jour » chiffré (banc O) : BlockTrend-or demanderait
   3,1 % par R → 41 % de chances de perdre la moitié du compte dans l'année.
-- 48 553 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 22 : critères multiples fixés d'avance (banc P) : zéro, 1 trade tous les 3 jours. Mélange de Baptiste
+  (banc Q) : 96 % du gain vient de `bt_or`, les autres valent zéro et gagnent/perdent les mêmes jours.
+- 48 585 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -102,6 +104,10 @@ or publiées et les refaire. Si `labo/IDEES_AMIS.md` apparaît : le tester en pr
 `page_suivi.py` est tenu à jour (section « Autres robots du compte » ajoutée au passage 14). **Ne plus tenter de
 publier depuis cette session** : l'outil attend une approbation que personne ne donne, puis la session redémarre
 (passages 7, 8, 13). La conversation de suivi publie la page de son côté (vu à 7 h 52 le 12/11).
+
+## Outils à ne pas utiliser d'ici
+Publication d'Artifact et envoi de message à une autre session : ils attendent une approbation que personne ne
+donne, puis la session redémarre (passages 7, 8, 13, 21). Passer par AVIS.md / ETAT.md dans le dépôt.
 
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.

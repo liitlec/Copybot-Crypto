@@ -1,22 +1,22 @@
-# Avis pour Baptiste — 12/11/2026, 17 h 35 (passage 21)
+# Avis pour Baptiste — 12/11/2026, 19 h 40 (passage 22)
 
-1. **1 % par jour, chiffré honnêtement.** Avec la mécanique de BlockTrend sur l'or, si son avantage du banc est réel : risquer 0,5 % du compte par position donne ≈ 0,16 % par jour (+45 % par an, pire baisse −9 %) ; risquer 1 % donne ≈ 0,32 % par jour (pire baisse −18 %). **Pour 1 % par jour il faudrait risquer 3,1 % par position, avec 41 % de chances de perdre la moitié du compte dans l'année.**
-2. Avec le « retour de midi », 1 % par jour demanderait un levier d'environ 20 : au banc cela passe, mais il a déjà perdu sur juin-août 2025, et à ce levier un seul écart de 5 % de l'or efface le compte.
-3. Et ces chiffres supposent que l'avantage existe. Aucun n'est encore confirmé en direct ; si l'avantage est nul, grossir la taille ne fait que grossir les pertes. C'est à toi de choisir le niveau de risque, une fois le direct connu.
-4. Robot : 898 trades à 0,01 lot, ≈ −145 $, 0 refus ; les règles M1 font comme le pile ou face. Modèle appris sur 26 variables : il ne prévoit rien. 48 553 combinaisons testées. Suite : stratégies à critères multiples, annonces, sorties fines.
-5. **À savoir** : la mise à jour du robot en version 7 (18 h 46, `retour_m1` éteint) a fermé d'office le panier `bt_or` en cours (−0,94 $) : ce n'est pas un résultat de la stratégie. Chaque nouvelle version ferme tout ce qui est ouvert ; pour des paniers tenus plusieurs jours, il faudrait côté PC que le pont rende l'étiquette de chaque position (ou un dossier d'état stable).
+1. **Ton mélange, vérifié sur 15 mois de bougies du courtier** (à 0,01 lot) : `bt_or` +5 365 $, `exces_m5` +340 $, `cassure_m15` +285 $, `elan_m15` **−398 $**, `exces_m1` −136 $ (sur 3 mois). **96 % du gain vient de `bt_or` seul.**
+2. **Ils ne se compensent pas** : tous gagnent les jours où l'or file dans un sens et perdent les jours calmes (mélange : +48 $ par jour de tendance, −14 $ par jour calme). Les +150 $ du direct viennent de la chute de 3 % de l'or aujourd'hui, pas d'un équilibre entre stratégies. Rien à optimiser tant que les pièces ne gagnent pas seules.
+3. **Stratégie à critères multiples** (7 conditions réunies, fixées d'avance) : les critères font passer de « perd le spread » à « à peu près zéro », avec un trade tous les 3 jours. Pas de gain prouvé.
+4. Rappel « 1 % par jour » : avec `bt_or`, il faudrait risquer 3,1 % du compte par position, soit 41 % de chances de perdre la moitié du compte dans l'année ; à 0,5 %, ≈ 0,16 % par jour si son avantage est réel.
+5. **À savoir** : chaque nouvelle version du robot ferme tout ce qui est ouvert (la v7 de 18 h 46 a coupé le premier panier `bt_or`, −0,94 $, non compté). Pour des paniers de plusieurs jours, il faudrait côté PC que le pont rende l'étiquette de chaque position, et éviter de changer de version quand un panier est ouvert.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 17 h 11
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 19 h 08
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 257 | −0,29 $ | ± 0,21 $ | référence |
-| elan_m1 | 259 | +0,04 $ | ± 0,20 $ | continue jusqu'à 300 trades (banc : −0,19 $, le spread) |
+| hasard_m1 (témoin) | 281 | −0,39 $ | ± 0,20 $ | référence |
+| elan_m1 | 283 | +0,03 $ | ± 0,20 $ | continue jusqu'à 300 trades (banc : −0,19 $, le spread) |
 | retour_m1 | 259 | −0,55 $ | ± 0,20 $ | **éteint** en version 7 (12/11 18 h 46) |
-| fcassure_m1 | 81 | +0,00 $ | ± 0,28 $ | continue (comme le témoin) |
+| fcassure_m1 | 84 | +0,00 $ | ± 0,27 $ | continue (comme le témoin) |
 | exces_m1 | 14 | +1,27 $ | ± 2,08 $ | continue |
-| elan_m15 | 7 | −1,00 $ | ± 4,48 $ | continue |
-| cassure_m15 | 3 | +4,03 $ | ± 10,8 $ | continue |
+| elan_m15 | 11 | +5,37 $ | ± 4,61 $ | continue |
+| cassure_m15 | 5 | +8,63 $ | ± 9,04 $ | continue |
 | exces_m5 | 1 | +0,40 $ | inconnue | continue |
 | midi_agite (candidat) | 1 | −0,06 $ | inconnue | trade de 11 h à 14 h quand l'or est agité ; arrêt : < −0,50 $ après 60 trades ou −60 $ |
 | bt_or (mécanique BlockTrend) | 0 panier valable (le 1er, −0,94 $, a été fermé par la mise à jour v7) | — | — | arrêt à −20 R cumulés ou moyenne < −0,3 R après 40 paniers |
