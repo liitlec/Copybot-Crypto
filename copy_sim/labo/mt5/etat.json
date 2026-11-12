@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-12T18:44:30Z",
+ "ecrit": "2026-11-12T18:49:38Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67191.93,
- "valeur": 70287.68,
- "marge_libre": 67042.37,
+ "solde": 67191.57,
+ "valeur": 70556.81,
+ "marge_libre": 67311.5,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3883.72,
-   "ask": 3883.93,
-   "spread_points": 21.0,
+   "bid": 3881.68,
+   "ask": 3881.88,
+   "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794516270
+   "heure_serveur": 1794516577
   }
  },
  "positions_robot": [
@@ -34,38 +34,38 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3874.17,
-   "prix_actuel": 3883.72,
+   "prix_actuel": 3881.68,
    "stop": 3833.68,
    "objectif": null,
-   "profit": 9.55,
+   "profit": 7.51,
    "ouverte_heure_serveur": 1794513600
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "vente",
-   "lots": 0.01,
-   "prix_entree": 3885.14,
-   "prix_actuel": 3883.93,
-   "stop": 3891.82,
-   "objectif": null,
-   "profit": 1.21,
-   "ouverte_heure_serveur": 1794516120
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3885.34,
-   "prix_actuel": 3883.72,
-   "stop": 3878.66,
+   "prix_entree": 3882.33,
+   "prix_actuel": 3881.68,
+   "stop": 3875.44,
    "objectif": null,
-   "profit": -1.62,
-   "ouverte_heure_serveur": 1794516120
+   "profit": -0.65,
+   "ouverte_heure_serveur": 1794516420
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "vente",
+   "lots": 0.01,
+   "prix_entree": 3882.12,
+   "prix_actuel": 3881.88,
+   "stop": 3889.02,
+   "objectif": null,
+   "profit": 0.24,
+   "ouverte_heure_serveur": 1794516421
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-12",
-  "perte_du_jour": -115.0,
+  "perte_du_jour": -117.4,
   "seuil": -3334.66,
   "ouvertures_bloquees": false
  },
