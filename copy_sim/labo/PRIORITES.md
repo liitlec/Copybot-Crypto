@@ -277,3 +277,18 @@ et **sans ajout contre le marché**, pour voir si son entrée a un avantage une 
 - Ils coûtent cher (chacun relit son contexte) : lance-les sur des tâches précises et bornées, avec des consignes
   complètes et le format de réponse attendu ; pas plus de 3 à 4 par passage ; garde les décisions, le robot et les
   écritures dans le dépôt pour toi. Si la limite d'usage approche, passe-t'en.
+
+## 12/11/2026, 16 h 55 (Paris) : l'objectif de Baptiste est « environ 1 % par jour en moyenne »
+Baptiste vise **à peu près 1 % par jour en moyenne** et pense que c'est faisable : il veut que tu fasses tout pour le
+trouver. Il ajoute que certaines stratégies gagnantes ont **beaucoup de critères** à réunir avant d'entrer.
+- Cherche activement des stratégies **à critères multiples** (5 à 15 conditions réunies : séance, tendance de fond,
+  structure M15/H1, niveau clé, agitation, spread, annonce, confirmation de bougie…). Elles tradent peu mais peuvent
+  avoir un vrai avantage. Plus il y a de critères, plus le risque de coller au hasard du passé est grand : réglage
+  sur une période, jugement sur une autre jamais vue, essais tous comptés, et confirmation en direct.
+- Pour chaque stratégie qui tient, calcule **ce qu'il faudrait pour atteindre 1 % par jour** : taille par trade,
+  levier, nombre de trades par jour, et ce que ça donne en **pire baisse** et en **probabilité de ruine** (perdre 50 %
+  du compte) sur un an, par simulation à partir de ses trades. Donne-le à Baptiste en clair : « pour 1 %/jour avec
+  cette stratégie, il faudrait risquer X % par trade, avec Y % de chances de perdre la moitié du compte dans l'année ».
+- Reste honnête dans AVIS.md : 1 % par jour, c'est environ ×12 par an. Dis ce que donne la meilleure stratégie à un
+  risque raisonnable, et ce qu'elle donnerait poussée vers 1 %/jour, avec les risques chiffrés. C'est à Baptiste de
+  choisir son niveau de risque en connaissance de cause.
