@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-12T06:26:27Z",
+ "ecrit": "2026-11-12T06:31:34Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 10,
   "lots_par_position": 0.5
  },
- "solde": 66564.11,
- "valeur": 66747.33,
- "marge_libre": 66371.82,
+ "solde": 66563.6,
+ "valeur": 66865.39,
+ "marge_libre": 66505.8,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3980.65,
-   "ask": 3980.86,
-   "spread_points": 21.0,
+   "bid": 3977.97,
+   "ask": 3978.17,
+   "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794471987
+   "heure_serveur": 1794472294
   }
  },
  "positions_robot": [
@@ -34,49 +34,49 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3974.27,
-   "prix_actuel": 3980.86,
+   "prix_actuel": 3978.17,
    "stop": 3998.89,
    "objectif": null,
-   "profit": -6.59,
+   "profit": -3.9,
    "ouverte_heure_serveur": 1794467701
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3978.44,
-   "prix_actuel": 3980.65,
-   "stop": 3970.65,
+   "prix_entree": 3978.21,
+   "prix_actuel": 3977.97,
+   "stop": 3970.8,
    "objectif": null,
-   "profit": 2.21,
-   "ouverte_heure_serveur": 1794471781
+   "profit": -0.24,
+   "ouverte_heure_serveur": 1794472080
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3978.24,
-   "prix_actuel": 3980.86,
-   "stop": 3986.03,
+   "prix_entree": 3978.0,
+   "prix_actuel": 3978.17,
+   "stop": 3985.41,
    "objectif": null,
-   "profit": -2.62,
-   "ouverte_heure_serveur": 1794471781
+   "profit": -0.17,
+   "ouverte_heure_serveur": 1794472080
   },
   {
    "symbole": "XAUUSD",
-   "sens": "vente",
+   "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3978.24,
-   "prix_actuel": 3980.86,
-   "stop": 3986.03,
+   "prix_entree": 3978.14,
+   "prix_actuel": 3977.97,
+   "stop": 3970.8,
    "objectif": null,
-   "profit": -2.62,
-   "ouverte_heure_serveur": 1794471781
+   "profit": -0.17,
+   "ouverte_heure_serveur": 1794472080
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-12",
-  "perte_du_jour": -113.42,
+  "perte_du_jour": -108.79,
   "seuil": -3334.66,
   "ouvertures_bloquees": false
  },
