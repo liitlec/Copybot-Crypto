@@ -239,3 +239,24 @@ scalp sur l'or, leurs règles exactes et ce qu'on sait de leurs résultats.
   spread réel : note la source, puis teste.
 - Commence par les familles qui ont le plus de chances de passer le spread : entrées à cours limité, puis concepts de
   liquidité (séance d'Asie, ouvertures de Londres et New York, niveaux ronds).
+
+## 12/11/2026, 13 h 05 (Paris) : reprendre la **façon de trader** de BlockTrend, pas ses résultats
+Baptiste insiste pour s'inspirer de BlockTrend : il voit qu'il gagne aujourd'hui. Ce n'est pas « vendre en
+tendance » (déjà réfuté) qu'il faut tester, c'est **sa mécanique**, visible dans `mt5/autres/ouvertes.json` le 12/11 :
+- entrées **par paquets de 3 positions identiques** sur plusieurs marchés en même temps (or, BTC, ETH, cacao), dans le
+  même sens ;
+- **ajouts dans le sens du gain** (pyramidage : nouvelles ventes d'or à 3 973, 3 971, 3 951, 3 946, 3 929 pendant que
+  l'or baisse), pas de moyenne à la baisse ;
+- **stop commun remonté** derrière le prix (3 994 sur toutes les ventes d'or), donc les premières positions sont
+  protégées à zéro ;
+- tenue de plusieurs heures à plusieurs jours.
+À faire :
+1. **Reconstituer ses règles** à partir des 139 trades fermés et des positions ouvertes (quand il entre, quand il
+   ajoute, où il met et déplace le stop, quand il sort). Si les trades ne suffisent pas, écris dans AVIS.md ce qu'il
+   te manque : Baptiste peut faire écrire par la session PC un **résumé des règles** de BlockTrend (pas son code).
+2. **Tester la mécanique séparément de ses réglages** : cassure ou tendance + pyramidage + stop commun remonté, sur
+   l'or seul puis sur un panier (or, argent, BTC, ETH, indices), en H1 et en M15, avec les vrais coûts (spread, swap),
+   sur 3 mois de données du courtier puis sur 20 ans de données journalières.
+3. **Comprendre pourquoi il a perdu 25 189 $** : taille, marchés (cacao, achats d'ETH), stops trop larges, entrées
+   tardives ? Si une version corrigée de sa mécanique tient hors échantillon, mets-la en essai sur la démo.
+Dis à Baptiste en clair ce que tu en retiens, même si c'est « non ».
