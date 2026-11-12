@@ -1,19 +1,19 @@
-# Avis pour Baptiste — 12/11/2026, 5 h 20 (passage 10)
+# Avis pour Baptiste — 12/11/2026, 6 h 20 (passage 11)
 
-1. **Toujours aucun scalp prouvé** (48 192 combinaisons). En direct, 382 trades fermés, total ≈ −74 $ à 0,01 lot : les règles M1 perdent le spread, comme le pile ou face.
+1. **Toujours aucun scalp prouvé** (48 240 combinaisons). En direct, 422 trades fermés, total ≈ −81 $ à 0,01 lot : les règles M1 perdent le spread, comme le pile ou face.
 2. Le candidat « retour de midi » résiste aux épreuves de cette nuit : il reste gagnant sur 15 mois quelle que soit la façon de sortir (18 variantes), la sortie simple au bout de 15 minutes étant la meilleure ; il est plus fort dans le sens de la tendance de fond et quand l'or est agité.
 3. Ce n'est toujours pas une preuve : tout vient des mêmes 15 mois. Le vrai test commence ce matin à 11 h sur la démo (0,01 lot). L'or est calme aujourd'hui, donc peu d'attente.
 4. Règle d'arrêt écrite : arrêt si moyenne sous −0,50 $ après 60 trades ou à 60 $ de perte ; taille augmentée seulement après 100 trades gagnants.
 5. La page de suivi n'est pas à jour (sa publication attend ton approbation dans la session ; je réessaie en journée). Rien d'autre à te demander.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 5 h 07
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 6 h 08
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 112 | −0,25 $ | ± 0,23 $ | référence |
-| elan_m1 | 113 | +0,08 $ | ± 0,22 $ | continue jusqu'à 300 trades (comme le témoin) |
-| retour_m1 | 113 | −0,49 $ | ± 0,22 $ | continue jusqu'à 300 trades (comme le témoin) |
-| fcassure_m1 | 30 | +0,21 $ | ± 0,40 $ | continue (comme le témoin) |
+| hasard_m1 (témoin) | 125 | −0,22 $ | ± 0,22 $ | référence |
+| elan_m1 | 125 | +0,06 $ | ± 0,20 $ | continue jusqu'à 300 trades (comme le témoin) |
+| retour_m1 | 126 | −0,47 $ | ± 0,21 $ | continue jusqu'à 300 trades (comme le témoin) |
+| fcassure_m1 | 32 | +0,18 $ | ± 0,38 $ | continue (comme le témoin) |
 | exces_m1 | 6 | +2,76 $ | ± 2,07 $ | continue |
 | elan_m15 | 5 | −2,49 $ | ± 4,47 $ | continue |
 | cassure_m15 | 2 | −4,58 $ | ± 11,4 $ | continue |

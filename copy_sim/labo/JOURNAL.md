@@ -382,3 +382,17 @@ Rien à changer dans le robot : il sort déjà au temps (15 min) avec un stop de
 Réserve inchangée : tout cela est mesuré sur le même échantillon de 15 mois ; seul le direct tranchera.
 
 **Total des essais : 48 172 + 20 = 48 192.**
+
+## Passage 11 — 12/11/2026 (≈ 6 h 10 – 6 h 20 Paris) — passage court de nuit
+
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus, aucune nouvelle erreur. Page de suivi : pas tentée (nuit).
+**Robot en direct, cumul → 6 h 08** : hasard_m1 125 trades −0,22 $ (± 0,22) ; elan_m1 125, +0,06 $ (± 0,20) ;
+retour_m1 126, −0,47 $ (± 0,21) ; fcassure_m1 32, +0,18 $ (± 0,38) ; exces_m1 6, +2,76 $ (± 2,1) ; elan_m15 5,
+−2,49 $ ; cassure_m15 2 ; exces_m5 1. 428 ouvertures, 0 refus. Total ≈ −81 $. Rien de distinguable du témoin.
+
+**La règle du candidat aux autres heures, avec tendance de fond** (or M5 et `NAS100+` M5, 8 tranches de 3 h × 3
+variantes × 2 marchés = 48 essais, réglage 60 % → verdict 40 %) : sur l'or, **12-15 h serveur est la seule tranche
+positive au réglage et au verdict** (+2,9 → +1,3 bp ; dans le sens du fond +4,5 → +2,0 bp) ; ailleurs les signes
+changent entre réglage et verdict. Sur le Nasdaq rien de stable (12-15 h : −0,1 → +1,8 bp). Aucun nouveau candidat.
+
+**Total des essais : 48 192 + 48 = 48 240.**
