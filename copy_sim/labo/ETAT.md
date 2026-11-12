@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 18, 12/11/2026 (12 h 50)
+# État du laboratoire (réécrit à chaque passage) — après le passage 19, 12/11/2026 (13 h 50)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -16,7 +16,10 @@
   `exces_m1` gagne sur 3 mois.
 - Passage 18 : ordres limites réfutés (un CFD sert l'achat limite à l'ask : pas d'économie de spread, sélection
   adverse en plus) ; concepts de liquidité (Asie, veille, niveaux ronds, FVG, VWAP) : rien à t > 2.
-- 48 522 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 19 : BlockFIFO, entrée seule = −0,50 $ à 3 min (pire que le spread) : rien à sauver. Mécanique de
+  BlockTrend sur l'or M5 15 mois : +166 R sur 269 paniers (t = 2,2, 22 % de gagnants, 75 % du gain dans 5 paniers),
+  zéro sur le Nasdaq → candidat de régime n° 2 (`banc_blocktrend.py`).
+- 48 549 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -29,6 +32,20 @@ Lire `mt5/etat.json` (champ `robot` : version installée, en marche, dernier ref
 type. Couper ce qui perd nettement, garder ce qui tient, ne monter la taille que si direct ET banc concordent.
 Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ juste avant la fermeture, `raison`).
 Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
+
+## PROCHAIN PASSAGE, EN PREMIER : robot v6
+1. Hypothèse `bt_or` (mécanique BlockTrend, or, réglage serré, **pyramide de 3 au plus**, 0,01 lot par position) :
+   sens = clôture M5 contre EMA 576 M5 (lire 3 000 bougies M5) ; entrées aux bougies M5 de 03:05, 08:00, 08:30, 12:00,
+   15:45, 16:00, 16:30 serveur si pas de panier de ce côté ; ATR = moyenne des 20 dernières amplitudes vraies D1
+   fermées (`pont.bougies(s, "D1", 30)`) ; pas 0,25 ATR, stop 0,6667 ATR ; ajout à la clôture M5 au-delà du niveau
+   (sauté si > ½ pas au-delà) ; stop commun chez le courtier = meilleur prix − stop (`pont.modifier` sur chaque
+   position quand il avance) ; étiquettes `bt_or_1..3`. Mémoire dans `etat_robot.json` (panier par côté).
+   **Règle d'arrêt à écrire avant** : arrêt à −12 R cumulés (banc : pire creux −18 R sur 15 mois) ou si moyenne
+   < −0,3 R après 40 paniers ; 1 R ≈ 0,667 × ATR jour × 1 once (≈ 40 à 60 $ à 0,01 lot).
+2. Étiquette du sens du fond pour le candidat de midi (voir 2 bis plus bas).
+3. Couper `elan_m1` / `retour_m1` à 300 trades s'ils restent dans la marge du témoin.
+Ensuite : refaire BlockRange (RSI 2 j < 10 au-dessus de la moyenne 200 j, indices, données journalières Yahoo 20 ans),
+BlockGrille et BlockFinMois ; demander au pont des bougies M5 de XAGUSD, BTCUSD, ETHUSD pour BlockTrend.
 
 ## Recherche large sur le scalp XAUUSD (PRIORITES 12/11 12 h 30 et 12 h 40) : où j'en suis
 Fait : 1. ordres limites (banc K, réfuté) ; 2. concepts de liquidité (banc L, rien ; à creuser : cassure du range

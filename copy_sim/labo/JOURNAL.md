@@ -589,3 +589,55 @@ Aucun essai à t > 2 au verdict parmi ceux repérés au réglage. La cassure du 
 **Total des essais : 48 362 + 96 + 64 = 48 522.**
 Reste de la liste : annonces économiques (il faut un calendrier : internet), structure M15/H1, modèles appris avec
 témoin permuté, sorties fines (stop suiveur, sortie partielle) ; règles des amis si `IDEES_AMIS.md` arrive.
+
+## Passage 19 — 12/11/2026 (≈ 13 h 15 – 13 h 50 Paris) — la mécanique de BlockFIFO et de BlockTrend refaite
+
+Priorités lues (`PRIORITES.md`, 13 h 05 et 13 h 15 ; règles des robots dans `labo/BLOCK_REGLES.md`, écrites par la
+session PC, des données) : reconstituer la mécanique de chaque robot Block, la tester séparément de ses réglages.
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus ; 2e erreur passagère du pont à 12 h 49 (« Accès
+refusé », chemin désormais masqué). Candidat de midi : toujours aucun signal (or calme). scikit-learn installé ici
+(pour la famille « modèles appris », pas encore faite).
+**Robot en direct, cumul → 13 h 11** : hasard_m1 209 trades −0,29 $ (± 0,19) ; elan_m1 210, +0,11 $ (± 0,18) ;
+retour_m1 210, −0,47 $ (± 0,18) ; fcassure_m1 63, −0,04 $ ; exces_m1 8, +3,23 $ ; elan_m15 8, +0,07 $ ;
+cassure_m15 3 ; exces_m5 1. 718 ouvertures. Total ≈ −113 $.
+
+**BlockFIFO : son entrée a-t-elle un avantage une fois le risque coupé ? Non.** (17 essais.) Ses 1 507 entrées
+réelles, retrouvées dans mes bougies M1, rejouées à taille fixe 0,01 lot, sans aucun ajout :
+- sortie au temps : −0,50 $ par trade à 3 min (± 0,07), −0,62 $ à 5 min, −1,62 $ à 15 min, −3,58 $ à 1 h. C'est pire
+  que le spread seul (−0,19 $) : ses entrées vont contre le mouvement, et le mouvement continuait ;
+- premières entrées seules (613, sans les 894 ajouts) : pareil (−0,55 $ à 3 min, −4,17 $ à 1 h) ;
+- avec objectif et stop durs (1,5 à 5 $ / 3 à 6 $) : −0,58 à −0,91 $ par trade, 37 à 71 % de gagnants.
+Dans le réel, les premières entrées ont fait −566 $ et les ajouts −5 774 $. **Rien à sauver : ni l'entrée ni la
+grille.** (5 jours seulement, mais 1 507 trades et un écart net au spread.)
+
+**BlockTrend : la mécanique tient sur l'or récent, mais c'est une loterie** (`banc_blocktrend.py`, 10 essais ; or et
+Nasdaq M5, 15 mois ; sens = cours contre l'EMA de 2 jours, entrées aux 7 heures fixes, pyramide dans le sens du gain
+à chaque pas, sortie de tout le panier sur recul depuis le meilleur prix ; 1 R = perte d'une position au stop initial).
+
+| Variante | Paniers | Total | Moyenne | Gagnants | Pire creux | Par tranche de 3 mois |
+|---|---|---|---|---|---|---|
+| Or, réglage serré (pas 0,25, stop 0,667 ATR jour) | 269 | **+166 R** | +0,62 R (t = 2,2) | 22 % | −27 R | +57 / +54 / +30 / +18 / +8 |
+| Or, serré, pyramide limitée à 3 positions | 269 | +102 R | +0,38 R (t = 2,2) | 28 % | −18 R | +36 / +42 / +8 / +16 / 0 |
+| Or, serré, sans pyramide | 269 | +33 R | +0,12 R (t = 1,7) | 39 % | −10 R | +11 / +14 / +4 / +7 / −2 |
+| Or, très large (pas 0,5, stop 1,5 ATR) | 78 | +40 R | +0,51 R (t = 0,9) | 24 % | −22 R | +8 / +41 / −5 / +1 / −4 |
+| Nasdaq, serré | 260 | +5 R | +0,02 R (t = 0,1) | 19 % | −52 R | −4 / −22 / +10 / −6 / +27 |
+| Nasdaq, serré, sans pyramide | 260 | +14 R | +0,05 R (t = 0,9) | 41 % | −10 R | |
+
+Lecture honnête :
+- sur l'or, achats (+105 R) et ventes (+61 R) gagnent, 5 tranches sur 5 positives, 9 mois sur 15 ; **mais** 75 % du
+  gain vient de 5 paniers sur 269 (+43, +23, +23, +18, +16 R), le gain baisse de tranche en tranche (+57 → +8 R),
+  et sur le Nasdaq la même mécanique fait zéro avec un creux de −52 R. Le t = 2,2 est flatté par ces queues épaisses ;
+- la simulation colle au réel : du 05/10 au 16/10 elle enchaîne 10 paniers perdants (≈ −1 R chacun) comme le vrai
+  robot, puis prend une vente à +9,9 R le 19/10 que le vrai robot n'a pas prise (aucun trade d'or après le 20/10) ;
+- **pourquoi BlockTrend a perdu 25 189 $** : (1) la taille : 0,53 % × 1,5 du solde par panier et **trois paniers par
+  signal**, soit ≈ 2,4 % du compte risqué à chaque signal sur l'or ; dix signaux perdants de suite = −24 % ;
+  (2) les marchés : cacao (11 pertes sur 11, −8 071 $), BTC et ETH n'ont aucune preuve derrière eux (sur le Nasdaq la
+  mécanique ne vaut rien) ; (3) la période : octobre 2026 a été haché sur l'or (11 paniers, +0,3 R en simulation).
+- la pyramide est ce qui fait le gain (+166 R contre +33 R sans) et aussi le creux (−27 R contre −10 R).
+C'est du suivi de tendance (tenue : heures à jours), pas du scalp, et cela dépend d'un or qui fait de grands
+mouvements : stratégie de régime. **Candidat sérieux n° 2**, à mettre en essai sur la démo à 0,01 lot dans la version
+« pyramide de 3 au plus » (creux plus petit), avec règle d'arrêt écrite avant (prochain passage).
+Non couvert : swap de quelques jours, trous de réouverture sur le stop, autres marchés du robot (argent, BTC, ETH,
+cacao : pas de bougies demandées), BlockGrille / BlockRange / BlockFinMois (règles lues, pas encore refaites).
+
+**Total des essais : 48 522 + 17 + 10 = 48 549.**
