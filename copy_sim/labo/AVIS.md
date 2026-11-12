@@ -1,21 +1,21 @@
-# Avis pour Baptiste — 12/11/2026, 9 h 30 (passage 14)
+# Avis pour Baptiste — 12/11/2026, 10 h 25 (passage 15)
 
-1. **J'ai étudié tes autres robots** (1 732 positions fermées depuis le 29/09) : ensemble ils ont perdu **33 906 $**. BlockTrend −25 189 $ (3 jours gagnants sur 17), BlockFIFO −6 269 $, BlockRange −2 382 $, BlockGrille −65 $. Aucun principe à reprendre.
-2. Les +830 $ « en cours » de BlockTrend ce matin ne sont pas un gain : c'est 3 % de ce qu'il a déjà perdu, et ce n'est acquis qu'une fois fermé. BlockFIFO montre le piège classique : 59 % de trades gagnants, 4 jours gagnants sur 5, puis un jour à −10 684 $.
-3. Mon robot : 543 trades fermés, total ≈ −129 $ à 0,01 lot, toujours rien de prouvé (48 258 combinaisons testées). `elan_m1` est un peu au-dessus du pile ou face (+0,48 $ ± 0,28), pas assez pour conclure.
-4. Le candidat « retour de midi » commence à 11 h (0,01 lot, or calme, peu d'attente ; arrêt si moyenne sous −0,50 $ après 60 trades ou 60 $ de perte).
-5. Page de suivi : je ne peux pas la publier d'ici (approbation en attente) ; j'y ai ajouté une section « Autres robots du compte » que ta conversation de suivi publiera. Rien à te demander.
+1. **J'ai cherché ce qu'il y a de bon chez tes autres robots**, groupe par groupe. Deux choses gagnaient : les ventes d'or de BlockFIFO (+3 439 $) et les ventes d'ETH de BlockTrend (+2 332 $).
+2. **Je ne les reprends pas**, et voici pourquoi : les ventes de BlockFIFO sont le jumeau exact de ses achats (−9 709 $), même mécanique qui grossit quand ça perd ; elles ont gagné parce que l'or baissait cette semaine-là. Idem pour l'ETH en octobre. C'est le sens du marché, pas une règle.
+3. J'ai testé l'idée proprement sur 20 ans : « suivre la tendance seulement à la vente » perd 3,9 % par an depuis 2016, sur toutes les familles de marchés (ETH −3,6 %, or −4,4 %). Les baisses sont trop courtes et les rebonds reprennent tout.
+4. Mon robot : 584 trades fermés, total ≈ −110 $ à 0,01 lot. `elan_m1` est à +0,50 $ par trade au-dessus du pile ou face (± 0,28) : encourageant mais pas encore un résultat, j'attends 300 trades.
+5. Le candidat « retour de midi » commence à 11 h. Rien à te demander.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 9 h 10
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 10 h 07
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 161 | −0,37 $ | ± 0,20 $ | référence |
-| elan_m1 | 162 | +0,11 $ | ± 0,19 $ | continue jusqu'à 300 trades (+0,48 $ sur le témoin, ± 0,28) |
-| retour_m1 | 162 | −0,52 $ | ± 0,20 $ | continue jusqu'à 300 trades (comme le témoin) |
-| fcassure_m1 | 39 | +0,13 $ | ± 0,32 $ | continue (comme le témoin) |
+| hasard_m1 (témoin) | 172 | −0,30 $ | ± 0,20 $ | référence |
+| elan_m1 | 173 | +0,20 $ | ± 0,19 $ | continue jusqu'à 300 trades (+0,50 $ sur le témoin, ± 0,28) |
+| retour_m1 | 173 | −0,57 $ | ± 0,20 $ | continue jusqu'à 300 trades (comme le témoin) |
+| fcassure_m1 | 48 | −0,04 $ | ± 0,31 $ | continue (comme le témoin) |
 | exces_m1 | 8 | +3,23 $ | ± 1,73 $ | continue |
-| elan_m15 | 6 | −4,00 $ | ± 3,95 $ | continue |
+| elan_m15 | 7 | −1,00 $ | ± 4,48 $ | continue |
 | cassure_m15 | 2 | −4,58 $ | ± 11,4 $ | continue |
 | exces_m5 | 1 | +0,40 $ | inconnue | continue |
 | midi_agite (candidat) | 0 | — | — | trade de 11 h à 14 h quand l'or est agité ; arrêt : < −0,50 $ après 60 trades ou −60 $ |

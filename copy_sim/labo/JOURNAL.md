@@ -467,3 +467,29 @@ BlockTrend a déjà perdu : un gain en cours n'est pas un gain. **Aucun principe
 coûts ; BlockFIFO confirme le piège « beaucoup de petits gains, une grosse perte ». La seule ligne positive (argent
 en tendance, 2 trades) ne prouve rien. Section « Autres robots du compte » ajoutée à `page_suivi.py`, à part des miens ;
 les cartes du haut précisent maintenant « tous robots » pour la valeur du compte.
+
+## Passage 15 — 12/11/2026 (≈ 10 h 12 – 10 h 25 Paris) — « prendre ce qu'il y a de bon chez les autres robots »
+
+Priorité lue (`PRIORITES.md`, 9 h 20, commit 0e4b11c). Registre papier : rien à ajouter. Robot v5 en marche, 0 refus.
+**Robot en direct, cumul → 10 h 07** : hasard_m1 172 trades −0,30 $ (± 0,20) ; elan_m1 173, +0,20 $ (± 0,19) ;
+retour_m1 173, −0,57 $ (± 0,20) ; fcassure_m1 48, −0,04 $ (± 0,31) ; exces_m1 8, +3,23 $ (± 1,7) ; elan_m15 7,
+−1,00 $ ; cassure_m15 2 ; exces_m5 1. 591 ouvertures, 0 refus. Total ≈ −110 $. `elan_m1` − témoin = +0,50 $
+(± 0,28, 1,8 erreur type) ; `retour_m1` − témoin = −0,27 $ (± 0,28).
+
+**Les sous-ensembles gagnants des autres robots, vérifiés** (groupes d'au moins 5 trades) :
+- BlockFIFO, panier vendeur sur l'or : 661 trades, +3 439 $ (59 % de gagnants). Mais c'est le jumeau du panier
+  acheteur (846 trades, −9 709 $) : même mécanique des deux côtés (tailles qui montent de 0,02 à 0,06 lot quand la
+  position perd : 0,02 lot → −1,2 $ par trade, 0,06 lot → −25 $), 5 jours seulement, et l'or a baissé cette
+  semaine-là. Le côté vendeur a gagné parce qu'il n'a pas rencontré son mauvais jour ; le côté acheteur l'a
+  rencontré le 02/10 (−10 684 $). **Écarté : c'est le sens du marché sur 5 jours, pas une règle.**
+- BlockTrend, ventes d'ETH : 21 trades, +2 332 $ (t ≈ 1 à 1,6) ; l'ETH a baissé en octobre. Ventes de BTC +176 $,
+  ventes d'or −204 $. Achats US2000 de BlockGrille : 6 trades, +328 $. Trop peu et expliqué par la direction.
+- **Principe testé sur 20 ans, coûts CFD compris : « suivre la tendance seulement à la vente »** (9 essais,
+  `banc_tendance`) : depuis 2016, −3,9 % par an (Sharpe −0,67), négatif dans chaque classe (devises −1,6 %,
+  indices −1,2 %, métaux −0,7 %, crypto −0,3 %) ; ETH seul −3,6 % par an, BTC −3,2 %, or −4,4 %, argent −7,7 %.
+  L'achat seul fait +2,1 %. **Réfuté** : les baisses sont courtes et violentes, la vente paie le financement
+  et se fait reprendre dans les rebonds.
+Rien de repris dans mon robot. Le gain en cours de BlockTrend vient de 6 ventes d'or empilées : c'est une
+exposition, pas une preuve.
+
+**Total des essais : 48 258 + 9 = 48 267.**
