@@ -149,3 +149,10 @@ Le compte démo porte aussi les anciens robots de Baptiste (BlockTrend, BlockRan
 - Si un de leurs principes tient, reprends-le comme hypothèse dans ton robot et juge-le comme les autres.
 - Ajoute-les à la page de suivi dans une section à part (« Autres robots du compte »), sans jamais les mélanger aux
   tiens. Tu n'as aucun droit d'agir sur leurs positions.
+
+## 12/11/2026, 8 h (Paris) : les autres robots de Baptiste sont exportés, étudie-les aussi
+`mt5/autres/ouvertes.json` (positions ouvertes hors pont, total par robot, toutes les 5 min) et
+`mt5/autres/historique.csv.gz` (1 732 positions fermées depuis l'ouverture du compte, une ligne par position, blocs gzip
+ajoutés à la suite : `pandas.read_csv(..., compression="gzip")` les lit d'un trait). Robots : BlockFIFO (701100),
+BlockTrend (7021xx, paniers BT/BTS/BTI), BlockRange (7031xx), BlockGrille (7041xx). `n` = numéro relatif, heures =
+serveur du courtier ; stop et objectif inconnus pour les positions fermées. Lecture seule : le pont n'y touche jamais.
