@@ -110,7 +110,8 @@ def lire():
         elif ev == "sortie" and isinstance(d.get("profit"), (int, float)):
             par_hyp[d["hypothese"]].append(d["profit"])
             par_heure[paris(d["heure"]).hour].append(d["profit"])
-            par_jour[paris(d["heure"]).date()].append((d["hypothese"], d["profit"]))
+            if not str(d["hypothese"]).startswith("hasard"):
+                par_jour[paris(d["heure"]).date()].append((d["hypothese"], d["profit"]))
             derniers.append(d)
     avis = []
     a = ICI / "AVIS.md"
@@ -202,7 +203,8 @@ def page():
                 f"<td>{e(worst[0])} <span class='neg'>{usd(worst[1])}</span></td></tr>")
     jours = "".join(ligne_jour(j, xs) for j, xs in sorted(par_jour.items(), reverse=True))
     rob, gf = etat.get("robot") or {}, etat.get("garde_fou") or {}
-    tous = [x for xs in par_hyp.values() for x in xs]
+    # 12/11 (Baptiste) : les témoins à pile ou face ne comptent pas dans les totaux, ils ne servent que de référence
+    tous = [x for h, xs in par_hyp.items() if not h.startswith("hasard") for x in xs]
     temoin = par_hyp.get(TEMOIN, [])
     maj = paris(etat["ecrit"])
     retard = (datetime.now(timezone.utc) - maj.astimezone(timezone.utc)).total_seconds() / 60
@@ -305,8 +307,8 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
 <section class="chiffres">
   <div class="chiffre"><span>Valeur du compte démo (tous robots)</span><b>{usd(etat.get('valeur', 0), False)}</b></div>
   <div class="chiffre"><span>En cours, tous robots du compte</span><b class="{'pos' if etat.get('valeur', 0) - etat.get('solde', 0) > 0 else 'neg'}">{usd(etat.get('valeur', 0) - etat.get('solde', 0))}</b></div>
-  <div class="chiffre"><span>Trades fermés</span><b>{n_t}</b></div>
-  <div class="chiffre"><span>Total des trades fermés</span><b class="{'pos' if sum(tous) > 0 else 'neg'}">{usd(sum(tous)) if tous else '—'}</b></div>
+  <div class="chiffre"><span>Trades fermés (hors témoin)</span><b>{n_t}</b></div>
+  <div class="chiffre"><span>Total fermé (hors témoin)</span><b class="{'pos' if sum(tous) > 0 else 'neg'}">{usd(sum(tous)) if tous else '—'}</b></div>
   <div class="chiffre"><span>Trades gagnants</span><b>{f"{100 * sum(x > 0 for x in tous) / n_t:.0f} %" if tous else '—'}</b></div>
   <div class="chiffre"><span>Positions ouvertes du labo</span><b>{len(etat.get('positions_robot') or [])}</b></div>
 </section>
@@ -316,7 +318,7 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
     <tr><th>Hypothèse</th><th class="n">Trades</th><th class="n">Total</th><th class="n">Moyenne par trade</th><th class="n">Gagnants</th><th>Verdict</th></tr>
     {''.join(lignes)}
   </table></div>
-  <p class="note">Le total des trades compte tous les trades fermés, y compris ceux fermés à un changement de version du robot et les sorties au stop. La valeur du compte ajoute le résultat en cours des positions encore ouvertes.</p>
+  <p class="note">Les totaux et les résultats par jour ne comptent pas le témoin à pile ou face (il ne sert que de référence pour juger les autres). Ils comptent tous les autres trades fermés, y compris ceux fermés à un changement de version du robot et les sorties au stop. La valeur du compte ajoute le résultat en cours des positions encore ouvertes.</p>
   <p class="note">Le verdict compare chaque hypothèse au témoin à pile ou face. Il faut au moins 30 trades pour un premier avis, et 100 trades avec une nette avance pour « en avance sur le hasard ». Le chiffre après ± est la marge d'erreur de la moyenne.</p>
 </section>
 <section>
