@@ -233,5 +233,55 @@
   "premiere": 1750086300,
   "derniere": 1754438100,
   "fichier": "nas_m5_2025a.csv.gz"
+ },
+ "xag_m5_90k": {
+  "cle": "c13b893b6cf3",
+  "ecrit": "2026-11-12T21:17:11Z",
+  "symbole": "XAGUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1754580600,
+  "derniere": 1794525300,
+  "fichier": "xag_m5_90k.csv.gz"
+ },
+ "btc_m5_90k": {
+  "cle": "7ed020b0d573",
+  "ecrit": "2026-11-12T21:17:15Z",
+  "symbole": "BTCUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1767258600,
+  "derniere": 1794525300,
+  "fichier": "btc_m5_90k.csv.gz"
+ },
+ "eth_m5_90k": {
+  "cle": "d79e32245a6a",
+  "ecrit": "2026-11-12T21:18:09Z",
+  "symbole": "ETHUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1767258300,
+  "derniere": 1794525300,
+  "fichier": "eth_m5_90k.csv.gz"
+ },
+ "nas_d1_5k": {
+  "cle": "ad38b69a64d6",
+  "ecrit": "2026-11-12T21:18:12Z",
+  "symbole": "NAS100+",
+  "periode": "D1",
+  "lignes": 2112,
+  "premiere": 1537833600,
+  "derniere": 1794441600,
+  "fichier": "nas_d1_5k.csv.gz"
+ },
+ "sp_d1_5k": {
+  "cle": "1e986b96ff33",
+  "ecrit": "2026-11-12T21:19:13Z",
+  "symbole": "SP500+",
+  "periode": "D1",
+  "lignes": 1595,
+  "premiere": 1600041600,
+  "derniere": 1794441600,
+  "fichier": "sp_d1_5k.csv.gz"
  }
 }

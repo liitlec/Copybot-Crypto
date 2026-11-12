@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-12T21:15:05Z",
+ "ecrit": "2026-11-12T21:20:15Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67193.93,
- "valeur": 71165.5,
- "marge_libre": 67912.45,
+ "solde": 67193.42,
+ "valeur": 71154.47,
+ "marge_libre": 67909.08,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3872.96,
-   "ask": 3873.15,
-   "spread_points": 19.0,
+   "bid": 3872.76,
+   "ask": 3872.96,
+   "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794525305
+   "heure_serveur": 1794525614
   }
  },
  "positions_robot": [
@@ -33,56 +33,23 @@
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3874.9,
-   "prix_actuel": 3872.96,
-   "stop": 3837.74,
+   "prix_entree": 3873.5,
+   "prix_actuel": 3872.76,
+   "stop": 3868.95,
    "objectif": null,
-   "profit": -1.94,
-   "ouverte_heure_serveur": 1794524400
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "vente",
-   "lots": 0.01,
-   "prix_entree": 3873.22,
-   "prix_actuel": 3873.15,
-   "stop": 3878.03,
-   "objectif": null,
-   "profit": 0.07,
-   "ouverte_heure_serveur": 1794525122
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "vente",
-   "lots": 0.01,
-   "prix_entree": 3873.2,
-   "prix_actuel": 3873.15,
-   "stop": 3878.01,
-   "objectif": null,
-   "profit": 0.05,
-   "ouverte_heure_serveur": 1794525122
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "achat",
-   "lots": 0.01,
-   "prix_entree": 3872.54,
-   "prix_actuel": 3872.96,
-   "stop": 3867.8,
-   "objectif": null,
-   "profit": 0.42,
-   "ouverte_heure_serveur": 1794525240
+   "profit": -0.74,
+   "ouverte_heure_serveur": 1794525481
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-12",
-  "perte_du_jour": -123.54,
+  "perte_du_jour": -123.39,
   "seuil": -3334.66,
   "ouvertures_bloquees": false
  },
  "robot": {
-  "version_installee": 7,
-  "version_precedente": 6,
+  "version_installee": 8,
+  "version_precedente": 7,
   "en_marche": true,
   "dernier_refus": null,
   "derniere_erreur": null,
