@@ -130,3 +130,15 @@ tant que Baptiste n'a pas dit de la ralentir (elle propose 1 par jour).
   (`copy_sim/forex/pont_mt5.py`) et lanceur du robot ; le labo écrit `copy_sim/labo/mt5/robot/` (VERSION 2 en marche
   depuis 18 h 47, 8 hypothèses M1 à 0,01 lot). État : `copy_sim/labo/mt5/etat.json`, `robot_journal.jsonl`,
   `copy_sim/labo/AVIS.md` (git pull). Coût observé : ≈ 11 $ en 2 h, limite des 5 h atteinte (dépassement).
+
+## État au 12/11 18 h 40 (Paris) : où on en est
+- Labo (Fable 5.2, session_01FgaWoz5WwTWneB2uqX7uwf) : passages toutes les 2 h (minute 10 des heures impaires,
+  Paris), sous-agents permis ; priorités de Baptiste dans `copy_sim/labo/PRIORITES.md` (scalp XAUUSD, recherche large,
+  internet, combiner, critères multiples, objectif ≈ 1 %/jour avec risques chiffrés, robots Block étudiés).
+  Limite des 5 h atteinte le 12/11 15 h 10 (≈ 46 $ en un jour).
+- Robot v6 sur la démo : 949 trades, −114 $ à 0,01 lot ; pistes : mécanique BlockTrend sur l'or (`bt_or`,
+  arrêt −20 R), candidat de midi (`midi_agite`), stratégies de tendance M15 ; les règles M1 font le hasard.
+- Robots Block de Baptiste : −33 906 $ fermés ; BlockTrend gagne ≈ +3 900 $ en cours le 12/11 (or en chute).
+- Page de suivi : https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj (`copy_sim/labo/page_suivi.py`, à republier
+  depuis cette conversation, la session labo n'a pas l'approbation de publier).
+- Baptiste voulait miser 100 € en réel ; conseillé d'attendre 3-4 jours de démo (pont verrouillé sur la démo).
