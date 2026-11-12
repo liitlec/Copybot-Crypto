@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 12/11/2026, 22 h 45 (passage 23, session neuve)
+# Avis pour Baptiste — 12/11/2026, 23 h 15 (passage 24)
 
-1. **Ton BlockRange refait sur 26 ans** (acheter un indice après un repli court, en tendance haussière) : c'est la **première règle du labo qui gagne au réglage ET au verdict** : +20 points de base par trade après coûts (454 trades depuis 2016, t = 2,3 ; 66 % de gagnants), et les réglages voisins gagnent aussi.
-2. **Mais c'est petit** : ≈ 45 trades par an. Avec 20 % du compte par trade : **+1,6 % par an**, pire baisse −6,5 % ; poussé à levier 5 : ≈ +8 % par an pour ≈ −30 % de pire baisse. Ses −2 307 $ sur la démo tiennent à 4 trades trop gros, pas à la règle. À éviter : le FTSE (perdant).
-3. **Robot version 8** publiée : `elan_m1` éteint (319 trades, −0,03 $ par trade, pareil que le hasard : règle d'arrêt fixée d'avance). Aucun panier `bt_or` n'était ouvert. Il y aura ≈ 40 % de trades en moins.
-4. `bt_or` (mécanique BlockTrend sur l'or) reste le seul candidat sérieux en direct : 0 panier valable pour l'instant, prochaine entrée possible cette nuit. Les scalps M1 restent au niveau du hasard.
-5. Ensuite : comparer les bougies jour du courtier à Yahoo pour mettre le repli d'indices en essai sur la démo ; tester la mécanique BlockTrend sur argent, BTC, ETH (données demandées au pont). Rien à faire de ton côté.
+1. **Le repli d'indices (ton BlockRange corrigé) est sur la démo** : robot version 9, étiquette `repli_ind`, sur NAS100+, SP500+, DJ30+, GER40+ (pas le FTSE), à la taille minimale du courtier. Les bougies du courtier confirment le banc : +25 bp par trade sur le Nasdaq (62 trades), +40 bp sur le S&P (54 trades, 80 % de gagnants).
+2. **Il tradera peu** : ≈ 35 à 40 trades par an sur 4 indices (aucun signal aujourd'hui). Règle d'arrêt écrite avant : somme des trades sous −1 500 bp, ou moyenne sous −20 bp après 60 trades. Ses positions survivent maintenant aux mises à jour du robot.
+3. **Mécanique BlockTrend ailleurs que sur l'or : non.** Argent +0,07 R par panier (t = 0,4), BTC +0,06 R, ETH +0,01 R, Nasdaq zéro. Elle ne tient que sur l'or, et tout son gain vient des ajouts pendant quelques grands mouvements. Rien d'autre mis en essai.
+4. `elan_m1` est éteint depuis 22 h 17 (version 8) ; les scalps M1 restent au niveau du hasard ; `bt_or` attend son premier panier valable.
+5. Prochains passages : comment tirer plus du repli d'indices (plus d'indices, sorties, taille, filtres), avec le tableau « base / améliorée » et le chiffrage « 1 % par jour ». Rien à faire de ton côté.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 23 h 08 (Paris 22 h 08)
 
@@ -19,9 +19,10 @@
 | cassure_m15 | 5 | +8,63 $ | ± 9,04 $ | continue |
 | exces_m5 | 4 | +4,16 $ | ± 4,79 $ | continue |
 | midi_agite (candidat) | 1 | −0,06 $ | inconnue | 11 h – 14 h quand l'or est agité ; arrêt : < −0,50 $ après 60 trades ou −60 $ |
+| repli_ind (repli d'indices, v9) | 0 | — | — | arrêt : somme < −1 500 bp, ou moyenne < −20 bp après 60 trades |
 | bt_or (mécanique BlockTrend) | 0 panier valable (le 1er, −0,94 $, coupé par la mise à jour v7) | — | — | arrêt à −20 R cumulés ou moyenne < −0,3 R après 40 paniers |
 
-## Candidat prouvé au banc, pas encore en direct : repli d'indices (mécanique BlockRange)
+## Candidat prouvé au banc, en direct depuis la version 9 : repli d'indices (mécanique BlockRange)
 
 | Réglage | 2000-2015 | 2016-2026 | À 20 % du compte par trade |
 |---|---|---|---|

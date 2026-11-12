@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 23, 12/11/2026 (22 h 45) — rythme : toutes les 2 heures
+# État du laboratoire (réécrit à chaque passage) — après le passage 24, 12/11/2026 (23 h 15) — rythme : toutes les 2 h 30
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -26,7 +26,9 @@
 - Passage 23 : **BlockRange refait** (`banc_blockrange.py`, `banc_blockrange_ohlc.py`, Yahoo jour 2000-2026, 5 indices) :
   +20 bp net par trade au réglage et au verdict (t ≈ 2,3), plateau sur 11 variantes ; petit (+1,6 %/an à 20 % du
   compte par trade). Premier montage qui passe les deux périodes. FTSE perdant.
-- 48 596 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 24 : repli d'indices confirmé sur les bougies D1 du courtier (NAS100+ +25 bp, SP500+ +40 bp) ; mécanique
+  BlockTrend réfutée sur argent, BTC, ETH (et Nasdaq) : elle ne tient que sur l'or.
+- 48 617 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -40,25 +42,32 @@ type. Couper ce qui perd nettement, garder ce qui tient, ne monter la taille que
 Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ juste avant la fermeture, `raison`).
 Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
 
-## Robot : version 8 publiée le 12/11 ≈ 22 h 45 (`elan_m1` et `retour_m1` éteints) — vérifier `version_installee` = 8
-- **Règle (Baptiste, 12/11 soir) : ne jamais publier de VERSION pendant qu'un panier `bt_or` est ouvert** (un
-  changement de version ferme tout). Vérifier : dernière note `bt_or` de `robot_journal.jsonl` (ouverture sans
-  « sortie panier » après = panier ouvert) et `positions_robot` de `etat.json` (stop à ≈ 55-70 $ du prix = `bt_or`).
-- `bt_or` (mécanique BlockTrend, or, 3 positions au plus, 0,01 lot) : arrêt à −20 R cumulés ou moyenne < −0,3 R après
-  40 paniers. Cumul par les notes `"evenement": "sortie panier"` (champ `R`). Le 1er panier (12/11 14 h 50, −0,94 $)
-  a été fermé par la v7 : **ne pas le compter**. Aucun panier depuis. Heures d'entrée serveur : 03:05, 08:00, 08:30,
-  12:00, 15:45, 16:00, 16:30.
-- La mise à jour v8 a fermé 4 petites positions (dont un `elan_m15` ouvert à 23:00 serveur) : sorties orphelines.
+## Robot : version 9 publiée le 12/11 ≈ 23 h 15 (+ `repli_ind`) — vérifier `version_installee` = 9 et la note « demarrage »
+- **Règle (Baptiste) : ne jamais publier de VERSION pendant qu'un panier `bt_or` est ouvert** (un changement de
+  version ferme tout sauf les positions d'indices). Vérifier : dernière note `bt_or` de `robot_journal.jsonl` et
+  `positions_robot` de `etat.json` (XAUUSD avec stop à ≈ 55-70 $ du prix = `bt_or`).
+- `bt_or` : arrêt à −20 R cumulés ou moyenne < −0,3 R après 40 paniers ; cumul par les notes « sortie panier »
+  (champ `R`). 1er panier (12/11, −0,94 $) coupé par la v7 : non compté. Aucun panier depuis. Heures d'entrée
+  serveur : 03:05, 08:00, 08:30, 12:00, 15:45, 16:00, 16:30.
+- `repli_ind` (`mt5/robot/repli_ind.py`) : NAS100+, SP500+, DJ30+, GER40+, lot minimal, RSI 2 j < 10 et > moyenne
+  200 j, stop 2 ATR, sortie > moyenne 5 j ou 10 jours. **Arrêt : somme des trades < −1 500 bp ou moyenne < −20 bp
+  après 60 trades** (champ `bp` des notes « sortie » ; pour une sortie au stop, calculer avec `executions`).
+  À vérifier au prochain passage : notes « erreur » `repli_ind` (symbole absent ?), puis au premier trade le champ
+  `notionnel` (ce que vaut un lot minimal). `analyse_robot.py` multiplie par 100 × lots (contrat de l'or) : faux
+  pour les indices → lire le champ `profit`/`bp` des notes.
+- `fcassure_m1` : couper à 300 trades s'il reste dans la marge du témoin (97 au passage 24).
 - Candidat de midi étiqueté `midi_agite_f/_c`, `midi_calme_f/_c` ; mélange fixé = `midi_agite_f`.
-- `fcassure_m1` : même règle que `elan_m1`, couper à 300 trades s'il reste dans la marge du témoin (95 au passage 23).
-- **À faire ensuite** : (1) quand `mt5/donnees/nas_d1_5k`, `sp_d1_5k` arrivent : comparer aux bougies Yahoo, mesurer
-  spread et swap réels, puis décider de mettre le repli d'indices (`repli_ind`, RSI 2 j < 10, > moyenne 200 j, sortie
-  > moyenne 5 j ou 10 j, stop 2 ATR, `NAS100+` et `SP500+`, 0,01 lot... vérifier le lot minimal) dans le robot ; il
-  tient plusieurs jours, donc même contrainte de version que `bt_or`. Règle d'arrêt à écrire avant. (2) quand
-  `xag_m5_90k`, `btc_m5_90k`, `eth_m5_90k` arrivent : `banc_blocktrend.py` sur ces marchés. (3) `analyse_robot.py` :
-  tableau des paniers `bt_or`. (4) BlockGrille, BlockFinMois (effet de fin de mois sur indices, Yahoo jour : rapide).
+- **À faire ensuite (PRIORITES 22 h 40)** : améliorer le repli d'indices en avance glissante, essais comptés :
+  (1) plus d'indices (Dow, CAC, EU50, Nikkei… via Yahoo ; noms du courtier à trouver : demander D1 de `DJ30+`,
+  `GER40+` et essayer `JPN225+`, `FRA40+`, `EU50+`) ; or et argent avec la même logique ; H4/H1 ; (2) sorties
+  (objectif, stop, durée) ; (3) taille (risque fixe, volatilité, positions simultanées) ; (4) filtres. Rendre le
+  tableau « base / améliorée » : gain par an, pire baisse, trades par an, et taille pour 1 % par jour avec le
+  risque (`banc_objectif.py`). Point de départ : `banc_blockrange_ohlc.py` (`trades()`, cache `data/ohlc_*.csv.gz`).
+- Ensuite : faire survivre `bt_or` aux changements de version ; BlockGrille, BlockFinMois ; tableau des paniers
+  `bt_or` dans `analyse_robot.py`.
 - Clone neuf : `mkdir data` avant `python3 donnees.py` ; essais du robot : copier `mt5/robot/*.py` dans un dossier
-  temporaire et lancer `PYTHONPATH=<dépôt>/copy_sim/forex python3 essais_robot.py`.
+  temporaire, `PYTHONPATH=<dépôt>/copy_sim/forex python3 essais_robot.py` ; contrôle du texte :
+  `lanceur_robot.controle_source`.
 
 ## Recherche large sur le scalp XAUUSD (PRIORITES 12/11 12 h 30 et 12 h 40) : où j'en suis
 Fait : 1. ordres limites (banc K, réfuté) ; 2. concepts de liquidité (banc L, rien ; à creuser : cassure du range
