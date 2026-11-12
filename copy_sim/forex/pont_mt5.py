@@ -700,6 +700,8 @@ def main() -> None:
         tableau_bord.demarrer(mt5, lanceur)
     except Exception:
         log.exception("tableau de bord (le pont continue sans)")
+    import autres_robots                       # export en lecture seule des autres robots du compte, toutes les 5 min
+    autres = autres_robots.Export(mt5, sortie)
     dernier_push = 0.0
     log.info("pont demarre")
     while True:
@@ -719,6 +721,13 @@ def main() -> None:
             with VERROU:
                 etat = passage(mt5, sortie, lire_distant("consigne.json"), lire_distant("demandes_donnees.json"),
                                fichier_local, robot=lanceur.etat())
+            try:
+                if not args.une_fois and etat.get("arret") is None:
+                    r = autres.exporter()
+                    if r:
+                        log.info("autres robots : %s", r)
+            except Exception:
+                log.exception("export des autres robots (le pont continue)")
             log.info("tour : %s%s", etat["consigne"], " | " + etat["arret"] if etat["arret"] else "")
             if not args.sans_push and time.time() - dernier_push >= PERIODE_PUSH and publier():
                 dernier_push = time.time()
