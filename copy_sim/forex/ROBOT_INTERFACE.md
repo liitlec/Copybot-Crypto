@@ -33,7 +33,7 @@ dans `positions_robot`.
 ## Règles appliquées par le pont (refus sinon)
 - Compte démo vérifié à chaque ordre ; `STOP_PONT` = aucun ordre et robot arrêté.
 - Stop obligatoire à l'ouverture, du bon côté du prix ; impossible de le retirer.
-- 0,50 lot par position ; 10 positions au plus, pont et robot ensemble ; 30 ordres par minute au plus.
+- 0,50 lot par position ; 30 positions au plus, pont et robot ensemble ; 30 ordres par minute au plus.
 - Garde-fou : perte du jour (heure de Paris) des positions du pont et du robot au-delà de 5 % de la valeur du compte
   au début du jour = plus d'ouverture jusqu'au lendemain (fermetures permises).
 - Le robot ne touche qu'à ses positions (numéro magique 20261112) ; celles de la consigne et les robots de Baptiste

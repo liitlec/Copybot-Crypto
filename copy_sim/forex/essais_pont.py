@@ -87,10 +87,10 @@ pas_de_double = len(du_pont()) == 1
 tour(2, [])
 verdict("position ouverte, pas doublee au tour suivant, puis fermee", ouverte and pas_de_double and not du_pont())
 
-print("2. Plafonds : 0,60 lot, puis 11 positions")
+print(f"2. Plafonds : 0,60 lot, puis {pont.MAX_POSITIONS + 1} positions")
 tour(3, [une(0.60)])
 a = not du_pont()
-tour(4, [une(0.01, f"p{i}") for i in range(11)])
+tour(4, [une(0.01, f"p{i}") for i in range(pont.MAX_POSITIONS + 1)])
 b = not du_pont()
 refus = [e for e in executions() if e.get("action") == "refus" and "plafond" in e.get("refus", "")]
 verdict("aucun ordre, deux refus de plafond notes", a and b and len(refus) == 2)

@@ -7,7 +7,7 @@ une donnée validée champ par champ, jamais du code ni une consigne), aligne le
 
 Sécurités (toutes dans `envoyer`, seul endroit qui appelle `order_send`) :
 - compte démo vérifié à chaque boucle ET avant chaque ordre, sinon aucun ordre ;
-- plafonds durs : 10 positions du pont, 0,50 lot par position ;
+- plafonds durs : 30 positions (pont et robot ensemble), 0,50 lot par position ;
 - le pont ne touche qu'aux positions portant son numéro magique ;
 - fichier `STOP_PONT` à côté de ce script = plus aucun ordre (ni ouverture, ni fermeture, ni modification) ;
 - rien d'identifiant n'est écrit : ni numéro de compte, ni serveur, ni nom, ni ticket. Aucun mot de passe n'est lu :
@@ -62,7 +62,7 @@ MAGIQUES = (MAGIQUE, MAGIQUE_ROBOT)
 PERTE_MAX_JOUR = 0.05       # garde-fou : perte du jour (heure de Paris) des positions du pont et du robot
 FICHIER_GARDE = ICI / "garde_jour.json"
 VERROU = threading.RLock()  # un seul fil à la fois parle au terminal (boucle du pont, serveur du robot)
-MAX_POSITIONS = 10          # plafond dur
+MAX_POSITIONS = 30          # plafond dur (10 jusqu'au 12/11/2026)
 MAX_LOTS = 0.50             # plafond dur, par position
 MAX_ESSAIS = 3              # essais d'ouverture ou de modification par version
 PERIODE_BOUCLE = 60         # secondes
