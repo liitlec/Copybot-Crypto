@@ -156,3 +156,17 @@ Le compte démo porte aussi les anciens robots de Baptiste (BlockTrend, BlockRan
 ajoutés à la suite : `pandas.read_csv(..., compression="gzip")` les lit d'un trait). Robots : BlockFIFO (701100),
 BlockTrend (7021xx, paniers BT/BTS/BTI), BlockRange (7031xx), BlockGrille (7041xx). `n` = numéro relatif, heures =
 serveur du courtier ; stop et objectif inconnus pour les positions fermées. Lecture seule : le pont n'y touche jamais.
+
+## 12/11/2026, 8 h 15 (Paris) : plusieurs positions à la fois pour une même hypothèse
+Baptiste laisse tourner ses anciens robots sur le compte (ce sont des données pour toi), et veut que ton robot puisse
+**ouvrir plusieurs positions en même temps pour une même stratégie** quand elle le demande (signaux qui se suivent,
+entrées échelonnées, plusieurs symboles pour la même idée).
+- Autorisé : supprime la règle « une position au plus par hypothèse » de ton robot là où c'est utile. Garde pour
+  chaque hypothèse son propre plafond de positions simultanées, écrit dans le code, et compte ses résultats par
+  position, toujours étiquetés par hypothèse.
+- Le plafond du pont passe à 30 positions au total (demandé côté PC, voir `copy_sim/forex/MISSION_POSITIONS.md`) ;
+  tant que `etat.json` montre `plafonds.positions` = 10, reste sous 10. Un stop par position, 0,50 lot au plus par
+  position, garde-fou −5 % par jour : inchangés.
+- Attention à ne pas confondre « plusieurs positions » et « moyenne à la baisse » : ajouter des positions à une idée
+  qui perd, c'est la martingale qui a coûté cher à BlockFIFO (−6 269 $ en 1 507 trades). Si tu ajoutes, dis pourquoi,
+  et compte la perte maximale de l'ensemble.
