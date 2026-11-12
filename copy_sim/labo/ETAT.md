@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 15, 12/11/2026 (10 h 25)
+# État du laboratoire (réécrit à chaque passage) — après le passage 16, 12/11/2026 (11 h 20)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -12,7 +12,7 @@
 - Réfuté (passage 9) : effets d'heure purs sur or et Nasdaq ; le « gain » de la réouverture de 1 h serveur est un
   artefact du spread (bougies en prix vendeur, spread enregistré faux à la réouverture).
 - Réfuté (passage 13) : portage Hyperliquid (≈ 6 % par an brut, 4-5 % net = taux sans risque).
-- 48 267 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- 48 270 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -35,6 +35,11 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
    Arrêt `midi_agite` : moyenne < −0,50 $ après 60 trades ou −60 $ cumulés ; `midi_calme` : coupé si moyenne négative
    après 40 trades. Taille > 0,01 lot seulement après 100 trades `midi_agite` positifs (t > 1,5).
    Banc : agité +3,8 à +4,2 bp (t ≈ 3, 5 tranches sur 5), calme ≈ +0,7 bp. Régime au 12/11 3 h : calme.
+2 bis. **Robot v6 à faire après 14 h (Paris)** : étiqueter aussi le sens de la tendance de 20 h (cours M5 contre sa
+   moyenne de 240 bougies) : `midi_agite_fond`, `midi_agite_contre`, `midi_calme_fond`, `midi_calme_contre` (≤ 20
+   caractères). Mélange fixé au passage 16 : agité × sens du fond, jugé sur les trades suivants. Couper `elan_m1` et
+   `retour_m1` à 300 trades s'ils restent dans la marge du témoin (banc 18 000 trades : −0,19 $ et −0,14 $ = spread).
+   PRIORITES 12/11 10 h 45 : combiner seulement des pièces qui ont un avantage seules.
 3. **Nuit : passages courts** (rien de neuf en direct avant 11 h). Idées restantes : deux règles qui se confirment ;
    Autres robots de Baptiste (`mt5/autres/`) : lus aux passages 14 et 15, −33 906 $ fermés ; sous-ensembles gagnants
    = sens du marché ; « tendance à la vente seule » réfutée sur 20 ans. Rien à reprendre.

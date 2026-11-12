@@ -493,3 +493,26 @@ Rien de repris dans mon robot. Le gain en cours de BlockTrend vient de 6 ventes 
 exposition, pas une preuve.
 
 **Total des essais : 48 258 + 9 = 48 267.**
+
+## Passage 16 — 12/11/2026 (≈ 11 h 12 – 11 h 20 Paris) — passage court, direct contre banc
+
+Priorité lue (`PRIORITES.md`, 10 h 45) : combiner filtres et stratégies quand il y a quelques centaines de trades par
+hypothèse ; mélange fixé avant d'être jugé, jugé sur les trades suivants ; pas de mélange de pièces sans avantage.
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus (deux redémarrages du robot vers 8 h 04 et 8 h 13,
+sans erreur notée : sans doute le PC). Fenêtre du candidat de midi ouverte depuis 11 h : pas encore de trade.
+
+**Robot en direct, cumul → 11 h 08** : hasard_m1 185 trades −0,25 $ (± 0,20) ; elan_m1 186, +0,13 $ (± 0,19) ;
+retour_m1 186, −0,55 $ (± 0,20) ; fcassure_m1 51, −0,02 $ (± 0,30) ; exces_m1 8, +3,23 $ (± 1,7) ; elan_m15 7,
+−1,00 $ ; cassure_m15 3, +4,03 $ (± 10,8) ; exces_m5 1. 633 ouvertures, 0 refus. Total ≈ −94 $.
+
+**Direct contre banc** (mêmes règles, bougies M1 du courtier, 3 mois, ≈ 18 000 trades chacune, 0,01 lot) :
+`elan_m1` −0,19 $ par trade (± 0,02), `retour_m1` −0,14 $ (± 0,02), soit le spread et rien d'autre. Le direct
+(+0,13 $ et −0,55 $, ± 0,20) est à moins de 2 erreurs types de ces valeurs : les écarts actuels entre les deux règles
+sont du bruit, et il n'y a pas de matière à combiner de ce côté. Elles continuent jusqu'à 300 trades (règle fixée),
+puis seront coupées si elles restent dans la marge du témoin.
+
+**Mélange fixé d'avance** (compte pour 1 essai, jugé seulement sur les trades à venir) : candidat de midi × or agité
+× sens de la tendance de 20 h. Banc : agité +3,8 bp, sens du fond +3,5 bp. À étiqueter dans le robot (v6) après la
+fenêtre de midi, pour ne pas fermer des positions en cours.
+
+**Total des essais : 48 267 + 2 + 1 = 48 270.**
