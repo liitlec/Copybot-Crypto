@@ -137,3 +137,15 @@ https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj (privée, à son compte), fabr
   chaque candidat, résultat au banc à côté du direct, tout ce qui aide Baptiste à lire. Garde-la lisible sur
   téléphone, en français simple, sans identifiant ni chemin de son PC.
 - Si la publication échoue, note-le dans ETAT.md et continue : ce n'est pas bloquant.
+
+## 12/11/2026, 8 h (Paris) : étudie aussi les trades des autres robots du compte
+Le compte démo porte aussi les anciens robots de Baptiste (BlockTrend, BlockRange, BlockGrille, BlockFinMois…) : le
+12/11 au matin leurs positions faisaient environ +650 $ en cours. Baptiste veut que tu en tires ce que tu peux.
+- Dès que `mt5/autres/ouvertes.json` et `mt5/autres/historique.csv.gz` existent (export demandé côté PC, voir
+  `copy_sim/forex/MISSION_AUTRES.md`), analyse-les comme tes propres hypothèses : résultat par robot après coûts,
+  nombre de trades, taille, perte maximale, et surtout **comment** ils gagnent (tendance, grille, moyenne à la baisse,
+  taille qui grossit après une perte…). Un gain en cours n'est pas un gain : une grille ou une martingale gagne
+  souvent longtemps puis rend tout ; dis-le si c'est le cas.
+- Si un de leurs principes tient, reprends-le comme hypothèse dans ton robot et juge-le comme les autres.
+- Ajoute-les à la page de suivi dans une section à part (« Autres robots du compte »), sans jamais les mélanger aux
+  tiens. Tu n'as aucun droit d'agir sur leurs positions.
