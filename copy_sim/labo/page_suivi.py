@@ -123,6 +123,59 @@ def gras(t):
     return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", re.sub(r"`(.+?)`", r"<code>\1</code>", e(t)))
 
 
+NOTES_AUTRES = {  # lecture du labo (passage 14) : comment chaque robot gagne ou perd
+    "BlockFIFO": "Gagne petit très souvent, puis rend tout en un jour : moyenne à la baisse.",
+    "BlockTrend": "Suivi de tendance à grosses tailles : la plupart des jours perdants.",
+    "BlockRange": "Quatre positions, trois sorties au stop.",
+    "BlockGrille": "Grille sur beaucoup de marchés : à peu près nul, moitié de sorties au stop.",
+}
+
+
+def autres_html():
+    """Section « Autres robots du compte » (ceux de Baptiste, jamais mélangés à ceux du labo). Vide si pas d'export."""
+    import csv, gzip
+    hist, ouv = ICI / "mt5" / "autres" / "historique.csv.gz", ICI / "mt5" / "autres" / "ouvertes.json"
+    if not hist.exists():
+        return ""
+    par, jours = defaultdict(list), defaultdict(lambda: defaultdict(float))
+    with gzip.open(hist, "rt", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            try:
+                net = float(r["resultat"]) + float(r["commission"] or 0) + float(r["swap"] or 0)
+                jour = int(r["fermeture_heure_serveur"]) // 86400
+            except (ValueError, KeyError, TypeError):
+                continue
+            par[r["robot"]].append(net)
+            jours[r["robot"]][jour] += net
+    try:
+        cours = json.loads(ouv.read_text(encoding="utf-8")).get("par_robot", {})
+    except (OSError, ValueError):
+        cours = {}
+    lignes = []
+    for nom in sorted(set(par) | set(cours), key=lambda k: sum(par.get(k, [0]))):
+        xs, c = par.get(nom, []), cours.get(nom, {})
+        tot = sum(xs)
+        j = jours.get(nom, {})
+        lignes.append(
+            f"<tr><td><span class='nom'>{e(nom)}</span><span class='desc'>{e(NOTES_AUTRES.get(nom, ''))}</span></td>"
+            f"<td class='n'>{len(xs)}</td><td class='n {'pos' if tot > 0 else 'neg'}'>{usd(tot) if xs else '—'}</td>"
+            f"<td class='n'>{f'{100 * sum(x > 0 for x in xs) / len(xs):.0f} %' if xs else '—'}</td>"
+            f"<td class='n'>{f'{sum(v > 0 for v in j.values())} sur {len(j)}' if j else '—'}</td>"
+            f"<td class='n neg'>{usd(min(j.values())) if j else '—'}</td>"
+            f"<td class='n'>{c.get('positions', 0)}</td>"
+            f"<td class='n {'pos' if c.get('resultat_en_cours', 0) > 0 else 'neg'}'>{usd(c.get('resultat_en_cours', 0)) if c else '—'}</td></tr>")
+    total = sum(sum(v) for v in par.values())
+    return f"""<section>
+  <h2>Autres robots du compte (ceux de Baptiste, pas ceux du labo)</h2>
+  <div class="defile"><table>
+    <tr><th>Robot</th><th class="n">Trades fermés</th><th class="n">Total fermé</th><th class="n">Gagnants</th><th class="n">Jours gagnants</th><th class="n">Pire jour</th><th class="n">Positions</th><th class="n">En cours</th></tr>
+    {''.join(lignes)}
+  </table></div>
+  <p class="note">Total fermé de ces robots depuis l'ouverture du compte : <b>{usd(total)}</b>. Un gain « en cours » n'est pas un gain : il n'est acquis qu'une fois la position fermée. Le labo ne touche jamais à ces positions.</p>
+</section>
+"""
+
+
 def page():
     etat, par_hyp, par_heure, derniers, actives, titre_avis, avis, par_jour = lire()
     JOURS = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
@@ -242,12 +295,12 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
 </header>
 {alerte}
 <section class="chiffres">
-  <div class="chiffre"><span>Valeur du compte démo</span><b>{usd(etat.get('valeur', 0), False)}</b></div>
-  <div class="chiffre"><span>En cours sur les positions ouvertes</span><b class="{'pos' if etat.get('valeur', 0) - etat.get('solde', 0) > 0 else 'neg'}">{usd(etat.get('valeur', 0) - etat.get('solde', 0))}</b></div>
+  <div class="chiffre"><span>Valeur du compte démo (tous robots)</span><b>{usd(etat.get('valeur', 0), False)}</b></div>
+  <div class="chiffre"><span>En cours, tous robots du compte</span><b class="{'pos' if etat.get('valeur', 0) - etat.get('solde', 0) > 0 else 'neg'}">{usd(etat.get('valeur', 0) - etat.get('solde', 0))}</b></div>
   <div class="chiffre"><span>Trades fermés</span><b>{n_t}</b></div>
   <div class="chiffre"><span>Total des trades fermés</span><b class="{'pos' if sum(tous) > 0 else 'neg'}">{usd(sum(tous)) if tous else '—'}</b></div>
   <div class="chiffre"><span>Trades gagnants</span><b>{f"{100 * sum(x > 0 for x in tous) / n_t:.0f} %" if tous else '—'}</b></div>
-  <div class="chiffre"><span>Positions ouvertes</span><b>{len(etat.get('positions_robot') or [])}</b></div>
+  <div class="chiffre"><span>Positions ouvertes du labo</span><b>{len(etat.get('positions_robot') or [])}</b></div>
 </section>
 <section>
   <h2>Les candidats</h2>
@@ -285,7 +338,7 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
     </table></div>
   </div>
 </section>
-<section>
+{autres_html()}<section>
   <h2>Les 20 derniers trades fermés</h2>
   <div class="defile"><table>
     <tr><th>Heure</th><th>Hypothèse</th><th>Sens</th><th class="n">Entrée</th><th class="n">Sortie</th><th>Raison</th><th class="n">Résultat</th></tr>

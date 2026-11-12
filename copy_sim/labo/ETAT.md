@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 13, 12/11/2026 (8 h 30)
+# État du laboratoire (réécrit à chaque passage) — après le passage 14, 12/11/2026 (9 h 30)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -36,7 +36,7 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
    après 40 trades. Taille > 0,01 lot seulement après 100 trades `midi_agite` positifs (t > 1,5).
    Banc : agité +3,8 à +4,2 bp (t ≈ 3, 5 tranches sur 5), calme ≈ +0,7 bp. Régime au 12/11 3 h : calme.
 3. **Nuit : passages courts** (rien de neuf en direct avant 11 h). Idées restantes : deux règles qui se confirment ;
-   lire `mt5/autres/` (historique des autres robots de Baptiste : y a-t-il un robot gagnant à étudier ?).
+   Autres robots de Baptiste (`mt5/autres/`) : lus au passage 14, −33 906 $ fermés, aucun principe à reprendre.
    Positions multiples : autorisées (PRIORITES 12/11 8 h 15) mais inutiles pour le candidat (JOURNAL passage 13).
    **À partir de 11 h : priorité à la lecture des trades `midi_*` et à la page de suivi.** Étiqueter dans le robot le sens du fond (v6) si le direct de
    midi donne assez de trades.
@@ -59,12 +59,10 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 - La session redémarre souvent en plein passage : committer tôt ; plusieurs déclenchements peuvent arriver d'un coup
   (les traiter en un seul passage).
 
-## Page de suivi (PRIORITES, entrée de 23 h)
-Dernière étape de chaque passage, après le push : `git pull --rebase`, `python3 copy_sim/labo/page_suivi.py`, puis
-outil Artifact : « read » de https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj puis publish avec cette `url` et
-`file_path` = `copy_sim/reports/labo_suivi.html`. Relire le fichier avant de publier (ni identifiant ni chemin du PC).
-Passages 7 et 8 (nuit) : la publication demande une approbation que personne ne donne la nuit, et la session
-redémarre → non publiée. **Ne réessayer qu'entre 8 h et 23 h (Paris), une seule fois par passage, en tout dernier.**
+## Page de suivi (PRIORITES, entrée du 11/11 23 h)
+`page_suivi.py` est tenu à jour (section « Autres robots du compte » ajoutée au passage 14). **Ne plus tenter de
+publier depuis cette session** : l'outil attend une approbation que personne ne donne, puis la session redémarre
+(passages 7, 8, 13). La conversation de suivi publie la page de son côté (vu à 7 h 52 le 12/11).
 
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.

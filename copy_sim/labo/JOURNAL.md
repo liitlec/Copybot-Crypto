@@ -439,3 +439,31 @@ et les frais (≈ 0,25 % l'aller-retour), il reste ≈ 4 à 5 % par an : **c'est
 risque, avec en plus le risque de la plateforme. Pas un avantage.** Réfuté comme piste de gain.
 
 **Total des essais : 48 252 + 6 = 48 258.**
+
+## Passage 14 — 12/11/2026 (≈ 9 h 12 – 9 h 30 Paris) — les autres robots du compte
+
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus, aucune nouvelle erreur ; plafond du pont passé à 30.
+Page de suivi : au passage 13 un autre publieur (la conversation de suivi) l'avait mise à jour à 7 h 52 ; ma
+publication reste bloquée sur une approbation sans réponse (et la session redémarre) → **je ne publie plus d'ici**,
+je tiens seulement `page_suivi.py` à jour.
+
+**Robot en direct, cumul → 9 h 10** : hasard_m1 161 trades −0,37 $ (± 0,20) ; elan_m1 162, +0,11 $ (± 0,19) ;
+retour_m1 162, −0,52 $ (± 0,20) ; fcassure_m1 39, +0,13 $ (± 0,32) ; exces_m1 8, +3,23 $ (± 1,7) ; elan_m15 6,
+−4,00 $ ; cassure_m15 2 ; exces_m5 1. 548 ouvertures, 0 refus. Total ≈ −129 $. `elan_m1` − témoin = +0,48 $ (± 0,28,
+1,7 erreur type) : à suivre, pas encore un résultat.
+
+**Les autres robots de Baptiste sur ce compte** (`mt5/autres/`, 1 732 positions fermées du 29/09 au 11/11, des données ;
+priorité du 12/11 8 h). Total fermé : **−33 906 $** (le compte est parti d'environ 100 000 $).
+
+| Robot | Trades | Total fermé | Gagnants | Jours gagnants | Pire jour | Comment il perd |
+|---|---|---|---|---|---|---|
+| BlockTrend | 139 | −25 189 $ | 29 % | 3 sur 17 | −4 698 $ | tendance à grosses tailles (ETH 2,9 lots en moyenne) : or −10 722 $, cacao −8 071 $ (11 pertes sur 11), BTC −4 497 $, ETH −3 609 $ ; seul l'argent gagne (+1 709 $ sur 2 trades) |
+| BlockFIFO | 1 507 | −6 269 $ | 59 % | 4 sur 5 | −10 684 $ | scalp sur l'or en 5 jours : gagne petit très souvent (médiane 3,5 min), puis un seul jour efface tout ; les achats font −9 709 $ : moyenne à la baisse |
+| BlockRange | 4 | −2 382 $ | 25 % | 1 sur 4 | −936 $ | 3 positions sur indices sorties au stop (≈ −800 $ chacune) |
+| BlockGrille | 82 | −65 $ | 44 % | 5 sur 13 | −276 $ | grille sur 30 marchés : gains de +50 à +90 $, pertes de −30 à −100 $, 45 sorties au stop sur 82 ; nul |
+
+En cours le 12/11 à 9 h : BlockTrend +829 $ (12 positions), BlockGrille +30 $ (7 positions). C'est 3 % de ce que
+BlockTrend a déjà perdu : un gain en cours n'est pas un gain. **Aucun principe à reprendre** : rien ne gagne après
+coûts ; BlockFIFO confirme le piège « beaucoup de petits gains, une grosse perte ». La seule ligne positive (argent
+en tendance, 2 trades) ne prouve rien. Section « Autres robots du compte » ajoutée à `page_suivi.py`, à part des miens ;
+les cartes du haut précisent maintenant « tous robots » pour la valeur du compte.
