@@ -304,3 +304,17 @@ l'or tend (+66 $) et perd un peu au calme (−7 $) ; `exces_m1` fait l'inverse (
 - **Optimisation** (seuils, durées, poids de chaque stratégie dans le mélange) : seulement en avance glissante
   (réglé sur une période, jugé sur la suivante), avec peu de paramètres à la fois, essais comptés, et en préférant
   des réglages stables (un plateau) à un pic isolé. Le réglage retenu est jugé ensuite sur le direct, à petite taille.
+
+## 12/11/2026, 22 h 40 (Paris) : rythme toutes les 4 heures ; pousser le rendement du repli d'indices (BlockRange)
+- Passages **toutes les 4 heures** (3 h 10, 7 h 10, 11 h 10, 15 h 10, 19 h 10, 23 h 10, Paris) jusqu'à la remise à
+  zéro de la limite hebdomadaire (vers le mercredi 18/11 en fin d'après-midi) : l'avertissement de limite est actif.
+- Baptiste veut savoir **comment modifier la règle de BlockRange pour en tirer le maximum de %**, sans la casser :
+  1. **plus de trades** : plus d'indices (Nasdaq, S&P 500, Dow, DAX, Nikkei, CAC, EU50…, mais pas le FTSE), repli
+     un peu plus large ou un peu plus court, entrée en H4/H1 en plus du jour, achat aussi sur l'or ou l'argent si la
+     même logique y tient ;
+  2. **meilleures sorties** : objectif, stop, durée, sortie partielle ;
+  3. **taille** : taille fixe en % de risque, taille selon la volatilité, nombre de positions en même temps ;
+  4. **filtres** : tendance plus longue, régime de volatilité, jours ou heures à éviter.
+  Avance glissante obligatoire, essais comptés, réglages stables préférés. Donne à Baptiste un tableau « version de
+  base / version améliorée » : gain par an, pire baisse, trades par an, et ce qu'il faudrait comme taille pour viser
+  1 % par jour avec le risque chiffré. Mets la meilleure version prouvée en essai sur la démo (petite taille).
