@@ -641,3 +641,37 @@ Non couvert : swap de quelques jours, trous de réouverture sur le stop, autres 
 cacao : pas de bougies demandées), BlockGrille / BlockRange / BlockFinMois (règles lues, pas encore refaites).
 
 **Total des essais : 48 522 + 17 + 10 = 48 549.**
+
+## Passage 20 — 12/11/2026 (≈ 14 h 15 – 14 h 50 Paris) — robot v6 : la mécanique de BlockTrend en essai
+
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus. Premier trade du candidat de midi : `midi_agite`
+−0,06 $ (1 trade : l'or est repassé « agité » en fin de matinée).
+**Robot en direct, cumul → 14 h 14** : hasard_m1 222 trades −0,18 $ (± 0,19) ; elan_m1 223, +0,07 $ (± 0,18) ;
+retour_m1 223, −0,44 $ (± 0,18) ; fcassure_m1 67, −0,07 $ ; exces_m1 10, +2,95 $ (± 1,5) ; elan_m15 8 ;
+cassure_m15 3 ; exces_m5 1 ; midi_agite 1. 765 ouvertures, 0 refus. Total ≈ −85 $.
+
+**Robot version 6** (`mt5/robot/` : `robot.py`, nouveau `bt_or.py`, `essais_robot.py`, `VERSION` = 6) :
+- **`bt_or`** : la mécanique de BlockTrend sur l'or, réglage serré, **3 positions au plus par panier**, 0,01 lot par
+  position, un panier par côté. Sens = clôture M5 contre son EMA de 2 jours ; entrée à la clôture des bougies M5 de
+  03:05, 08:00, 08:30, 12:00, 15:45, 16:00, 16:30 (serveur) ; ajout dans le sens du gain à chaque pas de 0,25 ATR jour
+  (sauté si la clôture est déjà à plus d'un demi-pas au-delà) ; sortie de tout le panier sur un recul de 0,667 ATR
+  depuis le meilleur prix (tenu par le robot à chaque seconde) ; stop de secours chez le courtier 25 % plus loin,
+  remonté à chaque bougie M5. Étiquettes `bt_or_1`, `bt_or_2`, `bt_or_3`.
+- **Règle d'arrêt écrite avant le premier trade** : arrêt à **−20 R cumulés** (le pire creux du banc sur 15 mois est
+  −18 R), ou si la moyenne est sous −0,3 R après 40 paniers. 1 R = 0,667 × ATR jour × 1 once, soit ≈ 40 à 60 $ à
+  0,01 lot ; −20 R ≈ −1 000 $ sur la démo. Attendu au banc : +0,38 R par panier, 28 % de gagnants, donc de longues
+  séries de pertes d'environ 1 R sont **normales** (les 2 derniers mois : 40 paniers, −7,5 R).
+- Vérification : le module du robot rejoué sur les 12 000 dernières bougies M5 réelles (`rejeu_bt.py`) prend
+  exactement les mêmes 40 paniers que le banc (−12,1 R contre −7,5 R : le rejeu sort au pire prix de la bougie).
+- Candidat de midi : étiquette complétée par le sens de la tendance de 20 h (`midi_agite_f`, `_c`, `midi_calme_f`,
+  `_c`) : le mélange fixé au passage 16 (agité × sens du fond = `midi_agite_f`) est jugé sur les trades à venir.
+- Essais « ESSAIS OK » dans le bac à sable (faux pont à prix pilotés : entrée aux heures fixes seulement, spread,
+  achat/vente selon l'EMA, stop de secours, ajout au pas, niveau sauté, 3 positions au plus, stop remonté, sortie sur
+  recul, reprise après redémarrage, stop touché chez le courtier, règle d'arrêt, positions du panier non traitées
+  comme orphelines).
+Limites connues : le cumul en R repart de zéro à chaque nouvelle version du robot (le suivre par les notes « sortie
+panier » du journal) ; un changement de version ferme les paniers ouverts.
+Positions multiples : c'est le premier usage de la permission du 12/11 8 h 15 (pyramide dans le sens du gain, jamais
+contre ; perte maximale d'un panier ≈ −1,6 R si les 3 positions sont stoppées au plus mauvais moment).
+
+**Total des essais : 48 549 (inchangé).**

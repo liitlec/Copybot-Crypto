@@ -1,4 +1,4 @@
-"""Robot du labo, version 5 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
+"""Robot du labo, version 6 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
 
 Neuf hypotheses en parallele, une position au plus chacune, stop chez le courtier sur chaque position, sortie au temps.
 Trois tournent en continu en M1 (dont le temoin au hasard, a la meme cadence), six attendent un evenement.
@@ -10,7 +10,9 @@ import math
 import random
 import time
 
-VERSION = 5
+import bt_or
+
+VERSION = 6
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -109,6 +111,7 @@ class Robot:
         self.vu = {}            # periode -> heure de la derniere bougie fermee deja traitee
         self.ouvert = {}        # hypothese -> {"ticket", "sens", "sortie", "entree", "profit"}
         self.info = None
+        self.bt = bt_or.PanierBT(pont)
         self.charger()
 
     # -------------------------------------------------- memoire (fichier dans le dossier du robot)
@@ -134,7 +137,7 @@ class Robot:
     def reconcilier(self):
         """Aligne la memoire sur le compte : note les stops touches, ferme les positions orphelines."""
         ps = {p["ticket"]: p for p in self.pont.positions()}
-        connus = set()
+        connus = set(self.bt.tickets())                 # les paniers bt_or sont geres par bt_or.py
         for nom, o in list(self.ouvert.items()):
             p = ps.get(o["ticket"])
             if p is None:
@@ -167,15 +170,24 @@ class Robot:
                 else:                                    # marche ferme ou refus : on reessaie dans une minute
                     o["sortie"] = maintenant + 60
 
-    def etiquette(self, nom):
-        """Nom sous lequel le trade est note. Le candidat de midi est note selon le regime de l'or du moment."""
+    def etiquette(self, nom, sens=0):
+        """Nom sous lequel le trade est note. Le candidat de midi est note selon le regime de l'or du moment
+        (agite / calme) et selon qu'il va dans le sens de la tendance de 20 h (_f) ou contre (_c)."""
         if nom != "ecart_midi_m5":
             return nom
         try:
             a = agite(self.pont.bougies(SYMBOLE, "H1", 1500)[:-1])
         except Exception:
             a = None
-        return {True: "midi_agite", False: "midi_calme"}.get(a, nom)
+        base = {True: "midi_agite", False: "midi_calme"}.get(a, nom)
+        try:
+            c = [x[4] for x in self.pont.bougies(SYMBOLE, "M5", 245)[:-1]]
+            fond = (c[-1] > sum(c[-240:]) / 240) - (c[-1] < sum(c[-240:]) / 240) if len(c) >= 240 else 0
+        except Exception:
+            fond = 0
+        if a is None or not fond or not sens:
+            return base
+        return base + ("_f" if sens == fond else "_c")
 
     def ouvrir(self, nom, sens, b, maintenant):
         px = self.pont.prix(SYMBOLE)
@@ -189,7 +201,7 @@ class Robot:
         e = ecart_stop(b, mini)
         ch = self.info["chiffres"]
         stop = round(px["bid"] - e, ch) if sens > 0 else round(px["ask"] + e, ch)
-        nom_note = self.etiquette(nom)
+        nom_note = self.etiquette(nom, sens)
         r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom_note)
         if r.get("ok") and r.get("ticket"):
             self.ouvert[nom] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
@@ -207,6 +219,8 @@ class Robot:
         maintenant = self.heure()
         ps = self.reconcilier()
         self.sorties(maintenant, ps)
+        px = self.pont.prix(SYMBOLE)
+        self.bt.surveiller(ps, px)
         if not self.pont.compte().get("ordres_autorises") or self.pont.garde_fou().get("ouvertures_bloquees"):
             return
         hs = time.gmtime(maintenant)
@@ -224,6 +238,11 @@ class Robot:
             if derniere == self.vu[periode]:
                 continue
             self.vu[periode] = derniere
+            if periode == "M5":                          # panier bt_or : entrees et ajouts a chaque bougie M5 fermee
+                long5 = bougies.get("M5long") if bougies else self.pont.bougies(SYMBOLE, "M5", 3000)
+                d1 = bougies.get("D1") if bougies else self.pont.bougies(SYMBOLE, "D1", 30)
+                if long5 and d1:
+                    self.bt.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
             for nom, hyp in HYPOTHESES.items():
                 if hyp[0] != periode or nom in self.ouvert:
                     continue

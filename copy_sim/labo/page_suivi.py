@@ -24,6 +24,14 @@ DESC = {  # texte par défaut ; une hypothèse inconnue s'affiche sans descripti
     "exces_m5": "Retour après un excès, bougies de 5 minutes, tenue 15 min.",
     "elan_m15": "Suit le mouvement sur 15 minutes.",
     "cassure_m15": "Cassure de fourchette sur 15 minutes, tenue 3 h.",
+    "bt_or_1": "Mécanique de BlockTrend sur l'or (suivi de tendance, 3 positions au plus) : 1re position du panier. "
+               "Banc 15 mois : +0,38 R par panier, 28 % de gagnants (non prouvé). Arrêt à −20 R cumulés.",
+    "bt_or_2": "Même panier : 1er ajout dans le sens du gain.",
+    "bt_or_3": "Même panier : 2e ajout dans le sens du gain.",
+    "midi_agite_f": "Retour de midi, or agité, dans le sens de la tendance de 20 h (mélange fixé d'avance).",
+    "midi_agite_c": "Retour de midi, or agité, contre la tendance de 20 h.",
+    "midi_calme_f": "Retour de midi, or calme, dans le sens de la tendance de 20 h.",
+    "midi_calme_c": "Retour de midi, or calme, contre la tendance de 20 h.",
     "midi_agite": "Candidat principal : « retour de midi » (11 h – 14 h) quand l'or est agité. Banc : +1,5 $ par trade "
                   "(non prouvé). Arrêt : moyenne sous −0,50 $ après 60 trades, ou 60 $ de perte cumulée.",
     "midi_calme": "Le même « retour de midi » quand l'or est calme. Banc : ≈ +0,3 $ par trade, pas d'avantage attendu. "
