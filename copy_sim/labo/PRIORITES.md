@@ -268,3 +268,12 @@ Baptiste veut que l'entrée de 13 h 05 s'applique à tous ses robots : BlockTren
 avec les vrais coûts, et dire ce qui tient. Pour BlockFIFO : sa mécanique (petits gains fréquents, positions ajoutées
 contre le marché) a fait −10 684 $ en une journée ; teste en priorité une version **avec un stop dur sur l'ensemble**
 et **sans ajout contre le marché**, pour voir si son entrée a un avantage une fois le risque coupé.
+
+## 12/11/2026, 16 h 40 (Paris) : sous-agents autorisés, rythme toutes les 2 heures
+- Tu passes désormais **toutes les 2 heures** (minute 10 des heures impaires, Paris) : la limite d'usage des 5 heures a
+  été atteinte le 12/11 à 15 h 10, et tes passages de 15 h 10 et 16 h 10 n'ont pas eu lieu. Rattrape-les d'abord.
+- Baptiste t'autorise à **lancer des sous-agents** quand le travail s'y prête : plusieurs familles de stratégies à
+  tester en même temps, recherches sur internet en parallèle, vérification indépendante d'un résultat.
+- Ils coûtent cher (chacun relit son contexte) : lance-les sur des tâches précises et bornées, avec des consignes
+  complètes et le format de réponse attendu ; pas plus de 3 à 4 par passage ; garde les décisions, le robot et les
+  écritures dans le dépôt pour toi. Si la limite d'usage approche, passe-t'en.
