@@ -260,3 +260,11 @@ tendance » (déjà réfuté) qu'il faut tester, c'est **sa mécanique**, visibl
 3. **Comprendre pourquoi il a perdu 25 189 $** : taille, marchés (cacao, achats d'ETH), stops trop larges, entrées
    tardives ? Si une version corrigée de sa mécanique tient hors échantillon, mets-la en essai sur la démo.
 Dis à Baptiste en clair ce que tu en retiens, même si c'est « non ».
+
+## 12/11/2026, 13 h 15 (Paris) : même travail pour **tous** les robots Block, BlockFIFO compris
+Baptiste veut que l'entrée de 13 h 05 s'applique à tous ses robots : BlockTrend, BlockFIFO, BlockRange, BlockGrille
+(et BlockFinMois s'il a tradé). Pour chacun : reconstituer la mécanique (à partir des trades, et des résumés de règles
+`labo/BLOCK_REGLES.md` si la session PC les écrit), séparer la mécanique des réglages, tester des versions corrigées
+avec les vrais coûts, et dire ce qui tient. Pour BlockFIFO : sa mécanique (petits gains fréquents, positions ajoutées
+contre le marché) a fait −10 684 $ en une journée ; teste en priorité une version **avec un stop dur sur l'ensemble**
+et **sans ajout contre le marché**, pour voir si son entrée a un avantage une fois le risque coupé.
