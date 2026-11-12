@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 7, 12/11/2026 (2 h 40)
+# État du laboratoire (réécrit à chaque passage) — après le passage 8, 12/11/2026 (3 h 30)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -9,7 +9,7 @@
 - Réfuté aussi (passage 2) : 30 règles simples de bougies sur XAUUSD en M1, M5, M15 avec le spread réel.
 - Mesuré : l'or est le moins cher (spread 0,46 bp = 28 % du mouvement M1, 11 % en M5 ; EURUSD 323 %).
 - Réfuté (passage 5) : grille de 47 628 combinaisons (or, argent, Nasdaq, S&P, DAX) : aucune à t > 2 au verdict.
-- 48 087 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
+- 48 091 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
 ## À chaque passage, d'abord
 `python3 donnees.py && python3 registre.py` puis recopier le tableau du registre dans AVIS.md.
@@ -26,11 +26,10 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
    marché) avant de couper ; couper alors ce qui est sous le témoin `hasard_m1` de plus de 2 erreurs types.
    Ajouter à `analyse_robot.py` le découpage par heure (`h_serveur` dans les notes ; serveur = Paris + 1 h).
    `ecart_midi_m5` ne trade que de 11 h à 14 h Paris : premiers trades le 12/11.
-2. **Candidat `ecart_midi_m5`** (premiers trades le 12/11 de 11 h à 14 h Paris). Règle d'arrêt (JOURNAL passage 7) :
-   arrêt si moyenne < −0,50 $ après 60 trades ou perte cumulée de 60 $ ; taille > 0,01 lot seulement après 100 trades
-   à moyenne positive (t > 1,5). Régime : gagne quand l'or est agité (mouvement M5 moyen sur 24 h > ≈ 6 bp), rien
-   sous ≈ 4,8 bp. **À faire** : coder ce filtre de volatilité dans le robot (v5) après l'avoir vérifié en avance
-   glissante dans `banc_plateau.py` ; essayer la même idée sur `NAS100+` M5.
+2. **Candidat de midi** (premiers trades le 12/11 de 11 h à 14 h Paris), noté `midi_agite` / `midi_calme` (robot v5).
+   Arrêt `midi_agite` : moyenne < −0,50 $ après 60 trades ou −60 $ cumulés ; `midi_calme` : coupé si moyenne négative
+   après 40 trades. Taille > 0,01 lot seulement après 100 trades `midi_agite` positifs (t > 1,5).
+   Banc : agité +3,8 à +4,2 bp (t ≈ 3, 5 tranches sur 5), calme ≈ +0,7 bp. Régime au 12/11 3 h : calme.
 3. **Étendre la grille** (`banc_grille.py`) : stops/objectifs dans la bougie, tendance de fond (M15/H1), deux règles
    qui se confirment, jour de semaine ; `NAS100+` en priorité (spread = 21 % du mouvement M1, moins cher que l'or).
    Demander plus d'historique par tranches (`debut`/`fin`) si le terminal en a.
@@ -44,7 +43,8 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 - Indices : `NAS100+`, `SP500+`, `DJ30+`, `GER40+` (et variantes `ft+`).
 
 ## Robot
-- v4 poussée le 12/11 ≈ 2 h 40 (comme v3 + pas d'ouverture de 23 h 50 à 1 h 10 serveur) : vérifier `version_installee` = 4.
+- v5 poussée le 12/11 ≈ 3 h 30 (v4 + étiquette de régime du candidat de midi) : vérifier `version_installee` = 5.
+- Le compte démo porte aussi d'autres robots de Baptiste : juger le mien par `analyse_robot.py`, pas par le solde.
 - Le terminal n'a pas de M5 avant juin 2025 pour l'or (demande 2024 : « aucune bougie »).
 - La session redémarre souvent en plein passage : committer tôt ; plusieurs déclenchements peuvent arriver d'un coup
   (les traiter en un seul passage).
@@ -53,6 +53,7 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 Dernière étape de chaque passage, après le push : `git pull --rebase`, `python3 copy_sim/labo/page_suivi.py`, puis
 outil Artifact : « read » de https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj puis publish avec cette `url` et
 `file_path` = `copy_sim/reports/labo_suivi.html`. Relire le fichier avant de publier (ni identifiant ni chemin du PC).
+Passages 7 et 8 (nuit) : la publication demande une approbation que personne ne donne la nuit → non publiée ; réessayer.
 
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.

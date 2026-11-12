@@ -299,3 +299,40 @@ Sur 15 mois récents : 1 224 trades, +2,24 bp, 59 % de gagnants, ≈ 3,7 trades 
   t > 1,5 et que le banc glissant reste positif.
 
 **Total des essais : 48 077 + 10 = 48 087.**
+
+## Passage 8 — 12/11/2026 (≈ 3 h 10 – 3 h 30 Paris) — filtre de régime du candidat, robot v5
+
+Registre papier : rien à ajouter. Robot v4 installé (2 h 45 env.), en marche, 0 refus, aucune nouvelle erreur.
+La page de suivi n'a pas pu être publiée au passage 7 (la publication attendait une approbation, personne la nuit).
+
+**Robot en direct, cumul 11/11 18 h 16 → 12/11 3 h 08** : hasard_m1 88 trades −0,22 $ (± 0,26) ; elan_m1 89, −0,07 $
+(± 0,24) ; retour_m1 89, −0,40 $ (± 0,25) ; fcassure_m1 28, +0,36 $ (± 0,41) ; exces_m1 5, +2,20 $ ; elan_m15 4,
+−0,58 $ (± 5,2) ; cassure_m15 2, −4,58 $ ; exces_m5 1, +0,40 $. Total de mes trades fermés ≈ −52 $ pour 312
+ouvertures. Rien ne se distingue du témoin. **Correction** : la « valeur du compte » démo (66 847 $) contient aussi
+≈ +226 $ de positions qui ne sont pas les miennes (autres robots de Baptiste sur la même démo) : pour juger mon
+robot, lire le total de ses trades, pas le solde du compte.
+
+**Filtre de régime du candidat de midi (4 essais).** Idée du passage 7 mise à l'épreuve sans regarder le futur :
+« agité » = mouvement moyen des 24 dernières heures au-dessus de sa médiane des ≈ 60 jours précédents.
+Or M5, 12-15 h serveur, règle figée (20, 2, 3 bougies), 5 tranches de 3 mois depuis août 2025 :
+
+| | Trades | Net par trade | t | Par tranche (bp) |
+|---|---|---|---|---|
+| tous | 1 224 | +2,24 bp | 2,7 | +0,6 / +4,1 / +3,9 / +1,2 / +1,4 |
+| **agité** (mesure M5) | 596 | **+4,21 bp** | 3,1 | +2,0 / +5,8 / +6,7 / +5,6 / +0,4 |
+| calme (mesure M5) | 548 | +0,65 bp | 0,6 | −1,2 / +1,9 / +0,9 / −1,4 / +2,1 |
+| agité (mesure H1, celle du robot) | 574 | +3,80 bp | 2,7 | +1,5 / +5,8 / +6,6 / +3,2 / +1,2 |
+| calme (mesure H1) | 650 | +0,87 bp | 1,0 | −0,7 / +2,0 / +1,5 / −0,0 / +1,5 |
+
+Même règle sur `NAS100+` M5 : +1,36 bp (t = 1,4) en agité, −0,15 en calme → pas un candidat. Hors de 12-15 h, le
+filtre n'apporte rien sur l'or. Réserve : le filtre vient d'une observation faite sur ce même échantillon, donc t
+est flatté ; la vraie épreuve est le direct. **État actuel : calme** (mouvement H1 moyen 12 bp, médiane 19 bp).
+
+**Robot version 5** : le candidat de midi est noté `midi_agite` ou `midi_calme` selon le régime au moment de
+l'ouverture (calculé sur 1 500 bougies H1 du courtier) ; il trade dans les deux cas à 0,01 lot pour comparer.
+Règles d'arrêt, écrites avant ses premiers trades : `midi_agite` (attendu ≈ +1,5 $ par trade, ≈ 2 par jour agité) :
+arrêt si moyenne < −0,50 $ après 60 trades ou perte cumulée de 60 $ ; `midi_calme` (attendu ≈ 0) : coupé si moyenne
+négative après 40 trades. Taille > 0,01 lot seulement après 100 trades `midi_agite` à moyenne positive (t > 1,5).
+Essais « ESSAIS OK » dans le bac à sable ; avec les vraies bougies H1 la fonction donne bien « calme » aujourd'hui.
+
+**Total des essais : 48 087 + 4 = 48 091.**

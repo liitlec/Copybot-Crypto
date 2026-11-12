@@ -120,6 +120,16 @@ r3.tour({"M1": m1, "M5": m5, "M15": m15})
 m5d = [[x[0] + 300] + x[1:] for x in m5]
 r3.tour({"M1": m1, "M5": m5d, "M15": m15})
 assert "ecart_midi_m5" in r3.ouvert and r3.ouvert["ecart_midi_m5"]["sens"] == -1, sorted(r3.ouvert)
+assert r3.ouvert["ecart_midi_m5"]["note"] == "midi_calme", "faux terminal : H1 plat = regime calme"
+assert any(o.get("comment", "").endswith("midi_calme") for o in faux_mt5.ordres_recus), "etiquette dans l'ordre"
+import math
+calme_h1 = [[i * 3600, 0, 0, 0, 2650.0 * math.exp(0.0002 * (i % 2)), 1, 19] for i in range(1500)]
+assert robot.agite(calme_h1) is False
+agite_h1 = [list(x) for x in calme_h1]
+for i in range(1470, 1500):
+    agite_h1[i][4] = 2650.0 * math.exp(0.004 * (i % 2))
+assert robot.agite(agite_h1) is True and robot.agite(calme_h1[:500]) is None
+assert r3.etiquette("elan_m1") == "elan_m1"
 faux_mt5.positions.clear()
 r3.reconcilier()
 

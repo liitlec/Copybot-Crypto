@@ -24,6 +24,10 @@ DESC = {  # texte par défaut ; une hypothèse inconnue s'affiche sans descripti
     "exces_m5": "Retour après un excès, bougies de 5 minutes, tenue 15 min.",
     "elan_m15": "Suit le mouvement sur 15 minutes.",
     "cassure_m15": "Cassure de fourchette sur 15 minutes, tenue 3 h.",
+    "midi_agite": "Candidat principal : « retour de midi » (11 h – 14 h) quand l'or est agité. Banc : +1,5 $ par trade "
+                  "(non prouvé). Arrêt : moyenne sous −0,50 $ après 60 trades, ou 60 $ de perte cumulée.",
+    "midi_calme": "Le même « retour de midi » quand l'or est calme. Banc : ≈ +0,3 $ par trade, pas d'avantage attendu. "
+                  "Sert de comparaison ; coupé si la moyenne est négative après 40 trades.",
     "ecart_midi_m5": "Candidat « retour de midi » : entre 11 h et 14 h, retour après un écart de plus de 2 écarts-types. "
                      "Banc depuis août 2025 : +0,9 $ par trade (non prouvé). Arrêt : moyenne sous −0,50 $ après 60 trades, "
                      "ou perte cumulée de 60 $.",

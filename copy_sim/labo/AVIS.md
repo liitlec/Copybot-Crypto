@@ -1,24 +1,25 @@
-# Avis pour Baptiste — 12/11/2026, 2 h 40 (passage 7)
+# Avis pour Baptiste — 12/11/2026, 3 h 30 (passage 8)
 
-1. **Toujours aucun scalp prouvé** (48 087 combinaisons testées). En direct, 266 trades fermés : les règles M1 font exactement comme le pile ou face (−0,20 $ par trade = le spread). Solde démo : 66 664 $ (départ 66 675 $).
-2. **Le candidat « retour de midi » est une stratégie de régime** : il gagne quand l'or est agité (+5,6 points de base par trade dans le tiers le plus agité des 15 derniers mois), rien quand l'or est calme (il perdait en juin-août 2025). Aujourd'hui l'agitation est moyenne.
-3. **Sa règle d'arrêt est écrite avant ses premiers trades** (ce matin 11 h, 0,01 lot) : arrêt si la moyenne est sous −0,50 $ après 60 trades, ou dès 60 $ de perte cumulée ; on ne monte la taille qu'après 100 trades gagnants en moyenne.
-4. Robot version 4 : il ne prend plus de position autour de la fermeture nocturne de l'or (22 h 50 – 0 h 10), où 7 stops ont sauté sur des trous de prix.
-5. Honnêtement : si le candidat tient, c'est environ +0,9 $ par trade à 0,01 lot, 4 trades par jour, et cela peut s'arrêter du jour au lendemain. Rien à te demander.
+1. **Toujours aucun scalp prouvé** (48 091 combinaisons). En direct, 308 trades fermés, total ≈ −52 $ à 0,01 lot : les règles M1 font comme le pile ou face, elles perdent le spread.
+2. **Le candidat « retour de midi » se précise** : quand l'or est agité, il a gagné +4 points de base par trade (≈ +1,5 $ à 0,01 lot) dans 5 périodes de 3 mois sur 5 ; quand l'or est calme, presque rien. Aujourd'hui l'or est **calme** : n'attends pas grand-chose de lui ce midi.
+3. Robot version 5 : il note chaque trade de midi « agité » ou « calme » pour vérifier cela en vrai. Règle d'arrêt écrite : arrêt si la moyenne est sous −0,50 $ après 60 trades ou à 60 $ de perte ; taille augmentée seulement après 100 trades gagnants.
+4. Attention : la valeur du compte démo inclut tes autres robots (≈ +226 $ de positions qui ne sont pas les miennes). Pour juger le mien, regarde le tableau ci-dessous.
+5. La page de suivi n'a pas pu être mise à jour cette nuit : la publication attend ton approbation dans la session. Rien d'autre à te demander.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 2 h 12
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 3 h 08
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 77 | −0,25 $ | ± 0,28 $ | référence |
-| elan_m1 | 77 | −0,17 $ | ± 0,26 $ | continue jusqu'à 300 trades (comme le témoin) |
-| retour_m1 | 77 | −0,24 $ | ± 0,27 $ | continue jusqu'à 300 trades (comme le témoin) |
-| fcassure_m1 | 25 | +0,45 $ | ± 0,42 $ | continue (trop peu pour conclure) |
+| hasard_m1 (témoin) | 88 | −0,22 $ | ± 0,26 $ | référence |
+| elan_m1 | 89 | −0,07 $ | ± 0,24 $ | continue jusqu'à 300 trades (comme le témoin) |
+| retour_m1 | 89 | −0,40 $ | ± 0,25 $ | continue jusqu'à 300 trades (comme le témoin) |
+| fcassure_m1 | 28 | +0,36 $ | ± 0,41 $ | continue (trop peu pour conclure) |
 | exces_m1 | 5 | +2,20 $ | ± 2,44 $ | continue |
-| elan_m15 | 3 | +4,56 $ | ± 1,17 $ | continue (3 trades : rien à conclure) |
-| cassure_m15 | 1 | +6,86 $ | inconnue | continue |
+| elan_m15 | 4 | −0,58 $ | ± 5,21 $ | continue |
+| cassure_m15 | 2 | −4,58 $ | ± 11,4 $ | continue |
 | exces_m5 | 1 | +0,40 $ | inconnue | continue |
-| ecart_midi_m5 (candidat) | 0 | — | — | commence ce 12/11 à 11 h ; arrêt : < −0,50 $ après 60 trades ou −60 $ cumulés |
+| midi_agite (candidat) | 0 | — | — | trade de 11 h à 14 h quand l'or est agité ; arrêt : < −0,50 $ après 60 trades ou −60 $ |
+| midi_calme (comparaison) | 0 | — | — | même règle quand l'or est calme ; coupé si négatif après 40 trades |
 
 ## Meilleur montage prouvé du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
 

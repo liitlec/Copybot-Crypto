@@ -1,4 +1,4 @@
-"""Robot du labo, version 4 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
+"""Robot du labo, version 5 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
 
 Neuf hypotheses en parallele, une position au plus chacune, stop chez le courtier sur chaque position, sortie au temps.
 Trois tournent en continu en M1 (dont le temoin au hasard, a la meme cadence), six attendent un evenement.
@@ -6,10 +6,11 @@ ecart_midi_m5 vient de la grille du banc E (labo/banc_grille.py) : seul groupe a
 Le banc D (labo/banc_or.py) ne trouve d'avantage prouve pour aucune : le but est d'apprendre du vrai marche.
 Chaque ouverture et chaque sortie est notee par pont.noter avec le nom de l'hypothese et l'heure du serveur."""
 import json
+import math
 import random
 import time
 
-VERSION = 4
+VERSION = 5
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -77,6 +78,24 @@ def signal(nom, b, hasard=random):
     return sens * regle(nom_regle, k, b, hasard)
 
 
+def agite(h1):
+    """Regime de l'or : vrai si le mouvement H1 moyen des 24 dernieres heures depasse sa mediane sur ~60 jours.
+    h1 = bougies H1 FERMEES. Rend None s'il n'y a pas assez d'historique. (Banc : agite +3,8 bp, calme +0,9 bp.)"""
+    c = [x[4] for x in h1]
+    if len(c) < 750:
+        return None
+    r = [abs(math.log(c[i] / c[i - 1])) for i in range(1, len(c))]
+    v, somme = [], sum(r[:24])
+    v.append(somme / 24)
+    for i in range(24, len(r)):
+        somme += r[i] - r[i - 24]
+        v.append(somme / 24)
+    passe = sorted(v[-1441:-1])
+    if len(passe) < 700:
+        return None
+    return v[-1] > passe[len(passe) // 2]
+
+
 def ecart_stop(b, minimum):
     """Stop de secours : 4 fois l'amplitude moyenne des 48 dernieres bougies, au moins `minimum` dollars."""
     ext = b[-48:]
@@ -119,7 +138,7 @@ class Robot:
         for nom, o in list(self.ouvert.items()):
             p = ps.get(o["ticket"])
             if p is None:
-                self.pont.noter(evenement="sortie", hypothese=nom, raison="stop ou fermeture hors robot",
+                self.pont.noter(evenement="sortie", hypothese=o.get("note", nom), raison="stop ou fermeture hors robot",
                                 ticket=o["ticket"], sens=o["sens"], entree=o.get("entree"),
                                 dernier_profit=o.get("profit"), essai="non prouve")
                 del self.ouvert[nom]
@@ -139,7 +158,7 @@ class Robot:
                 p = ps.get(o["ticket"], {})
                 r = self.pont.fermer(o["ticket"])
                 if r.get("ok"):
-                    self.pont.noter(evenement="sortie", hypothese=nom, raison="temps", ticket=o["ticket"],
+                    self.pont.noter(evenement="sortie", hypothese=o.get("note", nom), raison="temps", ticket=o["ticket"],
                                     sens=o["sens"], entree=p.get("prix_entree", o.get("entree")),
                                     h_serveur=time.gmtime(maintenant).tm_hour,
                                     prix_sortie=r.get("prix_obtenu"), profit=p.get("profit"), essai="non prouve")
@@ -147,6 +166,16 @@ class Robot:
                     self.sauver()
                 else:                                    # marche ferme ou refus : on reessaie dans une minute
                     o["sortie"] = maintenant + 60
+
+    def etiquette(self, nom):
+        """Nom sous lequel le trade est note. Le candidat de midi est note selon le regime de l'or du moment."""
+        if nom != "ecart_midi_m5":
+            return nom
+        try:
+            a = agite(self.pont.bougies(SYMBOLE, "H1", 1500)[:-1])
+        except Exception:
+            a = None
+        return {True: "midi_agite", False: "midi_calme"}.get(a, nom)
 
     def ouvrir(self, nom, sens, b, maintenant):
         px = self.pont.prix(SYMBOLE)
@@ -160,12 +189,13 @@ class Robot:
         e = ecart_stop(b, mini)
         ch = self.info["chiffres"]
         stop = round(px["bid"] - e, ch) if sens > 0 else round(px["ask"] + e, ch)
-        r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom)
+        nom_note = self.etiquette(nom)
+        r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom_note)
         if r.get("ok") and r.get("ticket"):
             self.ouvert[nom] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
-                                "entree": r.get("prix_obtenu"), "profit": 0.0}
+                                "entree": r.get("prix_obtenu"), "profit": 0.0, "note": nom_note}
             self.sauver()
-        self.pont.noter(evenement="ouverture", hypothese=nom, sens=sens, ok=bool(r.get("ok")), refus=r.get("refus"),
+        self.pont.noter(evenement="ouverture", hypothese=nom_note, sens=sens, ok=bool(r.get("ok")), refus=r.get("refus"),
                         bid=px["bid"], ask=px["ask"], spread=round(spread, 3), stop=stop,
                         h_serveur=time.gmtime(maintenant).tm_hour,
                         prix_obtenu=r.get("prix_obtenu"), essai="non prouve")
