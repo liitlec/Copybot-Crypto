@@ -1,4 +1,4 @@
-"""Robot du labo, version 6 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
+"""Robot du labo, version 9 (v9 : + repli_ind, achat d'indices apres un repli, voir repli_ind.py) : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
 
 Neuf hypotheses en parallele, une position au plus chacune, stop chez le courtier sur chaque position, sortie au temps.
 Trois tournent en continu en M1 (dont le temoin au hasard, a la meme cadence), six attendent un evenement.
@@ -11,8 +11,9 @@ import random
 import time
 
 import bt_or
+import repli_ind
 
-VERSION = 7
+VERSION = 9
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -117,6 +118,7 @@ class Robot:
         self.ouvert = {}        # hypothese -> {"ticket", "sens", "sortie", "entree", "profit"}
         self.info = None
         self.bt = bt_or.PanierBT(pont)
+        self.repli = repli_ind.Repli(pont)
         self.charger()
 
     # -------------------------------------------------- memoire (fichier dans le dossier du robot)
@@ -143,6 +145,8 @@ class Robot:
         """Aligne la memoire sur le compte : note les stops touches, ferme les positions orphelines."""
         ps = {p["ticket"]: p for p in self.pont.positions()}
         connus = set(self.bt.tickets())                 # les paniers bt_or sont geres par bt_or.py
+        self.repli.adopter(ps)                          # une position sur un indice est toujours a repli_ind
+        connus.update(self.repli.tickets())
         for nom, o in list(self.ouvert.items()):
             p = ps.get(o["ticket"])
             if p is None:
@@ -226,7 +230,9 @@ class Robot:
         self.sorties(maintenant, ps)
         px = self.pont.prix(SYMBOLE)
         self.bt.surveiller(ps, px)
-        if not self.pont.compte().get("ordres_autorises") or self.pont.garde_fou().get("ouvertures_bloquees"):
+        permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
+        self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
+        if not permis:
             return
         hs = time.gmtime(maintenant)
         if (hs.tm_hour == 23 and hs.tm_min >= 50) or hs.tm_hour == 0 or (hs.tm_hour == 1 and hs.tm_min < 10):

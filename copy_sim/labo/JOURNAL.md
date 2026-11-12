@@ -835,3 +835,54 @@ Effet : ≈ 40 % de trades en moins (il reste `hasard_m1`, `fcassure_m1`, `exces
 `midi_*`, `bt_or`).
 
 **Total des essais : 48 585 + 11 = 48 596.**
+
+## Passage 24 — 12/11/2026 (≈ 22 h 41 – 23 h 15 Paris) — repli d'indices mis sur la démo (robot v9) ; BlockTrend ailleurs
+
+Priorités lues (`PRIORITES.md`, deux entrées de 22 h 40) : rythme toutes les 2 h 30 ; mettre le repli d'indices en
+essai sur la démo dès ce passage ; tester la mécanique BlockTrend sur argent, BTC, ETH, indices ; l'amélioration du
+rendement de BlockRange (plus d'indices, sorties, taille, filtres, tableau base / améliorée) aux passages suivants.
+Robot **v8 installé à 23 h 17 serveur**, 0 refus. Direct inchangé à quelques trades près (hasard_m1 323 trades
+−0,31 $ ; fcassure_m1 97, +0,11 $ ; elan_m15 13, +4,46 $ ± 3,9) ; aucun panier `bt_or`.
+
+**Le repli d'indices sur les bougies jour du courtier** (reçues : `nas_d1_5k` depuis 09/2018, `sp_d1_5k` depuis
+09/2020 ; même programme que le banc R bis, 6 essais) :
+| | RSI 2 j < 5 | **< 10 (règle de base)** | < 25 |
+|---|---|---|---|
+| `NAS100+` | 36 trades, +72 bp (t = 2,0) | 62 trades, **+25 bp** (t = 0,9), 68 % gagnants, pire −5,1 % | 147, +34 bp (t = 2,0) |
+| `SP500+` | 25, +69 bp (t = 2,6) | 54 trades, **+40 bp** (t = 2,4), 80 % gagnants, pire −3,2 % | 108, +12 bp (t = 0,9) |
+Spread réel : 0,3 bp (Nasdaq) et 0,5 bp (S&P) : négligeable. Les bougies du courtier confirment Yahoo. Aujourd'hui :
+pas de signal (RSI 2 j à 78 et 64).
+
+**Robot version 9** : nouveau module `mt5/robot/repli_ind.py` (étiquette `repli_ind`), sur `NAS100+`, `SP500+`,
+`DJ30+`, `GER40+` (pas de FTSE ; un indice absent ou fermé est noté une fois et ignoré).
+- Règle = celle du banc, sans réglage ajouté : RSI 2 jours < 10 et clôture au-dessus de la moyenne 200 jours (bougies
+  D1 fermées du courtier) → achat dans les 180 premières minutes de la journée suivante dès que le spread est normal
+  (≤ 3 bp) ; stop chez le courtier à 2 × ATR 20 jours ; sortie dès qu'une clôture repasse au-dessus de la moyenne
+  5 jours, ou après 10 jours ; une position par indice ; pas de rachat le jour d'une sortie.
+- Taille : le lot minimal du courtier (refusé si cela dépasse 30 000 $ de marché ; le montant est noté à chaque
+  ouverture, je saurai au premier trade ce que vaut un lot minimal).
+- **Règle d'arrêt écrite avant le premier trade** : arrêt si la somme des trades passe sous **−1 500 bp**, ou si la
+  moyenne est sous **−20 bp après 60 trades** (banc : +20 bp par trade, pires années −500 à −1 100 bp en somme).
+  Attendu : ≈ 35 à 40 trades par an sur 4 indices → verdict du direct en mois, pas en jours.
+- **Survit aux changements de version** : toute position du robot sur un indice est reprise (note « reprise ») au
+  lieu d'être fermée comme orpheline (le compte de jours repart alors de la reprise). Ce n'est pas encore le cas
+  de `bt_or`.
+- Essais « ESSAIS OK » (signal, fenêtre de 180 min, spread anormal, ouvertures bloquées, stop à 2 ATR, une position
+  par indice, reprise après redémarrage, sorties moyenne 5 j / 10 jours / stop, pas de rachat le jour de la sortie,
+  indice absent, position reprise et non fermée par le robot complet) ; contrôle du texte du lanceur : rien.
+- Vérifié avant de publier : aucun panier `bt_or` ouvert (l'or est en fermeture nocturne ; 2 petites positions,
+  dont un `elan_m15`, seront fermées par la mise à jour : à ne pas compter).
+
+**Banc M bis — mécanique BlockTrend sur argent, BTC, ETH** (`banc_blocktrend.py`, bougies M5 du courtier, spread
+réel ; 15 essais ; le Nasdaq était déjà à zéro au passage 19) :
+| Marché (période) | Serré, 3 positions au plus (= `bt_or`) | Serré, 10 positions | Très large, 10 positions |
+|---|---|---|---|
+| Argent (08/2025 → 11/2026) | 291 paniers, +0,07 R (t = 0,4) | +0,20 R (t = 0,8), creux −49 R | +1,08 R (t = 1,5), 78 paniers |
+| BTC (01 → 11/2026) | 278, +0,06 R (t = 0,4) | +0,10 R (t = 0,4) | +0,09 R (t = 0,2) |
+| ETH (01 → 11/2026) | 268, +0,01 R (t = 0,1) | −0,07 R | −0,01 R |
+Sur l'argent, presque tout le gain vient d'une seule tranche de 3 mois (+66 R sur +59) ; BTC et ETH : zéro.
+**La mécanique ne tient que sur l'or** (et encore à t = 2,2, dans un marché qui a beaucoup tendu) : aucun autre
+marché mis en essai. Sans pyramide, elle vaut zéro partout : tout le gain vient des ajouts pendant quelques grands
+mouvements.
+
+**Total des essais : 48 596 + 6 + 15 = 48 617.**

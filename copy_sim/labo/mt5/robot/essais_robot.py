@@ -262,4 +262,114 @@ for f in ("etat_essai.json", "etat_bt_essai.json", "etat_bt.json"):
 assert "retour_m1" in ETEINTES_V7
 # 8) v8 : elan_m1 eteinte aussi
 assert "elan_m1" in ETEINTES_V7
+# 9) v9 : repli_ind (achat d'un indice apres un repli court, en tendance haussiere)
+import repli_ind
+
+
+class PontIndice:
+    def __init__(self):
+        self.pos, self.n, self.notes, self.b, self.bid, self.ecart = {}, 500, [], [], 20000.0, 1.0
+
+    def bougies(self, s, periode="M1", nombre=100):
+        if s != "NAS100+":
+            raise ValueError("symbole absent")
+        return self.b[-nombre:]
+
+    def prix(self, s):
+        return {"bid": self.bid, "ask": self.bid + self.ecart, "heure_serveur": 0}
+
+    def symbole(self, s):
+        return {"point": 0.01, "chiffres": 2, "lot_min": 0.1, "pas_lot": 0.1, "taille_contrat": 1.0, "niveau_stops_points": 0}
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "NAS100+" and sens == "achat" and lots == 0.1 and 0 < stop < self.bid and id == "repli_ind"
+        self.n += 1
+        self.pos[self.n] = {"ticket": self.n, "symbole": s, "sens": sens, "prix_entree": self.bid + self.ecart, "stop": stop, "profit": 0.0}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": self.bid + self.ecart}
+
+    def fermer(self, t):
+        return {"ok": self.pos.pop(t, None) is not None, "prix_obtenu": self.bid}
+
+    def noter(self, **k):
+        self.notes.append(k)
+
+    def ps(self):
+        return dict(self.pos)
+
+
+def jours(clotures):
+    return [[i * 86400, c, c + 100, c - 100, c, 1, 80] for i, c in enumerate(clotures)]
+
+
+hausse = [10000 + 40 * i for i in range(250)]
+assert repli_ind.rsi2(hausse) > 99 and repli_ind.rsi2(hausse + [hausse[-1] - 300, hausse[-1] - 600]) < 10
+assert not repli_ind.signal_entree(jours(hausse)), "pas de repli : pas d'achat"
+repli = hausse + [hausse[-1] - 300, hausse[-1] - 600]
+assert repli_ind.signal_entree(jours(repli)), "repli court au-dessus de la moyenne 200 j : achat"
+assert not repli_ind.signal_entree(jours([20000 - 40 * i for i in range(252)])), "sous la moyenne 200 j : pas d'achat"
+if os.path.exists("etat_repli_essai.json"):
+    os.remove("etat_repli_essai.json")
+pi = PontIndice()
+rp = repli_ind.Repli(pi, fichier="etat_repli_essai.json")
+pi.b = jours(repli + [repli[-1]])                        # la derniere bougie = journee en cours
+jour = pi.b[-1][0]
+pi.bid = float(repli[-1])
+rp.tour(pi.ps(), jour + 4 * 3600, True)
+assert not pi.pos, "plus de 180 minutes apres le debut de la journee : pas d'achat"
+rp.dernier = 0
+pi.ecart = 50.0
+rp.tour(pi.ps(), jour + 3600, True)
+assert not pi.pos, "spread anormal : on attend"
+pi.ecart = 1.0
+rp.tour(pi.ps(), jour + 3620, True)
+assert not pi.pos, "une verification par minute au plus"
+rp.tour(pi.ps(), jour + 3700, False)
+assert not pi.pos, "ouvertures bloquees : pas d'achat"
+rp.tour(pi.ps(), jour + 3800, True)
+assert len(pi.pos) == 1 and "NAS100+" in rp.pos, "achat a la taille minimale, avec stop"
+p0 = list(pi.pos.values())[0]
+assert abs(p0["stop"] - (pi.bid - 2 * repli_ind.atr(pi.b[:-1]))) < 0.02, "stop a 2 ATR"
+assert any(n.get("evenement") == "erreur" and n.get("symbole") == "SP500+" for n in pi.notes), "indice absent : note, sans plantage"
+rp.tour(pi.ps(), jour + 3900, True)
+assert len(pi.pos) == 1, "une position au plus par indice"
+rp2 = repli_ind.Repli(pi, fichier="etat_repli_essai.json")
+assert rp2.tickets() == rp.tickets(), "reprise apres redemarrage"
+pi.b = jours(repli + [repli[-1] - 50, repli[-1] - 50])   # une journee de plus, fermee sous la moyenne 5 j
+rp.tour(pi.ps(), jour + 86400 + 3600, True)
+assert len(pi.pos) == 1, "pas de sortie sous la moyenne 5 j"
+pi.b = jours(repli + [repli[-1] - 50, repli[-1] + 900, repli[-1] + 900])
+pi.bid = repli[-1] + 900.0
+rp.tour(pi.ps(), jour + 2 * 86400 + 3600, True)
+assert not pi.pos and not rp.pos, "sortie quand la cloture repasse au-dessus de la moyenne 5 j"
+assert [n for n in pi.notes if n.get("evenement") == "sortie"][-1]["bp"] > 0
+rp.tour(pi.ps(), jour + 2 * 86400 + 3700, True)
+assert not pi.pos, "pas de nouvel achat le jour d'une sortie"
+# sortie apres 10 jours, stop touche, reprise d'une position inconnue (changement de version)
+assert repli_ind.signal_sortie(jours([100.0 - i for i in range(30)]), 21 * 86400) is None
+assert repli_ind.signal_sortie(jours([100.0 - i for i in range(30)]), 20 * 86400) == "10 jours"
+pi.pos[900] = {"ticket": 900, "symbole": "NAS100+", "sens": "achat", "prix_entree": 20000.0, "stop": 19000.0, "profit": 0.0}
+os.remove("etat_repli_essai.json")
+rp3 = repli_ind.Repli(pi, fichier="etat_repli_essai.json")
+rp3.adopter(pi.ps())
+assert rp3.tickets() == [900], "position sur un indice reprise, pas fermee"
+pi.pos.clear()
+rp3.tour(pi.ps(), jour + 9 * 86400, True)
+assert not rp3.pos and any(n.get("raison", "").startswith("stop") for n in pi.notes), "stop touche chez le courtier : note"
+os.remove("etat_repli_essai.json")
+# le robot complet ne ferme pas une position d'indice comme orpheline
+pont.ouvrir("EURUSD", "achat", 0.01, stop=1.0, id="autre")
+r9 = robot.Robot(pont, hasard=random.Random(1), fichier="etat_essai.json")
+r9.repli.fichier = "etat_repli_essai.json"
+import repli_ind as _ri
+_ri_sym = _ri.SYMBOLES
+_ri.SYMBOLES = ("EURUSD",)
+r9.reconcilier()
+assert len(pont.positions()) == 1 and r9.repli.tickets(), "position d'indice gardee par le robot"
+_ri.SYMBOLES = _ri_sym
+r9.repli.pos.clear()
+r9.reconcilier()
+assert not pont.positions(), "hors indices : orpheline fermee comme avant"
+for f in ("etat_essai.json", "etat_repli_essai.json", "etat_repli.json"):
+    if os.path.exists(f):
+        os.remove(f)
 print("ESSAIS OK")
