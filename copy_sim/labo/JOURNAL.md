@@ -360,3 +360,25 @@ Le direct l'a confirmé cette nuit : glissement de 0,63 $ et 7 stops autour de l
 **Conclusion : pas d'effet d'heure exploitable ; ne jamais croire un gain de backtest situé à la réouverture.**
 
 **Total des essais : 48 091 + 69 + 12 = 48 172.**
+
+## Passage 10 — 12/11/2026 (≈ 5 h 10 – 5 h 20 Paris) — sorties et tendance de fond du candidat de midi
+
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus, aucune nouvelle erreur. Page de suivi : pas tentée (nuit).
+
+**Robot en direct, cumul → 5 h 07** : hasard_m1 112 trades −0,25 $ (± 0,23) ; elan_m1 113, +0,08 $ (± 0,22) ;
+retour_m1 113, −0,49 $ (± 0,22) ; fcassure_m1 30, +0,21 $ (± 0,40) ; exces_m1 6, +2,76 $ (± 2,1) ; elan_m15 5,
+−2,49 $ ; cassure_m15 2, −4,58 $ ; exces_m5 1. 388 ouvertures, 0 refus. Total ≈ −74 $. Rien de distinguable du témoin.
+
+**Banc H — sorties et tendance de fond du candidat** (`banc_sorties.py`, 20 essais ; or M5, 12-15 h serveur, depuis
+août 2025, 1 224 trades ; objectif et stop simulés dans la bougie, stop compté d'abord en cas de doute) :
+- les 18 variantes de sortie sont **toutes positives** (+0,4 à +2,2 bp net par trade) : le candidat ne dépend pas
+  d'un réglage de sortie précis (bon signe de plateau) ;
+- la **sortie simple au bout de 15 minutes reste la meilleure** (+2,24 bp, 59 % de gagnants, 5 tranches sur 5) ;
+  objectif « retour à la moyenne » : pareil (+2,09) ; un stop serré (2 ou 3 écarts-types) enlève 0,3 à 0,5 bp ;
+  tenir plus longtemps (30 min, 1 h) dégrade nettement (+1,7 puis +0,4 bp, tranches négatives) ;
+- **tendance de fond** (cours contre sa moyenne de 20 h) : dans le sens du fond (acheter un creux quand l'or monte,
+  vendre un pic quand il baisse) +3,53 bp sur 370 trades, 5 tranches sur 5 ; contre le fond +1,70 bp sur 850 trades.
+Rien à changer dans le robot : il sort déjà au temps (15 min) avec un stop de secours large.
+Réserve inchangée : tout cela est mesuré sur le même échantillon de 15 mois ; seul le direct tranchera.
+
+**Total des essais : 48 172 + 20 = 48 192.**

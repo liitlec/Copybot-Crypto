@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 9, 12/11/2026 (4 h 25)
+# État du laboratoire (réécrit à chaque passage) — après le passage 10, 12/11/2026 (5 h 20)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -11,7 +11,8 @@
 - Réfuté (passage 5) : grille de 47 628 combinaisons (or, argent, Nasdaq, S&P, DAX) : aucune à t > 2 au verdict.
 - Réfuté (passage 9) : effets d'heure purs sur or et Nasdaq ; le « gain » de la réouverture de 1 h serveur est un
   artefact du spread (bougies en prix vendeur, spread enregistré faux à la réouverture).
-- 48 172 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
+- 48 192 essais comptés. Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
+  dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
 ## À chaque passage, d'abord
 `python3 donnees.py && python3 registre.py` puis recopier le tableau du registre dans AVIS.md.
@@ -32,8 +33,10 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
    Arrêt `midi_agite` : moyenne < −0,50 $ après 60 trades ou −60 $ cumulés ; `midi_calme` : coupé si moyenne négative
    après 40 trades. Taille > 0,01 lot seulement après 100 trades `midi_agite` positifs (t > 1,5).
    Banc : agité +3,8 à +4,2 bp (t ≈ 3, 5 tranches sur 5), calme ≈ +0,7 bp. Régime au 12/11 3 h : calme.
-3. **Prochaine idée à tester sur l'or (M5, depuis août 2025)** : la même règle de retour que le candidat de midi mais
-   avec une tendance de fond (H1) et en sortie par objectif/stop ; puis deux règles qui se confirment. Compter les essais.
+3. **Nuit : passages courts** (rien de neuf en direct avant 11 h). Idées restantes : la règle du candidat sur
+   d'autres heures agitées (ouverture de New York 15 h 30 – 17 h Paris) avec filtre de tendance ; deux règles qui se
+   confirment ; `NAS100+` à l'ouverture de Wall Street. Étiqueter dans le robot le sens du fond (v6) si le direct de
+   midi donne assez de trades.
 3 bis. **Étendre la grille** (`banc_grille.py`) : stops/objectifs dans la bougie, tendance de fond (M15/H1), deux règles
    qui se confirment, jour de semaine ; `NAS100+` en priorité (spread = 21 % du mouvement M1, moins cher que l'or).
    Demander plus d'historique par tranches (`debut`/`fin`) si le terminal en a.

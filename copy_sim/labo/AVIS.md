@@ -1,20 +1,20 @@
-# Avis pour Baptiste — 12/11/2026, 4 h 25 (passage 9)
+# Avis pour Baptiste — 12/11/2026, 5 h 20 (passage 10)
 
-1. **Toujours aucun scalp prouvé** (48 172 combinaisons). En direct, 348 trades fermés, total ≈ −86 $ à 0,01 lot : les règles M1 perdent le spread, comme le pile ou face.
-2. Piège évité cette nuit : un backtest montrait un gain net chaque nuit à la réouverture de l'or (minuit – 1 h). C'est une illusion due au spread, très large à cet instant ; le robot l'a d'ailleurs payé en vrai (7 stops). Il n'y trade plus.
-3. Le seul candidat reste le « retour de midi » quand l'or est agité (+4 points de base par trade sur 15 mois, non prouvé). Aujourd'hui l'or est calme : premiers trades de 11 h à 14 h, étiquetés « calme », sans attente particulière.
-4. Sa règle d'arrêt est écrite : arrêt si moyenne sous −0,50 $ après 60 trades ou à 60 $ de perte ; taille augmentée seulement après 100 trades gagnants.
-5. La page de suivi n'est pas à jour : sa publication attend ton approbation dans la session (je réessaie en journée). Rien d'autre à te demander.
+1. **Toujours aucun scalp prouvé** (48 192 combinaisons). En direct, 382 trades fermés, total ≈ −74 $ à 0,01 lot : les règles M1 perdent le spread, comme le pile ou face.
+2. Le candidat « retour de midi » résiste aux épreuves de cette nuit : il reste gagnant sur 15 mois quelle que soit la façon de sortir (18 variantes), la sortie simple au bout de 15 minutes étant la meilleure ; il est plus fort dans le sens de la tendance de fond et quand l'or est agité.
+3. Ce n'est toujours pas une preuve : tout vient des mêmes 15 mois. Le vrai test commence ce matin à 11 h sur la démo (0,01 lot). L'or est calme aujourd'hui, donc peu d'attente.
+4. Règle d'arrêt écrite : arrêt si moyenne sous −0,50 $ après 60 trades ou à 60 $ de perte ; taille augmentée seulement après 100 trades gagnants.
+5. La page de suivi n'est pas à jour (sa publication attend ton approbation dans la session ; je réessaie en journée). Rien d'autre à te demander.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 4 h 10
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 5 h 07
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 101 | −0,36 $ | ± 0,25 $ | référence |
-| elan_m1 | 102 | +0,04 $ | ± 0,24 $ | continue jusqu'à 300 trades (comme le témoin) |
-| retour_m1 | 102 | −0,48 $ | ± 0,24 $ | continue jusqu'à 300 trades (comme le témoin) |
+| hasard_m1 (témoin) | 112 | −0,25 $ | ± 0,23 $ | référence |
+| elan_m1 | 113 | +0,08 $ | ± 0,22 $ | continue jusqu'à 300 trades (comme le témoin) |
+| retour_m1 | 113 | −0,49 $ | ± 0,22 $ | continue jusqu'à 300 trades (comme le témoin) |
 | fcassure_m1 | 30 | +0,21 $ | ± 0,40 $ | continue (comme le témoin) |
-| exces_m1 | 5 | +2,20 $ | ± 2,44 $ | continue |
+| exces_m1 | 6 | +2,76 $ | ± 2,07 $ | continue |
 | elan_m15 | 5 | −2,49 $ | ± 4,47 $ | continue |
 | cassure_m15 | 2 | −4,58 $ | ± 11,4 $ | continue |
 | exces_m5 | 1 | +0,40 $ | inconnue | continue |
