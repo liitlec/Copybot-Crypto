@@ -206,3 +206,25 @@ Baptiste veut savoir **dans quelles conditions** `elan_m1` et `exces_m1` gagnent
 - si une case gagne nettement, fixe-la d'avance comme nouvelle hypothèse ou comme filtre (étiquette propre, règle
   d'arrêt écrite avant) et juge-la seulement sur les trades suivants. Si rien ne ressort, dis-le simplement.
 Mets le résultat en tête d'AVIS.md.
+
+## 12/11/2026, 12 h 30 (Paris) : chercher beaucoup plus large sur le scalp XAUUSD
+Baptiste a des amis qui disent gagner en scalp sur l'or : il veut que tu cherches **vraiment large**. Tes 48 000
+combinaisons couvrent surtout des règles simples sur bougies (élan, retour, cassures, excès, heures). Ouvre les
+familles que tu n'as pas encore testées, une par passage s'il le faut, chacune avec le spread réel et sa vérification
+hors échantillon :
+1. **Entrées à cours limité** (ordre posé au bid/ask ou mieux, annulé s'il n'est pas servi) : un scalpeur qui
+   n'achète pas au prix demandé paie moins de spread. Simule honnêtement le taux de service et la sélection adverse
+   (un ordre limite est surtout servi quand le prix part contre toi), puis mesure-le en vrai sur la démo à 0,01 lot.
+2. **Concepts « liquidité » courants chez les scalpeurs** : chasse aux stops au-dessus/au-dessous du plus haut/bas de
+   la séance d'Asie ou de la veille, puis retour ; fausse cassure de l'ouverture de Londres et de New York ; niveaux
+   ronds (4 000, 3 950…) ; retour vers le VWAP de la séance ; écart de juste valeur (« fair value gap ») comblé.
+3. **Annonces économiques** (emploi américain, inflation, Fed) : comportement de l'or dans les 30 minutes autour,
+   spread compris.
+4. **Plusieurs unités de temps** : signal M1 filtré par la structure M15/H1 (plus hauts et plus bas croissants, etc.).
+5. **Modèles appris** (arbres de décision, gradient boosting) sur des dizaines de variables à la fois, en validation
+   glissante stricte, avec un témoin mélangé (étiquettes permutées) pour mesurer le hasard.
+6. **Sorties plus fines** : stop suiveur, sortie partielle, sortie au retour au point d'entrée, objectif en multiple
+   du spread.
+Compte tous ces essais. Mets en essai sur la démo ce qui tient, comme d'habitude. Si Baptiste te transmet les règles
+de ses amis (fichier `labo/IDEES_AMIS.md`), teste-les **en premier et telles qu'elles sont décrites**, puis dis-lui
+honnêtement ce que tu trouves.
