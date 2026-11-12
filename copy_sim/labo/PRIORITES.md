@@ -170,3 +170,16 @@ entrées échelonnées, plusieurs symboles pour la même idée).
 - Attention à ne pas confondre « plusieurs positions » et « moyenne à la baisse » : ajouter des positions à une idée
   qui perd, c'est la martingale qui a coûté cher à BlockFIFO (−6 269 $ en 1 507 trades). Si tu ajoutes, dis pourquoi,
   et compte la perte maximale de l'ensemble.
+
+## 12/11/2026, 9 h 20 (Paris) : prends ce qu'il y a de bon chez les autres robots
+Baptiste insiste : inspire-toi des autres robots du compte et reprends ce qui marche. Premier tri fait par la
+conversation de suivi sur `mt5/autres/historique.csv.gz` (à vérifier et approfondir) :
+- BlockTrend : −25 189 $ en 139 trades fermés ; presque tout perd (achats d'or −7 795 $, cacao −8 070 $, achats
+  d'ETH −5 626 $, BTC −4 496 $). **Seules exceptions** : ventes d'ETH (30 trades, +2 017 $, 57 % gagnants) et une
+  vente d'argent (+2 128 $, un seul trade). Le 12/11 au matin il est vendeur d'or, de BTC et d'ETH, avec 6 ventes
+  d'or empilées, et c'est ce qui fait son gain en cours.
+- BlockFIFO (scalp or) : 59 % de gagnants mais −6 269 $ : petits gains, grosses pertes.
+Cherche ce qui distingue ses trades gagnants des perdants (sens, régime de tendance, durée, taille, heure), teste
+chaque principe sur tes données avec les vrais coûts, et mets en essai dans ton robot ce qui tient (par exemple
+« suivre la tendance de fond seulement à la vente » si c'est ce que montrent les chiffres). Dis dans AVIS.md ce que
+tu as retenu ou écarté, et pourquoi.
