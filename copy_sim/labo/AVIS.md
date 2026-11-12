@@ -1,24 +1,24 @@
-# Avis pour Baptiste — 11/11/2026, 22 h 25 (passage 6)
+# Avis pour Baptiste — 12/11/2026, 2 h 40 (passage 7)
 
-1. **Toujours aucun scalp prouvé**, après 48 077 combinaisons testées avec le spread réel de ton courtier.
-2. Le seul candidat (« retour de midi » : sur l'or en M5, entre 11 h et 14 h Paris, parier sur le retour après un écart trop fort, 15 min) a gagné dans 5 périodes de 3 mois sur 5 depuis août 2025 (+2,3 points de base par trade, presque significatif), **mais il perd sur la période d'avant** : fragile. Il trade demain dès 11 h à 0,01 lot.
-3. Robot en direct (4 heures, 135 trades fermés) : exécution parfaite (0 refus, glissement nul). Les trois règles M1 font comme le pile ou face ; les deux règles M15 ont gagné 17 $ sur 3 trades, ce qui ne prouve rien. Compte démo : 66 673 $ (départ 66 675 $).
-4. Ordre de grandeur honnête : même si le candidat était vrai, il rapporterait environ 0,1 % par jour sans levier. 1 % par jour demanderait un fort levier, donc un fort risque.
-5. Suite : refaire l'épreuve du candidat sur l'or de 2024 (données demandées au pont), laisser le robot accumuler ≈ 300 trades par règle, puis grille élargie sur le Nasdaq.
+1. **Toujours aucun scalp prouvé** (48 087 combinaisons testées). En direct, 266 trades fermés : les règles M1 font exactement comme le pile ou face (−0,20 $ par trade = le spread). Solde démo : 66 664 $ (départ 66 675 $).
+2. **Le candidat « retour de midi » est une stratégie de régime** : il gagne quand l'or est agité (+5,6 points de base par trade dans le tiers le plus agité des 15 derniers mois), rien quand l'or est calme (il perdait en juin-août 2025). Aujourd'hui l'agitation est moyenne.
+3. **Sa règle d'arrêt est écrite avant ses premiers trades** (ce matin 11 h, 0,01 lot) : arrêt si la moyenne est sous −0,50 $ après 60 trades, ou dès 60 $ de perte cumulée ; on ne monte la taille qu'après 100 trades gagnants en moyenne.
+4. Robot version 4 : il ne prend plus de position autour de la fermeture nocturne de l'or (22 h 50 – 0 h 10), où 7 stops ont sauté sur des trous de prix.
+5. Honnêtement : si le candidat tient, c'est environ +0,9 $ par trade à 0,01 lot, 4 trades par jour, et cela peut s'arrêter du jour au lendemain. Rien à te demander.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 11/11 22 h 07
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 2 h 12
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 40 | −0,17 $ | ± 0,29 $ | référence |
-| elan_m1 | 40 | −0,03 $ | ± 0,28 $ | continue (pas distinguable du témoin) |
-| retour_m1 | 40 | −0,12 $ | ± 0,29 $ | continue (idem) |
-| fcassure_m1 | 11 | −0,03 $ | ± 0,65 $ | continue |
-| elan_m15 | 2 | +4,97 $ | ± 1,90 $ | continue (2 trades : rien à conclure) |
+| hasard_m1 (témoin) | 77 | −0,25 $ | ± 0,28 $ | référence |
+| elan_m1 | 77 | −0,17 $ | ± 0,26 $ | continue jusqu'à 300 trades (comme le témoin) |
+| retour_m1 | 77 | −0,24 $ | ± 0,27 $ | continue jusqu'à 300 trades (comme le témoin) |
+| fcassure_m1 | 25 | +0,45 $ | ± 0,42 $ | continue (trop peu pour conclure) |
+| exces_m1 | 5 | +2,20 $ | ± 2,44 $ | continue |
+| elan_m15 | 3 | +4,56 $ | ± 1,17 $ | continue (3 trades : rien à conclure) |
 | cassure_m15 | 1 | +6,86 $ | inconnue | continue |
-| exces_m1 | 1 (sorti au stop) | ≈ −4,10 $ | inconnue | continue |
-| exces_m5 | 0 | — | — | attend son signal |
-| ecart_midi_m5 (candidat) | 0 | — | — | commence le 12/11 à 11 h |
+| exces_m5 | 1 | +0,40 $ | inconnue | continue |
+| ecart_midi_m5 (candidat) | 0 | — | — | commence ce 12/11 à 11 h ; arrêt : < −0,50 $ après 60 trades ou −60 $ cumulés |
 
 ## Meilleur montage prouvé du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)
 

@@ -99,6 +99,7 @@ assert not r.ouvert and not pont.positions()
 
 # 5) stop touche chez le courtier (la position disparait) : note, memoire nettoyee ; orpheline fermee
 m15c = [[x[0] + 1800] + x[1:] for x in m15]
+t0[0] += 7200                                            # sortir de la fenetre de fermeture nocturne (0 h 25 -> 2 h 25)
 r.tour({"M1": m1b, "M5": m5b, "M15": m15c})
 assert r.ouvert
 faux_mt5.positions.clear()
@@ -121,6 +122,15 @@ r3.tour({"M1": m1, "M5": m5d, "M15": m15})
 assert "ecart_midi_m5" in r3.ouvert and r3.ouvert["ecart_midi_m5"]["sens"] == -1, sorted(r3.ouvert)
 faux_mt5.positions.clear()
 r3.reconcilier()
+
+# 5 ter) pas d'ouverture autour de la fermeture nocturne (23 h 50 - 1 h 10 serveur)
+r4 = robot.Robot(pont, hasard=random.Random(4), fichier="etat_essai.json")
+t4 = [1794000000 - 1794000000 % 86400 + 30 * 60]
+r4.heure = lambda: t4[0]
+r4.ouvert = {}
+r4.vu = {"M1": 0, "M5": 0, "M15": 0}
+r4.tour({"M1": m1, "M5": m5, "M15": m15})
+assert not r4.ouvert and not pont.positions(), "rien a 0 h 30 serveur"
 
 # 6) spread trop large : pas d'ouverture ; ouverture sans stop refusee par le pont
 faux_mt5._prix["XAUUSD"] = (2650.10, 2651.50)

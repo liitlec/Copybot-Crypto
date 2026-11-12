@@ -256,3 +256,46 @@ jour). Il reste dans le robot à 0,01 lot, à titre d'essai. À +2 bp × 5 trade
 ≈ 0,1 % par jour à levier 1 : loin de 1 % par jour sans fort levier.
 
 **Total des essais : 47 891 + 180 + 6 = 48 077.**
+
+## Passage 7 — 12/11/2026 (≈ 2 h 15 – 2 h 40 Paris) — régime du candidat, règle d'arrêt, robot v4
+
+(Les passages de 23 h 10, 0 h 10, 1 h 10 n'ont pas abouti : redémarrages de la session. Rattrapés ici.)
+Priorités lues (`PRIORITES.md`, entrées de 22 h 35 et 23 h) : une stratégie « du régime actuel » est acceptable si
+elle a une règle d'arrêt écrite avant ses premiers trades ; page de suivi à refaire en fin de passage.
+Registre papier : aucun jour terminé à ajouter (le 12/11 sera le premier).
+
+**Robot en direct, cumul 11/11 18 h 16 → 12/11 2 h 12** (0,01 lot, $ par trade après spread, sorties au stop comprises) :
+
+| Hypothèse | Trades | dont stops | Gain moyen | ± 1 erreur type | Total |
+|---|---|---|---|---|---|
+| hasard_m1 (témoin) | 77 | 2 | −0,25 $ | 0,28 | −19,22 $ |
+| elan_m1 | 77 | 3 | −0,17 $ | 0,26 | −12,84 $ |
+| retour_m1 | 77 | 2 | −0,24 $ | 0,27 | −18,60 $ |
+| fcassure_m1 | 25 | 0 | +0,45 $ | 0,42 | +11,12 $ |
+| exces_m1 | 5 | 1 | +2,20 $ | 2,44 | +10,99 $ |
+| elan_m15 | 3 | 0 | +4,56 $ | 1,17 | +13,69 $ |
+| cassure_m15 | 1 | 0 | +6,86 $ | — | +6,86 $ |
+| exces_m5 | 1 | 0 | +0,40 $ | — | +0,40 $ |
+
+273 ouvertures, 0 refus, spread moyen 0,207 $, glissement moyen +0,004 $ (pire cas 0,63 $ à la réouverture de
+1 h serveur). Le témoin perd 0,25 $ par trade = le spread, comme prévu ; `elan_m1` et `retour_m1` font pareil.
+Compte démo : 66 664,40 $ de solde (départ 66 674,76 $). Sept sorties au stop, toutes entre minuit et 1 h 20 (Paris),
+autour de la fermeture nocturne de l'or (trous de prix à la réouverture, stops serrés après une heure calme).
+→ **Robot v4** : plus d'ouverture de 23 h 50 à 1 h 10 serveur (22 h 50 – 0 h 10 Paris). Rien d'autre ne change.
+
+**Candidat « retour de midi » (ecart_midi_m5) : son régime.** Le terminal n'a l'or en M5 que depuis juin 2025
+(rien pour 2024). Sur juin-août 2025 (7 semaines, jamais vues) : −0,93 bp par trade (162 trades, t = −1,0).
+Explication probable : la règle gagne quand l'or est agité. Depuis août 2025, par tiers de volatilité (mouvement
+M5 moyen sur 24 h) : calme +0,9 bp, moyen +0,2 bp, **agité +5,6 bp (t = 2,9)** ; en juin-août 2025 l'or bougeait
+2,5 fois moins (écart-type par trade 6,8 bp contre 16,7). Positif chaque jour de la semaine (+0,3 à +4,7 bp).
+Sur 15 mois récents : 1 224 trades, +2,24 bp, 59 % de gagnants, ≈ 3,7 trades par jour. (10 essais de plus.)
+
+**Règle d'arrêt, écrite avant ses premiers trades (11 h le 12/11)** — à 0,01 lot, 1 bp ≈ 0,40 $ :
+- attendu au banc : ≈ +0,90 $ par trade, écart-type ≈ 6,70 $, ≈ 4 trades par jour ;
+- **arrêt** si, après 60 trades, la moyenne est sous −0,50 $ par trade, ou dès que la perte cumulée atteint 60 $ ;
+- **régime** : elle vaut quand le mouvement M5 moyen sur 24 h dépasse ≈ 6 bp (tiers agité) ; sous ≈ 4,8 bp (tiers
+  calme) elle ne vaut rien. Valeur actuelle : 5,1 bp (tiers moyen) → attente modeste. Filtre à coder dans le robot ;
+- **taille** : on ne monte au-dessus de 0,01 lot que si, après 100 trades en direct, la moyenne est positive avec
+  t > 1,5 et que le banc glissant reste positif.
+
+**Total des essais : 48 077 + 10 = 48 087.**

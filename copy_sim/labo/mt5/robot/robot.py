@@ -1,4 +1,4 @@
-"""Robot du labo, version 3 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
+"""Robot du labo, version 4 : scalp presque continu sur la DEMO, XAUUSD, 0,01 lot par hypothese (essais NON prouves).
 
 Neuf hypotheses en parallele, une position au plus chacune, stop chez le courtier sur chaque position, sortie au temps.
 Trois tournent en continu en M1 (dont le temoin au hasard, a la meme cadence), six attendent un evenement.
@@ -9,7 +9,7 @@ import json
 import random
 import time
 
-VERSION = 3
+VERSION = 4
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -179,6 +179,9 @@ class Robot:
         self.sorties(maintenant, ps)
         if not self.pont.compte().get("ordres_autorises") or self.pont.garde_fou().get("ouvertures_bloquees"):
             return
+        hs = time.gmtime(maintenant)
+        if (hs.tm_hour == 23 and hs.tm_min >= 50) or hs.tm_hour == 0 or (hs.tm_hour == 1 and hs.tm_min < 10):
+            return                                       # fermeture nocturne de l'or : trous de prix, pas d'ouverture
         for periode in PERIODES:
             b = bougies[periode] if bougies else self.pont.bougies(SYMBOLE, periode, 130)
             b = b[:-1]                                   # la derniere est en cours de formation

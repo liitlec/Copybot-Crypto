@@ -24,7 +24,9 @@ DESC = {  # texte par défaut ; une hypothèse inconnue s'affiche sans descripti
     "exces_m5": "Retour après un excès, bougies de 5 minutes, tenue 15 min.",
     "elan_m15": "Suit le mouvement sur 15 minutes.",
     "cassure_m15": "Cassure de fourchette sur 15 minutes, tenue 3 h.",
-    "ecart_midi_m5": "Candidat « retour de midi » : entre 11 h et 14 h, retour après un écart de plus de 2 écarts-types.",
+    "ecart_midi_m5": "Candidat « retour de midi » : entre 11 h et 14 h, retour après un écart de plus de 2 écarts-types. "
+                     "Banc depuis août 2025 : +0,9 $ par trade (non prouvé). Arrêt : moyenne sous −0,50 $ après 60 trades, "
+                     "ou perte cumulée de 60 $.",
 }
 
 

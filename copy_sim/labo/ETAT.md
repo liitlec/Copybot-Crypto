@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 6, 11/11/2026 (22 h 25)
+# État du laboratoire (réécrit à chaque passage) — après le passage 7, 12/11/2026 (2 h 40)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -9,7 +9,7 @@
 - Réfuté aussi (passage 2) : 30 règles simples de bougies sur XAUUSD en M1, M5, M15 avec le spread réel.
 - Mesuré : l'or est le moins cher (spread 0,46 bp = 28 % du mouvement M1, 11 % en M5 ; EURUSD 323 %).
 - Réfuté (passage 5) : grille de 47 628 combinaisons (or, argent, Nasdaq, S&P, DAX) : aucune à t > 2 au verdict.
-- 48 077 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
+- 48 087 essais comptés. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
 ## À chaque passage, d'abord
 `python3 donnees.py && python3 registre.py` puis recopier le tableau du registre dans AVIS.md.
@@ -26,11 +26,11 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
    marché) avant de couper ; couper alors ce qui est sous le témoin `hasard_m1` de plus de 2 erreurs types.
    Ajouter à `analyse_robot.py` le découpage par heure (`h_serveur` dans les notes ; serveur = Paris + 1 h).
    `ecart_midi_m5` ne trade que de 11 h à 14 h Paris : premiers trades le 12/11.
-2. **Refaire l'épreuve du « retour de midi » sur l'or M5 d'avant août 2025** dès que `mt5/donnees/xau_m5_2024` et
-   `xau_m5_2025a` arrivent (demandés au passage 6) : `banc_plateau.py <ident>`, règle figée (20, 2, 3, 12-15 h
-   serveur) + fenêtre 12-14 h. S'il perd aussi là → le retirer du robot. S'il gagne → t global, puis jour de semaine.
-   État : 5 tranches sur 5 positives depuis août 2025, épreuve glissante +2,28 bp (t = 1,91), mais négatif en M15
-   avant août 2025. Fragile.
+2. **Candidat `ecart_midi_m5`** (premiers trades le 12/11 de 11 h à 14 h Paris). Règle d'arrêt (JOURNAL passage 7) :
+   arrêt si moyenne < −0,50 $ après 60 trades ou perte cumulée de 60 $ ; taille > 0,01 lot seulement après 100 trades
+   à moyenne positive (t > 1,5). Régime : gagne quand l'or est agité (mouvement M5 moyen sur 24 h > ≈ 6 bp), rien
+   sous ≈ 4,8 bp. **À faire** : coder ce filtre de volatilité dans le robot (v5) après l'avoir vérifié en avance
+   glissante dans `banc_plateau.py` ; essayer la même idée sur `NAS100+` M5.
 3. **Étendre la grille** (`banc_grille.py`) : stops/objectifs dans la bougie, tendance de fond (M15/H1), deux règles
    qui se confirment, jour de semaine ; `NAS100+` en priorité (spread = 21 % du mouvement M1, moins cher que l'or).
    Demander plus d'historique par tranches (`debut`/`fin`) si le terminal en a.
@@ -44,9 +44,15 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
 - Indices : `NAS100+`, `SP500+`, `DJ30+`, `GER40+` (et variantes `ft+`).
 
 ## Robot
-- v3 poussée le 11/11 ≈ 21 h 30 (9 hypothèses, 0,01 lot) : vérifier `robot.version_installee` = 3 dans `etat.json`.
-- Toujours à signaler côté PC : erreur passagère du pont au remplacement de `garde_jour.json` (une fois, 18 h 53).
-- Le processus de la session peut redémarrer en plein passage : committer tôt, ne rien laisser de non commité.
+- v4 poussée le 12/11 ≈ 2 h 40 (comme v3 + pas d'ouverture de 23 h 50 à 1 h 10 serveur) : vérifier `version_installee` = 4.
+- Le terminal n'a pas de M5 avant juin 2025 pour l'or (demande 2024 : « aucune bougie »).
+- La session redémarre souvent en plein passage : committer tôt ; plusieurs déclenchements peuvent arriver d'un coup
+  (les traiter en un seul passage).
+
+## Page de suivi (PRIORITES, entrée de 23 h)
+Dernière étape de chaque passage, après le push : `git pull --rebase`, `python3 copy_sim/labo/page_suivi.py`, puis
+outil Artifact : « read » de https://claude.ai/artifact/S18Y8qgC8cRRBoVMM8p7kj puis publish avec cette `url` et
+`file_path` = `copy_sim/reports/labo_suivi.html`. Relire le fichier avant de publier (ni identifiant ni chemin du PC).
 
 ## Pièges notés
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.
