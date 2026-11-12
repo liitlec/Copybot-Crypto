@@ -1,25 +1,25 @@
-# Avis pour Baptiste — 12/11/2026, 14 h 50 (passage 20)
+# Avis pour Baptiste — 12/11/2026, 17 h 35 (passage 21)
 
-1. **La mécanique de BlockTrend est en essai sur la démo** (robot version 6) : or seul, 0,01 lot par position, 3 positions au plus par panier, ajouts seulement dans le sens du gain, stop suiveur. Étiquettes `bt_or_1` à `bt_or_3`.
-2. **À quoi t'attendre** : au banc elle gagne +0,38 R par panier sur 15 mois, mais 7 paniers sur 10 perdent environ 1 R (40 à 60 $ ici) et le gain vient de quelques gros mouvements. Les deux derniers mois sont négatifs (−7,5 R). Des pertes à la suite seront normales.
-3. **Règle d'arrêt écrite avant** : arrêt à −20 R cumulés (≈ −1 000 $ sur la démo ; le pire creux du banc est −18 R) ou si la moyenne est sous −0,3 R après 40 paniers. On ne monte la taille que si le direct confirme.
-4. Rappel : ce qui a coûté 25 189 $ à BlockTrend, c'est la taille (≈ 2,4 % du compte par signal, 3 paniers à la fois) et les marchés sans preuve (cacao, BTC, ETH). BlockFIFO : rien à sauver.
-5. Scalp : toujours rien de prouvé (48 549 combinaisons) ; mon robot est à ≈ −85 $ sur 765 trades à 0,01 lot. Rien à te demander.
+1. **1 % par jour, chiffré honnêtement.** Avec la mécanique de BlockTrend sur l'or, si son avantage du banc est réel : risquer 0,5 % du compte par position donne ≈ 0,16 % par jour (+45 % par an, pire baisse −9 %) ; risquer 1 % donne ≈ 0,32 % par jour (pire baisse −18 %). **Pour 1 % par jour il faudrait risquer 3,1 % par position, avec 41 % de chances de perdre la moitié du compte dans l'année.**
+2. Avec le « retour de midi », 1 % par jour demanderait un levier d'environ 20 : au banc cela passe, mais il a déjà perdu sur juin-août 2025, et à ce levier un seul écart de 5 % de l'or efface le compte.
+3. Et ces chiffres supposent que l'avantage existe. Aucun n'est encore confirmé en direct ; si l'avantage est nul, grossir la taille ne fait que grossir les pertes. C'est à toi de choisir le niveau de risque, une fois le direct connu.
+4. **Premier panier `bt_or` en cours** : vendeur depuis 14 h 50 à 3 896, 2 ajouts pendant la chute (3 870, 3 854), l'or est remonté à 3 875 : ≈ −6 $ pour l'instant, stop suiveur vers 3 909. Reste du robot : 898 trades, ≈ −145 $ à 0,01 lot.
+5. Modèle appris sur 26 variables : il ne prévoit rien (pas mieux qu'un témoin mélangé). 48 553 combinaisons testées. Prochain passage : stratégies à critères multiples, annonces, sorties fines.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 14 h 14
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 17 h 11
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 222 | −0,18 $ | ± 0,19 $ | référence |
-| elan_m1 | 223 | +0,07 $ | ± 0,18 $ | continue jusqu'à 300 trades (banc : −0,19 $, le spread) |
-| retour_m1 | 223 | −0,44 $ | ± 0,18 $ | continue jusqu'à 300 trades (comme le témoin) |
-| fcassure_m1 | 67 | −0,07 $ | ± 0,23 $ | continue (comme le témoin) |
-| exces_m1 | 10 | +2,95 $ | ± 1,47 $ | continue |
+| hasard_m1 (témoin) | 257 | −0,29 $ | ± 0,21 $ | référence |
+| elan_m1 | 259 | +0,04 $ | ± 0,20 $ | continue jusqu'à 300 trades (banc : −0,19 $, le spread) |
+| retour_m1 | 259 | −0,55 $ | ± 0,20 $ | continue jusqu'à 300 trades (comme le témoin) |
+| fcassure_m1 | 81 | +0,00 $ | ± 0,28 $ | continue (comme le témoin) |
+| exces_m1 | 14 | +1,27 $ | ± 2,08 $ | continue |
 | elan_m15 | 7 | −1,00 $ | ± 4,48 $ | continue |
 | cassure_m15 | 3 | +4,03 $ | ± 10,8 $ | continue |
 | exces_m5 | 1 | +0,40 $ | inconnue | continue |
 | midi_agite (candidat) | 1 | −0,06 $ | inconnue | trade de 11 h à 14 h quand l'or est agité ; arrêt : < −0,50 $ après 60 trades ou −60 $ |
-| bt_or (mécanique BlockTrend, nouveau v6) | 0 | — | — | arrêt à −20 R cumulés ou moyenne < −0,3 R après 40 paniers |
+| bt_or (mécanique BlockTrend, v6) | 0 fermé, 1 panier de 3 ventes ouvert (≈ −6 $) | — | — | arrêt à −20 R cumulés ou moyenne < −0,3 R après 40 paniers |
 | midi_calme (comparaison) | 0 | — | — | même règle quand l'or est calme ; coupé si négatif après 40 trades |
 
 ## Meilleur montage prouvé du moment (inchangé) : panier acheté seulement, risque égal (indices, or, argent, BTC, ETH)

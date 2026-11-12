@@ -675,3 +675,56 @@ Positions multiples : c'est le premier usage de la permission du 12/11 8 h 15 (p
 contre ; perte maximale d'un panier ≈ −1,6 R si les 3 positions sont stoppées au plus mauvais moment).
 
 **Total des essais : 48 549 (inchangé).**
+
+## Passage 21 — 12/11/2026 (commencé 15 h 15, repris 17 h 15 – 17 h 35 Paris après un redémarrage) — modèles appris, « 1 % par jour »
+
+Passages de 16 h 10 et 17 h 10 rattrapés ici (limite d'usage atteinte à 15 h 10, puis redémarrage de la session).
+Priorités lues (`PRIORITES.md`, 16 h 40 et 16 h 55) : rythme toutes les 2 heures, sous-agents autorisés (pas utilisés
+ici), objectif de Baptiste « environ 1 % par jour en moyenne », stratégies à critères multiples, et pour chaque
+candidat le risque chiffré de le pousser vers 1 % par jour. Registre papier : rien à ajouter.
+
+**Robot v6 en direct** (installé à 14 h 19, 0 refus, 3 erreurs passagères du pont en tout) — cumul → 17 h 11 :
+hasard_m1 257 trades −0,29 $ (± 0,21) ; elan_m1 259, +0,04 $ (± 0,20) ; retour_m1 259, −0,55 $ (± 0,20) ;
+fcassure_m1 81, +0,00 $ ; exces_m1 14, +1,27 $ (± 2,1) ; exces_m5 4, +4,16 $ (± 4,8) ; elan_m15 9, +2,56 $ ;
+cassure_m15 4 ; midi_agite 1 (−0,06 $). 898 ouvertures, 0 refus. Total ≈ −145 $.
+**`bt_or` : premier panier**, vendeur, ouvert à 14 h 50 à 3 895,66 (stop à 55 $), ajouts à 3 869,63 (16 h) et
+3 854,03 (16 h 15) pendant la chute de l'or (4 000 → 3 854 dans la journée) ; à 17 h 11 l'or est remonté à 3 875 :
+panier à ≈ −6 $, encore ouvert, stop suiveur à 3 909 environ. Exactement le comportement attendu.
+
+**Banc N — modèles appris** (`banc_modele.py`, gradient boosting, 26 variables : rendements de 1 à 240 min,
+amplitudes, agitation, écarts aux moyennes, position dans la fourchette, mèches, volume de ticks, spread, heure,
+séries, distance aux extrêmes du jour ; or M1, 3 mois ; 4 tours de validation glissante ; 4 essais) :
+
+| Horizon | Prévisions gardées | Trades | Brut | Net | Témoin (cibles mélangées), brut |
+|---|---|---|---|---|---|
+| 5 min | les 10 % les plus fortes | 4 616 | −0,23 bp | −0,72 bp | −0,08 / +0,13 / +0,11 |
+| 5 min | les 2 % les plus fortes | 954 | −0,03 bp | −0,53 bp | +0,51 / +0,09 / +0,53 |
+| 15 min | 10 % | 6 283 | −0,75 bp | −1,24 bp | +0,30 / −0,89 / +0,48 |
+| 15 min | 2 % | 1 067 | −1,72 bp | −2,22 bp | −0,16 / −1,14 / −0,02 |
+
+Le lien entre prévision et réalité est nul hors échantillon (corrélations de −0,07 à +0,05 selon les tours) : le
+modèle ne fait pas mieux que le témoin mélangé. **Réfuté : 26 variables de prix à la fois ne prévoient pas les 5 ou
+15 prochaines minutes de l'or mieux que le hasard.**
+
+**Banc O — ce qu'il faudrait pour « 1 % par jour »** (`banc_objectif.py` ; 5 000 années simulées en tirant des blocs
+de trades du banc ; hypothèse généreuse : le futur ressemble aux 15 mois du banc, qui ont eux-mêmes été choisis
+parmi 48 000 essais).
+
+Mécanique BlockTrend sur l'or (3 positions au plus ; 212 paniers par an, +0,38 R par panier) :
+| Risque par R | Par jour en moyenne | Gain médian sur un an | Pire baisse médiane | Chances de perdre 50 % dans l'année |
+|---|---|---|---|---|
+| 0,25 % | 0,08 % | +21 % | −5 % | 0 % |
+| 0,5 % | 0,16 % | +45 % | −9 % | 0 % |
+| 1 % | 0,32 % | +103 % | −18 % | 0 % |
+| 2 % | 0,64 % | +255 % | −33 % | 6 % |
+| **3,1 %** | **1 %** | +463 % | −47 % | **41 %** |
+
+Retour de midi sur l'or (une position à la fois, 570 trades par an, 1 R = 20 bp contre soi) : 1 % par jour demande
+3,9 % du compte par R, soit un **levier d'environ 20** ; au banc cela donne −28 % de pire baisse médiane et 2 % de
+chances de perdre la moitié, mais ce candidat a échoué sur juin-août 2025 et un écart de 5 % de l'or pendant une
+position à levier 20 efface le compte : ces chiffres-là sont le meilleur cas.
+Lecture : **si** ces deux avantages sont réels et durent, 0,1 à 0,3 % par jour est atteignable à risque raisonnable
+(pire baisse de 5 à 18 %) ; 1 % par jour revient à jouer le compte à pile ou face sur l'année pour BlockTrend. Et si
+l'avantage n'existe pas (ce que le direct doit encore dire), plus de taille = plus de pertes, rien d'autre.
+
+**Total des essais : 48 549 + 4 = 48 553.**
