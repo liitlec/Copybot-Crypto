@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-12T23:46:33Z",
+ "ecrit": "2026-11-12T23:51:39Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67190.33,
- "valeur": 70453.54,
- "marge_libre": 67184.85,
+ "solde": 67194.3,
+ "valeur": 70685.97,
+ "marge_libre": 67409.43,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3883.86,
-   "ask": 3884.07,
+   "bid": 3880.61,
+   "ask": 3880.82,
    "spread_points": 21.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794534392
+   "heure_serveur": 1794534698
   }
  },
  "positions_robot": [
@@ -34,49 +34,38 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3876.69,
-   "prix_actuel": 3884.07,
+   "prix_actuel": 3880.82,
    "stop": 3912.14,
    "objectif": null,
-   "profit": -7.38,
+   "profit": -4.13,
    "ouverte_heure_serveur": 1794527100
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "achat",
-   "lots": 0.01,
-   "prix_entree": 3878.89,
-   "prix_actuel": 3883.86,
-   "stop": 3873.71,
-   "objectif": null,
-   "profit": 4.97,
-   "ouverte_heure_serveur": 1794534300
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3882.24,
-   "prix_actuel": 3884.07,
+   "prix_actuel": 3880.82,
    "stop": 3887.57,
    "objectif": null,
-   "profit": -1.83,
+   "profit": 1.42,
    "ouverte_heure_serveur": 1794534360
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3882.19,
-   "prix_actuel": 3884.07,
-   "stop": 3887.57,
+   "prix_entree": 3881.03,
+   "prix_actuel": 3880.82,
+   "stop": 3887.01,
    "objectif": null,
-   "profit": -1.88,
-   "ouverte_heure_serveur": 1794534360
+   "profit": 0.21,
+   "ouverte_heure_serveur": 1794534600
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-13",
-  "perte_du_jour": -7.91,
+  "perte_du_jour": -0.32,
   "seuil": -3545.05,
   "ouvertures_bloquees": false
  },
