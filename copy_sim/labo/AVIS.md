@@ -1,21 +1,21 @@
-# Avis pour Baptiste — 12/11/2026, 6 h 20 (passage 11)
+# Avis pour Baptiste — 12/11/2026, 7 h 20 (passage 12)
 
-1. **Toujours aucun scalp prouvé** (48 240 combinaisons). En direct, 422 trades fermés, total ≈ −81 $ à 0,01 lot : les règles M1 perdent le spread, comme le pile ou face.
+1. **Toujours aucun scalp prouvé** (48 252 combinaisons). En direct, 465 trades fermés, total ≈ −103 $ à 0,01 lot : les règles M1 perdent le spread, comme le pile ou face.
 2. Le candidat « retour de midi » résiste aux épreuves de cette nuit : il reste gagnant sur 15 mois quelle que soit la façon de sortir (18 variantes), la sortie simple au bout de 15 minutes étant la meilleure ; il est plus fort dans le sens de la tendance de fond et quand l'or est agité.
 3. Ce n'est toujours pas une preuve : tout vient des mêmes 15 mois. Le vrai test commence ce matin à 11 h sur la démo (0,01 lot). L'or est calme aujourd'hui, donc peu d'attente.
 4. Règle d'arrêt écrite : arrêt si moyenne sous −0,50 $ après 60 trades ou à 60 $ de perte ; taille augmentée seulement après 100 trades gagnants.
 5. La page de suivi n'est pas à jour (sa publication attend ton approbation dans la session ; je réessaie en journée). Rien d'autre à te demander.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 6 h 08
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 7 h 10
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 125 | −0,22 $ | ± 0,22 $ | référence |
-| elan_m1 | 125 | +0,06 $ | ± 0,20 $ | continue jusqu'à 300 trades (comme le témoin) |
-| retour_m1 | 126 | −0,47 $ | ± 0,21 $ | continue jusqu'à 300 trades (comme le témoin) |
-| fcassure_m1 | 32 | +0,18 $ | ± 0,38 $ | continue (comme le témoin) |
-| exces_m1 | 6 | +2,76 $ | ± 2,07 $ | continue |
-| elan_m15 | 5 | −2,49 $ | ± 4,47 $ | continue |
+| hasard_m1 (témoin) | 137 | −0,17 $ | ± 0,21 $ | référence |
+| elan_m1 | 138 | +0,04 $ | ± 0,20 $ | continue jusqu'à 300 trades (comme le témoin) |
+| retour_m1 | 138 | −0,52 $ | ± 0,21 $ | continue jusqu'à 300 trades (comme le témoin) |
+| fcassure_m1 | 34 | +0,11 $ | ± 0,36 $ | continue (comme le témoin) |
+| exces_m1 | 7 | +2,43 $ | ± 1,78 $ | continue |
+| elan_m15 | 6 | −4,00 $ | ± 3,95 $ | continue |
 | cassure_m15 | 2 | −4,58 $ | ± 11,4 $ | continue |
 | exces_m5 | 1 | +0,40 $ | inconnue | continue |
 | midi_agite (candidat) | 0 | — | — | trade de 11 h à 14 h quand l'or est agité ; arrêt : < −0,50 $ après 60 trades ou −60 $ |

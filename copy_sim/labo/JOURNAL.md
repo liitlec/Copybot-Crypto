@@ -396,3 +396,18 @@ positive au réglage et au verdict** (+2,9 → +1,3 bp ; dans le sens du fond +4
 changent entre réglage et verdict. Sur le Nasdaq rien de stable (12-15 h : −0,1 → +1,8 bp). Aucun nouveau candidat.
 
 **Total des essais : 48 192 + 48 = 48 240.**
+
+## Passage 12 — 12/11/2026 (≈ 7 h 10 – 7 h 20 Paris) — passage court : cassure d'ouverture de Wall Street
+
+Registre papier : rien à ajouter. Robot v5 en marche, 0 refus, aucune nouvelle erreur. Page de suivi : pas tentée
+(avant 8 h).
+**Robot en direct, cumul → 7 h 10** : hasard_m1 137 trades −0,17 $ (± 0,21) ; elan_m1 138, +0,04 $ (± 0,20) ;
+retour_m1 138, −0,52 $ (± 0,21) ; fcassure_m1 34, +0,11 $ (± 0,36) ; exces_m1 7, +2,43 $ (± 1,8) ; elan_m15 6,
+−4,00 $ (± 3,9) ; cassure_m15 2 ; exces_m5 1. 469 ouvertures, 0 refus. Total ≈ −103 $. `retour_m1` est 0,34 $ sous le
+témoin (± 0,30) : pas encore 2 erreurs types, on continue jusqu'à 300 trades.
+
+**Cassure de la première demi-heure de Wall Street** (16 h 30 – 17 h serveur, puis on suit ou on contre la sortie de
+fourchette, sortie à 18 h, 20 h ou 22 h 55 ; `NAS100+` et or, 12 essais, deux moitiés de ≈ 8 mois) : rien. Nasdaq
+suivi jusqu'à 18 h : +4,8 bp puis −4,1 bp ; toutes les autres variantes à |t| < 1. **Réfuté.**
+
+**Total des essais : 48 240 + 12 = 48 252.**
