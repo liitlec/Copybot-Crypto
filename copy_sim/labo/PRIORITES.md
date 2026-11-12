@@ -183,3 +183,15 @@ Cherche ce qui distingue ses trades gagnants des perdants (sens, régime de tend
 chaque principe sur tes données avec les vrais coûts, et mets en essai dans ton robot ce qui tient (par exemple
 « suivre la tendance de fond seulement à la vente » si c'est ce que montrent les chiffres). Dis dans AVIS.md ce que
 tu as retenu ou écarté, et pourquoi.
+
+## 12/11/2026, 10 h 45 (Paris) : combiner les idées quand il y a assez de matière
+Baptiste veut qu'une fois la matière suffisante, tu combines les idées :
+1. **Filtres dans une même stratégie** : une hypothèse qui gagne un peu, restreinte aux conditions où elle gagne
+   (heure, agitation, tendance de fond, spread, accord de deux signaux).
+2. **Plusieurs stratégies ensemble** : 2 ou 3 hypothèses qui gagnent un peu chacune et pas les mêmes jours, en
+   portefeuille, pour lisser les résultats.
+Seuil pour commencer : quelques centaines de trades fermés par hypothèse concernée. Ensuite, à chaque passage,
+regarde dans quelles conditions chaque hypothèse gagne ou perd, propose des mélanges et mets-les en essai dans le
+robot comme les autres (étiquette propre, petite taille, règle d'arrêt écrite avant).
+Règles : un mélange est **fixé avant** d'être jugé, et jugé sur les trades **suivants** ; compte tous les mélanges
+essayés et corrige pour le hasard ; ne mélange pas des pièces qui n'ont aucun avantage seules.
