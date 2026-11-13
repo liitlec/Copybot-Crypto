@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 13/11/2026, 13 h (passage 28)
+# Avis pour Baptiste — 13/11/2026, 16 h (passage 29)
 
-1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (bientôt 12 heures) : le robot ne trade pas. Il faut rallumer le PC ou relancer le pont.
-2. **Correction de ce matin : la piste « devises de fin de mois » de BlockFinMois ne tient pas.** Vérifiée sur 14 paires, à l'achat et à la vente : −2 à −3 bp par trade, comme n'importe quel autre jour. Le petit gain vu ce matin venait d'un seul sous-groupe (achats sur 7 paires), donc du hasard.
-3. BlockFinMois sur les indices : bon depuis 2016, nul avant ; règle du marché récent, proche du repli d'indices déjà en démo. Je ne l'ajoute pas pour l'instant.
-4. Ce qui reste debout : le repli d'indices (petit mais prouvé, +8 à +15 % par an au mieux) et `bt_or` sur l'or (à confirmer en direct). Les scalps M1 valent le hasard.
-5. Ensuite : dès que le pont revient, lecture du direct ; sinon suite de la recherche large sur l'or (annonces, structure M15/H1, sorties fines).
+1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (15 heures) : le robot ne trade pas et je n'ai aucun résultat en direct depuis. Il faut rallumer le PC ou relancer le pont.
+2. **Scalp or filtré par la structure H1 / M15** (plus hauts et plus bas croissants) : 32 règles testées sur 15 mois, aucune ne gagne nettement. Le filtre aide un peu (dans le sens de la structure ≈ zéro à +4 bp, contre ≈ −1 à −5 bp), mais pas assez pour une preuve.
+3. La moins mauvaise : acheter un repli dans une structure haussière, tenu 2 heures : +2 à +4 bp par trade, 1 trade par jour, trop peu net pour la démo.
+4. Rappel de ce midi : les devises de fin de mois ne tiennent pas ; restent le repli d'indices (prouvé, petit) et `bt_or` (à confirmer en direct).
+5. Ensuite : dès que le pont revient, lecture du direct ; sinon les deux dernières familles (annonces économiques, sorties fines).
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 23 h 08 (Paris 22 h 08)
 

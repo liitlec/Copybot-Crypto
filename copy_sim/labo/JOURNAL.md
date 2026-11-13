@@ -999,3 +999,31 @@ un effet : **rien à mettre sur la démo le 30/11 pour les devises.** (Depuis 08
 Reste de BlockFinMois : la piste indices, règle de régime récent seulement (passage 27).
 
 **Total des essais : 48 700 + 8 = 48 708.**
+
+## Passage 29 — 13/11/2026 (≈ 15 h 41 – 16 h Paris) — signal M5 filtré par la structure H1 / M15 (banc U)
+
+Aucune nouvelle priorité. **Pont toujours arrêté** (dernier `etat.json` : 13/11 1 h 07 Paris, soit 14 h 30) : rien
+de neuf en direct, robot v9 inchangé, aucune donnée demandée n'est arrivée.
+
+**Banc U — famille 4 de la recherche large** (`banc_structure.py`, or M5 du courtier, 15 mois, spread réel, 32
+essais). Structure = plus hauts et plus bas croissants (ou décroissants) sur deux blocs de 4 bougies H1 (ou M15)
+fermés ; elle est haussière 16 % du temps, baissière 13 %, neutre 71 %. Entrées M5 : élan (cassure de 12 bougies)
+ou repli (écart de 1,5 écart-type à la moyenne de 20 bougies, pris à contre-pied). Réglage 60 % / verdict 40 %.
+
+| Règle (meilleure tenue) | Réglage | Verdict |
+|---|---|---|
+| élan, sans filtre, 15 min | 4 659 trades, −0,57 bp | 3 156, −0,69 bp (t = −2,3) |
+| élan dans le sens de la structure H1, 120 min | 316, +1,35 bp (t = 0,5) | 243, +4,04 bp (t = 1,3) |
+| élan contre la structure H1, 120 min | 313, −1,31 bp | 249, −3,90 bp (t = −1,5) |
+| repli sans filtre, 15 min | 5 986, −0,58 bp (t = −2,0) | 4 056, −0,28 bp |
+| **repli dans le sens de la structure H1, 120 min** | 320, **+2,33 bp** (t = 0,8) | 249, **+3,60 bp** (t = 1,4) |
+| repli, H1 et M15 d'accord, 120 min | 96, −0,95 bp | 76, +8,04 bp (t = 1,9) |
+| repli contre la structure H1, 120 min | 323, −0,90 bp | 243, −4,80 bp (t = −1,6) |
+
+**Rien ne passe (aucun t > 2 sur les deux périodes).** Le filtre de structure va dans le bon sens partout (dans
+le sens de H1 : autour de zéro ou un peu positif ; contre : négatif), et le mieux est « acheter un repli dans une
+structure haussière, tenu 2 h » : +2 à +4 bp par trade, ≈ 1 trade par jour, t ≈ 1 : même idée que le repli
+d'indices, mais sur l'or elle n'est pas prouvée. Non mis en démo. Familles restantes : annonces économiques (3),
+sorties fines (6).
+
+**Total des essais : 48 708 + 32 = 48 740.**

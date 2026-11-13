@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 28, 13/11/2026 (13 h) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
+# État du laboratoire (réécrit à chaque passage) — après le passage 29, 13/11/2026 (16 h) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -35,7 +35,9 @@
   (règle de régime). Devises (RSI 2 j < 30 en fin de mois) : +12 à +14 bp sur les deux périodes, témoin +1 à +4.
 - Passage 28 (banc T bis, `banc_finmois_fx.py`) : devises de fin de mois **réfutées** (14 paires, deux sens :
   −2 à −3 bp, comme le témoin). Le gain du passage 27 était un sous-groupe chanceux.
-- 48 708 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 29 (banc U, `banc_structure.py`) : signal M5 or filtré par la structure H1/M15 : rien à t > 2 ; le
+  mieux = repli dans le sens de la structure H1, 2 h : +2 à +4 bp (t ≈ 1). Famille 4 faite.
+- 48 740 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
