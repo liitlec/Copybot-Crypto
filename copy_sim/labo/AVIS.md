@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 13/11/2026, 23 h (passage 32)
+# Avis pour Baptiste — 14/11/2026, 0 h 25 (passage 33)
 
-1. **Le repli d'indices est un effet américain.** Sur les bougies de ton courtier : S&P 500 et Dow +40 bp par trade (75 à 80 % de gagnants), Nasdaq et Russell 2000 +25 bp ; DAX, CAC et EuroStoxx à peu près zéro ; rien de net sur l'or.
-2. **Robot version 10** : le Russell 2000 (`US2000+`) est ajouté, soit 5 indices suivis. Je garde le DAX pour l'instant (liste fixée avant le premier trade) et le retirerai s'il déçoit aussi en direct.
-3. Direct : rien de neuf, les scalps M1 restent au niveau du hasard (témoin −0,33 $ par trade sur 395 trades). Aucun trade encore pour le repli d'indices ni pour `bt_or`.
-4. Le marché ferme pour le week-end ; reprise lundi vers 0 h. Passages courts d'ici là.
-5. Ensuite : dernière famille de recherche (annonces économiques) ; entrée en H4 pour le repli d'indices (données reçues).
+1. **Robot version 10 installée** (22 h 42) : le repli d'indices suit 5 indices (Nasdaq, S&P 500, Dow, DAX, Russell 2000). Marché fermé jusqu'à lundi vers 0 h.
+2. **Repli d'indices en H4 au lieu du jour : non.** Sur le Nasdaq du courtier, la même règle en H4 fait zéro (−5 à +10 bp par trade) contre +25 bp en jour. On ne peut pas multiplier les trades en descendant d'unité de temps.
+3. Rappel : l'effet est américain (S&P et Dow +40 bp, Nasdaq et Russell +25 bp ; indices européens ≈ zéro) et son plafond réaliste est +8 à +15 % par an.
+4. Direct : scalps M1 au niveau du hasard ; aucun trade encore pour le repli d'indices ni pour `bt_or`.
+5. Week-end : passages courts. Reste à étudier : les annonces économiques sur l'or.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 13/11 20 h 13 (Paris)
 

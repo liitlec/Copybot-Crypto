@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 32, 13/11/2026 (23 h) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 0 h (passages courts le week-end)
+# État du laboratoire (réécrit à chaque passage) — après le passage 33, 14/11/2026 (0 h 25) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h : **passages très courts le week-end** (une ligne au journal, sauf nouvelle priorité)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -42,7 +42,9 @@
   un calendrier historique NFP / CPI / FOMC sur internet, dates seulement, puis or M5 autour).
 - Passage 32 : repli d'indices sur les D1 du courtier : effet américain (SP500+ et DJ30+ +40 bp, NAS100+ et
   US2000+ +25 bp ; GER40+, FRA40+, EU50+ ≈ 0 ; or rien). `JPN225+` n'existe pas. `GER40+` gardé jusqu'au direct.
-- 48 769 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 33 (banc W, `banc_repli_h4.py`) : repli d'indices en H4 sur NAS100+ : zéro. Rester en D1. Robot v10
+  installé (13/11 22 h 42).
+- 48 775 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 

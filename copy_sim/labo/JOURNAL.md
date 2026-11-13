@@ -1103,3 +1103,21 @@ fermeture d'une position orpheline n'est plus retentée qu'une fois par minute (
 fermées par la mise à jour, à ne pas compter).
 
 **Total des essais : 48 761 + 8 = 48 769.**
+
+## Passage 33 — 14/11/2026 (≈ 0 h 11 – 0 h 25 Paris) — robot v10 installé ; repli d'indices en H4 : non (banc W)
+
+Aucune nouvelle priorité. **Robot v10 installé le 13/11 à 22 h 42 (Paris)**, 0 refus ; les 2 petites positions
+ont été fermées par la mise à jour (+0,31 $, +0,50 $, non comptées). Marché fermé pour le week-end ; une position
+`elan_m15` (vente à 3 877,09, stop 3 905,94) reste ouverte jusqu'à lundi. Aucun trade `repli_ind` ni `bt_or`.
+
+**Banc W** (`banc_repli_h4.py`, `NAS100+` en H4 du courtier, 6 essais ; l'historique H4 est mince avant 2023) :
+le repli d'indices transposé en H4 (RSI 2 bougies, moyenne longue 200 ou 1 200 bougies, mêmes sorties).
+| Moyenne longue | RSI < 5 | RSI < 10 | RSI < 25 |
+|---|---|---|---|
+| 200 bougies, 2023-2026 | 107 trades, +10,0 bp (t = 1,3) | 195, −5,2 bp | 388, −1,8 bp |
+| 1 200 bougies, 2023-2026 | 169, +6,8 bp (t = 1,0) | 300, −3,9 bp | 528, −3,3 bp |
+**Réfuté** : en H4 la règle fait zéro (−5 à +10 bp, aucun t > 1,3), alors qu'en jour elle fait +25 bp sur le même
+indice. Le repli qui compte est celui de la journée entière ; multiplier les trades en descendant d'unité de temps
+ne marche pas. La règle reste en D1.
+
+**Total des essais : 48 769 + 6 = 48 775.**
