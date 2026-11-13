@@ -898,3 +898,47 @@ veille. 3 positions de 0,01 lot étaient ouvertes, chacune avec son stop chez le
 Direct, cumul → 1 h 05 : hasard_m1 338 trades −0,28 $ (± 0,17) ; fcassure_m1 99, +0,12 $ (± 0,24) ; elan_m15 14,
 +3,94 $ (± 3,7) ; exces_m1 16, +1,32 $ (± 1,8) ; cassure_m15 5 ; exces_m5 4. 1 086 ouvertures, 0 refus.
 Aucun banc lancé (essais : 48 617, inchangé). Reste à faire : amélioration du repli d'indices (PRIORITES 22 h 40).
+
+## Passage 26 — 13/11/2026 (≈ 7 h 41 – 8 h 10 Paris) — comment tirer plus du repli d'indices (banc S)
+
+Aucune nouvelle priorité. **Pont toujours arrêté** (dernier `etat.json` : 13/11 1 h 07 Paris) : rien de neuf en
+direct, données D1 demandées non arrivées. Robot v9 inchangé.
+
+**Banc S** (`banc_repli_plus.py`, bougies jour Yahoo 2000-2026, portefeuille simulé jour par jour avec positions
+qui se chevauchent, coûts : 2 bp + financement CFD par nuit ; ≈ 70 essais).
+
+1. **Par marché, règle de base, 2016-2026** (bp par trade) : Dow +32 (t = 2,5), Nikkei +36, Nasdaq +31, Russell
+   +30, S&P +26, EuroStoxx +23, DAX +12 ; **perdants : CAC −22, FTSE −8** ; **or +10 (t = 0,4), argent −22 : la
+   logique ne tient pas sur les métaux.**
+2. **Plus d'indices** (4 → 8 : + Nikkei, CAC, EuroStoxx, Russell) : 35 → 65 trades par an, même gain par trade
+   (+21 bp, t = 3,3 sur chaque moitié), mais les indices replient ensemble : à 50 % du compte par position, +4,4 %
+   → +6,5 % par an et pire baisse −12,5 % → −26,8 %. **Sharpe identique (0,64 contre 0,62) : plus gros, pas meilleur.**
+3. **Sorties, durée, stop, seuil** : grille de 54 réglages, **54 sur 54 positifs** en 2016-2026 (Sharpe de 0,18 à
+   0,82, médiane 0,49, base 0,62) : la règle est robuste. Mais **le réglage ne rapporte rien** : en avance glissante
+   (meilleur réglage du passé, jugé sur les 3 ans suivants, 2010-2026) Sharpe 0,52, exactement celui de la base,
+   avec une pire baisse plus forte (−39 % contre −27 %). Ce qui était le mieux avant 2016 (sortie lente, seuil 15)
+   est le moins bon après. Seul résultat stable : **garder le stop à 2 ATR** (sans stop : Sharpe 0,45 puis 0,38).
+4. **Filtre 100 j au lieu de 200 j** : mieux avant 2016 (0,62), moins bien après (0,43). **Taille au risque**
+   (stop = 2 % du compte) : pas mieux (0,52). Rien à retenir.
+5. **Tableau base (4 indices du robot, 2016-2026, 35 trades par an, exposé 27 % des jours)** :
+
+| Part du compte par position | Gain par an | Par jour | Pire baisse | Chances de perdre 50 % dans l'année |
+|---|---|---|---|---|
+| 20 % | +1,8 % | 0,007 % | −5 % | 0 % |
+| 50 % | +4,4 % | 0,018 % | −12,5 % | 0 % |
+| 100 % | +8,4 % | 0,036 % | −24 % | 0 % |
+| 200 % | +15,2 % | 0,07 % | −44 % | 0,1 % |
+| 500 % | +22 % | 0,18 % | −83 % | 21 % |
+| **2 760 % (ce qu'il faut pour 1 % par jour)** | compte perdu | 1 % « en moyenne » | −100 % | **96 %** |
+
+   Avec 8 indices : 100 % par position → +12 % par an, pire baisse −48 % ; 200 % → +19 %, −77 %.
+   **Le plafond réaliste est ≈ +8 à +15 % par an** pour −24 à −44 % de pire baisse ; au-delà le levier détruit le
+   gain (à 500 % avec 8 indices : +1,7 % par an). 1 % par jour est hors de portée de cette règle.
+
+Décision : **la règle du robot reste telle quelle** (aucune « version améliorée » ne passe l'avance glissante ; la
+seule amélioration honnête est le nombre d'indices, qui augmente gain et risque ensemble). À étudier ensuite :
+ajouter Nikkei, EuroStoxx, Russell au robot quand leurs noms chez le courtier seront connus (pas le CAC).
+Limite : les indices Yahoo sont au comptant (clôture de bourse), le CFD cote presque 24 h ; vérifié seulement sur
+`NAS100+` et `SP500+` (passage 24).
+
+**Total des essais : 48 617 + 70 = 48 687.**

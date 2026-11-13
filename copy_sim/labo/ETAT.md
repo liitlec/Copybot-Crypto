@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 25, 13/11/2026 (7 h ; pont arrêté depuis 1 h 07 : vérifier la date de `etat.json`) — rythme : toutes les 2 h 30
+# État du laboratoire (réécrit à chaque passage) — après le passage 26, 13/11/2026 (8 h 10) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -28,7 +28,10 @@
   compte par trade). Premier montage qui passe les deux périodes. FTSE perdant.
 - Passage 24 : repli d'indices confirmé sur les bougies D1 du courtier (NAS100+ +25 bp, SP500+ +40 bp) ; mécanique
   BlockTrend réfutée sur argent, BTC, ETH (et Nasdaq) : elle ne tient que sur l'or.
-- 48 617 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 26 (banc S, `banc_repli_plus.py`) : améliorer le repli d'indices : 54 réglages tous positifs mais le
+  réglage ne rapporte rien en avance glissante ; 8 indices = même Sharpe, plus de gain et de risque ; or, argent,
+  CAC, FTSE : non. Plafond réaliste +8 à +15 %/an pour −24 à −44 % de pire baisse. Règle du robot inchangée.
+- 48 687 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -57,12 +60,13 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
   pour les indices → lire le champ `profit`/`bp` des notes.
 - `fcassure_m1` : couper à 300 trades s'il reste dans la marge du témoin (97 au passage 24).
 - Candidat de midi étiqueté `midi_agite_f/_c`, `midi_calme_f/_c` ; mélange fixé = `midi_agite_f`.
-- **À faire ensuite (PRIORITES 22 h 40)** : améliorer le repli d'indices en avance glissante, essais comptés :
-  (1) plus d'indices (Dow, CAC, EU50, Nikkei… via Yahoo ; noms du courtier à trouver : demander D1 de `DJ30+`,
-  `GER40+` et essayer `JPN225+`, `FRA40+`, `EU50+`) ; or et argent avec la même logique ; H4/H1 ; (2) sorties
-  (objectif, stop, durée) ; (3) taille (risque fixe, volatilité, positions simultanées) ; (4) filtres. Rendre le
-  tableau « base / améliorée » : gain par an, pire baisse, trades par an, et taille pour 1 % par jour avec le
-  risque (`banc_objectif.py`). Point de départ : `banc_blockrange_ohlc.py` (`trades()`, cache `data/ohlc_*.csv.gz`).
+- **À faire ensuite** : (1) quand le pont revient : lire les D1 demandées (`dj_d1_5k`, `ger_d1_5k`, `jpn_d1_5k`,
+  `fra_d1_5k`, `eu50_d1_5k`) pour connaître les noms valides ; ajouter Nikkei / EuroStoxx / Russell à
+  `repli_ind.SYMBOLES` s'ils existent (pas CAC ni FTSE) ; version à publier seulement sans panier `bt_or` ouvert.
+  (2) L'amélioration du repli d'indices est **faite** (banc S) : ne pas la refaire ; reste éventuellement l'entrée
+  en H4/H1 (non testée, demander les H4 des indices au pont). (3) Recherche large restante : annonces économiques,
+  structure M15/H1, sorties fines (voir section suivante) ; effet de fin de mois (BlockFinMois) sur indices avec
+  `banc_repli_plus.ohlc()`.
 - Ensuite : faire survivre `bt_or` aux changements de version ; BlockGrille, BlockFinMois ; tableau des paniers
   `bt_or` dans `analyse_robot.py`.
 - Clone neuf : `mkdir data` avant `python3 donnees.py` ; essais du robot : copier `mt5/robot/*.py` dans un dossier

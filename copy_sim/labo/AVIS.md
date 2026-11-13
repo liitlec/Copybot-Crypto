@@ -1,11 +1,10 @@
-# Avis pour Baptiste — 13/11/2026, 7 h (passage 25, court)
+# Avis pour Baptiste — 13/11/2026, 8 h 10 (passage 26)
 
-0. **Le pont ne répond plus depuis 1 h 07 cette nuit** (PC éteint ou en veille ?) : le robot ne trade plus tant qu'il n'est pas rallumé. Les 3 petites positions ouvertes ont leur stop chez le courtier.
-1. **Le repli d'indices (ton BlockRange corrigé) est sur la démo** : robot version 9, étiquette `repli_ind`, sur NAS100+, SP500+, DJ30+, GER40+ (pas le FTSE), à la taille minimale du courtier. Les bougies du courtier confirment le banc : +25 bp par trade sur le Nasdaq (62 trades), +40 bp sur le S&P (54 trades, 80 % de gagnants).
-2. **Il tradera peu** : ≈ 35 à 40 trades par an sur 4 indices (aucun signal aujourd'hui). Règle d'arrêt écrite avant : somme des trades sous −1 500 bp, ou moyenne sous −20 bp après 60 trades. Ses positions survivent maintenant aux mises à jour du robot.
-3. **Mécanique BlockTrend ailleurs que sur l'or : non.** Argent +0,07 R par panier (t = 0,4), BTC +0,06 R, ETH +0,01 R, Nasdaq zéro. Elle ne tient que sur l'or, et tout son gain vient des ajouts pendant quelques grands mouvements. Rien d'autre mis en essai.
-4. `elan_m1` est éteint depuis 22 h 17 (version 8) ; les scalps M1 restent au niveau du hasard ; `bt_or` attend son premier panier valable.
-5. Prochains passages : comment tirer plus du repli d'indices (plus d'indices, sorties, taille, filtres), avec le tableau « base / améliorée » et le chiffrage « 1 % par jour ». Rien à faire de ton côté.
+1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (PC éteint ou en veille) : le robot ne trade plus tant qu'il n'est pas rallumé.
+2. **Peut-on tirer plus du repli d'indices ? Très peu.** 54 réglages testés (seuil, sortie, durée, stop) : tous gagnent, mais choisir « le meilleur du passé » ne fait pas mieux que ta règle de base sur la suite. Seul point stable : garder le stop.
+3. **Plus d'indices = plus gros, pas meilleur** : de 4 à 8 indices, 35 → 65 trades par an, mais ils baissent ensemble, donc gain et pire baisse montent du même pas. À éviter : CAC et FTSE (perdants). Sur l'or et l'argent, la règle ne marche pas.
+4. **Ce que ça donne vraiment (4 indices, 2016-2026)** : 50 % du compte par position → +4,4 % par an, pire baisse −12,5 % ; 100 % → +8,4 %, −24 % ; 200 % → +15 %, −44 %. Pour 1 % par jour il faudrait 27 fois le compte par position : 96 % de chances de perdre la moitié dans l'année.
+5. La règle reste donc telle quelle dans le robot. Ensuite : ajouter Nikkei, EuroStoxx, Russell si le courtier les a, et continuer la recherche ailleurs. De ton côté : rallumer le PC.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 23 h 08 (Paris 22 h 08)
 
