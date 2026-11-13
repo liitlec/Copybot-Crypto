@@ -303,5 +303,60 @@
   "premiere": 1535673600,
   "derniere": 1794528000,
   "fichier": "ger_d1_5k.csv.gz"
+ },
+ "jpn_d1_5k": {
+  "cle": "3d940570ae6a",
+  "ecrit": "2026-11-13T19:19:36Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "fra_d1_5k": {
+  "cle": "2af7317f0f73",
+  "ecrit": "2026-11-13T19:19:36Z",
+  "symbole": "FRA40+",
+  "periode": "D1",
+  "lignes": 2101,
+  "premiere": 1536796800,
+  "derniere": 1794528000,
+  "fichier": "fra_d1_5k.csv.gz"
+ },
+ "eu50_d1_5k": {
+  "cle": "d0f6c6a732c3",
+  "ecrit": "2026-11-13T19:20:37Z",
+  "symbole": "EU50+",
+  "periode": "D1",
+  "lignes": 1585,
+  "premiere": 1598572800,
+  "derniere": 1794528000,
+  "fichier": "eu50_d1_5k.csv.gz"
+ },
+ "xau_d1_5k": {
+  "cle": "f5be25757043",
+  "ecrit": "2026-11-13T19:20:37Z",
+  "symbole": "XAUUSD",
+  "periode": "D1",
+  "lignes": 2111,
+  "premiere": 1537747200,
+  "derniere": 1794528000,
+  "fichier": "xau_d1_5k.csv.gz"
+ },
+ "us2000_d1_5k": {
+  "cle": "69200e34c0f4",
+  "ecrit": "2026-11-13T19:21:38Z",
+  "symbole": "US2000+",
+  "periode": "D1",
+  "lignes": 2113,
+  "premiere": 1537747200,
+  "derniere": 1794528000,
+  "fichier": "us2000_d1_5k.csv.gz"
+ },
+ "nas_h4_20k": {
+  "cle": "1bedb42498ca",
+  "ecrit": "2026-11-13T19:21:38Z",
+  "symbole": "NAS100+",
+  "periode": "H4",
+  "lignes": 7706,
+  "premiere": 1537833600,
+  "derniere": 1794600000,
+  "fichier": "nas_h4_20k.csv.gz"
  }
 }
