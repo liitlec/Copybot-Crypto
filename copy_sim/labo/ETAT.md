@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 24, 12/11/2026 (23 h 15) — rythme : toutes les 2 h 30
+# État du laboratoire (réécrit à chaque passage) — après le passage 25, 13/11/2026 (7 h ; pont arrêté depuis 1 h 07 : vérifier la date de `etat.json`) — rythme : toutes les 2 h 30
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),

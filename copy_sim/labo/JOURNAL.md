@@ -886,3 +886,15 @@ marché mis en essai. Sans pyramide, elle vaut zéro partout : tout le gain vien
 mouvements.
 
 **Total des essais : 48 596 + 6 + 15 = 48 617.**
+
+## Passage 25 — 13/11/2026 (≈ 7 h Paris) — passage court : pont arrêté depuis 1 h 07, bilan demandé par Baptiste
+
+Passages de 0 h 10, 2 h 40 et 5 h 10 non faits (la session a redémarré plusieurs fois) ; rattrapés ici en un seul.
+Aucune nouvelle priorité. Robot **v9 installé le 12/11 à 22 h 44 (Paris)**, 0 refus, aucune note d'erreur de
+`repli_ind` (les 4 indices répondent), aucun signal d'achat, aucun panier `bt_or`.
+**Le pont n'écrit plus depuis le 13/11 à 1 h 07 (Paris)** (dernier `etat.json` : 0 h 06 UTC) : PC éteint ou en
+veille. 3 positions de 0,01 lot étaient ouvertes, chacune avec son stop chez le courtier. Les bougies D1 demandées
+(`DJ30+`, `GER40+`, `JPN225+`, `FRA40+`, `EU50+`, XAUUSD) ne sont pas arrivées.
+Direct, cumul → 1 h 05 : hasard_m1 338 trades −0,28 $ (± 0,17) ; fcassure_m1 99, +0,12 $ (± 0,24) ; elan_m15 14,
++3,94 $ (± 3,7) ; exces_m1 16, +1,32 $ (± 1,8) ; cassure_m15 5 ; exces_m5 4. 1 086 ouvertures, 0 refus.
+Aucun banc lancé (essais : 48 617, inchangé). Reste à faire : amélioration du repli d'indices (PRIORITES 22 h 40).

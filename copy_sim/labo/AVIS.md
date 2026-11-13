@@ -1,5 +1,6 @@
-# Avis pour Baptiste — 12/11/2026, 23 h 15 (passage 24)
+# Avis pour Baptiste — 13/11/2026, 7 h (passage 25, court)
 
+0. **Le pont ne répond plus depuis 1 h 07 cette nuit** (PC éteint ou en veille ?) : le robot ne trade plus tant qu'il n'est pas rallumé. Les 3 petites positions ouvertes ont leur stop chez le courtier.
 1. **Le repli d'indices (ton BlockRange corrigé) est sur la démo** : robot version 9, étiquette `repli_ind`, sur NAS100+, SP500+, DJ30+, GER40+ (pas le FTSE), à la taille minimale du courtier. Les bougies du courtier confirment le banc : +25 bp par trade sur le Nasdaq (62 trades), +40 bp sur le S&P (54 trades, 80 % de gagnants).
 2. **Il tradera peu** : ≈ 35 à 40 trades par an sur 4 indices (aucun signal aujourd'hui). Règle d'arrêt écrite avant : somme des trades sous −1 500 bp, ou moyenne sous −20 bp après 60 trades. Ses positions survivent maintenant aux mises à jour du robot.
 3. **Mécanique BlockTrend ailleurs que sur l'or : non.** Argent +0,07 R par panier (t = 0,4), BTC +0,06 R, ETH +0,01 R, Nasdaq zéro. Elle ne tient que sur l'or, et tout son gain vient des ajouts pendant quelques grands mouvements. Rien d'autre mis en essai.
