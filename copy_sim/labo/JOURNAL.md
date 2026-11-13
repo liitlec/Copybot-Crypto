@@ -1057,3 +1057,18 @@ touchés dans la même bougie). Question : une sortie plus fine fait-elle gagner
 Familles de la recherche large : 1, 2, 4, 5, 6 faites ; reste 3 (annonces économiques).
 
 **Total des essais : 48 740 + 21 = 48 761.**
+
+## Passage 31 — 13/11/2026 (≈ 20 h 17 – 20 h 30 Paris) — le pont est revenu ; demandes de données corrigées
+
+Aucune nouvelle priorité. **Le pont est reparti à 17 h 52 (Paris)** après 16 h 45 d'arrêt ; robot v9 relancé
+(positions `elan_m15` et `hasard_m1` reprises), 0 refus, une erreur passagère à 19 h 34 (« accès refusé » sur un
+fichier, sans suite). Aucun signal `repli_ind`, aucune erreur de ce module ; aucun panier `bt_or` (ses heures
+d'entrée du jour étaient passées au redémarrage). Le marché ferme ce soir pour le week-end.
+**Direct, cumul → 21 h 13 serveur** : hasard_m1 367 trades −0,30 $ (± 0,16) ; fcassure_m1 108, +0,16 $ (± 0,22) ;
+elan_m15 15, +3,08 $ (± 3,5) ; exces_m1 16, +1,32 $ ; cassure_m15 5 ; exces_m5 4. 1 124 ouvertures, 0 refus,
+glissement nul. Rien ne sort de la marge d'erreur.
+**Pourquoi mes demandes de données n'arrivaient pas** : le pont ne lit que les 20 premières demandes du fichier
+(`MAX_DEMANDES = 20`), et j'en avais 33 (les anciennes, déjà servies, devant). Fichier ramené à 8 demandes :
+D1 de `DJ30+`, `GER40+`, `JPN225+`, `FRA40+`, `EU50+`, `US2000+`, XAUUSD, et H4 de `NAS100+` (les D1 des devises
+sont retirées : piste réfutée au passage 28). Les fichiers déjà reçus restent dans `mt5/donnees/`.
+Aucun banc (essais : 48 761, inchangé).

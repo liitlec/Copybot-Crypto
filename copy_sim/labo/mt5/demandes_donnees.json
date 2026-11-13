@@ -1,129 +1,6 @@
 {
  "demandes": [
   {
-   "id": "xau_m1_90k",
-   "symbole": "XAUUSD",
-   "periode": "M1",
-   "nombre": 90000
-  },
-  {
-   "id": "xau_m5_90k",
-   "symbole": "XAUUSD",
-   "periode": "M5",
-   "nombre": 90000
-  },
-  {
-   "id": "eur_m1_90k",
-   "symbole": "EURUSD",
-   "periode": "M1",
-   "nombre": 90000
-  },
-  {
-   "id": "eur_m5_90k",
-   "symbole": "EURUSD",
-   "periode": "M5",
-   "nombre": 90000
-  },
-  {
-   "id": "xau_m15_50k",
-   "symbole": "XAUUSD",
-   "periode": "M15",
-   "nombre": 50000
-  },
-  {
-   "id": "jpy_m1_90k",
-   "symbole": "USDJPY",
-   "periode": "M1",
-   "nombre": 90000
-  },
-  {
-   "id": "nas_m1_90k",
-   "symbole": "NAS100+",
-   "periode": "M1",
-   "nombre": 90000
-  },
-  {
-   "id": "sp_m1_90k",
-   "symbole": "SP500+",
-   "periode": "M1",
-   "nombre": 90000
-  },
-  {
-   "id": "ger_m1_90k",
-   "symbole": "GER40+",
-   "periode": "M1",
-   "nombre": 90000
-  },
-  {
-   "id": "xag_m1_90k",
-   "symbole": "XAGUSD",
-   "periode": "M1",
-   "nombre": 90000
-  },
-  {
-   "id": "nas_m5_90k",
-   "symbole": "NAS100+",
-   "periode": "M5",
-   "nombre": 90000
-  },
-  {
-   "id": "xau_h1_50k",
-   "symbole": "XAUUSD",
-   "periode": "H1",
-   "nombre": 50000
-  },
-  {
-   "id": "xau_m5_2024",
-   "symbole": "XAUUSD",
-   "periode": "M5",
-   "debut": "2024-01-01",
-   "fin": "2024-12-31"
-  },
-  {
-   "id": "xau_m5_2025a",
-   "symbole": "XAUUSD",
-   "periode": "M5",
-   "debut": "2025-01-01",
-   "fin": "2025-08-06"
-  },
-  {
-   "id": "nas_m5_2025a",
-   "symbole": "NAS100+",
-   "periode": "M5",
-   "debut": "2025-01-01",
-   "fin": "2025-08-06"
-  },
-  {
-   "id": "xag_m5_90k",
-   "symbole": "XAGUSD",
-   "periode": "M5",
-   "nombre": 90000
-  },
-  {
-   "id": "btc_m5_90k",
-   "symbole": "BTCUSD",
-   "periode": "M5",
-   "nombre": 90000
-  },
-  {
-   "id": "eth_m5_90k",
-   "symbole": "ETHUSD",
-   "periode": "M5",
-   "nombre": 90000
-  },
-  {
-   "id": "nas_d1_5k",
-   "symbole": "NAS100+",
-   "periode": "D1",
-   "nombre": 5000
-  },
-  {
-   "id": "sp_d1_5k",
-   "symbole": "SP500+",
-   "periode": "D1",
-   "nombre": 5000
-  },
-  {
    "id": "dj_d1_5k",
    "symbole": "DJ30+",
    "periode": "D1",
@@ -160,46 +37,16 @@
    "nombre": 5000
   },
   {
-   "id": "eurusd_d1_5k",
-   "symbole": "EURUSD",
+   "id": "us2000_d1_5k",
+   "symbole": "US2000+",
    "periode": "D1",
    "nombre": 5000
   },
   {
-   "id": "gbpusd_d1_5k",
-   "symbole": "GBPUSD",
-   "periode": "D1",
-   "nombre": 5000
-  },
-  {
-   "id": "usdjpy_d1_5k",
-   "symbole": "USDJPY",
-   "periode": "D1",
-   "nombre": 5000
-  },
-  {
-   "id": "audusd_d1_5k",
-   "symbole": "AUDUSD",
-   "periode": "D1",
-   "nombre": 5000
-  },
-  {
-   "id": "usdcad_d1_5k",
-   "symbole": "USDCAD",
-   "periode": "D1",
-   "nombre": 5000
-  },
-  {
-   "id": "usdchf_d1_5k",
-   "symbole": "USDCHF",
-   "periode": "D1",
-   "nombre": 5000
-  },
-  {
-   "id": "nzdusd_d1_5k",
-   "symbole": "NZDUSD",
-   "periode": "D1",
-   "nombre": 5000
+   "id": "nas_h4_20k",
+   "symbole": "NAS100+",
+   "periode": "H4",
+   "nombre": 20000
   }
  ]
 }

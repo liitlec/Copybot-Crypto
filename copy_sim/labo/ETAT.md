@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 30, 13/11/2026 (18 h 05) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
+# État du laboratoire (réécrit à chaque passage) — après le passage 31, 13/11/2026 (20 h 30) — rythme : toutes les 2 h 30 — pont reparti le 13/11 à 17 h 52 ; marché fermé du vendredi soir au lundi 0 h (passages courts le week-end)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -143,6 +143,7 @@ Publication d'Artifact et envoi de message à une autre session : ils attendent 
 donne, puis la session redémarre (passages 7, 8, 13, 21). Passer par AVIS.md / ETAT.md dans le dépôt.
 
 ## Pièges notés
+- `demandes_donnees.json` : le pont ne lit que les **20 premières** demandes ; retirer celles déjà servies (les fichiers restent).
 - Yahoo : `range=max` → mensuel ; utiliser `period1/period2`. `query1` peut répondre « Too Many Requests », `query2` passe.
 - Indices en 1 h : 7 barres par jour seulement, « 24 barres » ≈ 3,5 jours.
 - Les Sharpe du banc C ne retranchent pas le taux sans risque.

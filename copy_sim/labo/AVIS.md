@@ -1,26 +1,25 @@
-# Avis pour Baptiste — 13/11/2026, 18 h 05 (passage 30)
+# Avis pour Baptiste — 13/11/2026, 20 h 30 (passage 31)
 
-1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (17 heures) : le robot ne trade pas et je n'ai aucun résultat en direct. Il faut rallumer le PC ou relancer le pont.
-2. **Sorties fines sur l'or M1** (stop suiveur, stop ramené à l'entrée, sortie partielle, petit objectif) : aucune ne fait gagner une entrée qui ne gagne pas. Elles changent le pourcentage de trades gagnants (de 22 % à 79 %), pas le résultat moyen, qui reste « moins le spread ».
-3. **Le piège à connaître** : petit objectif + stop plus large = 77 à 79 % de trades gagnants et −0,30 $ par trade à coup sûr. C'est le profil de BlockFIFO, et probablement celui de beaucoup de scalps « qui gagnent presque toujours ».
-4. Recherche large : 5 familles sur 6 faites, rien ne passe sur l'or en scalp. Restent debout le repli d'indices (prouvé, petit) et `bt_or` (à confirmer en direct).
-5. Ensuite : annonces économiques (dernière famille), et lecture du direct dès que le pont revient.
+1. **Le pont est reparti à 17 h 52** après presque 17 heures d'arrêt ; le robot (version 9) a repris tout seul, sans refus. Le marché ferme ce soir pour le week-end : reprise lundi vers 0 h.
+2. **Direct** : rien ne sort de la marge d'erreur. Témoin au hasard −0,30 $ par trade (367 trades), `fcassure_m1` +0,16 $ (108 trades), `elan_m15` +3,08 $ (15 trades, ± 3,5). Aucun trade encore pour le repli d'indices ni pour `bt_or`.
+3. **Bilan de la journée de recherche** : devises de fin de mois, structure H1/M15 et sorties fines sur l'or : rien ne tient. Le repli d'indices ne s'améliore pas par le réglage (plafond réaliste +8 à +15 % par an).
+4. Mes demandes de données restaient sans réponse par ma faute (fichier trop long pour le pont) : corrigé, les bougies des autres indices devraient arriver.
+5. Ensuite : ajouter les indices disponibles chez le courtier au repli d'indices, puis la dernière famille (annonces économiques). Rien à faire de ton côté.
 
-## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 23 h 08 (Paris 22 h 08)
+## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 13/11 20 h 13 (Paris)
 
 | Hypothèse | Trades fermés | Gain moyen après spread | Marge d'erreur (1 écart) | Décision |
 |---|---|---|---|---|
-| hasard_m1 (témoin) | 317 | −0,31 $ | ± 0,18 $ | référence |
-| elan_m1 | 319 | −0,03 $ | ± 0,18 $ | **éteint** en version 8 (dans la marge du témoin à 300 trades) |
-| retour_m1 | 279 | −0,55 $ | ± 0,20 $ | éteint depuis la version 7 |
-| fcassure_m1 | 95 | +0,10 $ | ± 0,25 $ | continue jusqu'à 300 trades (comme le témoin pour l'instant) |
-| exces_m1 | 15 | +1,38 $ | ± 1,94 $ | continue |
-| elan_m15 | 12 | +4,95 $ | ± 4,23 $ | continue (banc 15 mois : −0,16 $) |
+| hasard_m1 (témoin) | 367 | −0,30 $ | ± 0,16 $ | référence |
+| fcassure_m1 | 108 | +0,16 $ | ± 0,22 $ | continue jusqu'à 300 trades |
+| exces_m1 | 16 | +1,32 $ | ± 1,82 $ | continue |
+| elan_m15 | 15 | +3,08 $ | ± 3,52 $ | continue (banc 15 mois : −0,16 $) |
 | cassure_m15 | 5 | +8,63 $ | ± 9,04 $ | continue |
 | exces_m5 | 4 | +4,16 $ | ± 4,79 $ | continue |
-| midi_agite (candidat) | 1 | −0,06 $ | inconnue | 11 h – 14 h quand l'or est agité ; arrêt : < −0,50 $ après 60 trades ou −60 $ |
-| repli_ind (repli d'indices, v9) | 0 | — | — | arrêt : somme < −1 500 bp, ou moyenne < −20 bp après 60 trades |
-| bt_or (mécanique BlockTrend) | 0 panier valable (le 1er, −0,94 $, coupé par la mise à jour v7) | — | — | arrêt à −20 R cumulés ou moyenne < −0,3 R après 40 paniers |
+| midi_agite (candidat) | 1 | −0,06 $ | inconnue | arrêt : < −0,50 $ après 60 trades ou −60 $ |
+| repli_ind (repli d'indices) | 0 | — | — | arrêt : somme < −1 500 bp, ou moyenne < −20 bp après 60 trades |
+| bt_or (mécanique BlockTrend) | 0 panier valable | — | — | arrêt à −20 R cumulés ou moyenne < −0,3 R après 40 paniers |
+| elan_m1, retour_m1 | 322 et 279 | −0,03 $ et −0,55 $ | ± 0,18 $ | éteints (versions 8 et 7) |
 
 ## Candidat prouvé au banc, en direct depuis la version 9 : repli d'indices (mécanique BlockRange)
 
