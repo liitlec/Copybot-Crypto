@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 29, 13/11/2026 (16 h) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
+# État du laboratoire (réécrit à chaque passage) — après le passage 30, 13/11/2026 (18 h 05) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -37,7 +37,10 @@
   −2 à −3 bp, comme le témoin). Le gain du passage 27 était un sous-groupe chanceux.
 - Passage 29 (banc U, `banc_structure.py`) : signal M5 or filtré par la structure H1/M15 : rien à t > 2 ; le
   mieux = repli dans le sens de la structure H1, 2 h : +2 à +4 bp (t ≈ 1). Famille 4 faite.
-- 48 740 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 30 (banc V, `banc_sorties_fines.py`) : sorties fines sur l'or M1 : aucune ne crée de gain ; petit
+  objectif = 78 % de gagnants et −0,30 $ par trade. Famille 6 faite ; reste la 3 (annonces économiques : trouver
+  un calendrier historique NFP / CPI / FOMC sur internet, dates seulement, puis or M5 autour).
+- 48 761 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 

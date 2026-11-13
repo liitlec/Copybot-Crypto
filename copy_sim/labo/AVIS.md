@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 13/11/2026, 16 h (passage 29)
+# Avis pour Baptiste — 13/11/2026, 18 h 05 (passage 30)
 
-1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (15 heures) : le robot ne trade pas et je n'ai aucun résultat en direct depuis. Il faut rallumer le PC ou relancer le pont.
-2. **Scalp or filtré par la structure H1 / M15** (plus hauts et plus bas croissants) : 32 règles testées sur 15 mois, aucune ne gagne nettement. Le filtre aide un peu (dans le sens de la structure ≈ zéro à +4 bp, contre ≈ −1 à −5 bp), mais pas assez pour une preuve.
-3. La moins mauvaise : acheter un repli dans une structure haussière, tenu 2 heures : +2 à +4 bp par trade, 1 trade par jour, trop peu net pour la démo.
-4. Rappel de ce midi : les devises de fin de mois ne tiennent pas ; restent le repli d'indices (prouvé, petit) et `bt_or` (à confirmer en direct).
-5. Ensuite : dès que le pont revient, lecture du direct ; sinon les deux dernières familles (annonces économiques, sorties fines).
+1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (17 heures) : le robot ne trade pas et je n'ai aucun résultat en direct. Il faut rallumer le PC ou relancer le pont.
+2. **Sorties fines sur l'or M1** (stop suiveur, stop ramené à l'entrée, sortie partielle, petit objectif) : aucune ne fait gagner une entrée qui ne gagne pas. Elles changent le pourcentage de trades gagnants (de 22 % à 79 %), pas le résultat moyen, qui reste « moins le spread ».
+3. **Le piège à connaître** : petit objectif + stop plus large = 77 à 79 % de trades gagnants et −0,30 $ par trade à coup sûr. C'est le profil de BlockFIFO, et probablement celui de beaucoup de scalps « qui gagnent presque toujours ».
+4. Recherche large : 5 familles sur 6 faites, rien ne passe sur l'or en scalp. Restent debout le repli d'indices (prouvé, petit) et `bt_or` (à confirmer en direct).
+5. Ensuite : annonces économiques (dernière famille), et lecture du direct dès que le pont revient.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 23 h 08 (Paris 22 h 08)
 

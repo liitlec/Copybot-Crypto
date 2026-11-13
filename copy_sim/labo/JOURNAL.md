@@ -1027,3 +1027,33 @@ d'indices, mais sur l'or elle n'est pas prouvée. Non mis en démo. Familles res
 sorties fines (6).
 
 **Total des essais : 48 708 + 32 = 48 740.**
+
+## Passage 30 — 13/11/2026 (≈ 17 h 46 – 18 h 05 Paris) — sorties fines sur l'or M1 (banc V)
+
+Aucune nouvelle priorité. **Pont toujours arrêté** (dernier `etat.json` : 13/11 1 h 07 Paris, soit 16 h 40) : rien
+de neuf en direct, robot v9 inchangé, aucune donnée demandée n'est arrivée.
+
+**Banc V — famille 6 de la recherche large** (`banc_sorties_fines.py`, or M1 du courtier, 3 mois, spread réel
+0,197 $, 21 essais ; A = amplitude moyenne d'une bougie M1 ; stop compté en premier quand stop et objectif sont
+touchés dans la même bougie). Question : une sortie plus fine fait-elle gagner une entrée sans avantage ?
+
+| Sortie | Hasard (témoin) : réglage / verdict | Élan 3 min | Repli 2 écarts-types |
+|---|---|---|---|
+| au temps, 15 min (référence) | −0,09 / −0,37 $ | −0,01 / −0,24 $ | −0,09 / +0,09 $ |
+| stop 3A, objectif 3A | −0,14 / −0,39 $ | −0,36 / −0,53 $ | −0,28 / −0,02 $ |
+| stop 3A, objectif 6A | −0,22 / −0,08 $ | −0,14 / −0,47 $ | −0,43 / −0,14 $ |
+| **stop 2A, objectif 5 spreads** | **−0,31 / −0,30 $, 77 % de gagnants** (t = −11) | −0,32 / −0,29 $, 79 % (t = −17) | −0,26 / −0,18 $, 78 % (t = −7) |
+| stop suiveur 3A | −0,01 / −0,13 $ | −0,42 / −0,11 $ | −0,12 / +0,11 $ |
+| stop ramené à l'entrée après +2A | −0,01 / +0,03 $, 22 % de gagnants | −0,14 / +0,19 $ | −0,18 / +0,37 $ (t = 1,4) |
+| moitié sortie à +2A, suiveur ensuite | −0,08 / −0,23 $ | −0,44 / −0,19 $ | −0,17 / +0,06 $ |
+
+- **Aucune sortie ne crée un gain** : pour une même entrée, toutes les sorties tournent autour de « moins le
+  spread », avec des écarts qui changent de signe entre réglage et verdict. La sortie change la **forme** du
+  résultat (le taux de gagnants va de 22 % à 79 %), pas la moyenne.
+- **Le piège du petit objectif** : objectif à 5 spreads et stop plus large = 77 à 79 % de trades gagnants et la
+  perte la plus sûre du tableau (−0,30 $ par trade, t de −7 à −17). C'est exactement le profil de BlockFIFO
+  (59 % de gagnants, −6 269 $) et de beaucoup de « scalps qui gagnent presque toujours ».
+- Stop ramené à l'entrée : 78 % de trades perdants ou nuls, résultat ≈ 0 : ni mieux ni pire.
+Familles de la recherche large : 1, 2, 4, 5, 6 faites ; reste 3 (annonces économiques).
+
+**Total des essais : 48 740 + 21 = 48 761.**
