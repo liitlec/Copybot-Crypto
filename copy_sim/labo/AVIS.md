@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 13/11/2026, 20 h 30 (passage 31)
+# Avis pour Baptiste — 13/11/2026, 23 h (passage 32)
 
-1. **Le pont est reparti à 17 h 52** après presque 17 heures d'arrêt ; le robot (version 9) a repris tout seul, sans refus. Le marché ferme ce soir pour le week-end : reprise lundi vers 0 h.
-2. **Direct** : rien ne sort de la marge d'erreur. Témoin au hasard −0,30 $ par trade (367 trades), `fcassure_m1` +0,16 $ (108 trades), `elan_m15` +3,08 $ (15 trades, ± 3,5). Aucun trade encore pour le repli d'indices ni pour `bt_or`.
-3. **Bilan de la journée de recherche** : devises de fin de mois, structure H1/M15 et sorties fines sur l'or : rien ne tient. Le repli d'indices ne s'améliore pas par le réglage (plafond réaliste +8 à +15 % par an).
-4. Mes demandes de données restaient sans réponse par ma faute (fichier trop long pour le pont) : corrigé, les bougies des autres indices devraient arriver.
-5. Ensuite : ajouter les indices disponibles chez le courtier au repli d'indices, puis la dernière famille (annonces économiques). Rien à faire de ton côté.
+1. **Le repli d'indices est un effet américain.** Sur les bougies de ton courtier : S&P 500 et Dow +40 bp par trade (75 à 80 % de gagnants), Nasdaq et Russell 2000 +25 bp ; DAX, CAC et EuroStoxx à peu près zéro ; rien de net sur l'or.
+2. **Robot version 10** : le Russell 2000 (`US2000+`) est ajouté, soit 5 indices suivis. Je garde le DAX pour l'instant (liste fixée avant le premier trade) et le retirerai s'il déçoit aussi en direct.
+3. Direct : rien de neuf, les scalps M1 restent au niveau du hasard (témoin −0,33 $ par trade sur 395 trades). Aucun trade encore pour le repli d'indices ni pour `bt_or`.
+4. Le marché ferme pour le week-end ; reprise lundi vers 0 h. Passages courts d'ici là.
+5. Ensuite : dernière famille de recherche (annonces économiques) ; entrée en H4 pour le repli d'indices (données reçues).
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 13/11 20 h 13 (Paris)
 

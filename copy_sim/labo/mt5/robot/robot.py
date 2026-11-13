@@ -13,7 +13,7 @@ import time
 import bt_or
 import repli_ind
 
-VERSION = 9
+VERSION = 10
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -117,6 +117,7 @@ class Robot:
         self.vu = {}            # periode -> heure de la derniere bougie fermee deja traitee
         self.ouvert = {}        # hypothese -> {"ticket", "sens", "sortie", "entree", "profit"}
         self.info = None
+        self.essais_orph = {}   # ticket -> heure du dernier essai de fermeture d'une orpheline
         self.bt = bt_or.PanierBT(pont)
         self.repli = repli_ind.Repli(pont)
         self.charger()
@@ -160,6 +161,9 @@ class Robot:
                 connus.add(o["ticket"])
         for t, p in ps.items():
             if t not in connus:
+                if time.time() - self.essais_orph.get(t, 0) < 60:      # marche ferme : un essai par minute, pas plus
+                    continue
+                self.essais_orph[t] = time.time()
                 r = self.pont.fermer(t)
                 self.pont.noter(evenement="orpheline fermee", ticket=t, profit=p["profit"], ok=r.get("ok"))
         return ps

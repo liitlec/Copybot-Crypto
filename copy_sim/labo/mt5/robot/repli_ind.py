@@ -13,7 +13,7 @@ REGLE D'ARRET (ecrite avant le premier trade, suivie a chaque passage du labo su
 la somme des trades passe sous -1 500 bp, ou si la moyenne est sous -20 bp apres 60 trades."""
 import json
 
-SYMBOLES = ("NAS100+", "SP500+", "DJ30+", "GER40+")
+SYMBOLES = ("NAS100+", "SP500+", "DJ30+", "GER40+", "US2000+")   # US2000+ ajoute en v10 (courtier : +25 bp, 61 trades)
 RSI_SEUIL, MM_LONGUE, MM_SORTIE, JOURS_MAX = 10.0, 200, 5, 10
 STOP_ATR, ATR_N = 2.0, 20
 SPREAD_MAX_BP = 3.0            # pas d'achat si le spread depasse 3 dix-milliemes du prix (normal : 0,3 a 0,5)

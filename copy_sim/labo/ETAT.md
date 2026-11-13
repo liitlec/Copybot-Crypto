@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 31, 13/11/2026 (20 h 30) — rythme : toutes les 2 h 30 — pont reparti le 13/11 à 17 h 52 ; marché fermé du vendredi soir au lundi 0 h (passages courts le week-end)
+# État du laboratoire (réécrit à chaque passage) — après le passage 32, 13/11/2026 (23 h) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 0 h (passages courts le week-end)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -40,7 +40,9 @@
 - Passage 30 (banc V, `banc_sorties_fines.py`) : sorties fines sur l'or M1 : aucune ne crée de gain ; petit
   objectif = 78 % de gagnants et −0,30 $ par trade. Famille 6 faite ; reste la 3 (annonces économiques : trouver
   un calendrier historique NFP / CPI / FOMC sur internet, dates seulement, puis or M5 autour).
-- 48 761 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 32 : repli d'indices sur les D1 du courtier : effet américain (SP500+ et DJ30+ +40 bp, NAS100+ et
+  US2000+ +25 bp ; GER40+, FRA40+, EU50+ ≈ 0 ; or rien). `JPN225+` n'existe pas. `GER40+` gardé jusqu'au direct.
+- 48 769 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -54,7 +56,7 @@ type. Couper ce qui perd nettement, garder ce qui tient, ne monter la taille que
 Le robot note `evenement` = ouverture / sortie (avec `hypothese`, `profit` en $ juste avant la fermeture, `raison`).
 Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL passage 3), monter `VERSION` en dernier.
 
-## Robot : version 9 publiée le 12/11 ≈ 23 h 15 (+ `repli_ind`) — vérifier `version_installee` = 9 et la note « demarrage »
+## Robot : version 10 publiée le 13/11 ≈ 23 h (`repli_ind` + `US2000+`, orphelines : un essai par minute) — vérifier `version_installee` = 10
 - **Règle (Baptiste) : ne jamais publier de VERSION pendant qu'un panier `bt_or` est ouvert** (un changement de
   version ferme tout sauf les positions d'indices). Vérifier : dernière note `bt_or` de `robot_journal.jsonl` et
   `positions_robot` de `etat.json` (XAUUSD avec stop à ≈ 55-70 $ du prix = `bt_or`).

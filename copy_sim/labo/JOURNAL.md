@@ -1072,3 +1072,34 @@ glissement nul. Rien ne sort de la marge d'erreur.
 D1 de `DJ30+`, `GER40+`, `JPN225+`, `FRA40+`, `EU50+`, `US2000+`, XAUUSD, et H4 de `NAS100+` (les D1 des devises
 sont retirées : piste réfutée au passage 28). Les fichiers déjà reçus restent dans `mt5/donnees/`.
 Aucun banc (essais : 48 761, inchangé).
+
+## Passage 32 — 13/11/2026 (≈ 22 h 41 – 23 h Paris) — autres indices du courtier ; robot v10 (`US2000+` ajouté)
+
+Aucune nouvelle priorité. Pont en marche, robot v9, 0 refus. Direct → 23 h 36 serveur : hasard_m1 395 trades
+−0,33 $ (± 0,16) ; fcassure_m1 115, +0,17 $ (± 0,21) ; elan_m15 16, +3,16 $ (± 3,3) ; exces_m1 18, +0,66 $
+(± 1,7). Aucun trade `repli_ind`, aucun panier `bt_or`.
+**Données reçues** (fichier de demandes corrigé au passage 31) : D1 de `DJ30+`, `GER40+`, `FRA40+`, `EU50+`,
+`US2000+`, XAUUSD, H4 de `NAS100+` ; `JPN225+` n'existe pas chez le courtier (nom du Nikkei inconnu).
+
+**Règle de base du repli d'indices sur les bougies jour du courtier** (8 essais, coûts compris) :
+| Symbole | Depuis | Trades | Net par trade | Gagnants | Pire trade |
+|---|---|---|---|---|---|
+| `SP500+` | 09/2020 | 54 | **+40 bp** (t = 2,4) | 80 % | −3,2 % |
+| `DJ30+` | 09/2020 | 61 | **+40 bp** (t = 2,5) | 75 % | −3,0 % |
+| `NAS100+` | 09/2018 | 62 | +25 bp (t = 0,9) | 68 % | −5,1 % |
+| `US2000+` | 09/2018 | 61 | +25 bp (t = 0,9) | 69 % | −4,4 % |
+| `EU50+` | 08/2020 | 51 | +8 bp (t = 0,4) | 65 % | −3,8 % |
+| `FRA40+` | 09/2018 | 59 | +5 bp (t = 0,3) | 66 % | −3,7 % |
+| `GER40+` | 08/2018 | 69 | +1 bp (t = 0,1) | 62 % | −4,3 % |
+| XAUUSD | 09/2018 | 51 | +14 bp (t = 0,4) | 63 % | −6,9 % |
+**L'effet est américain** : +25 à +40 bp sur les quatre indices des États-Unis, à peu près zéro sur les indices
+européens (comme sur Yahoo : CAC et FTSE négatifs, DAX faible), rien de net sur l'or.
+
+**Robot version 10** : `US2000+` ajouté à `repli_ind` (5 indices). `GER40+` est **gardé** bien que faible : sa
+règle et sa liste ont été fixées avant le premier trade et il n'a pas encore tradé ; je le retirerai si la
+faiblesse se confirme en direct, pas sur ce seul tableau. Pas d'`EU50+` ni de `FRA40+`. Autre changement : la
+fermeture d'une position orpheline n'est plus retentée qu'une fois par minute (marché fermé le week-end).
+« ESSAIS OK », contrôle du texte : rien. Vérifié : aucun panier `bt_or` ouvert (2 petites positions M1/M15 seront
+fermées par la mise à jour, à ne pas compter).
+
+**Total des essais : 48 761 + 8 = 48 769.**
