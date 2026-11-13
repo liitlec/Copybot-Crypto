@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-13T22:55:19Z",
+ "ecrit": "2026-11-13T23:00:26Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -10,8 +10,8 @@
   "lots_par_position": 0.5
  },
  "solde": 67532.86,
- "valeur": 70389.89,
- "marge_libre": 67543.02,
+ "valeur": 70574.57,
+ "marge_libre": 67727.7,
  "devise": "USD",
  "levier": 500,
  "positions": [],
@@ -42,9 +42,9 @@
   }
  ],
  "garde_fou": {
-  "jour_paris": "2026-11-13",
-  "perte_du_jour": -44.18,
-  "seuil": -3527.99,
+  "jour_paris": "2026-11-14",
+  "perte_du_jour": -4.59,
+  "seuil": -3529.36,
   "ouvertures_bloquees": false
  },
  "robot": {
