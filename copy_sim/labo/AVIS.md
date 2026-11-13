@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 13/11/2026, 10 h 35 (passage 27)
+# Avis pour Baptiste — 13/11/2026, 13 h (passage 28)
 
-1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (9 heures) : le robot ne trade pas. Il faut rallumer le PC (ou relancer le pont).
-2. **Ton BlockFinMois refait sur 25 ans.** Sur les indices : +125 bp par trade depuis 2016 (258 trades), mais presque rien avant 2016 : c'est une règle du marché récent, pas un effet stable, et elle ressemble beaucoup au repli d'indices déjà en démo.
-3. **Sur les devises** (fin de mois, achat après une baisse courte) : petit mais régulier, +12 à +14 bp par trade sur les deux périodes, ≈ 45 trades par an, 3 à 4 fois mieux que le même achat un autre jour. À vérifier avec le vrai spread du courtier avant d'y croire.
-4. Rappel d'hier : le repli d'indices ne s'améliore pas par le réglage ; plafond réaliste +8 à +15 % par an pour −24 à −44 % de pire baisse.
-5. Ensuite : vérifier la piste « devises de fin de mois » sur les données du courtier et la mettre en démo avant le 30/11 si elle tient.
+1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (bientôt 12 heures) : le robot ne trade pas. Il faut rallumer le PC ou relancer le pont.
+2. **Correction de ce matin : la piste « devises de fin de mois » de BlockFinMois ne tient pas.** Vérifiée sur 14 paires, à l'achat et à la vente : −2 à −3 bp par trade, comme n'importe quel autre jour. Le petit gain vu ce matin venait d'un seul sous-groupe (achats sur 7 paires), donc du hasard.
+3. BlockFinMois sur les indices : bon depuis 2016, nul avant ; règle du marché récent, proche du repli d'indices déjà en démo. Je ne l'ajoute pas pour l'instant.
+4. Ce qui reste debout : le repli d'indices (petit mais prouvé, +8 à +15 % par an au mieux) et `bt_or` sur l'or (à confirmer en direct). Les scalps M1 valent le hasard.
+5. Ensuite : dès que le pont revient, lecture du direct ; sinon suite de la recherche large sur l'or (annonces, structure M15/H1, sorties fines).
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 23 h 08 (Paris 22 h 08)
 

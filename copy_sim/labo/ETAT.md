@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 27, 13/11/2026 (10 h 35) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
+# État du laboratoire (réécrit à chaque passage) — après le passage 28, 13/11/2026 (13 h) — rythme : toutes les 2 h 30 — **pont arrêté depuis le 13/11 1 h 07 : vérifier la date de `etat.json`**
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -33,7 +33,9 @@
   CAC, FTSE : non. Plafond réaliste +8 à +15 %/an pour −24 à −44 % de pire baisse. Règle du robot inchangée.
 - Passage 27 (banc T, `banc_finmois.py`) : BlockFinMois refait. Indices : +125 bp depuis 2016 mais nul avant
   (règle de régime). Devises (RSI 2 j < 30 en fin de mois) : +12 à +14 bp sur les deux périodes, témoin +1 à +4.
-- 48 700 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 28 (banc T bis, `banc_finmois_fx.py`) : devises de fin de mois **réfutées** (14 paires, deux sens :
+  −2 à −3 bp, comme le témoin). Le gain du passage 27 était un sous-groupe chanceux.
+- 48 708 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 
@@ -62,9 +64,7 @@ Pour changer le robot : modifier `mt5/robot/`, relancer les essais (voir JOURNAL
   pour les indices → lire le champ `profit`/`bp` des notes.
 - `fcassure_m1` : couper à 300 trades s'il reste dans la marge du témoin (97 au passage 24).
 - Candidat de midi étiqueté `midi_agite_f/_c`, `midi_calme_f/_c` ; mélange fixé = `midi_agite_f`.
-- **Avant le 30/11 (prochaine fin de mois)** : demander au pont les D1 des 7 devises (`EURUSD`… ; ajouté à
-  `demandes_donnees.json` au passage 27) et, si possible, H1 pour le spread réel à 21 h serveur ; refaire la piste A
-  dessus ; si elle tient, module `fin_mois` dans le robot (taille minimale, règle d'arrêt écrite avant).
+- Fin de mois : devises réfutées (passage 28), ne rien publier ; indices = règle de régime, non ajoutée.
 - **À faire ensuite** : (1) quand le pont revient : lire les D1 demandées (`dj_d1_5k`, `ger_d1_5k`, `jpn_d1_5k`,
   `fra_d1_5k`, `eu50_d1_5k`) pour connaître les noms valides ; ajouter Nikkei / EuroStoxx / Russell à
   `repli_ind.SYMBOLES` s'ils existent (pas CAC ni FTSE) ; version à publier seulement sans panier `bt_or` ouvert.

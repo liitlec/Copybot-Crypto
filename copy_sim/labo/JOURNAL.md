@@ -974,3 +974,28 @@ marchés entrent tous le même jour ; témoin = la même règle lancée un autre
   robot à taille minimale si elle tient ; la piste B seulement comme essai de régime, avec règle d'arrêt.
 
 **Total des essais : 48 687 + 13 = 48 700.**
+
+## Passage 28 — 13/11/2026 (≈ 12 h 41 – 13 h Paris) — la piste « devises de fin de mois » vérifiée : réfutée (banc T bis)
+
+Aucune nouvelle priorité. **Pont toujours arrêté** (dernier `etat.json` : 13/11 1 h 07 Paris, soit 11 h 30) : rien
+de neuf en direct, robot v9 inchangé, aucune donnée demandée n'est arrivée.
+
+**Banc T bis** (`banc_finmois_fx.py`, vraies bougies jour Yahoo depuis 2003-2004, stop touché dans la bougie,
+coût 3 bp majeures / 5 bp croisées, 8 essais) : la piste A du passage 27, étendue aux ventes et à 7 paires croisées.
+
+| | 2004-2015 | 2016-2026 |
+|---|---|---|
+| 7 majeures, achats (RSI 2 j < 30) | 331 trades, +14,6 bp (t = 1,4) | 289, +9,2 bp (t = 1,9) |
+| 7 majeures, ventes (RSI 2 j > 70) | 341, **−3,5 bp** | 316, +12,8 bp (t = 1,7) |
+| 7 croisées, achats | 376, **−10,1 bp** | 297, **−22,1 bp** |
+| 7 croisées, ventes | 313, **−13,4 bp** | 309, −6,7 bp |
+| **14 paires, achats + ventes** | 1 361, **−3,2 bp** | 1 211, **−1,6 bp** |
+| témoin : mêmes règles un autre jour | −1,8 bp | −2,1 bp |
+
+**Réfuté.** Le gain du passage 27 n'existait que pour les achats sur les 7 paires contre le dollar, dans le sens
+où la paire est écrite (sens arbitraire) ; les ventes, symétriques, ne gagnent pas avant 2016, et les croisées
+perdent. Sur l'ensemble, la fin de mois ne fait pas mieux qu'un autre jour. C'était un hasard de sélection, pas
+un effet : **rien à mettre sur la démo le 30/11 pour les devises.** (Depuis 08/2025 : +0,5 bp sur 125 trades.)
+Reste de BlockFinMois : la piste indices, règle de régime récent seulement (passage 27).
+
+**Total des essais : 48 700 + 8 = 48 708.**
