@@ -942,3 +942,35 @@ Limite : les indices Yahoo sont au comptant (clôture de bourse), le CFD cote pr
 `NAS100+` et `SP500+` (passage 24).
 
 **Total des essais : 48 617 + 70 = 48 687.**
+
+## Passage 27 — 13/11/2026 (≈ 10 h 12 – 10 h 35 Paris) — la mécanique de BlockFinMois refaite (banc T)
+
+Aucune nouvelle priorité. **Pont toujours arrêté** (dernier `etat.json` : 13/11 1 h 07 Paris, soit 9 h) : rien de
+neuf en direct, robot v9 inchangé, données D1 demandées non arrivées.
+
+**Banc T** (`banc_finmois.py`, bougies jour Yahoo 2001-2026, 13 essais ; t calculé avec un point par mois car les
+marchés entrent tous le même jour ; témoin = la même règle lancée un autre jour du mois).
+
+| Règle | 2001-2015 | 2016-2026 |
+|---|---|---|
+| **Piste B, 9 indices** : fin de mois, mois négatif, au-dessus de la moyenne 200 j, 10 jours | 315 trades, +27 bp (t = 0,8) | 258 trades, **+125 bp (t = 2,0)**, 68 % gagnants |
+| témoin : même règle un autre jour | +19 bp | +13 bp |
+| fin de mois sans condition, 5 jours | −2 bp | +33 bp (t = 1,7) |
+| mois négatif seul, 10 jours | −50 bp | +80 bp |
+| **Piste A, 7 devises** : fin de mois, RSI 2 j < 30, sortie au-dessus de la moyenne 5 j | 345 trades, **+13,6 bp** (t = 1,2), 68 % gagnants | 289 trades, **+12,1 bp** (t = 2,3), 69 % gagnants |
+| témoin : même règle un autre jour | +3,7 bp | +0,6 bp |
+| devises, RSI 2 j < 10 | +17 bp (t = 1,6) | +11 bp (t = 1,2) |
+
+- **Indices (piste B)** : très bon depuis 2016, **nul avant** (à peine au-dessus du témoin, et « mois négatif seul »
+  perdait 50 bp). Ce n'est pas un effet stable sur 25 ans : c'est une règle du régime récent (marchés qui rachètent
+  chaque baisse), ≈ 25 trades par an groupés sur 4 à 5 fins de mois. Elle recoupe largement le repli d'indices déjà
+  en démo (acheter une baisse dans une tendance haussière).
+- **Devises (piste A)** : petit mais **du même signe et de la même taille sur les deux périodes** (+12 à +14 bp par
+  trade, ≈ 45 trades par an, 3 à 4 fois le témoin). Réserves : clôtures seules (stop jugé à la clôture), coût
+  supposé 2 bp alors que le spread des devises s'élargit en fin de journée, portage ignoré, t modeste (1,2 et 2,3).
+  À ≈ +12 bp × 45 trades, cela fait ≈ +5 % par an pour 100 % du compte par position : modeste.
+- Décision : rien de publié (pont arrêté, et la prochaine fin de mois est le 30/11). **Avant le 30/11** : vérifier
+  la piste A sur les bougies du courtier (spread réel à 21 h serveur le dernier jour du mois), puis l'ajouter au
+  robot à taille minimale si elle tient ; la piste B seulement comme essai de régime, avec règle d'arrêt.
+
+**Total des essais : 48 687 + 13 = 48 700.**

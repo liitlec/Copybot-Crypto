@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 13/11/2026, 8 h 10 (passage 26)
+# Avis pour Baptiste — 13/11/2026, 10 h 35 (passage 27)
 
-1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (PC éteint ou en veille) : le robot ne trade plus tant qu'il n'est pas rallumé.
-2. **Peut-on tirer plus du repli d'indices ? Très peu.** 54 réglages testés (seuil, sortie, durée, stop) : tous gagnent, mais choisir « le meilleur du passé » ne fait pas mieux que ta règle de base sur la suite. Seul point stable : garder le stop.
-3. **Plus d'indices = plus gros, pas meilleur** : de 4 à 8 indices, 35 → 65 trades par an, mais ils baissent ensemble, donc gain et pire baisse montent du même pas. À éviter : CAC et FTSE (perdants). Sur l'or et l'argent, la règle ne marche pas.
-4. **Ce que ça donne vraiment (4 indices, 2016-2026)** : 50 % du compte par position → +4,4 % par an, pire baisse −12,5 % ; 100 % → +8,4 %, −24 % ; 200 % → +15 %, −44 %. Pour 1 % par jour il faudrait 27 fois le compte par position : 96 % de chances de perdre la moitié dans l'année.
-5. La règle reste donc telle quelle dans le robot. Ensuite : ajouter Nikkei, EuroStoxx, Russell si le courtier les a, et continuer la recherche ailleurs. De ton côté : rallumer le PC.
+1. **Le pont ne répond plus depuis 1 h 07 cette nuit** (9 heures) : le robot ne trade pas. Il faut rallumer le PC (ou relancer le pont).
+2. **Ton BlockFinMois refait sur 25 ans.** Sur les indices : +125 bp par trade depuis 2016 (258 trades), mais presque rien avant 2016 : c'est une règle du marché récent, pas un effet stable, et elle ressemble beaucoup au repli d'indices déjà en démo.
+3. **Sur les devises** (fin de mois, achat après une baisse courte) : petit mais régulier, +12 à +14 bp par trade sur les deux périodes, ≈ 45 trades par an, 3 à 4 fois mieux que le même achat un autre jour. À vérifier avec le vrai spread du courtier avant d'y croire.
+4. Rappel d'hier : le repli d'indices ne s'améliore pas par le réglage ; plafond réaliste +8 à +15 % par an pour −24 à −44 % de pire baisse.
+5. Ensuite : vérifier la piste « devises de fin de mois » sur les données du courtier et la mettre en démo avant le 30/11 si elle tient.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 12/11 23 h 08 (Paris 22 h 08)
 
