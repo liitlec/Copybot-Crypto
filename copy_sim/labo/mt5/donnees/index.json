@@ -283,5 +283,25 @@
   "premiere": 1600041600,
   "derniere": 1794441600,
   "fichier": "sp_d1_5k.csv.gz"
+ },
+ "dj_d1_5k": {
+  "cle": "0d2d72d46988",
+  "ecrit": "2026-11-13T19:18:33Z",
+  "symbole": "DJ30+",
+  "periode": "D1",
+  "lignes": 1596,
+  "premiere": 1600041600,
+  "derniere": 1794528000,
+  "fichier": "dj_d1_5k.csv.gz"
+ },
+ "ger_d1_5k": {
+  "cle": "b5abc9374d6e",
+  "ecrit": "2026-11-13T19:18:33Z",
+  "symbole": "GER40+",
+  "periode": "D1",
+  "lignes": 2097,
+  "premiere": 1535673600,
+  "derniere": 1794528000,
+  "fichier": "ger_d1_5k.csv.gz"
  }
 }
