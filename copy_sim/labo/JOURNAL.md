@@ -1121,3 +1121,9 @@ indice. Le repli qui compte est celui de la journée entière ; multiplier les t
 ne marche pas. La règle reste en D1.
 
 **Total des essais : 48 769 + 6 = 48 775.**
+
+## Passage 34 — 14/11/2026 (2 h 41 Paris) — week-end, passage très court
+
+Aucune nouvelle priorité, budget normal. Marché fermé : pont en marche, robot v10 en marche, 0 erreur, aucune
+activité depuis le passage 33 (1 position `elan_m15` en attente de lundi). Rien à ajouter ; AVIS.md et ETAT.md
+restent valables. Essais : 48 775, inchangé.
