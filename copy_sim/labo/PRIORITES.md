@@ -329,3 +329,18 @@ l'or tend (+66 $) et perd un peu au calme (−7 $) ; `exces_m1` fait l'inverse (
 - **Mécanique BlockTrend** : teste-la tout de suite sur l'argent, le BTC, l'ETH et les indices (données du pont), avec
   ses vrais coûts ; mets en essai sur la démo, à côté de `bt_or`, les marchés où elle tient.
 - L'amélioration du rendement de BlockRange (entrée précédente) continue aux passages suivants.
+
+## 14/11/2026, 13 h (Paris) : profiter des moments calmes
+Simulation de la conversation de suivi (compte de 100 $, trades réels du 11 au 13/11) : sans les deux règles
+arrêtées, +131 $ le jeudi (chute de l'or), mais −5 $ le vendredi calme ; le compte est descendu à 67-88 $ avant de
+monter. Baptiste veut **trouver comment profiter aussi des moments calmes**. Pistes à tester, avec le spread réel et
+l'avance glissante habituelle :
+1. **Retour à la moyenne dans une fourchette** quand l'or est calme (bornes de la séance d'Asie, de la veille,
+   bandes de volatilité en M15/H1), avec un **filtre de régime** qui coupe dès que la volatilité repart (c'est là que
+   ces stratégies perdent gros). Comparer à BlockGrille (retour à la moyenne en H4, ≈ 0 en démo) et à `midi_calme`.
+2. **Changer de stratégie selon le régime** : tendance quand l'or bouge, retour à la moyenne quand il est calme ; un
+   détecteur de régime simple (ATR court / ATR long, largeur de fourchette) fixé d'avance.
+3. **Autres marchés calmes en même temps** : indices, argent, paires de devises qui bougent quand l'or dort.
+4. **Ne rien faire** : si aucune règle de calme ne passe, le mieux est de ne pas trader les jours calmes. Chiffre ce que
+   coûtent aujourd'hui les jours calmes aux stratégies de tendance, et ce qu'on gagnerait à les mettre en pause.
+Dis à Baptiste ce qui tient, y compris si la réponse est « au calme, ne rien faire ».
