@@ -344,3 +344,17 @@ l'avance glissante habituelle :
 4. **Ne rien faire** : si aucune règle de calme ne passe, le mieux est de ne pas trader les jours calmes. Chiffre ce que
    coûtent aujourd'hui les jours calmes aux stratégies de tendance, et ce qu'on gagnerait à les mettre en pause.
 Dis à Baptiste ce qui tient, y compris si la réponse est « au calme, ne rien faire ».
+
+## 14/11/2026, 19 h 30 (Paris) : continuer à chercher pour les moments calmes
+Baptiste est sûr qu'on peut trouver une stratégie pour les moments calmes ; ta conclusion « au calme, ne rien faire »
+reste la règle du robot tant que rien ne passe, mais continue à chercher, avec ces pistes pas encore testées :
+1. **Le calme qui précède le mouvement** (compression de volatilité, « squeeze ») : au lieu de trader pendant le calme,
+   se placer à la fin d'une longue période calme pour prendre la cassure qui suit (fourchette serrée sur N heures,
+   ATR court très bas par rapport à l'ATR long, puis ordre au-dessus et au-dessous). C'est le calme qui sert, pas le
+   trade dedans.
+2. **Durée du calme** : le calme dure-t-il en moyenne assez longtemps pour qu'un retour à la moyenne très serré passe
+   le spread aux heures où le spread est le plus bas ? Mesure le spread réel heure par heure les jours calmes.
+3. **Portage pendant le calme** : garder des positions qui encaissent un swap positif chez le courtier quand le prix ne
+   bouge pas (vérifie les swaps réels de STARTRADER dans `etat.json`/données du pont).
+4. **Les règles de calme de ses amis** dès qu'il les transmet.
+Et explique à Baptiste, en deux lignes, **comment le robot reconnaît le calme** (indicateur, seuils, délai).
