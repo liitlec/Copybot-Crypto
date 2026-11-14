@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot du labo en direct</title>
+<style>
+:root {
+  --fond: #f6f7f9; --carte: #ffffff; --texte: #1b1f24; --doux: #5f6b7a; --trait: #e3e7ec;
+  --vert: #0f8a4a; --rouge: #c73a32; --accent: #2f5fd0; --grille: #eef1f4;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --fond: #111418; --carte: #1a1f25; --texte: #e8ebef; --doux: #95a1af; --trait: #2a313a;
+          --vert: #35c27a; --rouge: #ef6a61; --accent: #7aa2ff; --grille: #232a32; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fond); color: var(--texte);
+       font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 12px; }
+h1 { font-size: 18px; margin: 0; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--doux); margin: 0 0 8px; }
+.etat { color: var(--doux); font-size: 13px; }
+.pastille { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--vert); margin-right: 6px; }
+.pastille.off { background: var(--rouge); }
+.grille { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
+.carte { background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.c4 { grid-column: span 4; } .c8 { grid-column: span 8; } .c12 { grid-column: span 12; } .c6 { grid-column: span 6; }
+@media (max-width: 900px) { .c4, .c8, .c6 { grid-column: span 12; } }
+.prix { font-size: 30px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.ligne { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-variant-numeric: tabular-nums; }
+.ligne span:first-child { color: var(--doux); }
+.pos { color: var(--vert); } .neg { color: var(--rouge); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 5px 6px; border-bottom: 1px solid var(--trait); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--doux); font-weight: 500; font-size: 12px; }
+.defile { overflow-x: auto; }
+svg { width: 100%; height: 280px; display: block; }
+.vide { color: var(--doux); padding: 6px 0; }
+.alerte { background: var(--rouge); color: #fff; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; display: none; }
+.legende { color: var(--doux); font-size: 12px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Robot du labo — XAUUSD en direct</h1>
+    <span class="etat" id="etat"><span class="pastille off"></span>connexion…</span>
+    <span class="etat" id="mode">Lecture seule · démo</span>
+  </header>
+  <div class="alerte" id="alerte"></div>
+  <div class="grille">
+    <section class="carte c4">
+      <h2>Prix</h2>
+      <div class="prix" id="bid">–</div>
+      <div class="ligne"><span>Ask</span><span id="ask">–</span></div>
+      <div class="ligne"><span>Spread</span><span id="spread">–</span></div>
+      <div class="ligne"><span>Depuis l'ouverture du jour (courtier)</span><span id="variation">–</span></div>
+      <div class="ligne"><span>Dernier prix reçu</span><span id="age">–</span></div>
+    </section>
+    <section class="carte c8">
+      <h2>60 dernières minutes (M1)</h2>
+      <svg id="graphique" role="img" aria-label="Bougies M1 de l'or"></svg>
+      <div class="legende">▲ entrée achat · ▼ entrée vente · ● sortie (trades du robot)</div>
+    </section>
+    <section class="carte c4">
+      <h2>Aujourd'hui <span id="date"></span></h2>
+      <div class="ligne"><span>Trades fermés</span><span id="j-trades">–</span></div>
+      <div class="ligne"><span>Résultat fermé</span><span id="j-total">–</span></div>
+      <div class="ligne"><span>Gagnants</span><span id="j-gagnants">–</span></div>
+      <div class="ligne"><span>En cours (positions ouvertes)</span><span id="j-encours">–</span></div>
+      <div class="ligne"><span>Garde-fou : perte du jour / seuil</span><span id="j-garde">–</span></div>
+    </section>
+    <section class="carte c8">
+      <h2>Positions ouvertes du robot</h2>
+      <div class="defile"><table id="positions"></table></div>
+    </section>
+    <section class="carte c4">
+      <h2>Robot</h2>
+      <div class="ligne"><span>Version</span><span id="r-version">–</span></div>
+      <div class="ligne"><span>En marche</span><span id="r-marche">–</span></div>
+      <div class="ligne"><span>Dernière erreur</span><span id="r-erreur">–</span></div>
+      <div class="ligne"><span>Dernier refus</span><span id="r-refus">–</span></div>
+    </section>
+    <section class="carte c8">
+      <h2>Par hypothèse</h2>
+      <div class="defile"><table id="hypotheses"></table></div>
+    </section>
+    <section class="carte c12">
+      <h2>20 derniers trades fermés</h2>
+      <div class="defile"><table id="derniers"></table></div>
+    </section>
+  </div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

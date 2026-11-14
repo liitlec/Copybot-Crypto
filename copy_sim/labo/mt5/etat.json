@@ -1,0 +1,59 @@
+{
+ "ecrit": "2026-11-14T11:25:17Z",
+ "pont": 1,
+ "ordres_autorises": true,
+ "arret": null,
+ "consigne": "consigne absente : rien ne change",
+ "version_appliquee": 0,
+ "plafonds": {
+  "positions": 30,
+  "lots_par_position": 0.5
+ },
+ "solde": 67532.86,
+ "valeur": 71292.77,
+ "marge_libre": 68425.86,
+ "devise": "USD",
+ "levier": 500,
+ "positions": [],
+ "symboles": {
+  "XAUUSD": {
+   "bid": 3881.81,
+   "ask": 3882.06,
+   "spread_points": 25.0,
+   "point": 0.01,
+   "chiffres": 2,
+   "lot_min": 0.01,
+   "pas_lot": 0.01,
+   "taille_contrat": 100.0,
+   "heure_serveur": 1794614219
+  }
+ },
+ "positions_robot": [
+  {
+   "symbole": "XAUUSD",
+   "sens": "vente",
+   "lots": 0.01,
+   "prix_entree": 3877.09,
+   "prix_actuel": 3882.06,
+   "stop": 3905.94,
+   "objectif": null,
+   "profit": -4.97,
+   "ouverte_heure_serveur": 1794613500
+  }
+ ],
+ "garde_fou": {
+  "jour_paris": "2026-11-14",
+  "perte_du_jour": -4.59,
+  "seuil": -3529.36,
+  "ouvertures_bloquees": false
+ },
+ "robot": {
+  "version_installee": 10,
+  "version_precedente": 9,
+  "en_marche": true,
+  "dernier_refus": null,
+  "derniere_erreur": null,
+  "plantages_10_min": 0,
+  "interface": "copy_sim/forex/ROBOT_INTERFACE.md"
+ }
+}

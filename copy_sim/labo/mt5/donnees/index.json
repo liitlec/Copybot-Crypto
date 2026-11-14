@@ -1,0 +1,362 @@
+{
+ "xauusd_m1": {
+  "cle": "82d54aaa5317",
+  "ecrit": "2026-11-11T16:15:17Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "xauusd_m5": {
+  "cle": "aa8cb88ec45f",
+  "ecrit": "2026-11-11T16:15:17Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "xauusd_m15": {
+  "cle": "302b2c39a14e",
+  "ecrit": "2026-11-11T16:16:17Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "eurusd_m1": {
+  "cle": "bf0f56e74ff1",
+  "ecrit": "2026-11-11T16:16:17Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "eurusd_m5": {
+  "cle": "f6157989b77e",
+  "ecrit": "2026-11-11T16:17:18Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "eurusd_m15": {
+  "cle": "fff6fac39417",
+  "ecrit": "2026-11-11T16:17:18Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "nas100_m1": {
+  "cle": "cd8df64cf3a7",
+  "ecrit": "2026-11-11T16:18:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "us500_m1": {
+  "cle": "04c16fabb829",
+  "ecrit": "2026-11-11T16:18:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "usdjpy_m1": {
+  "cle": "7223ee4d845d",
+  "ecrit": "2026-11-11T16:19:17Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "xau_m1_20k": {
+  "cle": "aacd64ac786d",
+  "ecrit": "2026-11-11T16:28:18Z",
+  "symbole": "XAUUSD",
+  "periode": "M1",
+  "lignes": 20000,
+  "premiere": 1792651020,
+  "derniere": 1794421680,
+  "fichier": "xau_m1_20k.csv.gz"
+ },
+ "xau_m1_90k": {
+  "cle": "76e1b297412f",
+  "ecrit": "2026-11-11T16:28:18Z",
+  "symbole": "XAUUSD",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786523820,
+  "derniere": 1794421680,
+  "fichier": "xau_m1_90k.csv.gz"
+ },
+ "xau_m5_90k": {
+  "cle": "ede17f8b7d2d",
+  "ecrit": "2026-11-11T16:29:18Z",
+  "symbole": "XAUUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1754467800,
+  "derniere": 1794421500,
+  "fichier": "xau_m5_90k.csv.gz"
+ },
+ "eur_m1_90k": {
+  "cle": "7d90325cff07",
+  "ecrit": "2026-11-11T16:29:21Z",
+  "symbole": "EURUSD",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786939920,
+  "derniere": 1794421740,
+  "fichier": "eur_m1_90k.csv.gz"
+ },
+ "eur_m5_90k": {
+  "cle": "6f1a054e2f9a",
+  "ecrit": "2026-11-11T16:30:17Z",
+  "symbole": "EURUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1756356300,
+  "derniere": 1794421800,
+  "fichier": "eur_m5_90k.csv.gz"
+ },
+ "xau_m15_50k": {
+  "cle": "5a79c6cc19cc",
+  "ecrit": "2026-11-11T16:30:20Z",
+  "symbole": "XAUUSD",
+  "periode": "M15",
+  "lignes": 50000,
+  "premiere": 1727733600,
+  "derniere": 1794421800,
+  "fichier": "xau_m15_50k.csv.gz"
+ },
+ "jpy_m1_90k": {
+  "cle": "d22cf5a55b2a",
+  "ecrit": "2026-11-11T16:31:17Z",
+  "symbole": "USDJPY",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786939080,
+  "derniere": 1794421860,
+  "fichier": "jpy_m1_90k.csv.gz"
+ },
+ "essai_ustec": {
+  "cle": "d6566bf8395e",
+  "ecrit": "2026-11-11T16:31:20Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_us100": {
+  "cle": "4cf9165e16e1",
+  "ecrit": "2026-11-11T16:32:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_sp500": {
+  "cle": "3433a90f2d85",
+  "ecrit": "2026-11-11T16:32:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_us30": {
+  "cle": "04da8cc31f05",
+  "ecrit": "2026-11-11T16:32:50Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_ger40": {
+  "cle": "8b7467b2d31e",
+  "ecrit": "2026-11-11T16:32:50Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_nas100_r": {
+  "cle": "ddcee27eb1b8",
+  "ecrit": "2026-11-11T16:33:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "essai_xauusd_r": {
+  "cle": "01829d608fbb",
+  "ecrit": "2026-11-11T16:33:17Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "nas_m1_90k": {
+  "cle": "d1ec4d281d8d",
+  "ecrit": "2026-11-11T17:16:28Z",
+  "symbole": "NAS100+",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786529640,
+  "derniere": 1794424560,
+  "fichier": "nas_m1_90k.csv.gz"
+ },
+ "sp_m1_90k": {
+  "cle": "839ed2d67ea4",
+  "ecrit": "2026-11-11T17:16:31Z",
+  "symbole": "SP500+",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786529640,
+  "derniere": 1794424560,
+  "fichier": "sp_m1_90k.csv.gz"
+ },
+ "ger_m1_90k": {
+  "cle": "60379d0da9ee",
+  "ecrit": "2026-11-11T17:17:31Z",
+  "symbole": "GER40+",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1785741300,
+  "derniere": 1794424620,
+  "fichier": "ger_m1_90k.csv.gz"
+ },
+ "xag_m1_90k": {
+  "cle": "7f8a459e9348",
+  "ecrit": "2026-11-11T17:17:34Z",
+  "symbole": "XAGUSD",
+  "periode": "M1",
+  "lignes": 90000,
+  "premiere": 1786526700,
+  "derniere": 1794424620,
+  "fichier": "xag_m1_90k.csv.gz"
+ },
+ "nas_m5_90k": {
+  "cle": "012ed80efe08",
+  "ecrit": "2026-11-11T17:18:32Z",
+  "symbole": "NAS100+",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1754457300,
+  "derniere": 1794424500,
+  "fichier": "nas_m5_90k.csv.gz"
+ },
+ "xau_h1_50k": {
+  "cle": "3342ab0f2ccb",
+  "ecrit": "2026-11-11T17:18:35Z",
+  "symbole": "XAUUSD",
+  "periode": "H1",
+  "lignes": 26663,
+  "premiere": 1537747200,
+  "derniere": 1794423600,
+  "fichier": "xau_h1_50k.csv.gz"
+ },
+ "xau_m5_2024": {
+  "cle": "2523b9508ea9",
+  "ecrit": "2026-11-11T21:13:33Z",
+  "erreur": "aucune bougie renvoyee par le terminal"
+ },
+ "xau_m5_2025a": {
+  "cle": "c223fbbd684c",
+  "ecrit": "2026-11-11T21:13:33Z",
+  "symbole": "XAUUSD",
+  "periode": "M5",
+  "lignes": 9857,
+  "premiere": 1750113300,
+  "derniere": 1754438100,
+  "fichier": "xau_m5_2025a.csv.gz"
+ },
+ "nas_m5_2025a": {
+  "cle": "b931816ae13a",
+  "ecrit": "2026-11-11T21:14:35Z",
+  "symbole": "NAS100+",
+  "periode": "M5",
+  "lignes": 9902,
+  "premiere": 1750086300,
+  "derniere": 1754438100,
+  "fichier": "nas_m5_2025a.csv.gz"
+ },
+ "xag_m5_90k": {
+  "cle": "c13b893b6cf3",
+  "ecrit": "2026-11-12T21:17:11Z",
+  "symbole": "XAGUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1754580600,
+  "derniere": 1794525300,
+  "fichier": "xag_m5_90k.csv.gz"
+ },
+ "btc_m5_90k": {
+  "cle": "7ed020b0d573",
+  "ecrit": "2026-11-12T21:17:15Z",
+  "symbole": "BTCUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1767258600,
+  "derniere": 1794525300,
+  "fichier": "btc_m5_90k.csv.gz"
+ },
+ "eth_m5_90k": {
+  "cle": "d79e32245a6a",
+  "ecrit": "2026-11-12T21:18:09Z",
+  "symbole": "ETHUSD",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1767258300,
+  "derniere": 1794525300,
+  "fichier": "eth_m5_90k.csv.gz"
+ },
+ "nas_d1_5k": {
+  "cle": "ad38b69a64d6",
+  "ecrit": "2026-11-12T21:18:12Z",
+  "symbole": "NAS100+",
+  "periode": "D1",
+  "lignes": 2112,
+  "premiere": 1537833600,
+  "derniere": 1794441600,
+  "fichier": "nas_d1_5k.csv.gz"
+ },
+ "sp_d1_5k": {
+  "cle": "1e986b96ff33",
+  "ecrit": "2026-11-12T21:19:13Z",
+  "symbole": "SP500+",
+  "periode": "D1",
+  "lignes": 1595,
+  "premiere": 1600041600,
+  "derniere": 1794441600,
+  "fichier": "sp_d1_5k.csv.gz"
+ },
+ "dj_d1_5k": {
+  "cle": "0d2d72d46988",
+  "ecrit": "2026-11-13T19:18:33Z",
+  "symbole": "DJ30+",
+  "periode": "D1",
+  "lignes": 1596,
+  "premiere": 1600041600,
+  "derniere": 1794528000,
+  "fichier": "dj_d1_5k.csv.gz"
+ },
+ "ger_d1_5k": {
+  "cle": "b5abc9374d6e",
+  "ecrit": "2026-11-13T19:18:33Z",
+  "symbole": "GER40+",
+  "periode": "D1",
+  "lignes": 2097,
+  "premiere": 1535673600,
+  "derniere": 1794528000,
+  "fichier": "ger_d1_5k.csv.gz"
+ },
+ "jpn_d1_5k": {
+  "cle": "3d940570ae6a",
+  "ecrit": "2026-11-13T19:19:36Z",
+  "erreur": "symbole absent chez le courtier"
+ },
+ "fra_d1_5k": {
+  "cle": "2af7317f0f73",
+  "ecrit": "2026-11-13T19:19:36Z",
+  "symbole": "FRA40+",
+  "periode": "D1",
+  "lignes": 2101,
+  "premiere": 1536796800,
+  "derniere": 1794528000,
+  "fichier": "fra_d1_5k.csv.gz"
+ },
+ "eu50_d1_5k": {
+  "cle": "d0f6c6a732c3",
+  "ecrit": "2026-11-13T19:20:37Z",
+  "symbole": "EU50+",
+  "periode": "D1",
+  "lignes": 1585,
+  "premiere": 1598572800,
+  "derniere": 1794528000,
+  "fichier": "eu50_d1_5k.csv.gz"
+ },
+ "xau_d1_5k": {
+  "cle": "f5be25757043",
+  "ecrit": "2026-11-13T19:20:37Z",
+  "symbole": "XAUUSD",
+  "periode": "D1",
+  "lignes": 2111,
+  "premiere": 1537747200,
+  "derniere": 1794528000,
+  "fichier": "xau_d1_5k.csv.gz"
+ },
+ "us2000_d1_5k": {
+  "cle": "69200e34c0f4",
+  "ecrit": "2026-11-13T19:21:38Z",
+  "symbole": "US2000+",
+  "periode": "D1",
+  "lignes": 2113,
+  "premiere": 1537747200,
+  "derniere": 1794528000,
+  "fichier": "us2000_d1_5k.csv.gz"
+ },
+ "nas_h4_20k": {
+  "cle": "1bedb42498ca",
+  "ecrit": "2026-11-13T19:21:38Z",
+  "symbole": "NAS100+",
+  "periode": "H4",
+  "lignes": 7706,
+  "premiere": 1537833600,
+  "derniere": 1794600000,
+  "fichier": "nas_h4_20k.csv.gz"
+ }
+}
