@@ -1156,3 +1156,8 @@ pas l'élargissement réel pendant la seconde de l'annonce, donc ces chiffres so
 structure M15/H1, modèles appris, sorties fines : aucune ne donne un scalp gagnant sur l'or après spread.
 
 **Total des essais : 48 775 + 15 = 48 790.**
+
+## Passage 36 — 14/11/2026 (7 h 41 Paris) — week-end, passage très court
+
+Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, budget normal. Marché fermé : pont et robot v10 en marche, 0
+erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, inchangé.
