@@ -1244,3 +1244,43 @@ qui met en pause `elan_m15`, `cassure_m15`, `exces_m5`, `exces_m1`, `fcassure_m1
 trades suivants.
 
 **Total des essais : 48 804 + 25 = 48 829.**
+
+## Passage 41 — 14/11/2026 (≈ 20 h 16 – 20 h 40 Paris) — le calme qui précède le mouvement (banc AA)
+
+**Nouvelle priorité lue** (`PRIORITES.md`, 14/11 19 h 30) : continuer à chercher pour les moments calmes
+(compression avant cassure, durée du calme et spread heure par heure, portage, règles des amis) et expliquer
+comment le robot reconnaît le calme. Marché fermé, pont et robot v10 en marche.
+
+**Banc AA** (`banc_compression.py`, or M5 du courtier, 15 mois, spread réel, 12 essais).
+1. **Compression puis cassure** : fourchette des N dernières heures dans le cinquième le plus étroit de ses 60
+   derniers jours ; on suit la première clôture M5 qui en sort ; stop au milieu de la fourchette.
+
+| Fourchette, tenue | Réglage : comprimé | Réglage : normal | Verdict : comprimé | Verdict : normal |
+|---|---|---|---|---|
+| 4 h, 1 h | 209 tr, −0,40 $ | 980, +0,37 $ | 383, +0,02 $ | 567, −0,08 $ |
+| 4 h, 4 h | 178, +0,72 $ | 611, +0,77 $ | 325, −0,44 $ | 312, +0,74 $ |
+| 8 h, 1 h | 159, −0,49 $ | 660, +0,10 $ | 267, **−1,99 $ (t = −2,7)** | 383, +0,24 $ |
+| 8 h, 4 h | 123, +2,10 $ (t = 1,1) | 402, +1,34 $ | 211, −1,64 $ | 201, +2,56 $ (t = 1,3) |
+| 24 h, 1 h | 55, −4,35 $ (t = −1,9) | 374, +0,81 $ | 109, −0,59 $ | 220, −0,32 $ |
+| 24 h, 4 h | 48, +0,50 $ | 223, +1,23 $ | 80, +1,49 $ | 122, +2,63 $ |
+
+   **La cassure d'une fourchette comprimée ne vaut pas mieux que celle d'une fourchette normale ; elle vaut plutôt
+   moins** (10 cases sur 12 où « comprimé » est sous « normal ») : après un long calme, la première sortie est
+   souvent une fausse sortie. Rien à t > 2 dans le bon sens. Prendre le contre-pied de la fausse sortie (8 h, 1 h)
+   ferait +1,6 $ au verdict mais +0,1 $ au réglage : pas une règle.
+2. **Spread heure par heure** : 0,20 $ à toute heure les jours calmes (0,19 $ les jours agités ; 0,22 $ à 1 h et
+   23 h serveur) : **il n'y a pas d'heure « à spread bas »**. L'amplitude d'une bougie M5 au calme va de 2,5 $
+   (23 h) à 7,3 $ (16 h serveur) : le spread fait 3 à 6 % d'une bougie M5, donc ce n'est pas lui seul qui tue le
+   retour à la moyenne (banc Y : −0,7 à +0,4 $ par trade), c'est l'absence de retour exploitable.
+   **Durée d'un calme** (régime du robot) : 126 périodes en 15 mois, médiane 0,2 jour, moyenne 1,1 jour, la plus
+   longue 25 jours : le régime bascule souvent autour du seuil.
+3. **Portage** : `etat.json` ne donne pas les swaps (champs : bid, ask, spread, point, lot minimal, contrat).
+   **Demande côté PC** : ajouter `swap_long` / `swap_short` (et le mode de swap) par symbole dans `etat.json`,
+   pour l'or, l'argent, les indices et les devises ; sans cela je ne peux pas chiffrer le portage réel.
+4. Règles des amis : pas de `IDEES_AMIS.md`.
+
+**Comment le robot reconnaît le calme** (fonction `agite()`) : il prend la variation moyenne de l'or d'une heure
+à l'autre sur les 24 dernières heures et la compare à la médiane de cette même mesure sur environ 60 jours ; en
+dessous = calme. Recalculé chaque heure, donc il lui faut plusieurs heures de mouvement pour repasser en « agité ».
+
+**Total des essais : 48 829 + 12 = 48 841.**

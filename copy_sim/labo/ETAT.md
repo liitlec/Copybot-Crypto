@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 40, 14/11/2026 (18 h) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h (passages très courts d'ici là) — **à faire lundi, marché ouvert et sans panier `bt_or` : robot v11 (pause au calme, voir ci-dessous)**
+# État du laboratoire (réécrit à chaque passage) — après le passage 41, 14/11/2026 (20 h 40) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h — **à faire lundi, marché ouvert et sans panier `bt_or` : robot v11 (pause au calme)** — priorité en cours : PRIORITES 14/11 19 h 30 (calme : compression faite, portage en attente des swaps côté PC, amis en attente)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -57,7 +57,11 @@
   `fcassure_m1` quand `agite(H1)` est faux (calculer une fois par bougie M15, garder en mémoire ; noter une ligne
   « pause calme » / « reprise » à chaque changement) ; `hasard_m1`, `bt_or`, `repli_ind`, `ecart_midi_m5` inchangés.
   Essai à ajouter dans `essais_robot.py`. Jugé sur les trades suivants.
-- 48 829 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 41 (banc AA, `banc_compression.py`) : compression puis cassure sur l'or : non (plutôt pire qu'une
+  cassure normale) ; spread 0,20 $ à toute heure ; calme moyen 1,1 jour. Portage : swaps absents de `etat.json`
+  (demandé côté PC dans AVIS). Pistes de calme encore possibles : compression sur Nasdaq / argent ; vente de
+  volatilité impossible en CFD ; grille très serrée = BlockGrille (≈ 0 en démo).
+- 48 841 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 

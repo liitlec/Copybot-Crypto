@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 14/11/2026, 18 h (passage 40)
+# Avis pour Baptiste — 14/11/2026, 20 h 40 (passage 41)
 
-1. **Réponse à ta question sur les moments calmes : au calme, le mieux est de ne rien faire.** Aucune règle ne passe, ni sur l'or (retour à la moyenne en fourchette, bandes, séance d'Asie), ni sur les autres marchés.
-2. **Les autres marchés bougent bien quand l'or dort** (Nasdaq et cryptos : 40 à 44 % du temps), mais la tendance y fait zéro et le retour à la moyenne y perd partout (argent et ETH : −6 à −10 bp par trade).
-3. **Ce que coûtent les jours calmes** : presque rien à `bt_or` (≈ 0), mais ≈ −13 $ par jour calme aux règles `elan_m15`, `cassure_m15`, `exces_m5`, et tout le spread aux scalps M1. C'est ce qui a fait baisser ton compte simulé vendredi.
-4. **Ce que je change lundi à la réouverture** : le robot mettra ces règles en pause quand l'or est calme et ne les relancera que quand il bouge ; `bt_or` et le repli d'indices continuent.
-5. Rien à faire de ton côté. Marché fermé jusqu'à lundi 0 h.
+1. **Comment le robot reconnaît le calme** : il mesure de combien l'or bouge en moyenne d'une heure à l'autre sur les 24 dernières heures, et compare à sa valeur habituelle des 60 derniers jours ; en dessous de la médiane = calme. Recalculé chaque heure : il faut quelques heures de mouvement pour repasser en « agité ».
+2. **Le calme avant le mouvement (compression puis cassure) : testé, non.** La cassure d'une fourchette très serrée (4 h, 8 h, 24 h) ne vaut pas mieux que celle d'une fourchette normale, plutôt moins : après un long calme, la première sortie est souvent fausse.
+3. **Spread heure par heure** : 0,20 $ à toute heure, calme ou pas ; il n'y a pas d'heure moins chère. Un calme dure en moyenne 1 jour (le plus long : 25 jours).
+4. **Portage** : je ne vois pas les swaps du courtier. Il faudrait que le pont ajoute `swap_long` et `swap_short` par symbole dans `etat.json` (à demander côté PC).
+5. La règle reste « au calme, ne rien faire » ; lundi le robot mettra en pause ses petites règles quand l'or est calme. J'attends les règles de tes amis pour les tester.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 13/11 20 h 13 (Paris)
 
