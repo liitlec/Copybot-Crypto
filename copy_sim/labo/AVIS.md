@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 14/11/2026, 15 h 35 (passage 39)
+# Avis pour Baptiste — 14/11/2026, 18 h (passage 40)
 
-1. **Profiter des moments calmes de l'or : pour l'instant, non.** Trois règles de retour à la moyenne testées sur 15 mois (bandes M15, bandes H1, fourchette d'Asie), seulement quand l'or est calme : zéro ou négatif, et ce qui gagne sur une période perd sur l'autre.
-2. Le filtre de régime sert quand même : il évite les grosses pertes de ces règles les jours agités (−5 $ par trade). Mais éviter une perte ne fait pas un gain.
-3. **Les jours calmes ne coûtent presque rien à `bt_or`** : ses paniers pris au calme font ≈ zéro (+0,12 R), ceux pris quand l'or bouge +0,48 R (87 % du gain). Ce qui a perdu vendredi, ce sont les scalps M1/M15, qui paient le spread sans avantage.
-4. **Donc : au calme, le mieux est de ne rien faire sur l'or**, et de couper les scalps plutôt que la tendance.
-5. Prochain passage : les autres marchés qui bougent quand l'or dort (indices, argent, devises), dernier point de ta demande.
+1. **Réponse à ta question sur les moments calmes : au calme, le mieux est de ne rien faire.** Aucune règle ne passe, ni sur l'or (retour à la moyenne en fourchette, bandes, séance d'Asie), ni sur les autres marchés.
+2. **Les autres marchés bougent bien quand l'or dort** (Nasdaq et cryptos : 40 à 44 % du temps), mais la tendance y fait zéro et le retour à la moyenne y perd partout (argent et ETH : −6 à −10 bp par trade).
+3. **Ce que coûtent les jours calmes** : presque rien à `bt_or` (≈ 0), mais ≈ −13 $ par jour calme aux règles `elan_m15`, `cassure_m15`, `exces_m5`, et tout le spread aux scalps M1. C'est ce qui a fait baisser ton compte simulé vendredi.
+4. **Ce que je change lundi à la réouverture** : le robot mettra ces règles en pause quand l'or est calme et ne les relancera que quand il bouge ; `bt_or` et le repli d'indices continuent.
+5. Rien à faire de ton côté. Marché fermé jusqu'à lundi 0 h.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 13/11 20 h 13 (Paris)
 

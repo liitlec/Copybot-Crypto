@@ -1210,3 +1210,37 @@ jours (47 % du temps). Gains en $ par trade à 0,01 lot.
 (autres marchés qui bougent quand l'or dort : indices, argent, devises) : prochain passage.
 
 **Total des essais : 48 790 + 14 = 48 804.**
+
+## Passage 40 — 14/11/2026 (≈ 17 h 41 – 18 h Paris) — moments calmes, point 3 : les autres marchés (banc Z)
+
+Aucune nouvelle priorité. Marché fermé, pont et robot v10 en marche, aucune activité.
+
+**Banc Z** (`banc_calme_ailleurs.py`, bougies M5 du courtier, spread réel, 25 essais). Régime de chaque marché
+calculé comme pour l'or ; le régime de l'or est reporté sur chaque marché par l'heure.
+
+| Marché | Agité pendant que l'or est calme | Tendance (mécanique `bt_or`), or calme | Tendance, or agité | Retour à la moyenne (bandes M15), or calme : réglage / verdict |
+|---|---|---|---|---|
+| Nasdaq | 44 % du temps | 103 paniers, +0,43 R (t = 1,6) | 155, −0,09 R | −1,4 / −0,8 bp |
+| argent | 21 % | 116, +0,09 R | 173, +0,06 R | **−10,0 / −5,7 bp** (t = −3) |
+| EURUSD | 29 % | 132, **−0,40 R** (t = −2,7) | 149, +0,19 R | −0,6 / −1,4 bp (t = −4,8) |
+| BTC (depuis 01/2026) | 40 % | 131, −0,01 R | 95, +0,14 R | −2,4 / +0,6 bp |
+| ETH (depuis 01/2026) | 42 % | 113, −0,21 R | 96, +0,21 R | **−9,6 / −9,3 bp** (t = −3,5) |
+
+- **Oui, d'autres marchés bougent quand l'or dort** (le Nasdaq et les cryptos sont agités 40 à 44 % de ce temps ;
+  l'argent suit l'or : 21 %).
+- **Mais aucune règle testée n'y gagne** : la mécanique de tendance y fait zéro (seule case positive : Nasdaq
+  quand l'or est calme, +0,43 R, t = 1,6, une case sur dix, donc compatible avec le hasard ; l'EURUSD y perd
+  nettement) ; le retour à la moyenne **perd partout**, nettement sur l'argent, l'ETH et l'EURUSD (le spread
+  mange plus que le retour).
+- Trié par le régime propre de chaque marché plutôt que par celui de l'or : même constat (de −0,26 à +0,22 R,
+  aucun t > 1).
+
+**Conclusion de la priorité du 14/11 13 h (points 1 à 4)** : aucune règle de calme ne passe, ni sur l'or ni
+ailleurs. **Au calme, le mieux est de ne rien faire.** Ce que coûtent les jours calmes : presque rien à `bt_or`
+(≈ 0 R), mais −13 $ par jour calme au trio `elan_m15` + `cassure_m15` + `exces_m5` (banc Q, passage 22) et le
+spread entier aux scalps M1. Mesure concrète à prendre lundi (marché ouvert, sans panier `bt_or`) : **robot v11
+qui met en pause `elan_m15`, `cassure_m15`, `exces_m5`, `exces_m1`, `fcassure_m1` quand l'or est calme** (fonction
+`agite()` déjà dans le robot), le témoin `hasard_m1` continuant pour mesurer ; mélange fixé ici, jugé sur les
+trades suivants.
+
+**Total des essais : 48 804 + 25 = 48 829.**
