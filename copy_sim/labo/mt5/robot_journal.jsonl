@@ -4716,3 +4716,5 @@
 {"heure": "2026-11-14T19:50:05Z", "type": "lanceur", "evenement": "demarre", "version": 10}
 {"heure": "2026-11-14T19:50:06Z", "type": "note", "evenement": "demarrage", "version": 10, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_m1"], "lots": 0.01, "repris": ["elan_m15"]}
 {"heure": "2026-11-14T19:52:33Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
+{"heure": "2026-11-14T20:06:07Z", "type": "lanceur", "evenement": "demarre", "version": 10}
+{"heure": "2026-11-14T20:06:07Z", "type": "note", "evenement": "demarrage", "version": 10, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_m1"], "lots": 0.01, "repris": ["elan_m15"]}
