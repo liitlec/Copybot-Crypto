@@ -1166,3 +1166,8 @@ erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, 
 
 Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, budget normal. Marché fermé : pont et robot v10 en marche, 0
 erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, inchangé.
+
+## Passage 38 — 14/11/2026 (12 h 41 Paris) — week-end, passage très court
+
+Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, budget normal. Marché fermé : pont et robot v10 en marche, 0
+erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, inchangé.
