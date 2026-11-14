@@ -4710,3 +4710,5 @@
 {"heure": "2026-11-13T21:52:59Z", "type": "note", "evenement": "sortie", "hypothese": "hasard_m1", "raison": "temps", "ticket": 497761136, "sens": -1, "entree": 3880.67, "h_serveur": 23, "prix_sortie": 3879.84, "profit": 0.83, "essai": "non prouve"}
 {"heure": "2026-11-13T23:53:59Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
 {"heure": "2026-11-14T13:43:04Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
+{"heure": "2026-11-14T19:45:19Z", "type": "lanceur", "evenement": "demarre", "version": 10}
+{"heure": "2026-11-14T19:45:21Z", "type": "note", "evenement": "demarrage", "version": 10, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_m1"], "lots": 0.01, "repris": ["elan_m15"]}
