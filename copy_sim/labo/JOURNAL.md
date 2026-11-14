@@ -1127,3 +1127,32 @@ ne marche pas. La règle reste en D1.
 Aucune nouvelle priorité, budget normal. Marché fermé : pont en marche, robot v10 en marche, 0 erreur, aucune
 activité depuis le passage 33 (1 position `elan_m15` en attente de lundi). Rien à ajouter ; AVIS.md et ETAT.md
 restent valables. Essais : 48 775, inchangé.
+
+## Passage 35 — 14/11/2026 (≈ 5 h 11 – 5 h 30 Paris) — l'or autour des annonces américaines de 8 h 30 (banc X)
+
+Aucune nouvelle priorité, budget normal. Marché fermé, pont et robot v10 en marche, aucune activité.
+
+**Banc X — famille 3, la dernière de la recherche large** (`banc_annonces.py`, or M5 du courtier, 15 mois, 328
+jours, 15 essais). Sans calendrier téléchargé : tous les jours ouvrés à 8 h 30 de New York (15 h 30 serveur),
+triés par la taille de la bougie d'annonce (en multiples de l'amplitude M5 des 2 heures d'avant) ; entrée à 15 h 35
+dans le sens de la bougie, spread réel.
+
+| Jours retenus | Tenue | Réglage (60 %) | Verdict (40 %) |
+|---|---|---|---|
+| tous | 30 min | 197 j, +1,85 $ (t = 2,2) | 131 j, **−0,16 $** |
+| tous | 60 min | +2,50 $ (t = 2,0) | **−1,05 $** |
+| bougie > 2 fois l'habituelle | 30 min | 25 j, −1,33 $ | 21 j, +2,59 $ (t = 0,5) |
+| bougie > 2 fois | 60 min | +3,55 $ (t = 1,6) | −3,05 $ |
+| bougie > 3 fois | 30 min | 9 j, −5,51 $ | 13 j, +3,84 $ (t = 0,7) |
+| premiers vendredis (emploi américain) | 15 / 30 / 60 min | 14 jours : +0,61 / +1,01 / +1,19 $ (t ≤ 0,4) | |
+
+**Rien** : le signe change entre réglage et verdict dans presque toutes les cases ; ni « suivre » ni « contrer »
+la bougie d'annonce ne tient. Ce qui gagnait au réglage (suivre tous les jours, 30 à 60 min, t ≈ 2) est négatif
+au verdict. Limites : 15 mois ne donnent que 14 emplois américains et 22 très grosses bougies, donc on ne peut
+conclure que « pas d'effet assez gros pour se voir » ; le spread enregistré par bougie (0,19 à 0,20 $) ne montre
+pas l'élargissement réel pendant la seconde de l'annonce, donc ces chiffres sont plutôt optimistes.
+
+**La recherche large du 12/11 (6 familles) est terminée** : ordres limites, concepts de liquidité, annonces,
+structure M15/H1, modèles appris, sorties fines : aucune ne donne un scalp gagnant sur l'or après spread.
+
+**Total des essais : 48 775 + 15 = 48 790.**

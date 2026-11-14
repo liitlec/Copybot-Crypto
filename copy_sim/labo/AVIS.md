@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 14/11/2026, 0 h 25 (passage 33)
+# Avis pour Baptiste — 14/11/2026, 5 h 30 (passage 35)
 
-1. **Robot version 10 installée** (22 h 42) : le repli d'indices suit 5 indices (Nasdaq, S&P 500, Dow, DAX, Russell 2000). Marché fermé jusqu'à lundi vers 0 h.
-2. **Repli d'indices en H4 au lieu du jour : non.** Sur le Nasdaq du courtier, la même règle en H4 fait zéro (−5 à +10 bp par trade) contre +25 bp en jour. On ne peut pas multiplier les trades en descendant d'unité de temps.
-3. Rappel : l'effet est américain (S&P et Dow +40 bp, Nasdaq et Russell +25 bp ; indices européens ≈ zéro) et son plafond réaliste est +8 à +15 % par an.
-4. Direct : scalps M1 au niveau du hasard ; aucun trade encore pour le repli d'indices ni pour `bt_or`.
-5. Week-end : passages courts. Reste à étudier : les annonces économiques sur l'or.
+1. **La recherche large sur le scalp de l'or est terminée, et la réponse est non.** Les 6 familles demandées sont testées avec le spread de ton courtier : ordres limites, chasse aux stops et niveaux, annonces américaines, structure M15/H1, modèles appris, sorties fines. Aucune ne gagne après spread hors échantillon (48 790 essais en tout).
+2. Dernière famille, les annonces de 14 h 30 (Paris) : suivre ou contrer la bougie d'annonce ne tient pas ; ce qui gagnait sur la première période perd sur la suivante.
+3. **Ce qui tient** : le repli d'indices américains (S&P, Dow, Nasdaq, Russell : +25 à +40 bp par trade, ≈ +8 à +15 % par an au mieux), en démo depuis jeudi, 0 trade pour l'instant. **À confirmer** : `bt_or` sur l'or.
+4. Si tes amis ont des règles précises de scalp sur l'or, écris-les dans `labo/IDEES_AMIS.md` : je les teste telles quelles en premier.
+5. Week-end : marché fermé, passages très courts jusqu'à lundi 0 h.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 13/11 20 h 13 (Paris)
 
