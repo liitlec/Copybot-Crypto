@@ -13,7 +13,7 @@ import time
 import bt_or
 import repli_ind
 
-VERSION = 10
+VERSION = 11
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -37,6 +37,10 @@ HYPOTHESES = {
     "elan_m15":    ("M15", 10800, "elan", 12, 1),     # sens des 3 dernieres heures, 3 h
     "ecart_midi_m5": ("M5", 900, "ecart", 20, -1),    # a plus de 2 ecarts-types de la moyenne de 20 bougies M5 :
 }                                                     # on parie sur le retour, 15 min, de 12 h a 15 h serveur seulement
+# v11 (PRIORITES 14/11) : au calme, ne rien faire. Ces regles n'ouvrent plus quand l'or est calme (fonction agite) :
+# banc Q : elan_m15 + cassure_m15 + exces_m5 font +48 $ par jour de tendance et -14 $ par jour calme ; les deux
+# regles M1 paient le spread sans avantage. Le temoin hasard_m1, bt_or, repli_ind et le candidat de midi continuent.
+PAUSE_AU_CALME = {"elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1"}
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
@@ -117,6 +121,7 @@ class Robot:
         self.vu = {}            # periode -> heure de la derniere bougie fermee deja traitee
         self.ouvert = {}        # hypothese -> {"ticket", "sens", "sortie", "entree", "profit"}
         self.info = None
+        self.calme, self.calme_vu = None, 0      # regime de l'or (None = inconnu : pas de pause), heure du dernier calcul
         self.essais_orph = {}   # ticket -> heure du dernier essai de fermeture d'une orpheline
         self.bt = bt_or.PanierBT(pont)
         self.repli = repli_ind.Repli(pont)
@@ -226,6 +231,21 @@ class Robot:
                         prix_obtenu=r.get("prix_obtenu"), essai="non prouve")
         return r
 
+    def regime(self, maintenant, bougies=None):
+        """Met a jour self.calme au plus une fois par quart d'heure et note chaque changement."""
+        if maintenant - self.calme_vu < 900:
+            return
+        self.calme_vu = maintenant
+        try:
+            h1 = bougies.get("H1") if bougies else self.pont.bougies(SYMBOLE, "H1", 1500)
+            a = agite(h1[:-1]) if h1 else None
+        except Exception:
+            a = None
+        nouveau = None if a is None else (not a)
+        if nouveau != self.calme:
+            self.pont.noter(evenement="regime", calme=nouveau, en_pause=sorted(PAUSE_AU_CALME) if nouveau else [])
+        self.calme = nouveau
+
     # -------------------------------------------------- un tour
     def tour(self, bougies=None):
         """Un passage de boucle. `bougies` (periode -> liste) sert aux essais ; sinon lues chez le courtier."""
@@ -241,6 +261,7 @@ class Robot:
         hs = time.gmtime(maintenant)
         if (hs.tm_hour == 23 and hs.tm_min >= 50) or hs.tm_hour == 0 or (hs.tm_hour == 1 and hs.tm_min < 10):
             return                                       # fermeture nocturne de l'or : trous de prix, pas d'ouverture
+        self.regime(maintenant, bougies)
         for periode in PERIODES:
             b = bougies[periode] if bougies else self.pont.bougies(SYMBOLE, periode, 130)
             b = b[:-1]                                   # la derniere est en cours de formation
@@ -262,6 +283,8 @@ class Robot:
                 if hyp[0] != periode or nom in self.ouvert or nom in ETEINTES:
                     continue
                 if nom in HEURES and time.gmtime(maintenant).tm_hour not in HEURES[nom]:
+                    continue
+                if self.calme and nom in PAUSE_AU_CALME:
                     continue
                 s = signal(nom, b, self.hasard)
                 if s:

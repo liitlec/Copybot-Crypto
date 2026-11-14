@@ -1284,3 +1284,20 @@ comment le robot reconnaît le calme. Marché fermé, pont et robot v10 en march
 dessous = calme. Recalculé chaque heure, donc il lui faut plusieurs heures de mouvement pour repasser en « agité ».
 
 **Total des essais : 48 829 + 12 = 48 841.**
+
+## Passage 42 — 14/11/2026 (≈ 22 h 41 – 23 h 05 Paris) — robot v11 écrit (pause au calme), pas encore publié
+
+Aucune nouvelle priorité depuis 19 h 30, pas de `IDEES_AMIS.md`, pas de swaps dans `etat.json`. Marché fermé.
+**Code de la version 11 prêt dans `mt5/robot/` (fichier `VERSION` laissé à 10 : rien n'est installé)** :
+- `PAUSE_AU_CALME = {elan_m15, cassure_m15, exces_m5, exces_m1, fcassure_m1}` : ces règles n'ouvrent plus quand
+  l'or est calme (`agite()` faux, recalculé tous les quarts d'heure sur les bougies H1) ; elles reprennent dès
+  qu'il redevient agité ; régime inconnu (historique insuffisant) = pas de pause. Chaque changement est noté
+  (`"evenement": "regime"`). Les positions déjà ouvertes sortent normalement.
+- Inchangés : témoin `hasard_m1` (il continue de mesurer le coût du calme), `bt_or`, `repli_ind`, candidat de midi.
+- Essais « ESSAIS OK » (nouveau : au calme seules les règles hors pause ouvrent, le témoin continue, reprise
+  quand l'or bouge) ; contrôle du texte du lanceur : rien.
+- **Jugement fixé d'avance** : comparer, sur les trades à venir, le résultat par jour du robot les jours calmes
+  avant (v7-v10) et après (v11) ; et vérifier que les règles en pause ne ratent pas plus qu'elles n'évitent
+  (au banc Q : −14 $ par jour calme évités).
+**À publier lundi** quand le marché est ouvert et qu'aucun panier `bt_or` n'est ouvert : mettre `VERSION` à 11.
+Aucun banc (essais : 48 841, inchangé).

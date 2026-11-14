@@ -372,4 +372,30 @@ assert not pont.positions(), "hors indices : orpheline fermee comme avant"
 for f in ("etat_essai.json", "etat_repli_essai.json", "etat_repli.json"):
     if os.path.exists(f):
         os.remove(f)
+# 10) v11 : au calme, les regles de PAUSE_AU_CALME n'ouvrent plus ; elles reprennent quand l'or redevient agite
+faux_mt5.positions.clear()
+pont10 = acces_robot.AccesRobot.pour_essais(faux_mt5)       # pont neuf : le plafond de 30 ordres par minute repart de zero
+r10 = robot.Robot(pont10, hasard=random.Random(2), fichier="etat_essai.json")
+r10.ouvert = {}
+t10 = [1794000000]
+r10.heure = lambda: t10[0]
+r10.tour({"M1": m1, "M5": m5, "M15": m15, "H1": calme_h1 + [calme_h1[-1]]})
+assert r10.calme is True
+r10.tour({"M1": m1b, "M5": m5b, "M15": m15b, "H1": calme_h1 + [calme_h1[-1]]})
+assert r10.ouvert and not (set(r10.ouvert) & robot.PAUSE_AU_CALME), sorted(r10.ouvert)
+assert "hasard_m1" in r10.ouvert, "le temoin continue au calme"
+faux_mt5.positions.clear()
+r10.ouvert = {}
+r10.calme_vu = 0
+m1c = [[x[0] + 120] + x[1:] for x in m1]
+m5c = [[x[0] + 600] + x[1:] for x in m5]
+m15c = [[x[0] + 1800] + x[1:] for x in m15]
+r10.tour({"M1": m1c, "M5": m5c, "M15": m15c, "H1": agite_h1 + [agite_h1[-1]]})
+assert r10.calme is False and (set(r10.ouvert) & robot.PAUSE_AU_CALME), "reprise quand l'or bouge"
+faux_mt5.positions.clear()
+r10.ouvert = {}
+r10.reconcilier()
+for f in ("etat_essai.json", "etat_bt.json", "etat_repli.json"):
+    if os.path.exists(f):
+        os.remove(f)
 print("ESSAIS OK")

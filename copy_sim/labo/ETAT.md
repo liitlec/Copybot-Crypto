@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 41, 14/11/2026 (20 h 40) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h — **à faire lundi, marché ouvert et sans panier `bt_or` : robot v11 (pause au calme)** — priorité en cours : PRIORITES 14/11 19 h 30 (calme : compression faite, portage en attente des swaps côté PC, amis en attente)
+# État du laboratoire (réécrit à chaque passage) — après le passage 42, 14/11/2026 (23 h 05) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h — **LUNDI, marché ouvert et sans panier `bt_or` : écrire 11 dans `mt5/robot/VERSION` (le code v11 « pause au calme » est déjà poussé, essais OK)** — priorité en cours : PRIORITES 14/11 19 h 30 (portage en attente des swaps côté PC, amis en attente)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
