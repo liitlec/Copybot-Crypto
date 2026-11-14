@@ -1161,3 +1161,8 @@ structure M15/H1, modèles appris, sorties fines : aucune ne donne un scalp gagn
 
 Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, budget normal. Marché fermé : pont et robot v10 en marche, 0
 erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, inchangé.
+
+## Passage 37 — 14/11/2026 (10 h 11 Paris) — week-end, passage très court
+
+Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, budget normal. Marché fermé : pont et robot v10 en marche, 0
+erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, inchangé.
