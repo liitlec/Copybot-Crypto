@@ -6,10 +6,13 @@
    N = 4 h, 8 h, 24 h ; tenue 1 h, 4 h. 12 cases x 2. Gains en $ par once apres spread.
 2) Spread reel et amplitude par heure, jours calmes / agites (regime du robot), et combien de temps dure un calme.
 Reglage 60 % / verdict 40 %. Usage : python3 banc_compression.py"""
+import sys
 import numpy as np, pandas as pd
 import banc_grille as G
 
-d = G.charge("xau_m5_90k")
+IDENT = sys.argv[1] if len(sys.argv) > 1 else "xau_m5_90k"     # autre marche : gains en points de base
+BP = IDENT != "xau_m5_90k"
+d = G.charge(IDENT)
 o, h, l, c, sp = (d[x].values for x in ("ouverture", "haut", "bas", "cloture", "sp"))
 hs = d["h"].values
 n = len(d); k = int(n * 0.6)
@@ -35,7 +38,7 @@ for heures in (4, 8, 24):
         R = {(a, b): [] for a in (0, 1) for b in (0, 1)}
         libre = 0
         for i in np.flatnonzero(sig):
-            if i < libre or i + tenue + 2 >= n or not connu[i] or hs[i] < 2 or hs[i] >= 22:
+            if i < libre or i + tenue + 2 >= n or not connu[i] or ((hs[i] < 2 or hs[i] >= 22) and not IDENT.startswith(("btc", "eth"))):
                 continue
             s, e = sig[i], o[i + 1]
             stop = (hi[i] + lo[i]) / 2
@@ -45,10 +48,12 @@ for heures in (4, 8, 24):
                     x = stop if (o[j] - stop) * s > 0 else o[j]; break
             if x is None:
                 x = c[j]
-            R[(int(i >= k), int(comp[i]))].append(s * (x - e) - sp[i + 1])
+            R[(int(i >= k), int(comp[i]))].append((s * (x - e) - sp[i + 1]) * (1e4 / e if BP else 1.0))
             libre = j
         print("  %-38s | %s / %s | %s / %s" % ("fourchette %2d h, tenue %d h" % (heures, tenue // 12), res(R[(0, 1)]), res(R[(0, 0)]), res(R[(1, 1)]), res(R[(1, 0)])))
 
+if BP:
+    raise SystemExit
 # 2) spread et amplitude par heure, selon le regime du robot ; duree des calmes
 amp = pd.Series(h - l)
 court = amp.rolling(288).mean(); med = court.rolling(288 * 60, min_periods=288 * 20).median()

@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 42, 14/11/2026 (23 h 05) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h — **LUNDI, marché ouvert et sans panier `bt_or` : écrire 11 dans `mt5/robot/VERSION` (le code v11 « pause au calme » est déjà poussé, essais OK)** — priorité en cours : PRIORITES 14/11 19 h 30 (portage en attente des swaps côté PC, amis en attente)
+# État du laboratoire (réécrit à chaque passage) — après le passage 43, 15/11/2026 (0 h 25) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h — **LUNDI, marché ouvert et sans panier `bt_or` : écrire 11 dans `mt5/robot/VERSION` (le code v11 « pause au calme » est déjà poussé, essais OK)** — priorité en cours : PRIORITES 14/11 19 h 30 (portage en attente des swaps côté PC, amis en attente)
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -61,7 +61,8 @@
   cassure normale) ; spread 0,20 $ à toute heure ; calme moyen 1,1 jour. Portage : swaps absents de `etat.json`
   (demandé côté PC dans AVIS). Pistes de calme encore possibles : compression sur Nasdaq / argent ; vente de
   volatilité impossible en CFD ; grille très serrée = BlockGrille (≈ 0 en démo).
-- 48 841 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 43 : compression puis cassure sur Nasdaq, argent, EURUSD, BTC : rien (piste fermée).
+- 48 889 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 

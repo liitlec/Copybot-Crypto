@@ -1301,3 +1301,21 @@ Aucune nouvelle priorité depuis 19 h 30, pas de `IDEES_AMIS.md`, pas de swaps d
   (au banc Q : −14 $ par jour calme évités).
 **À publier lundi** quand le marché est ouvert et qu'aucun panier `bt_or` n'est ouvert : mettre `VERSION` à 11.
 Aucun banc (essais : 48 841, inchangé).
+
+## Passage 43 — 15/11/2026 (≈ 0 h 11 – 0 h 25 Paris) — compression puis cassure sur les autres marchés (banc AA bis)
+
+Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, pas de swaps dans `etat.json`. Marché fermé, robot v10 en marche
+(code v11 prêt, non publié).
+**Banc AA bis** (`banc_compression.py <ident>`, même règle que sur l'or, gains en bp après spread, 48 essais) :
+| Marché | Cassure après compression (verdict, 6 cases) | Cassure normale (verdict) |
+|---|---|---|
+| Nasdaq | de −7,8 à +2,6 bp, aucun t > 1,1 | de −2,5 à +0,4 bp |
+| argent | de −11,6 à −5,2 bp (t jusqu'à −2,7) | de −9,4 à +13,9 bp |
+| EURUSD | de −1,8 à +1,0 bp (4 h / 1 h : t = −6,8) | de −2,7 à −0,1 bp |
+| BTC | de −3,7 à +1,8 bp | de −7,3 à −3,7 bp (t jusqu'à −2,7) |
+**Rien nulle part** : la cassure d'une fourchette comprimée ne gagne sur aucun marché, et aucune case n'est
+positive à la fois au réglage et au verdict avec un t > 1,2. Sur l'argent et l'EURUSD elle perd nettement (fausses
+sorties + spread). La piste « le calme qui précède le mouvement » est fermée, sur l'or comme ailleurs.
+Reste de la priorité du 14/11 19 h 30 : portage (attend les swaps côté PC), règles des amis (attend le fichier).
+
+**Total des essais : 48 841 + 48 = 48 889.**
