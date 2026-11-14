@@ -1,4 +1,4 @@
-# État du laboratoire (réécrit à chaque passage) — après le passage 35, 14/11/2026 (5 h 30) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h : **passages très courts le week-end** (une ligne au journal, sauf nouvelle priorité)
+# État du laboratoire (réécrit à chaque passage) — après le passage 39, 14/11/2026 (15 h 35) — rythme : toutes les 2 h 30 — marché fermé jusqu'au lundi 16/11 0 h — **priorité en cours : PRIORITES 14/11 13 h (moments calmes), point 3 à faire**
 
 ## Où j'en suis
 - Outils : `donnees.py` (téléchargement Yahoo), `banc_tendance.py` (A), `banc_scalp_h1.py` (B), `banc_prime.py` (C),
@@ -46,7 +46,12 @@
   installé (13/11 22 h 42).
 - Passage 35 (banc X, `banc_annonces.py`) : annonces US de 8 h 30 sur l'or : rien. **Recherche large terminée
   (6 familles sur 6), aucun scalp or gagnant.** Ne pas la refaire ; attendre `IDEES_AMIS.md` ou une priorité.
-- 48 790 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
+- Passage 39 (banc Y, `banc_calme.py`) : retour à la moyenne au calme sur l'or (bandes M15, H1, Asie) : rien ;
+  `bt_or` au calme ≈ 0 (+0,12 R contre +0,48 R agité). Réponse : au calme, ne rien faire sur l'or.
+  **Reste le point 3** : autres marchés quand l'or est calme (mécanique de tendance ou règles simples sur
+  `nas_m5_90k`, `xag_m5_90k`, `eur_m5_90k`, `btc_m5_90k`, triées par le régime de l'OR) ; puis envisager de mettre
+  en pause les scalps M1 du robot quand `agite()` est faux (version à publier sans panier `bt_or` ouvert).
+- 48 804 essais comptés (passage 11 : la règle du candidat ne marche à aucune autre heure, ni sur le Nasdaq ;
   passage 12 : cassure d'ouverture de Wall Street réfutée sur Nasdaq et or). Banc H (`banc_sorties.py`) : la sortie au temps 15 min est la meilleure pour le candidat ;
   dans le sens de la tendance de 20 h il fait +3,5 bp. Banc F : `banc_plateau.py`. Banc D : `banc_or.py` (données dans `mt5/donnees/`, poussées par le pont).
 

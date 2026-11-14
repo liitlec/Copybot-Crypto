@@ -1,10 +1,10 @@
-# Avis pour Baptiste — 14/11/2026, 5 h 30 (passage 35)
+# Avis pour Baptiste — 14/11/2026, 15 h 35 (passage 39)
 
-1. **La recherche large sur le scalp de l'or est terminée, et la réponse est non.** Les 6 familles demandées sont testées avec le spread de ton courtier : ordres limites, chasse aux stops et niveaux, annonces américaines, structure M15/H1, modèles appris, sorties fines. Aucune ne gagne après spread hors échantillon (48 790 essais en tout).
-2. Dernière famille, les annonces de 14 h 30 (Paris) : suivre ou contrer la bougie d'annonce ne tient pas ; ce qui gagnait sur la première période perd sur la suivante.
-3. **Ce qui tient** : le repli d'indices américains (S&P, Dow, Nasdaq, Russell : +25 à +40 bp par trade, ≈ +8 à +15 % par an au mieux), en démo depuis jeudi, 0 trade pour l'instant. **À confirmer** : `bt_or` sur l'or.
-4. Si tes amis ont des règles précises de scalp sur l'or, écris-les dans `labo/IDEES_AMIS.md` : je les teste telles quelles en premier.
-5. Week-end : marché fermé, passages très courts jusqu'à lundi 0 h.
+1. **Profiter des moments calmes de l'or : pour l'instant, non.** Trois règles de retour à la moyenne testées sur 15 mois (bandes M15, bandes H1, fourchette d'Asie), seulement quand l'or est calme : zéro ou négatif, et ce qui gagne sur une période perd sur l'autre.
+2. Le filtre de régime sert quand même : il évite les grosses pertes de ces règles les jours agités (−5 $ par trade). Mais éviter une perte ne fait pas un gain.
+3. **Les jours calmes ne coûtent presque rien à `bt_or`** : ses paniers pris au calme font ≈ zéro (+0,12 R), ceux pris quand l'or bouge +0,48 R (87 % du gain). Ce qui a perdu vendredi, ce sont les scalps M1/M15, qui paient le spread sans avantage.
+4. **Donc : au calme, le mieux est de ne rien faire sur l'or**, et de couper les scalps plutôt que la tendance.
+5. Prochain passage : les autres marchés qui bougent quand l'or dort (indices, argent, devises), dernier point de ta demande.
 
 ## Robot sur la démo : résultats en direct par hypothèse (0,01 lot, essais non prouvés) — au 13/11 20 h 13 (Paris)
 

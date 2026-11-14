@@ -1171,3 +1171,42 @@ erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, 
 
 Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, budget normal. Marché fermé : pont et robot v10 en marche, 0
 erreur, aucune activité. AVIS.md et ETAT.md restent valables. Essais : 48 790, inchangé.
+
+## Passage 39 — 14/11/2026 (≈ 15 h 12 – 15 h 35 Paris) — profiter des moments calmes ? (banc Y)
+
+**Nouvelle priorité lue** (`PRIORITES.md`, 14/11 13 h) : trouver comment profiter aussi des moments calmes
+(retour à la moyenne en fourchette avec filtre de régime, changement de stratégie selon le régime, autres marchés,
+ou « ne rien faire » chiffré). Marché fermé, pont et robot v10 en marche (une erreur passagère « accès refusé »
+à 14 h 43, sans suite).
+
+**Banc Y** (`banc_calme.py`, or M5 du courtier, 15 mois, spread réel, 14 essais). Régime fixé d'avance, le même que
+dans le robot : **calme** si l'amplitude M5 moyenne des 24 dernières heures est sous sa médiane des 60 derniers
+jours (47 % du temps). Gains en $ par trade à 0,01 lot.
+
+| Retour à la moyenne | Réglage, calme | Réglage, agité | Verdict, calme | Verdict, agité |
+|---|---|---|---|---|
+| bandes M15 (2 écarts-types sur 5 h, objectif la moyenne, 2 h) | 449 tr, −0,66 $ | 914, −0,44 $ | 738, +0,17 $ (t = 0,3) | 317, +0,75 $ |
+| idem + sortie dès que le régime repart | −0,70 $ | −0,45 $ | +0,35 $ (t = 0,7) | +0,38 $ |
+| bandes H1 (sur 20 h, 8 h au plus) | 154, +1,32 $ (t = 0,6) | 249, −5,38 $ (t = −1,9) | 234, **−1,97 $** | 79, +2,35 $ |
+| fourchette d'Asie (retour au milieu) | 64, +0,58 $ | 120, −5,31 $ | 105, **−3,01 $** | 35, −4,40 $ |
+
+- **Aucune règle de retour à la moyenne ne gagne au calme** : les cases « calme » sont à zéro près ou négatives,
+  et celles qui sont positives au réglage sont négatives au verdict (et inversement). Le filtre de régime évite
+  bien les grosses pertes des jours agités (bandes H1 et Asie : −5 $ par trade en régime agité au réglage), mais
+  éviter une perte n'est pas un gain. Couper quand la volatilité repart ne change rien.
+- **Ce que coûtent les jours calmes à la tendance (`bt_or`)** :
+
+| Paniers `bt_or` selon le régime à l'entrée | Calme | Agité |
+|---|---|---|
+| 15 mois | 102 paniers, **+0,12 R** en moyenne, total +12 R | 165 paniers, **+0,48 R**, total +79 R |
+
+  Les paniers pris au calme ne coûtent presque rien (≈ zéro, 26 % de gagnants : beaucoup de petites pertes de
+  moins d'1 R compensées par quelques gains) ; 87 % du gain vient des entrées en régime agité. **Mettre `bt_or` en
+  pause au calme ne ferait rien gagner ni perdre de net** (on renonce à +12 R sur 15 mois, non significatif).
+- Les −5 $ du vendredi calme viennent d'ailleurs : des scalps M1 / M15, qui paient le spread à chaque trade sans
+  avantage (témoin −0,33 $ par trade). C'est eux qu'il faut arrêter au calme, pas `bt_or`.
+
+**Réponse pour l'instant : au calme, le mieux sur l'or est de ne rien faire.** Reste le point 3 de la priorité
+(autres marchés qui bougent quand l'or dort : indices, argent, devises) : prochain passage.
+
+**Total des essais : 48 790 + 14 = 48 804.**
