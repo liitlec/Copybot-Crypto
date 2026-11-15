@@ -1326,3 +1326,8 @@ Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, pas de swaps, budget normal. 
 depuis 0 h 54 (Paris) : PC probablement éteint pour la nuit, sans conséquence le week-end ; à surveiller dimanche
 soir (il doit tourner à la réouverture de lundi 0 h pour publier la v11). AVIS.md et ETAT.md restent valables.
 Essais : 48 889, inchangé.
+
+## Passage 45 — 15/11/2026 (5 h 11 Paris) — week-end, passage très court
+
+Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, pas de swaps, budget normal. Marché fermé, pont toujours arrêté
+depuis 0 h 54 (PC éteint). Rien à ajouter ; AVIS.md et ETAT.md restent valables. Essais : 48 889, inchangé.
