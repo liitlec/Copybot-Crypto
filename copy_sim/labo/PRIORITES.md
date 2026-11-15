@@ -371,3 +371,11 @@ pause au calme de la version 11. Critères écrits avant :
 Vendredi soir, mets en tête d'AVIS.md un tableau critère par critère (tenu / pas tenu) et le compte simulé de 100 $
 jour par jour. Si les 4 tiennent : c'est un signal sérieux, à confirmer sur 2 à 3 semaines de plus avant toute taille
 réelle. Si non : dis lesquels ont lâché et pourquoi.
+
+## 15/11/2026, 13 h 20 (Paris) : critère 2 du test de la semaine corrigé (avant le début de la semaine)
+Baptiste fait remarquer, à juste titre, que la sélection est faite pour gagner les jours de mouvement et ne pas trader
+au calme : exiger « positif sans la meilleure journée » pénalise une stratégie de tendance par construction.
+**Remplace le critère 2 par** : (a) les jours où le robot est « agité » sont positifs au total ; (b) les jours
+« calmes » coûtent peu (moins de 10 $ par jour calme au total à 0,01 lot) grâce à la pause ; (c) donne à titre
+d'information la part du gain qui vient de la meilleure journée, et le nombre de jours « agités sans direction »
+(volatils mais aller-retour) et ce qu'ils ont coûté. Les critères 1, 3 et 4 ne changent pas.
