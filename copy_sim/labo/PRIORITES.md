@@ -358,3 +358,16 @@ reste la règle du robot tant que rien ne passe, mais continue à chercher, avec
    bouge pas (vérifie les swaps réels de STARTRADER dans `etat.json`/données du pont).
 4. **Les règles de calme de ses amis** dès qu'il les transmet.
 Et explique à Baptiste, en deux lignes, **comment le robot reconnaît le calme** (indicateur, seuils, délai).
+
+## 15/11/2026, 13 h (Paris) : le test de la semaine du 16 au 20/11, critères fixés d'avance
+Baptiste veut savoir vendredi 20/11 au soir si « on a trouvé un truc ». Juge **seulement les trades fermés du lundi
+16/11 0 h au vendredi 20/11 23 h (Paris)**, sur la sélection fixée d'avance : `elan_m15`, `cassure_m15`, `exces_m5`,
+`exces_m1`, `fcassure_m1`, `bt_or`, `midi_agite`, `repli_ind` (sans témoin, sans `retour_m1` ni `elan_m1`), avec la
+pause au calme de la version 11. Critères écrits avant :
+1. **Total positif sur la semaine** ;
+2. **au moins 3 jours sur 5 positifs**, et le total reste positif **sans la meilleure journée** ;
+3. **la sélection bat le témoin** de plus de 2 erreurs types par trade ;
+4. **plus bas du compte simulé de 100 $ au-dessus de 70 $**.
+Vendredi soir, mets en tête d'AVIS.md un tableau critère par critère (tenu / pas tenu) et le compte simulé de 100 $
+jour par jour. Si les 4 tiennent : c'est un signal sérieux, à confirmer sur 2 à 3 semaines de plus avant toute taille
+réelle. Si non : dis lesquels ont lâché et pourquoi.
