@@ -379,3 +379,19 @@ au calme : exiger « positif sans la meilleure journée » pénalise une straté
 « calmes » coûtent peu (moins de 10 $ par jour calme au total à 0,01 lot) grâce à la pause ; (c) donne à titre
 d'information la part du gain qui vient de la meilleure journée, et le nombre de jours « agités sans direction »
 (volatils mais aller-retour) et ce qu'ils ont coûté. Les critères 1, 3 et 4 ne changent pas.
+
+## 15/11/2026, 13 h 40 (Paris) : trois régimes, et gagner aussi les journées d'aller-retour
+Baptiste veut : ne pas trader au calme, et gagner **les deux autres régimes**, la tendance (déjà couverte) **et les
+journées agitées sans direction** (allers-retours), où les règles de tendance perdent.
+1. **Classe chaque période en trois régimes, en temps réel** (avec seulement les données déjà connues) : calme
+   (volatilité basse), tendance (volatilité haute + mouvement net dans un sens : rapport d'efficacité, ADX, pente),
+   aller-retour (volatilité haute + peu de mouvement net). Mesure sur 15 mois combien de temps dure chaque régime et
+   avec quel retard ton détecteur le reconnaît.
+2. **Cherche une règle pour l'aller-retour** : retour à la moyenne sur des bornes larges (excès de 2 à 3 écarts-types,
+   plus haut / plus bas des dernières heures), sorties rapides, stop dur, et seulement quand le détecteur dit
+   « aller-retour ». Rappel : `exces_m1` et `fcassure_m1` sont des règles de retour ; vérifie si elles gagnent
+   précisément dans ce régime.
+3. **Robot à trois modes** si une règle tient : calme → rien ; tendance → règles de tendance ; aller-retour → règle de
+   retour. Le piège à mesurer : se tromper de régime au moment où il change (un aller-retour qui devient une tendance
+   fait perdre gros à une règle de retour, d'où le stop dur obligatoire).
+Comme toujours : avance glissante, essais comptés, et dis à Baptiste ce qui tient, même si c'est non.
