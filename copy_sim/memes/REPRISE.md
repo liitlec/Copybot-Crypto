@@ -148,3 +148,11 @@ Ancienne session labo (session_01FgaWoz5WwTWneB2uqX7uwf, ≈ 600 000 éléments 
 blocages de limite) remplacée par **session_01FgaWoznHdSUXYXX3DDSYyB** ; tâche « Laboratoire autonome v2 : passage »
 (trig_01HzhRzT8sJujR4E4oGrTrXe) toutes les 2 h, minute 10 des heures impaires (Paris). Ancienne tâche désactivée.
 Règle : pas de nouvelle VERSION du robot pendant qu'un panier `bt_or` est ouvert (la v7 a coupé le premier panier).
+
+## Relais Opus jusqu'au 18/11 (15/11, 21 h 40 Paris)
+Limite hebdomadaire de Fable 5.2 atteinte (remise à zéro mercredi 18/11 16 h Paris). Relais :
+**session_01FgaWowBo8qjdiVRho4b4yt** (Opus 5.5), tâche trig_01B93bAzr4GmM8TtjavXreKC toutes les 5 h (1 h 10, 6 h 10,
+11 h 10, 16 h 10, 21 h 10 Paris), passages courts : publier la v11 du robot, suivre le test du 16-20/11. Les deux
+tâches Fable (trig_01HzhRzT8sJujR4E4oGrTrXe, trig_01Aez2r4ijz1pRyArqRArSPQ, session_01FgaWoznHdSUXYXX3DDSYyB) sont
+désactivées : **les réactiver mercredi après 16 h et désactiver le relais**. Le PC de Baptiste (pont) est éteint depuis
+le 14/11 0 h 54 ; il le rallume lundi matin.
