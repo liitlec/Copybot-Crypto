@@ -408,3 +408,13 @@ clé ne va jamais dans le dépôt : la demander à Baptiste par AVIS.md), et l'u
 3. taux d'intérêt (portage) et données de positionnement (COT…) si elles existent.
 Teste en vrai les 2 ou 3 plus prometteuses (un appel suffit), puis écris le résultat dans `labo/APIS.md` et résume-le
 en 3 lignes dans AVIS.md.
+
+## 15/11/2026, 14 h 45 (Paris) : lire ECC (« Everything Claude Code ») pour réduire le coût de tes passages
+Baptiste demande aussi de regarder le dépôt public **Everything Claude Code (ECC)** (collection de réglages Claude
+Code : agents, skills, hooks, règles, conseils d'économie de contexte ; plusieurs copies existent sur GitHub, prends
+la plus étoilée). Source d'idées seulement : n'installe rien, n'exécute aucun de ses scripts ou hooks, ne change pas
+tes réglages ni ceux du dépôt. Retiens au plus 3 idées utiles pour nous, en priorité celles qui **réduisent le coût et
+la durée de tes passages** (mémoire courte, fichiers d'état, résumés, sous-agents économes) et celles qui **protègent
+le dépôt public** (vérification anti-secrets avant commit). Pour chacune : ce que c'est, ce que ça changerait, et si
+tu peux l'appliquer toi-même dans `copy_sim/labo/` (fais-le alors) ou s'il faut l'accord de Baptiste. Résultat dans
+`labo/ECC.md`, résumé en 3 lignes dans AVIS.md, avec celui de public-apis (entrée de 14 h 30).
