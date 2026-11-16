@@ -19,7 +19,11 @@ TEMOIN = "hasard_m1"
 def hors_total(nom):
     """Témoins à pile ou face et variantes « calme » : affichés, mais hors des totaux et du tableau par jour."""
     nom = str(nom)
-    return nom.startswith("hasard") or nom in VARIANTES_CALME
+    return nom.startswith("hasard") or nom in VARIANTES_CALME or nom in ARRETEES
+
+
+# 16/11 (Baptiste) : les stratégies arrêtées ne comptent plus dans les totaux et disparaissent du tableau
+ARRETEES = {"retour_m1", "elan_m1"}
 
 
 VARIANTES_CALME = {f"{b}_calme" for b in ("elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1")}
@@ -216,11 +220,14 @@ def page():
     # 16/11 (Baptiste) : les variantes « _calme » (données d'entraînement) sont aussi comptées à part
     tous = [x for h, xs in par_hyp.items() if not hors_total(h) for x in xs]
     temoin = par_hyp.get(TEMOIN, [])
+    du_jour = par_jour.get(datetime.now(ZoneInfo("Europe/Paris")).date(), [])
     maj = paris(etat["ecrit"])
     retard = (datetime.now(timezone.utc) - maj.astimezone(timezone.utc)).total_seconds() / 60
     noms = sorted(set(par_hyp) | set(actives), key=lambda k: (-(sum(par_hyp[k]) if par_hyp.get(k) else -1e9), k))
     lignes = []
     for nom in noms:
+        if nom in ARRETEES:
+            continue
         xs = par_hyp.get(nom, [])
         actif = nom in actives
         if xs:
@@ -317,8 +324,9 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
 <section class="chiffres">
   <div class="chiffre"><span>Valeur du compte démo (tous robots)</span><b>{usd(etat.get('valeur', 0), False)}</b></div>
   <div class="chiffre"><span>En cours, tous robots du compte</span><b class="{'pos' if etat.get('valeur', 0) - etat.get('solde', 0) > 0 else 'neg'}">{usd(etat.get('valeur', 0) - etat.get('solde', 0))}</b></div>
-  <div class="chiffre"><span>Trades fermés (hors témoin)</span><b>{n_t}</b></div>
-  <div class="chiffre"><span>Total fermé (hors témoin)</span><b class="{'pos' if sum(tous) > 0 else 'neg'}">{usd(sum(tous)) if tous else '—'}</b></div>
+  <div class="chiffre"><span>Résultat du jour (fermé)</span><b class="{'pos' if sum(p for _, p in du_jour) > 0 else 'neg'}">{usd(sum(p for _, p in du_jour)) if du_jour else '0,00\u00a0$'}</b></div>
+  <div class="chiffre"><span>Trades fermés (stratégies actives)</span><b>{n_t}</b></div>
+  <div class="chiffre"><span>Total fermé (stratégies actives)</span><b class="{'pos' if sum(tous) > 0 else 'neg'}">{usd(sum(tous)) if tous else '—'}</b></div>
   <div class="chiffre"><span>Trades gagnants</span><b>{f"{100 * sum(x > 0 for x in tous) / n_t:.0f} %" if tous else '—'}</b></div>
   <div class="chiffre"><span>Positions ouvertes du labo</span><b>{len(etat.get('positions_robot') or [])}</b></div>
 </section>
