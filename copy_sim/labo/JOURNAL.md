@@ -1393,3 +1393,11 @@ noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvert
   ne sauve pas non plus.** Pas de modèle appris tenté (banc N du passage 21 : réfutés ; 267 jours, 37 AR, trop peu).
   Piste restante pour Fable : ne pas chercher à gagner l'aller-retour, mais y perdre moins (couper les règles de
   tendance quand le détecteur de 18 h s'allume, ou réduire leur taille les jours agités sans direction).
+- 16 h 30 : **v13 publiée** (Baptiste accepte que les petites positions v12 soient fermées ; `CODE_DEPUIS` calé).
+  **v14 écrite** : `retour_court_ar` (sans détecteur, stop court au-delà de l'excès + 0,5 $, au moins la distance
+  minimale) et `retour_strict_ar` (seulement si le détecteur le plus strict du banc Y bis est allumé : ≥ 18 h serveur,
+  amplitude ≥ 1,3 × médiane 60 j à la même heure, efficacité < 0,2 ; stop normal). Entrée M15 : clôture à plus de
+  2,5 σ de la moyenne de 20 bougies, ou fausse cassure du range du jour ; objectif au milieu du range du jour ; sortie
+  au temps 3 h ; 0,01 lot ; hors totaux du test. NON prouvées au banc (banc Y bis : −0,13 R). **Règles d'arrêt
+  écrites avant le premier trade** : court : somme < −60 $ ou moyenne < −0,50 $ après 60 trades ; strict : somme
+  < −60 $ ou moyenne < −1 $ après 20 trades. Codes de stop v13 inchangés (nouveaux noms ajoutés à la fin). Essais OK.

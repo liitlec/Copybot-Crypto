@@ -13,7 +13,7 @@ import time
 import bt_or
 import repli_ind
 
-VERSION = 13
+VERSION = 14
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -35,6 +35,8 @@ HYPOTHESES = {
     "exces_m5":    ("M5", 900, "exces", 3, 1),        # bougie M5 > 3 ecarts-types : on la suit, 15 min
     "cassure_m15": ("M15", 10800, "cassure", 48, 1),  # sortie de la fourchette de 12 h : on la suit, 3 h
     "elan_m15":    ("M15", 10800, "elan", 12, 1),     # sens des 3 dernieres heures, 3 h
+    "retour_court_ar": ("M15", 10800, "retour", 0, 1),   # v14 : voir RETOUR_AR plus bas
+    "retour_strict_ar": ("M15", 10800, "retour", 0, 1),
     "ecart_midi_m5": ("M5", 900, "ecart", 20, -1),    # a plus de 2 ecarts-types de la moyenne de 20 bougies M5 :
 }                                                     # on parie sur le retour, 15 min, de 12 h a 15 h serveur seulement
 # v11 (PRIORITES 14/11) : au calme, ne rien faire. Ces regles n'ouvrent plus quand l'or est calme (fonction agite) :
@@ -57,6 +59,8 @@ _NOTES = sorted(set(HYPOTHESES_NOMS := ["hasard_m1", "elan_m1", "retour_m1", "ex
                                           "cassure_m15", "elan_m15", "ecart_midi_m5"])
                 | {n + "_calme" for n in ("elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1")}
                 | {b + x for b in ("midi_agite", "midi_calme") for x in ("", "_f", "_c")})
+_NOTES = _NOTES + ["retour_court_ar", "retour_strict_ar"]    # v14 : ajoutes A LA FIN (codes v13 inchanges)
+HYPOTHESES_NOMS = HYPOTHESES_NOMS + ["retour_court_ar", "retour_strict_ar"]
 CODE = {n: c for n, c in zip(_NOTES, [c for c in range(100) if c % 10 != 7])}
 NOTE_DU_CODE = {c: n for n, c in CODE.items()}
 
@@ -77,6 +81,17 @@ def cle_de_note(note):
 # v13 (PRIORITES 16/11 11 h 40) : bt_crypto, la mecanique bt_or sur BTC et ETH a la taille minimale, hors test.
 CRYPTO = (("BTCUSD", "bt_crypto_btc"), ("ETHUSD", "bt_crypto_eth"))
 SPREAD_REL_CRYPTO = 0.0015                             # pas d'entree ni d'ajout si le spread depasse 0,15 % du prix
+# v14 (demande de Baptiste du 16/11, 16 h, relayee ; etape (c) de la priorite n° 1) : retour a la moyenne pour les
+# journees d'aller-retour, en direct pour les donnees, NON prouve au banc (banc Y bis : regle a stop court -0,13 R).
+# Hors totaux du test (noms en _ar). Entree M15 : cloture a plus de 2,5 ecarts-types de la moyenne de 20 bougies, ou
+# fausse cassure du range du jour (la bougie precedente a depasse l'extreme du jour, la derniere cloture revient
+# dedans) -> on joue le retour. Objectif : milieu du range du jour ; sortie au temps 3 h.
+#  retour_court_ar  : sans detecteur ; stop court juste au-dela de l'exces (extreme des 2 dernieres bougies + 0,5 $).
+#  retour_strict_ar : seulement si le detecteur le plus strict du banc Y bis est allume (heure serveur >= 18 h,
+#                     amplitude du jour >= 1,3 x mediane 60 j a la meme heure, efficacite du chemin < 0,2) ; stop normal.
+# REGLES D'ARRET (ecrites avant le premier trade) : retour_court_ar : arret si somme < -60 $ ou moyenne < -0,50 $ apres
+# 60 trades ; retour_strict_ar : arret si somme < -60 $ ou moyenne < -1 $ apres 20 trades.
+RETOUR_AR = {"retour_court_ar", "retour_strict_ar"}
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
@@ -106,6 +121,23 @@ def regle(nom_regle, k, b, hasard=random):
             return 0
         z = (c[-1] - m) / e
         return (z > 2) - (z < -2)
+    if nom_regle == "retour":
+        if len(c) < 22:
+            return 0
+        v = c[-21:-1]
+        m = sum(v) / 20
+        e = (sum((x - m) ** 2 for x in v) / 19) ** 0.5
+        if e > 0 and abs(c[-1] - m) > 2.5 * e:
+            return -1 if c[-1] > m else 1
+        jour = b[-1][0] // 86400
+        avant = [x for x in b[:-2] if x[0] // 86400 == jour]
+        if len(avant) >= 4 and b[-2][0] // 86400 == jour:
+            h, l = max(x[2] for x in avant), min(x[3] for x in avant)
+            if b[-2][2] > h and c[-1] < h:
+                return -1
+            if b[-2][3] < l and c[-1] > l:
+                return 1
+        return 0
     if nom_regle == "exces":
         if len(c) < 102:
             return 0
@@ -307,9 +339,18 @@ class Robot:
         e = ecart_stop(b, mini)
         ch = self.info["chiffres"]
         stop = round(px["bid"] - e, ch) if sens > 0 else round(px["ask"] + e, ch)
+        objectif = None
+        if nom in RETOUR_AR:                             # v14 : objectif au milieu du range du jour
+            jour = b[-1][0] // 86400
+            auj = [x for x in b if x[0] // 86400 == jour] or b[-4:]
+            mil = round((max(x[2] for x in auj) + min(x[3] for x in auj)) / 2, ch)
+            objectif = mil if (sens > 0 and mil > px["ask"] + spread) or (sens < 0 and mil < px["bid"] - spread) else None
+            if nom == "retour_court_ar":                 # stop court : juste au-dela de l'exces
+                ext = max(x[2] for x in b[-2:]) + 0.5 if sens < 0 else min(x[3] for x in b[-2:]) - 0.5
+                stop = round(min(ext, px["bid"] - mini) if sens > 0 else max(ext, px["ask"] + mini), ch)
         nom_note = self.etiquette(nom, sens) if cle == nom else cle
         stop = coder(stop, sens, nom_note, ch)           # v13 : le nom voyage dans les centimes du stop
-        r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom_note)
+        r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, objectif=objectif, id=nom_note)
         if r.get("ok") and r.get("ticket"):
             self.ouvert[cle] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
                                 "entree": r.get("prix_obtenu"), "profit": 0.0, "note": nom_note}
@@ -360,6 +401,35 @@ class Robot:
                     self.crypto_muet.add(c.symbole)
                     self.pont.noter(evenement="erreur", hypothese=c.nom,
                                     texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
+
+    def ar_strict(self, maintenant, bougies=None):
+        """Detecteur d'aller-retour le plus strict du banc Y bis, sur les bougies H1 fermees."""
+        if time.gmtime(maintenant).tm_hour < 18:
+            return False
+        try:
+            h1 = (bougies.get("H1") if bougies else None) or self.pont.bougies(SYMBOLE, "H1", 1500)
+        except Exception:
+            return False
+        h1 = h1[:-1]
+        if len(h1) < 24 * 61:
+            return False
+        jour, h = h1[-1][0] // 86400, (h1[-1][0] // 3600) % 24
+        auj = [x for x in h1 if x[0] // 86400 == jour]
+        if len(auj) < 6:
+            return False
+        a = max(x[2] for x in auj) - min(x[3] for x in auj)
+        passes = {}
+        for x in h1:
+            j = x[0] // 86400
+            if j < jour and (x[0] // 3600) % 24 <= h:
+                q = passes.setdefault(j, [x[2], x[3]])
+                q[0], q[1] = max(q[0], x[2]), min(q[1], x[3])
+        amps = sorted([q[0] - q[1] for j, q in sorted(passes.items())][-60:])
+        if len(amps) < 40 or a <= 0:
+            return False
+        med = amps[len(amps) // 2]
+        eff = abs(auj[-1][4] - auj[0][1]) / a
+        return a >= 1.3 * med and eff < 0.2
 
     def info_crypto(self, sym):
         if not hasattr(self, "_info_c"):
@@ -413,6 +483,8 @@ class Robot:
                     cle = nom + SUFFIXE_CALME                # variante calme : donnees seulement, hors test
                     if cle in self.ouvert or len(ps) >= PLAFOND_POSITIONS - RESERVE_TEST:
                         continue
+                if nom == "retour_strict_ar" and not self.ar_strict(maintenant, bougies):
+                    continue
                 s = signal(nom, b, self.hasard)
                 if s:
                     self.ouvrir(nom, s, b, maintenant, cle)

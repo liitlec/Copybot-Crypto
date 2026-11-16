@@ -50,7 +50,7 @@ creux = [list(x) for x in calme[:-1]]
 creux[-1][4] = creux[-1][1] - 3.0
 assert robot.signal("ecart_midi_m5", creux) == 1
 assert set(robot.HEURES) <= set(robot.HYPOTHESES)
-assert len(robot.HYPOTHESES) <= 9 and all(v[0] in robot.PERIODES and v[1] >= 60 for v in robot.HYPOTHESES.values())
+assert len(robot.HYPOTHESES) <= 11 and all(v[0] in robot.PERIODES and v[1] >= 60 for v in robot.HYPOTHESES.values())
 assert robot.ecart_stop(plat, 3.0) >= 3.0
 
 # 2) un tour complet : premier tour sans ordre, puis nouvelle bougie -> ouvertures avec stop a 0,01 lot
@@ -69,7 +69,10 @@ m15b = [[x[0] + 900] + x[1:] for x in m15]
 m1b = [[x[0] + 60] + x[1:] for x in m1]
 r.tour({"M1": m1b, "M5": m5b, "M15": m15b})
 ps = pont.positions()
-assert len(ps) == len(r.ouvert) == 8, (len(ps), sorted(r.ouvert))
+assert len(ps) == len(r.ouvert) == 9, (len(ps), sorted(r.ouvert))
+assert "retour_court_ar" in r.ouvert and "retour_strict_ar" not in r.ouvert, "v14 : le strict attend son detecteur"
+oc = [o for o in faux_mt5.ordres_recus if o.get("comment", "").endswith("retour_court_ar")]
+assert oc and oc[0]["sl"] > 0, oc
 assert "ecart_midi_m5" not in r.ouvert, "hors de ses heures"
 assert set(r.ouvert) <= set(robot.HYPOTHESES)
 for o in faux_mt5.ordres_recus:
@@ -113,10 +116,10 @@ assert all(c % 10 != 7 for c in robot.CODE.values()) and len(set(robot.CODE.valu
 # 4) sorties au temps : 3 min (fausse cassure), 5 min (hasard, elan, retour), puis le reste
 t0[0] += 181
 r.sorties(t0[0], r.reconcilier())
-assert "fcassure_m1" not in r.ouvert and len(pont.positions()) == 7
+assert "fcassure_m1" not in r.ouvert and len(pont.positions()) == 8
 t0[0] += 120
 r.sorties(t0[0], r.reconcilier())
-assert not {"hasard_m1", "elan_m1", "retour_m1"} & set(r.ouvert) and len(pont.positions()) == 4
+assert not {"hasard_m1", "elan_m1", "retour_m1"} & set(r.ouvert) and len(pont.positions()) == 5
 t0[0] += 10800
 r.sorties(t0[0], r.reconcilier())
 assert not r.ouvert and not pont.positions()
@@ -463,6 +466,7 @@ rp3.tour(pi.ps(), jour + 9 * 86400, True)
 assert not rp3.pos and any(n.get("raison", "").startswith("stop") for n in pi.notes), "stop touche chez le courtier : note"
 os.remove("etat_repli_essai.json")
 # le robot complet ne ferme pas une position d'indice comme orpheline
+pont = acces_robot.AccesRobot.pour_essais(faux_mt5)       # pont neuf : plafond de 30 ordres par minute (v14 : un ordre de plus)
 pont.ouvrir("EURUSD", "achat", 0.01, stop=1.0, id="autre")
 r9 = robot.Robot(pont, hasard=random.Random(1), fichier="etat_essai.json")
 r9.repli.fichier = "etat_repli_essai.json"
