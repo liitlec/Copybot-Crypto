@@ -5247,3 +5247,5 @@
 {"heure": "2026-11-16T14:18:21Z", "type": "note", "evenement": "orpheline fermee", "ticket": 498934892, "profit": -4.13, "ok": true}
 {"heure": "2026-11-16T14:18:21Z", "type": "ordre", "ticket": 498982380, "action": "fermeture", "id": "robot", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "prix_demande": 3865.62, "spread_points": 21.0, "prix_entree": 3863.56, "ok": true, "retcode": 10009, "prix_obtenu": 3865.62}
 {"heure": "2026-11-16T14:18:21Z", "type": "note", "evenement": "orpheline fermee", "ticket": 498982380, "profit": -2.07, "ok": true}
+{"heure": "2026-11-16T14:21:26Z", "type": "ordre", "ticket": 498984194, "action": "fermeture", "id": "robot", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "prix_demande": 3867.25, "spread_points": 20.0, "prix_entree": 3863.53, "ok": true, "retcode": 10009, "prix_obtenu": 3867.25}
+{"heure": "2026-11-16T14:21:26Z", "type": "note", "evenement": "sortie", "hypothese": "hasard_m1", "raison": "temps", "ticket": 498984194, "sens": -1, "entree": 3863.53, "h_serveur": 16, "prix_sortie": 3867.25, "profit": -3.7199999999999998, "essai": "non prouve"}
