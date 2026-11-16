@@ -451,3 +451,16 @@ stop obligatoire. Elles sont **exclues des totaux du test de la semaine** et com
 « Variantes calme »), avec les mêmes statistiques par stratégie. Respecte le plafond de 30 positions : en cas de
 manque de place, les stratégies du test passent avant. Publie la nouvelle version seulement si les essais passent et
 qu'aucun panier bt_or n'est ouvert (ou si les positions survivent bien à la mise à jour, comme depuis la v9).
+
+## 16/11, 10 h 30 (Paris) : réagir plus vite aux retournements
+Baptiste voit les ventes perdre pendant une hausse (elan_m15, bt_or entrés avant le retournement). Teste au banc
+(15 mois, or M5/M15, après spread, walk-forward) puis, ce qui tient, en variantes à part sur la démo (noms suffixés
+`_opt`, exclues des totaux du test de la semaine, critères du test inchangés) :
+1. **Alignement** : elan_m15 / cassure_m15 n'entrent que si la tendance de fond (moyenne 2 jours ou tendance de 20 h)
+   va dans le même sens.
+2. **Sortie anticipée** : sortir avant les 3 h si le prix repasse au-delà du plus haut (vente) / plus bas (achat) de
+   la dernière heure, ou si l'élan 3 h s'inverse.
+3. **Stop au point mort** après un gain de X (X à chercher) et stop suiveur.
+4. **Retournement** : fermer et prendre le sens inverse sur une cassure franche contre la position.
+5. **Annonces** : pas d'entrée 15 min avant / après une annonce forte (calendrier Helious, APIS.md).
+Compter chaque idée au nombre d'essais (correction pour essais multiples), rendre compte dans AVIS.md.
