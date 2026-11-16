@@ -52,7 +52,7 @@ RESERVE_TEST = 5
 # 1 $). A la reprise : hypothese, heure de sortie (ouverture + tenue) et stop sont retrouves. Seules les positions
 # ouvertes apres CODE_DEPUIS (heure serveur de la publication de la v13) sont decodees : avant, les centimes sont
 # quelconques et donneraient un faux nom.
-CODE_DEPUIS = 1794833180
+CODE_DEPUIS = 1794845859
 _NOTES = sorted(set(HYPOTHESES_NOMS := ["hasard_m1", "elan_m1", "retour_m1", "exces_m1", "fcassure_m1", "exces_m5",
                                           "cassure_m15", "elan_m15", "ecart_midi_m5"])
                 | {n + "_calme" for n in ("elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1")}
