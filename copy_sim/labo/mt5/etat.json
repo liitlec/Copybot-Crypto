@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-16T14:15:14Z",
+ "ecrit": "2026-11-16T14:20:24Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 68851.45,
- "valeur": 73814.96,
- "marge_libre": 70867.98,
+ "solde": 68845.25,
+ "valeur": 73822.43,
+ "marge_libre": 70859.97,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3863.81,
-   "ask": 3864.01,
-   "spread_points": 20.0,
+   "bid": 3865.73,
+   "ask": 3865.94,
+   "spread_points": 21.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794845665
+   "heure_serveur": 1794846024
   }
  },
  "positions_robot": [
@@ -34,44 +34,44 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3851.07,
-   "prix_actuel": 3864.01,
+   "prix_actuel": 3865.94,
    "stop": 3910.68,
    "objectif": null,
-   "profit": -12.94,
+   "profit": -14.87,
    "ouverte_heure_serveur": 1794816300
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "achat",
-   "lots": 0.01,
-   "prix_entree": 3869.55,
-   "prix_actuel": 3863.81,
-   "stop": 3834.29,
-   "objectif": null,
-   "profit": -5.74,
-   "ouverte_heure_serveur": 1794843000
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3863.56,
-   "prix_actuel": 3864.01,
-   "stop": 3872.86,
+   "prix_entree": 3863.53,
+   "prix_actuel": 3865.94,
+   "stop": 3873.13,
    "objectif": null,
-   "profit": -0.45,
-   "ouverte_heure_serveur": 1794845580
+   "profit": -2.41,
+   "ouverte_heure_serveur": 1794845788
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "vente",
+   "lots": 0.01,
+   "prix_entree": 3863.62,
+   "prix_actuel": 3865.94,
+   "stop": 3897.04,
+   "objectif": null,
+   "profit": -2.32,
+   "ouverte_heure_serveur": 1794845788
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-16",
-  "perte_du_jour": -19.2,
+  "perte_du_jour": -25.87,
   "seuil": -3795.72,
   "ouvertures_bloquees": false
  },
  "robot": {
-  "version_installee": 12,
-  "version_precedente": 11,
+  "version_installee": 13,
+  "version_precedente": 12,
   "en_marche": true,
   "dernier_refus": null,
   "derniere_erreur": null,
