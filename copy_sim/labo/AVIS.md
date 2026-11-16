@@ -1,4 +1,4 @@
-# Avis pour Baptiste — 16/11/2026, 1 h 15 (relais)
+# Avis pour Baptiste — 16/11/2026, 6 h 15 (relais)
 
 0. **Pont muet depuis samedi 0 h 54 (Paris)**, encore à 6 h 10 lundi : ton PC n'est pas rallumé ; la v11 s'installera à l'allumage. Test de la semaine : aucun trade encore.
 0 bis. **public-apis (`labo/APIS.md`)** : Helious donne gratuitement, sans clé, le calendrier des annonces (heure, importance, prévu/publié) → on pourra tester « couper le robot autour des annonces fortes ». Goldprice.dev répond aussi ; TradingCalendars demande une clé (inutile pour l'instant).
