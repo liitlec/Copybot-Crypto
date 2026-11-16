@@ -384,6 +384,11 @@ assert r10.calme is True
 r10.tour({"M1": m1b, "M5": m5b, "M15": m15b, "H1": calme_h1 + [calme_h1[-1]]})
 assert r10.ouvert and not (set(r10.ouvert) & robot.PAUSE_AU_CALME), sorted(r10.ouvert)
 assert "hasard_m1" in r10.ouvert, "le temoin continue au calme"
+# v12 : les variantes <nom>_calme tradent au calme, sous leur propre nom, avec stop
+vc = {k for k in r10.ouvert if k.endswith(robot.SUFFIXE_CALME)}
+assert vc and all(k[:-len(robot.SUFFIXE_CALME)] in robot.PAUSE_AU_CALME for k in vc), sorted(r10.ouvert)
+assert all(r10.ouvert[k]["note"] == k for k in vc)
+assert any(o.get("comment", "").endswith("_calme") for o in faux_mt5.ordres_recus), "nom calme dans l'ordre"
 faux_mt5.positions.clear()
 r10.ouvert = {}
 r10.calme_vu = 0
@@ -392,6 +397,7 @@ m5c = [[x[0] + 600] + x[1:] for x in m5]
 m15c = [[x[0] + 1800] + x[1:] for x in m15]
 r10.tour({"M1": m1c, "M5": m5c, "M15": m15c, "H1": agite_h1 + [agite_h1[-1]]})
 assert r10.calme is False and (set(r10.ouvert) & robot.PAUSE_AU_CALME), "reprise quand l'or bouge"
+assert not any(k.endswith(robot.SUFFIXE_CALME) for k in r10.ouvert), "pas de variante calme quand l'or bouge"
 faux_mt5.positions.clear()
 r10.ouvert = {}
 r10.reconcilier()

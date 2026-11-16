@@ -1331,3 +1331,10 @@ Essais : 48 889, inchangé.
 
 Aucune nouvelle priorité, pas de `IDEES_AMIS.md`, pas de swaps, budget normal. Marché fermé, pont toujours arrêté
 depuis 0 h 54 (PC éteint). Rien à ajouter ; AVIS.md et ETAT.md restent valables. Essais : 48 889, inchangé.
+
+## Relais — 16/11/2026 (≈ 7 h 30 Paris) — robot v12 écrit (variantes calme), non publié
+Priorité 16/11 7 h 15 : variantes `<nom>_calme` des 5 règles en pause (`elan_m15`, `cassure_m15`, `exces_m5`,
+`exces_m1`, `fcassure_m1`), qui n'ouvrent qu'au calme, dans leur propre case, 0,01 lot avec stop, sous leur propre
+nom (exclues du test). Elles n'ouvrent que s'il reste ≥ 5 places sous le plafond de 30 positions. Essais OK (2
+assertions ajoutées). **Non publiée** : panier `bt_or` ouvert (06:05Z) ; la survie aux changements de version n'est
+prouvée que pour `repli_ind` (v10 a fermé les positions ouvertes). Publication = écrire 12 dans `mt5/robot/VERSION`.

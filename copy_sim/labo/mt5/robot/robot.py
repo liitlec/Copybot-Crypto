@@ -13,7 +13,7 @@ import time
 import bt_or
 import repli_ind
 
-VERSION = 11
+VERSION = 12
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -41,6 +41,12 @@ HYPOTHESES = {
 # banc Q : elan_m15 + cassure_m15 + exces_m5 font +48 $ par jour de tendance et -14 $ par jour calme ; les deux
 # regles M1 paient le spread sans avantage. Le temoin hasard_m1, bt_or, repli_ind et le candidat de midi continuent.
 PAUSE_AU_CALME = {"elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1"}
+# v12 (PRIORITES 16/11 7 h 15) : pour les donnees, chaque regle en pause trade aussi au calme sous le nom <nom>_calme
+# (case a part, 0,01 lot, stop dur), exclue des totaux du test. Places : les variantes calme n'ouvrent que s'il reste
+# au moins RESERVE_TEST places sous le plafond de 30 positions, pour que les strategies du test passent avant.
+SUFFIXE_CALME = "_calme"
+PLAFOND_POSITIONS = 30
+RESERVE_TEST = 5
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
@@ -207,7 +213,8 @@ class Robot:
             return base
         return base + ("_f" if sens == fond else "_c")
 
-    def ouvrir(self, nom, sens, b, maintenant):
+    def ouvrir(self, nom, sens, b, maintenant, cle=None):
+        cle = cle or nom
         px = self.pont.prix(SYMBOLE)
         spread = px["ask"] - px["bid"]
         if spread > SPREAD_MAX or spread < 0:
@@ -219,10 +226,10 @@ class Robot:
         e = ecart_stop(b, mini)
         ch = self.info["chiffres"]
         stop = round(px["bid"] - e, ch) if sens > 0 else round(px["ask"] + e, ch)
-        nom_note = self.etiquette(nom, sens)
+        nom_note = self.etiquette(nom, sens) if cle == nom else cle
         r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom_note)
         if r.get("ok") and r.get("ticket"):
-            self.ouvert[nom] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
+            self.ouvert[cle] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
                                 "entree": r.get("prix_obtenu"), "profit": 0.0, "note": nom_note}
             self.sauver()
         self.pont.noter(evenement="ouverture", hypothese=nom_note, sens=sens, ok=bool(r.get("ok")), refus=r.get("refus"),
@@ -284,11 +291,14 @@ class Robot:
                     continue
                 if nom in HEURES and time.gmtime(maintenant).tm_hour not in HEURES[nom]:
                     continue
+                cle = nom
                 if self.calme and nom in PAUSE_AU_CALME:
-                    continue
+                    cle = nom + SUFFIXE_CALME                # variante calme : donnees seulement, hors test
+                    if cle in self.ouvert or len(ps) >= PLAFOND_POSITIONS - RESERVE_TEST:
+                        continue
                 s = signal(nom, b, self.hasard)
                 if s:
-                    self.ouvrir(nom, s, b, maintenant)
+                    self.ouvrir(nom, s, b, maintenant, cle)
 
 
 def lancer(pont):
