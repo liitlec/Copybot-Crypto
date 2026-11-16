@@ -14,6 +14,15 @@ ICI = Path(__file__).resolve().parent
 SORTIE = ICI.parent / "reports" / "labo_suivi.html"
 PARIS = ZoneInfo("Europe/Paris")
 TEMOIN = "hasard_m1"
+
+
+def hors_total(nom):
+    """Témoins à pile ou face et variantes « calme » : affichés, mais hors des totaux et du tableau par jour."""
+    nom = str(nom)
+    return nom.startswith("hasard") or nom in VARIANTES_CALME
+
+
+VARIANTES_CALME = {f"{b}_calme" for b in ("elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1")}
 DESC = {  # texte par défaut ; une hypothèse inconnue s'affiche sans description
     "hasard_m1": "Témoin : achète ou vend à pile ou face chaque 5 min. Sert de référence.",
     "hasard_m15": "Ancien témoin (version 1), retiré.",
@@ -110,7 +119,7 @@ def lire():
         elif ev == "sortie" and isinstance(d.get("profit"), (int, float)):
             par_hyp[d["hypothese"]].append(d["profit"])
             par_heure[paris(d["heure"]).hour].append(d["profit"])
-            if not str(d["hypothese"]).startswith("hasard"):
+            if not hors_total(d["hypothese"]):
                 par_jour[paris(d["heure"]).date()].append((d["hypothese"], d["profit"]))
             derniers.append(d)
     avis = []
@@ -204,7 +213,8 @@ def page():
     jours = "".join(ligne_jour(j, xs) for j, xs in sorted(par_jour.items(), reverse=True))
     rob, gf = etat.get("robot") or {}, etat.get("garde_fou") or {}
     # 12/11 (Baptiste) : les témoins à pile ou face ne comptent pas dans les totaux, ils ne servent que de référence
-    tous = [x for h, xs in par_hyp.items() if not h.startswith("hasard") for x in xs]
+    # 16/11 (Baptiste) : les variantes « _calme » (données d'entraînement) sont aussi comptées à part
+    tous = [x for h, xs in par_hyp.items() if not hors_total(h) for x in xs]
     temoin = par_hyp.get(TEMOIN, [])
     maj = paris(etat["ecrit"])
     retard = (datetime.now(timezone.utc) - maj.astimezone(timezone.utc)).total_seconds() / 60
@@ -223,7 +233,7 @@ def page():
             cl, txt = "attente", "attend son signal"
             cells = "<td class='n'>0</td><td class='n'>—</td><td class='n'>—</td><td class='n'>—</td>"
         lignes.append(f"<tr class='{'' if actif else 'retire'}'><td><span class='nom'>{e(nom)}</span>"
-                      f"<span class='desc'>{e(DESC.get(nom, ''))}{'' if actif else ' (plus dans le robot)'}</span></td>"
+                      f"<span class='desc'>{'Variante calme (données, hors totaux). ' if nom in VARIANTES_CALME else ''}{e(DESC.get(nom, ''))}{'' if actif else ' (plus dans le robot)'}</span></td>"
                       f"{cells}<td><span class='pastille {cl}'>{e(txt)}</span></td></tr>")
     heures = "".join(
         f"<tr><td>{h:02d} h – {h + 1:02d} h</td><td class='n'>{len(xs)}</td>"
