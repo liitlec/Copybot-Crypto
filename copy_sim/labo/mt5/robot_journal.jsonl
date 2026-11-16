@@ -4724,3 +4724,5 @@
 {"heure": "2026-11-16T05:52:28Z", "type": "ordre", "ticket": 497758196, "action": "fermeture", "id": "robot", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "prix_demande": 3844.6, "spread_points": 20.0, "prix_entree": 3877.09, "ok": true, "retcode": 10009, "prix_obtenu": 3844.54}
 {"heure": "2026-11-16T05:52:28Z", "type": "note", "evenement": "orpheline fermee", "ticket": 497758196, "profit": 32.49, "ok": true}
 {"heure": "2026-11-16T05:52:28Z", "type": "note", "evenement": "regime", "calme": true, "en_pause": ["cassure_m15", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1"]}
+{"heure": "2026-11-16T05:53:02Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD", "sens": "achat", "lots": 0.01, "stop": 3828.38, "id": "hasard_m1", "prix_demande": 3841.12, "spread_points": 21.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": 3841.12, "ticket": 498485811}
+{"heure": "2026-11-16T05:53:02Z", "type": "note", "evenement": "ouverture", "hypothese": "hasard_m1", "sens": 1, "ok": true, "refus": null, "bid": 3840.91, "ask": 3841.12, "spread": 0.21, "stop": 3828.38, "h_serveur": 7, "prix_obtenu": 3841.12, "essai": "non prouve"}
