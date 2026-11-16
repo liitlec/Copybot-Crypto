@@ -1,8 +1,7 @@
 # Avis pour Baptiste — 16/11/2026, 1 h 15 (relais)
 
-0. **Pont muet depuis samedi 0 h 54 (Paris)** : normal, ton PC est éteint ; la v11 s'installera au rallumage. Test de la semaine : aucun trade encore.
-0 bis. public-apis : premier tri dans `labo/APIS.md` (calendrier des annonces US, fermetures de marché, historique long de l'or, sans clé) ; essais réels au prochain passage.
-
+0. **Pont muet depuis samedi 0 h 54 (Paris)**, encore à 6 h 10 lundi : ton PC n'est pas rallumé ; la v11 s'installera à l'allumage. Test de la semaine : aucun trade encore.
+0 bis. **public-apis (`labo/APIS.md`)** : Helious donne gratuitement, sans clé, le calendrier des annonces (heure, importance, prévu/publié) → on pourra tester « couper le robot autour des annonces fortes ». Goldprice.dev répond aussi ; TradingCalendars demande une clé (inutile pour l'instant).
 1. **Robot v11 publié** (pause des petites règles quand l'or est calme) : essais OK, aucun panier ouvert ; ton PC l'installera au rallumage lundi.
 2. Le test de la semaine 16-20/11 démarre lundi 0 h avec les critères fixés le 15/11 ; bilan vendredi soir en tête de ce fichier.
 3. Jusqu'à mercredi 16 h, passages courts : suivi du test et une petite étape à la fois sur public-apis, ECC et les dépôts de trading.

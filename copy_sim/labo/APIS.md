@@ -1,4 +1,4 @@
-# public-apis : ce qui peut nous servir (étape 1/2, 16/11 nuit — lecture du README seulement, rien testé)
+# public-apis : ce qui peut nous servir (étapes 1 et 2 faites, 16/11)
 
 Source : README de github.com/public-apis/public-apis (≈ 3 000 lignes). Lu : Calendar, Currency Exchange, Finance,
 Government (en partie). Aucun compte créé, rien installé. Une clé ne va jamais dans le dépôt.
@@ -17,5 +17,16 @@ Government (en partie). Aucun compte créé, rien installé. Une clé ne va jama
 Écartés : bourses actions individuelles, paiements, fiscalité, marchés de prédiction (hors sujet pour nos CFD MT5),
 les « signaux IA » payants (aucune preuve mesurable).
 
-**Étape 2 (prochain passage)** : un seul appel chacun à Helious, TradingCalendars et Goldprice.dev, noter ce qui
-répond réellement (le réseau peut bloquer), puis résumé 3 lignes dans AVIS.md.
+## Étape 2 : essais réels (16/11, 6 h 10 Paris, un appel chacune, sans clé)
+- **Helious — oui, c'est notre calendrier.** `GET https://api.helious.io/api/calendar` (sans clé ; attention, pas
+  `helious.io/api/...`). 413 lignes d'oct. 2025 à nov. 2027 : annonces économiques (283), discours Fed (30),
+  adjudications (19), fériés (68), FOMC. Chaque ligne : `datetime_utc`, `impact` (Low/Medium/High), `forecast`,
+  `actual`, `previous`, `surprise`, `sigma`. Version gratuite : le chiffre publié n'apparaît qu'1 h après (sans gêne
+  pour couper le robot avant/après). Historique ≈ 13 mois seulement → suffit pour un premier test « pause autour des
+  annonces High » sur l'or M5.
+- **Goldprice.dev — répond** (`GET https://api.goldprice.dev/v1/prices?symbol=XAU-USD-SPOT`, sans clé : 3 869,82 $).
+  Historique long à vérifier dans la doc ; utile en complément, pas urgent (on a déjà le courtier et Yahoo).
+- **TradingCalendars — clé obligatoire** (gratuite, 10 appels/jour). Pas indispensable : Helious donne déjà les fériés.
+
+Prochaine étape utile (hors relais, quand l'usage le permet) : `calendrier.py` qui garde une copie de
+`api/calendar` dans `labo/donnees/`, puis banc « pause ± 30 min autour des annonces High » sur les règles du robot.
