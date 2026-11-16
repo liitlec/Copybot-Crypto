@@ -441,3 +441,13 @@ aucun de leurs scripts sans l'avoir lu, ne crée aucun compte, et rien ne passe 
    donne avant chaque trade du robot les chances de toucher objectif ou stop, un contrôle de risque par trade et par
    jour, un calendrier des annonces. Ajoute à la page de suivi ce qui aide Baptiste à lire les trades.
 Rends compte dans AVIS.md, ce qui tient et ce qui ne tient pas.
+
+## 16/11, 7 h 15 (Paris) : variantes « calme » pour les données
+Baptiste veut garder des trades pendant les moments calmes, pour avoir des données d'entraînement et pour
+l'optimisation. La pause calme de la v11 reste en place pour les stratégies du test de la semaine (critères inchangés).
+En plus, ouvre sur la démo des **variantes à part** des stratégies mises en pause (même logique, noms suffixés
+`_calme`, par exemple `elan_m15_calme`), qui tradent **seulement quand le détecteur dit « calme »**, à 0,01 lot avec
+stop obligatoire. Elles sont **exclues des totaux du test de la semaine** et comptées à part (page de suivi : section
+« Variantes calme »), avec les mêmes statistiques par stratégie. Respecte le plafond de 30 positions : en cas de
+manque de place, les stratégies du test passent avant. Publie la nouvelle version seulement si les essais passent et
+qu'aucun panier bt_or n'est ouvert (ou si les positions survivent bien à la mise à jour, comme depuis la v9).
