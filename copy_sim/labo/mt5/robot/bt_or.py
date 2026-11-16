@@ -59,8 +59,14 @@ def atr_jour(d1, n=20):
 
 
 class PanierBT:
-    def __init__(self, pont, fichier=FICHIER):
+    """Un jeu de paniers sur un symbole. bt_or : or, 0,01 lot. v13, bt_crypto_btc / bt_crypto_eth : meme mecanique sur
+    BTCUSD / ETHUSD a la plus petite taille du courtier (lots=None : lue chez le courtier), donnees seulement, hors test.
+    REGLE D'ARRET bt_crypto (ecrite avant le premier trade, la meme que bt_or) : arret a -20 R cumules par symbole, ou
+    moyenne < -0,3 R apres 40 paniers. Rappel : au banc (passage 24) la mecanique ne gagnait rien sur BTC et ETH."""
+
+    def __init__(self, pont, fichier=FICHIER, symbole=SYMBOLE, nom="bt_or", lots=LOTS, taille=100.0, spread_rel=None):
         self.pont, self.fichier = pont, fichier
+        self.symbole, self.nom, self.lots, self.taille, self.spread_rel = symbole, nom, lots, taille, spread_rel
         self.paniers = {}        # "1" / "-1" -> panier
         self.cumul_r, self.n_paniers, self.vu = 0.0, 0, None
         try:
@@ -84,19 +90,20 @@ class PanierBT:
         return self.cumul_r <= ARRET_R or (self.n_paniers >= 40 and self.cumul_r / self.n_paniers < -0.3)
 
     # ------------------------------------------------------------------ reprise (changement de version)
-    @staticmethod
-    def candidat(p, d1=None):
+    def candidat(self, p, d1=None):
         """Position du robot sur l'or qui ressemble a une premiere position de panier.
         Marquee (v12 et suivantes) : stop aux centimes 7, a au moins 0,15 ATR du prix (un panier en garde 0,17).
         Ancienne (sans marque) : ouverte dans les 2 min qui suivent la cloture d'une bougie d'entree (HEURES) et stop
         a au moins 0,3 ATR du prix d'entree (les regles M1/M5 qui ouvrent a ces minutes ont des stops plus courts)."""
-        if p.get("symbole") != SYMBOLE or not p.get("stop"):
+        if p.get("symbole") != self.symbole or not p.get("stop"):
             return False
         a = atr_jour(d1) if d1 else None
         if a and not 0.002 * p["prix_entree"] <= a <= 0.2 * p["prix_entree"]:
             a = None                             # bougies D1 incoherentes avec le prix : seuils fixes
         if marque(p["stop"]):
             return not a or p.get("prix_actuel") is None or abs(p["stop"] - p["prix_actuel"]) >= 0.15 * a
+        if self.nom != "bt_or":                  # pas d'ancien panier sans marque hors de l'or
+            return False
         t = (p.get("heure_serveur") or 0) % 86400
         a_l_heure = any(0 <= t - (h * 3600 + m * 60 + 300) <= 120 for h, m in HEURES)
         return a_l_heure and abs(p["stop"] - p["prix_entree"]) >= (0.3 * a if a else 20.0)
@@ -109,7 +116,7 @@ class PanierBT:
                 groupes.setdefault(str(1 if p["sens"] == "achat" else -1), []).append(p)
         for t, p in ps.items():                                  # ajouts : meme sens et meme stop qu'un panier repris
             cle = str(1 if p.get("sens") == "achat" else -1)
-            if p.get("symbole") == SYMBOLE and p.get("stop") and cle in groupes and p not in groupes[cle] \
+            if p.get("symbole") == self.symbole and p.get("stop") and cle in groupes and p not in groupes[cle] \
                     and any(abs(p["stop"] - q["stop"]) < 0.015 for q in groupes[cle]):
                 groupes[cle].append(p)
         for cle, lst in groupes.items():
@@ -137,7 +144,7 @@ class PanierBT:
                                  "profits": {str(q["ticket"]): q.get("profit") or 0.0 for q in lst},
                                  "meilleur": meilleur, "stop": stop, "pas": pas, "prochain": prochain,
                                  "debut": debut, "secours": lst[0]["stop"]}
-            self.pont.noter(evenement="reprise", hypothese="bt_or", sens=s, positions=len(lst),
+            self.pont.noter(evenement="reprise", hypothese=self.nom, sens=s, positions=len(lst),
                             tickets=[q["ticket"] for q in lst], meilleur=round(meilleur, 2), distance_stop=round(stop, 2))
         if groupes:
             self.sauver()
@@ -152,10 +159,10 @@ class PanierBT:
                 self.pont.fermer(t)
             else:
                 total += p["profits"].get(str(t), 0.0)
-        r = total / (p["stop"] * 100 * LOTS) if p["stop"] > 0 else 0.0
+        r = total / (p["stop"] * self.taille * (self.lots or 0)) if p["stop"] > 0 and self.lots else 0.0
         self.cumul_r += r
         self.n_paniers += 1
-        self.pont.noter(evenement="sortie panier", hypothese="bt_or", raison=raison, sens=int(cle),
+        self.pont.noter(evenement="sortie panier", hypothese=self.nom, raison=raison, sens=int(cle),
                         positions=len(p["tickets"]), profit=round(total, 2), R=round(r, 2), cumul_R=round(self.cumul_r, 2),
                         paniers=self.n_paniers, essai="non prouve")
         del self.paniers[cle]
@@ -182,13 +189,16 @@ class PanierBT:
 
     # ------------------------------------------------------------------ entrees et ajouts (a chaque bougie M5 fermee)
     def _ouvre(self, p, s, niveau, chiffres):
-        px = self.pont.prix(SYMBOLE)
+        px = self.pont.prix(self.symbole)
+        if self.lots is None or self.taille is None:             # crypto : plus petite taille du courtier
+            info = self.pont.symbole(self.symbole)
+            self.lots, self.taille = info["lot_min"], info["taille_contrat"]
         secours = marquer(p["meilleur"] - s * SECOURS_K * p["stop"], chiffres)
         if (s > 0 and secours >= px["bid"]) or (s < 0 and secours <= px["ask"]):
             return False
-        r = self.pont.ouvrir(SYMBOLE, "achat" if s > 0 else "vente", LOTS, stop=secours,
-                             id="bt_or_%d" % niveau)
-        self.pont.noter(evenement="ouverture", hypothese="bt_or", niveau=niveau, sens=s, ok=bool(r.get("ok")),
+        r = self.pont.ouvrir(self.symbole, "achat" if s > 0 else "vente", self.lots, stop=secours,
+                             id="%s_%d" % (self.nom, niveau))
+        self.pont.noter(evenement="ouverture", hypothese=self.nom, niveau=niveau, sens=s, ok=bool(r.get("ok")),
                         refus=r.get("refus"), prix_obtenu=r.get("prix_obtenu"), stop_secours=round(secours, chiffres),
                         distance_stop=round(p["stop"], 2), essai="non prouve")
         if r.get("ok") and r.get("ticket"):

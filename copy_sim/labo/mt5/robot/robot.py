@@ -74,6 +74,9 @@ def cle_de_note(note):
     return "ecart_midi_m5" if note.startswith("midi") else note
 
 
+# v13 (PRIORITES 16/11 11 h 40) : bt_crypto, la mecanique bt_or sur BTC et ETH a la taille minimale, hors test.
+CRYPTO = (("BTCUSD", "bt_crypto_btc"), ("ETHUSD", "bt_crypto_eth"))
+SPREAD_REL_CRYPTO = 0.0015                             # pas d'entree ni d'ajout si le spread depasse 0,15 % du prix
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
@@ -157,6 +160,9 @@ class Robot:
         self.calme, self.calme_vu = None, 0      # regime de l'or (None = inconnu : pas de pause), heure du dernier calcul
         self.essais_orph = {}   # ticket -> heure du dernier essai de fermeture d'une orpheline
         self.bt = bt_or.PanierBT(pont)
+        self.crypto = [bt_or.PanierBT(pont, fichier="etat_%s.json" % n, symbole=sym, nom=n, lots=None, taille=None)
+                       for sym, n in CRYPTO]           # v13 : bt_crypto, hors test (donnees)
+        self.crypto_vu, self.crypto_muet = 0, set()
         self.repli = repli_ind.Repli(pont)
         self.charger()
 
@@ -184,6 +190,8 @@ class Robot:
         """Aligne la memoire sur le compte : note les stops touches, ferme les positions orphelines."""
         ps = {p["ticket"]: p for p in self.pont.positions()}
         connus = set(self.bt.tickets())                 # les paniers bt_or sont geres par bt_or.py
+        for c in self.crypto:
+            connus.update(c.tickets())
         self.repli.adopter(ps)                          # une position sur un indice est toujours a repli_ind
         connus.update(self.repli.tickets())
         for nom, o in list(self.ouvert.items()):
@@ -209,7 +217,20 @@ class Robot:
                 self.bt.adopter(inconnus, m5[:-1], d1[:-1])
                 connus.update(self.bt.tickets())
             else:                                       # bougies absentes : on ne ferme pas ce qui ressemble a un panier
-                connus.update(t for t, p in inconnus.items() if bt_or.PanierBT.candidat(p))
+                connus.update(t for t, p in inconnus.items() if self.bt.candidat(p))
+        for c in self.crypto:                           # paniers bt_crypto repris de la meme facon
+            inc = {t: p for t, p in ps.items() if t not in connus and p.get("symbole") == c.symbole and p.get("stop")}
+            if not inc:
+                continue
+            try:
+                m5c, d1c = self.pont.bougies(c.symbole, "M5", 3000), self.pont.bougies(c.symbole, "D1", 30)
+            except Exception:
+                m5c = d1c = None
+            if m5c and d1c:
+                c.adopter(inc, m5c[:-1], d1c[:-1])
+                connus.update(c.tickets())
+            else:
+                connus.update(t for t, p in inc.items() if c.candidat(p))
         for t, p in ps.items():
             if t not in connus:
                 if time.time() - self.essais_orph.get(t, 0) < 60:      # marche ferme : un essai par minute, pas plus
@@ -314,6 +335,39 @@ class Robot:
             self.pont.noter(evenement="regime", calme=nouveau, en_pause=sorted(PAUSE_AU_CALME) if nouveau else [])
         self.calme = nouveau
 
+    def tour_crypto(self, ps, maintenant, permis, donnees=None):
+        """bt_crypto : surveillance a chaque tour, bougie M5 au plus une fois toutes les 20 s. Ses erreurs restent ici.
+        donnees (essais) : symbole -> {"prix": ..., "M5": [...], "D1": [...]}."""
+        verifier = maintenant - self.crypto_vu >= 20
+        if verifier:
+            self.crypto_vu = maintenant
+        for c in self.crypto:
+            try:
+                d = (donnees or {}).get(c.symbole, {})
+                px = d.get("prix") or self.pont.prix(c.symbole)
+                c.surveiller(ps, px)
+                if not (permis and verifier):
+                    continue
+                m5 = d.get("M5") or self.pont.bougies(c.symbole, "M5", 3000)
+                if not m5 or len(m5) < 2 or m5[-2][0] == c.vu:
+                    continue
+                d1 = d.get("D1") or self.pont.bougies(c.symbole, "D1", 30)
+                ok = 0 <= px["ask"] - px["bid"] <= SPREAD_REL_CRYPTO * px["bid"]
+                info = self.info_crypto(c.symbole)
+                c.bougie(m5[:-1], d1[:-1], ok, info["chiffres"])
+            except Exception as e:
+                if c.symbole not in self.crypto_muet:
+                    self.crypto_muet.add(c.symbole)
+                    self.pont.noter(evenement="erreur", hypothese=c.nom,
+                                    texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
+
+    def info_crypto(self, sym):
+        if not hasattr(self, "_info_c"):
+            self._info_c = {}
+        if sym not in self._info_c:
+            self._info_c[sym] = self.pont.symbole(sym)
+        return self._info_c[sym]
+
     # -------------------------------------------------- un tour
     def tour(self, bougies=None):
         """Un passage de boucle. `bougies` (periode -> liste) sert aux essais ; sinon lues chez le courtier."""
@@ -324,6 +378,8 @@ class Robot:
         self.bt.surveiller(ps, px)
         permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
         self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
+        if bougies is None or "crypto" in bougies:
+            self.tour_crypto(ps, maintenant, permis, (bougies or {}).get("crypto"))
         if not permis:
             return
         hs = time.gmtime(maintenant)

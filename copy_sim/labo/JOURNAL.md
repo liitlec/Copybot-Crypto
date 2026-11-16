@@ -1361,3 +1361,8 @@ de 1 $). Au démarrage, le robot reprend chaque position de l'or codée : hypoth
 étiquettes de midi), sortie au temps = ouverture + tenue, stop inchangé. Seules les positions ouvertes après
 `CODE_DEPUIS` (heure serveur de publication) sont décodées. Essai ajouté (mémoire vide → 8 positions reprises, mêmes
 noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvertes (10 h 30) seraient fermées.
+- 13 h 50 : **bt_crypto ajouté à la v13** (`bt_or.PanierBT` paramétré : symbole, nom, taille). `bt_crypto_btc` sur
+  BTCUSD et `bt_crypto_eth` sur ETHUSD, à la taille minimale du courtier (lue au premier ordre), mêmes heures, mêmes
+  règles, stop marqué (centimes 7), repris après mise à jour ; spread maximal 0,15 % du prix ; erreurs notées une fois.
+  **Règle d'arrêt écrite avant le premier trade** : −20 R cumulés par symbole, ou moyenne < −0,3 R après 40 paniers.
+  Hors test (données) : au banc du passage 24, la mécanique ne gagnait rien sur BTC et ETH. Essais OK.

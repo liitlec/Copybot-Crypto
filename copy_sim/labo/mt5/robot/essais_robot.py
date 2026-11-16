@@ -104,6 +104,8 @@ for k, o in r.ouvert.items():
     assert q["ticket"] == o["ticket"] and q["note"] == o["note"] and q["sens"] == o["sens"], (k, q, o)
     assert abs(q["sortie"] - o["sortie"]) <= 2, (k, q["sortie"], o["sortie"])
 assert set(robot.HYPOTHESES_NOMS) == set(robot.HYPOTHESES), "liste des noms codes a jour"
+r3b.tour_crypto({}, t0[0], True)                  # v13 : symboles crypto absents du faux terminal -> note, pas de plantage
+assert [c.nom for c in r3b.crypto] == ["bt_crypto_btc", "bt_crypto_eth"]
 os.remove("etat_vide.json")
 assert robot.coder(2650.13, 1, "hasard_m1") <= 2650.13 and robot.coder(2650.13, -1, "hasard_m1") >= 2650.13
 assert all(c % 10 != 7 for c in robot.CODE.values()) and len(set(robot.CODE.values())) == len(robot.CODE)
@@ -304,6 +306,42 @@ assert ap and sorted(ap["tickets"]) == sorted(av["tickets"]) and len(fp3.pos) ==
 assert abs(ap["stop"] - av["stop"]) < 1e-6 and abs(ap["pas"] - av["pas"]) < 1e-6, "meme distance de stop suiveur"
 assert abs(ap["meilleur"] - av["meilleur"]) <= 1.0 and abs(ap["prochain"] - av["prochain"]) <= 0.5, (ap, av)   # entree = ask : un spread d ecart
 assert ap["secours"] == min(q["stop"] for q in fp3.pos.values())
+# v13 : bt_crypto sur un faux pont BTC (taille minimale du courtier, contrat de 1)
+class FauxPontC(FauxPont):
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "BTCUSD" and lots == 0.01 and id.startswith("bt_crypto_btc_"), (s, lots, id)
+        self.n += 1
+        e = self.bid + 20 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "symbole": s, "sens": sens, "prix_entree": e, "stop": stop, "profit": 0.0,
+                            "id": id, "heure_serveur": 0, "prix_actuel": self.bid}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+    def prix(self, s):
+        return {"bid": self.bid, "ask": self.bid + 20, "heure_serveur": 0}
+
+    def symbole(self, s):
+        return {"lot_min": 0.01, "taille_contrat": 1.0, "chiffres": 2, "point": 0.01, "pas_lot": 0.01}
+
+fc = FauxPontC()
+fc.bid = 90000.0
+d1c = [[i * 86400, 90000, 91500, 88500, 90000, 1, 20] for i in range(29)]     # ATR 3 000 $
+bc = bt_or.PanierBT(fc, fichier="etat_c_essai.json", symbole="BTCUSD", nom="bt_crypto_btc", lots=None, taille=None)
+bc.bougie(m5_jusqua(8, 0, 90000.0, base=88000.0), d1c, True)
+assert len(fc.pos) == 1 and "1" in bc.paniers and bc.lots == 0.01 and bc.taille == 1.0
+q = list(fc.pos.values())[0]
+assert bt_or.marque(q["stop"]) and abs(q["stop"] - (90000 - 1.25 * 0.6667 * 3000)) < 0.1
+assert any(k.get("hypothese") == "bt_crypto_btc" for k in fc.notes)
+os.remove("etat_c_essai.json")
+bc2 = bt_or.PanierBT(fc, fichier="etat_c_essai.json", symbole="BTCUSD", nom="bt_crypto_btc", lots=0.01, taille=1.0)
+bc2.adopter({t: x for t, x in fc.pos.items()}, m5_jusqua(8, 0, 90000.0, base=88000.0), d1c)
+assert bc2.tickets() == bc.tickets(), "panier crypto repris apres perte de memoire"
+assert not bt_or.PanierBT(fc, fichier="x_essai.json").candidat(q, d1c), "bt_or ne prend pas une position BTC"
+fc.bid = bc2.paniers["1"]["meilleur"] - bc2.paniers["1"]["stop"] - 1
+bc2.surveiller({t: x for t, x in fc.pos.items()}, fc.prix("BTCUSD"))
+assert not fc.pos and bc2.n_paniers == 1 and abs(bc2.cumul_r) < 2, bc2.cumul_r
+for f in ("etat_c_essai.json", "x_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 # panier d'avant la v12 (stop sans marque, deja suivi) : repris par l'heure d'entree ; l'ajout par le meme stop
 anc = {1: {"ticket": 1, "symbole": "XAUUSD", "sens": "vente", "prix_entree": 3851.07, "prix_actuel": 3840.0,
            "stop": 3910.68, "profit": 11.0, "heure_serveur": 1794816000 - 1794816000 % 86400 + 8 * 3600 + 302},
