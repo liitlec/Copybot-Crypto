@@ -1,4 +1,11 @@
-# Avis pour Baptiste — 16/11/2026, 11 h 35 (relais)
+# Avis pour Baptiste — 16/11/2026, 15 h 30 (relais)
+
+1. **Robot v14 en marche depuis 15 h 23** : désormais, toutes les positions survivent aux mises à jour. C'est vérifié au passage v13 → v14 : le témoin, `fcassure_m1` et le panier `bt_or` ont été repris ; une seule position, ouverte pendant la minute de bascule, a été fermée (+0,47 $).
+2. **Nouveau sur la démo, hors totaux du test** : `bt_crypto` (BTC et ETH, taille minimale) et les deux règles d'aller-retour `retour_court_ar` et `retour_strict_ar`. Leurs règles d'arrêt sont écrites d'avance. Le banc ne les soutient pas (BTC/ETH nuls, retour −0,13 R) : c'est pour avoir des données en direct, comme tu l'as demandé.
+3. **Sorties de BlockTrend** : garde le stop suiveur large ; encaisser plus tôt coûte (or : +102 R contre +64 R pour une prise partielle à +1 R).
+4. **Détecteur d'aller-retour à 75 %** : introuvable hors échantillon (38-50 %). Fable reprendra mercredi la piste « perdre moins ces jours-là ».
+
+## Avis précédent
 
 0. **Pont revenu à 6 h 57, v11 installée et en marche** ; marché calme ce matin, donc la sélection du test est en pause et seul le témoin trade. Le test compte les trades fermés depuis lundi 0 h.
 0. **Aller-retour, étape (a)** : sur 15 mois, 14 % des journées de l'or sont des allers-retours. On ne les reconnaît sûrement qu'en fin de journée (après 17 h Paris : 1 fois sur 2). Avant, le détecteur se trompe 3 fois sur 4, et 4 signaux sur 10 tombent un jour de tendance. Étape (b) ensuite : une règle de retour assez prudente pour survivre à ces erreurs.
