@@ -1374,3 +1374,12 @@ noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvert
   choix de la 1re moitié (objectif +2 R) = −36 R en 2de moitié. **Conclusion : encaisser plus tôt coûte ; aucune
   variante `_opt` justifiée ; le gain de la mécanique vient de quelques très gros paniers (les 10 % meilleurs font
   ~2 fois le total sur l'or), qu'une prise partielle ou un objectif coupe.**
+- 14 h 45 : **banc Y (`banc_aller_retour.py`), étape (a) de la priorité n° 1 (aller-retour)**, or M5 15 mois,
+  267 journées : aller-retour (agitée, efficacité < 0,35) 14 %, tendance 35 %, calme 51 %. Détecteur en temps réel
+  (amplitude depuis 0 h ≥ médiane 60 j à la même heure ET efficacité du chemin < seuil). Seuil 0,35 : précision 13 %
+  à 6 h, 20 % à 10 h, 22-28 % de 12 h à 16 h (base 14 %), 55-59 % seulement à 18-20 h serveur ; 58 % des vrais AR
+  repérés un jour ou l'autre, premier signal médian à 12 h ; **39 % des signaux tombent un jour de tendance**.
+  Seuil 0,25 : un peu plus précis (26-31 % à 10-16 h), moins de rappel (47 %). **Conclusion : on ne reconnaît un
+  aller-retour avec fiabilité qu'en fin de journée ; avant, le détecteur double à peine le hasard.** Pour (b), une
+  règle de retour devra donc gagner aussi les jours mal classés (stop dur obligatoire), ou ne viser que la fin de
+  journée. Prochaine étape (b) : fausses cassures du range d'Asie et écarts de 2-3 σ en M15/H1, filtrés par ce signal.
