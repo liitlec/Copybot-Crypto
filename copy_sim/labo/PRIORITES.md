@@ -476,3 +476,14 @@ Compter chaque idée au nombre d'essais (correction pour essais multiples), rend
    pire creux, part des gains venant des plus gros paniers). Ce qui tient passe en variantes `_opt` sur la démo.
    Rendre aussi à Baptiste, dans AVIS.md, le réglage de sortie conseillé pour SON BlockTrend (le labo n'y touche
    jamais ; c'est lui qui décide de le changer).
+
+## 16/11, 14 h (Paris) : PRIORITÉ N° 1 — gagner les journées d'aller-retour (rappel de l'entrée du 15/11, 13 h 40)
+Lundi 16/11 en est un exemple : baisse jusqu'à 3 838 tôt le matin, puis remontée à 3 875. Les trades ouverts ce jour-là sont
+à ≈ −17 $, alors que les règles de tendance (elan_m15, bt_or) ont été prises à contre-pied. L'étude des trois régimes
+n'est pas encore faite : c'est la priorité n° 1, avant bt_crypto et avant les sorties. Ordre à suivre :
+(a) un détecteur d'aller-retour **en temps réel** (pas après coup), mesuré sur 15 mois : sur quelle part des journées
+il a raison, et avec combien de retard ;
+(b) une règle de retour à la moyenne sur des bornes larges (M15/H1, 2 à 3 écarts-types, fausses cassures du range
+d'Asie, retour au VWAP du jour), active seulement quand le détecteur dit « aller-retour » ;
+(c) une variante `_ar` à part sur la démo, hors totaux du test, si elle tient au banc.
+Relais Opus : commence (a) si ta limite le permet. Fable 5.2 reprend tout mercredi après 16 h.
