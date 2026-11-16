@@ -496,3 +496,16 @@ ajouter le contexte (type de la veille, range d'Asie, jour de la semaine, annonc
 un petit modèle (arbre ou régression logistique) sur ces entrées, jugé hors échantillon. Mesurer aussi l'autre levier :
 une règle de retour dont le stop est court quand le marché part en tendance (gain > perte quand on se trompe), qui
 peut gagner même à 40-50 % de précision. Donner la courbe précision / nombre de jours signalés.
+
+## 16/11, 18 h (Paris) : mise selon la période, et moins de mois négatifs
+Banc rapide fait par la session de suivi (`banc_mise.py`, or, 15 mois, mise décidée AVANT la journée, même exposition
+moyenne) : version 11 à mise fixe +6 635 $ (8 mois négatifs sur 16, pire creux −1 646 $) ; **×2 quand la volatilité des
+5 derniers jours est au-dessus de sa médiane sur 60 jours, ×0,5 sinon : +10 070 $ (6 mois négatifs, creux −1 770 $)**,
+proche de la « triche » (×2 sur les vrais jours de tendance : +10 382 $). Aide sur les deux moitiés (+2 900 / +560 $),
+mais les 7 derniers mois restent faibles (+456 $). 5 règles essayées : corriger pour essais multiples.
+1. **Vérifier en walk-forward** (seuils choisis sur une période, jugés sur la suivante), étudier aussi une mise continue
+   (proportionnelle à la volatilité), puis variante à part sur la démo (`_mise`, hors totaux du test).
+2. **Réduire les mois négatifs** : mesurer d'où viennent les pertes des mois négatifs (quelle stratégie, quel régime),
+   puis tester un frein (mise réduite après X % de perte sur 10/20 jours, pause après une série de pertes, plafond de
+   perte par semaine), et l'ajout de pièces décorrélées (repli d'indices, autres marchés) pour lisser. Objectif :
+   moins de mois négatifs sans perdre plus de 20 % du total. Rendre un tableau par mois avant/après.
