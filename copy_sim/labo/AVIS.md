@@ -1,7 +1,8 @@
-# Avis pour Baptiste — 16/11/2026, 11 h 50 (relais)
+# Avis pour Baptiste — 16/11/2026, 11 h 35 (relais)
 
 0. **Pont revenu à 6 h 57, v11 installée et en marche** ; marché calme ce matin, donc la sélection du test est en pause et seul le témoin trade. Le test compte les trades fermés depuis lundi 0 h.
-0 a. **v12 publiée** : variantes « calme » + le panier `bt_or` survit désormais aux mises à jour (le robot le reconnaît chez le courtier et reconstruit son stop suiveur ; essais OK, le panier actuel est bien reconnu). Ton PC l'installe dans la minute ; je vérifie au passage suivant que le panier est toujours ouvert.
+0 a. **v12 installée à 11 h 24, panier `bt_or` survivant** (repris par le robot, vente 3 851,07 toujours ouverte) ; les 2 petites positions du moment ont été fermées à la mise à jour (+0,58 $ au total).
+0 a bis. `bt_crypto` et les sorties : au prochain passage. Rappel honnête : au banc (passage 24), la mécanique BlockTrend ne gagnait rien sur BTC et ETH ; sur la démo, ce sera donc pour les données, hors test.
 0 b. **10 h 15** : panier `bt_or` toujours ouvert, v12 toujours en attente. Ta demande « réagir plus vite aux retournements » est notée : une idée à la fois au banc, puis en variantes `_opt` sur la démo, publiées avec la v12.
 0 c. **Test, lundi à 11 h 10** : sélection fermée = 6 trades, −11,25 $ (`elan_m15` −11,95, `fcassure_m1` +0,34 sur 4, `exces_m1` +0,36) ; témoin −31,01 $ sur 51. Panier `bt_or` toujours ouvert (v12 en attente). Pont à l'heure.
 0 bis. **public-apis (`labo/APIS.md`)** : Helious donne gratuitement, sans clé, le calendrier des annonces (heure, importance, prévu/publié) → on pourra tester « couper le robot autour des annonces fortes ». Goldprice.dev répond aussi ; TradingCalendars demande une clé (inutile pour l'instant).
