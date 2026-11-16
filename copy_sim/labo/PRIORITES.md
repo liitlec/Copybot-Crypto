@@ -487,3 +487,12 @@ il a raison, et avec combien de retard ;
 d'Asie, retour au VWAP du jour), active seulement quand le détecteur dit « aller-retour » ;
 (c) une variante `_ar` à part sur la démo, hors totaux du test, si elle tient au banc.
 Relais Opus : commence (a) si ta limite le permet. Fable 5.2 reprend tout mercredi après 16 h.
+
+## 16/11, 15 h 30 (Paris) : détecteur d'aller-retour plus juste (suite de l'étape a)
+Baptiste : si on se trompe au plus 1 fois sur 4, on est gagnant. Objectif : **précision ≥ 75 %**, quitte à signaler
+beaucoup moins de journées. Pistes, à mesurer chacune sur 15 mois en walk-forward : attendre une confirmation (2
+fausses cassures du range du jour, nombre de traversées du VWAP, prix revenu au milieu du range après un excès) ;
+ajouter le contexte (type de la veille, range d'Asie, jour de la semaine, annonces du calendrier, volatilité 5 jours) ;
+un petit modèle (arbre ou régression logistique) sur ces entrées, jugé hors échantillon. Mesurer aussi l'autre levier :
+une règle de retour dont le stop est court quand le marché part en tendance (gain > perte quand on se trompe), qui
+peut gagner même à 40-50 % de précision. Donner la courbe précision / nombre de jours signalés.
