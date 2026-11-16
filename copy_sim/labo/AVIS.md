@@ -7,6 +7,14 @@
 3. **Sorties de BlockTrend** : garde le stop suiveur large ; encaisser plus tôt coûte (or : +102 R contre +64 R pour une prise partielle à +1 R).
 4. **Détecteur d'aller-retour à 75 %** : introuvable hors échantillon (38-50 %). Fable reprendra mercredi la piste « perdre moins ces jours-là ».
 
+0. **Mise selon la volatilité et mois négatifs (banc Z)** : en walk-forward, la mise ×2/×0,5 n'est **pas prouvée**. Sur 36 réglages, ceux qu'on aurait choisis sur la 1re moitié perdent 1 200 à 1 500 $ sur la 2de, et la médiane fait −78 $. Ton réglage (5 j) y fait +518 $, mais c'est un bon tirage parmi d'autres : je ne le mets pas sur la démo. Les mois négatifs viennent surtout de `bt_or` (4 sur 6). Aucun frein n'atteint ton objectif : le meilleur (mise ÷2 après une perte sur 20 jours) passe à 5 mois négatifs mais coûte 23 % du total. Reste à essayer : des pièces décorrélées (Fable, mercredi).
+
+| mois | 25-08 | 09 | 10 | 11 | 12 | 26-01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | total | mois<0 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| v11, mise fixe | −125 | +808 | +1068 | −57 | +287 | +2625 | +192 | +1841 | −638 | −176 | +958 | −592 | +1597 | −1062 | −71 | −19 | +6635 | 8 |
+| mise vol ×2/×0,5 | −50 | +812 | +1702 | −91 | +128 | +3434 | +307 | +3217 | −845 | +173 | +571 | −195 | +1966 | −1033 | −164 | +140 | +10070 | 6 |
+| vol + frein 20 j | −50 | +615 | +1702 | +37 | +84 | +2992 | +307 | +2130 | −810 | +19 | +174 | −144 | +1658 | −960 | −82 | +108 | +7779 | 5 |
+
 ## Avis précédent
 
 0. **Pont revenu à 6 h 57, v11 installée et en marche** ; marché calme ce matin, donc la sélection du test est en pause et seul le témoin trade. Le test compte les trades fermés depuis lundi 0 h.

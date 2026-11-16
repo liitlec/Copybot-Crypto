@@ -1401,3 +1401,14 @@ noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvert
   au temps 3 h ; 0,01 lot ; hors totaux du test. NON prouvées au banc (banc Y bis : −0,13 R). **Règles d'arrêt
   écrites avant le premier trade** : court : somme < −60 $ ou moyenne < −0,50 $ après 60 trades ; strict : somme
   < −60 $ ou moyenne < −1 $ après 20 trades. Codes de stop v13 inchangés (nouveaux noms ajoutés à la fin). Essais OK.
+- 18 h 15 : **banc Z (`banc_mise2.py`, PRIORITES 16/11 18 h)**. (1) Mise selon la volatilité, walk-forward
+  (36 réglages : fenêtre 3/5/10/20 j × haut 1,5/2/3 × bas 0,25/0,5/1, exposition moyenne égale dans chaque moitié).
+  Les 4 meilleurs de la 1re moitié (fenêtre 20 j) font −1 255 à −1 542 $ en 2de moitié ; médiane des 36 en 2de
+  moitié −78 $ (mise fixe −101 $). Le réglage 5 j ×2/×0,5 fait +518 $ en 2de moitié, mais une procédure honnête ne
+  l'aurait pas choisi : **non prouvé, pas de variante `_mise` sur la démo**. Mise continue (vol / médiane, bornée
+  0,25-4) : 2de moitié −356 / −249 $, pas mieux. (2) Mois négatifs (mise vol, 6 sur 16) : `bt_or` fait l'essentiel
+  des pertes dans 4 sur 6 (avril −742, juillet −330, septembre −560, octobre −133) ; les petites règles dans 2
+  (novembre 2025, août 2025). Freins : mise /2 après perte sur 20 j → 5 mois négatifs mais −23 % du total
+  (+7 779 contre +10 070) et 2de moitié −193 ; sur 10 j → 8 mois négatifs ; arrêt de la semaine après −300/−500/−800 $ :
+  rien de mieux. **Aucun frein ne tient l'objectif (moins de mois négatifs pour ≤ 20 % de perte).** Non testé
+  (pour Fable) : pièces décorrélées (repli d'indices, BlockRange), qui seules peuvent lisser les mois de `bt_or`.
