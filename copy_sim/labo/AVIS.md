@@ -1,6 +1,6 @@
-# Avis pour Baptiste — 16/11/2026, 16 h 15 (relais)
+# Avis pour Baptiste — 16/11/2026, 21 h 15 (relais)
 
-0. **Test, lundi 16 h 15** : sélection 27 trades fermés, **+6,18 $** (`fcassure_m1` +11,50 sur 18, `exces_m1` −3,32, `elan_m15` −2,66, midi +0,66) ; témoin −24,44 $ sur 108. Panier `bt_or` toujours ouvert. Pont à l'heure, v14 sans erreur. (Les 5 positions coupées par les mises à jour du jour, −5,73 $ en tout, sont hors décompte.)
+0. **Test, lundi 21 h** : sélection 43 trades fermés, **−10,24 $** (`fcassure_m1` −6,33 sur 31, `elan_m15` −5,89 sur 3, `exces_m1` +1,32, midi +0,66) ; témoin +10,99 $ sur 155. Hors test : `retour_court_ar` +7,43 $ (1 trade). Panier `bt_or` ouvert, v14 sans erreur, pont à l'heure.
 
 1. **Robot v14 en marche depuis 15 h 23** : désormais, toutes les positions survivent aux mises à jour. C'est vérifié au passage v13 → v14 : le témoin, `fcassure_m1` et le panier `bt_or` ont été repris ; une seule position, ouverte pendant la minute de bascule, a été fermée (+0,47 $).
 2. **Nouveau sur la démo, hors totaux du test** : `bt_crypto` (BTC et ETH, taille minimale) et les deux règles d'aller-retour `retour_court_ar` et `retour_strict_ar`. Leurs règles d'arrêt sont écrites d'avance. Le banc ne les soutient pas (BTC/ETH nuls, retour −0,13 R) : c'est pour avoir des données en direct, comme tu l'as demandé.
