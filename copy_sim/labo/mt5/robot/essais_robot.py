@@ -87,6 +87,26 @@ assert set(r2.ouvert) == set(r.ouvert)
 r2.heure = lambda: t0[0]
 r2.reconcilier()
 assert len(pont.positions()) == len(ps)
+# v13 : memoire perdue (changement de version) -> chaque position reprise par le code de son stop, rien ferme
+assert all(robot.NOTE_DU_CODE.get(int(round(p["stop"] * 100)) % 100) for p in pont.positions()), "stops codes"
+if os.path.exists("etat_vide.json"):
+    os.remove("etat_vide.json")
+_cd, robot.CODE_DEPUIS = robot.CODE_DEPUIS, 0
+r3b = robot.Robot(pont, fichier="etat_vide.json")
+r3b.heure = lambda: t0[0]
+assert not r3b.ouvert
+r3b.reconcilier()
+robot.CODE_DEPUIS = _cd
+assert len(pont.positions()) == len(ps), "aucune position fermee comme orpheline"
+assert set(r3b.ouvert) == set(r.ouvert), (sorted(r3b.ouvert), sorted(r.ouvert))
+for k, o in r.ouvert.items():
+    q = r3b.ouvert[k]
+    assert q["ticket"] == o["ticket"] and q["note"] == o["note"] and q["sens"] == o["sens"], (k, q, o)
+    assert abs(q["sortie"] - o["sortie"]) <= 2, (k, q["sortie"], o["sortie"])
+assert set(robot.HYPOTHESES_NOMS) == set(robot.HYPOTHESES), "liste des noms codes a jour"
+os.remove("etat_vide.json")
+assert robot.coder(2650.13, 1, "hasard_m1") <= 2650.13 and robot.coder(2650.13, -1, "hasard_m1") >= 2650.13
+assert all(c % 10 != 7 for c in robot.CODE.values()) and len(set(robot.CODE.values())) == len(robot.CODE)
 
 # 4) sorties au temps : 3 min (fausse cassure), 5 min (hasard, elan, retour), puis le reste
 t0[0] += 181

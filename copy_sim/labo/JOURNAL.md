@@ -1353,3 +1353,11 @@ v12 sans attendre la fermeture du panier en cours. Le pont ne rend pas le commen
 - Essais : panier repris avec le même stop suiveur et le même pas, sortie sur le même recul ; ancien panier réel
   (vente 3 851,07, stop 3 910,68, ouvert à 08:05:00 serveur) reconnu ; les 2 achats en cours des petites règles non.
 - Limite connue : les petites positions (3 h au plus) restent fermées comme orphelines à une mise à jour.
+
+## Relais — 16/11/2026 (≈ 11 h 50 Paris) — v13 écrite : toutes les positions survivent aux mises à jour (non publiée)
+Constat relayé : la v12 a fermé à l'installation `elan_m15` et une position du témoin. v13 : le nom de l'hypothèse
+est codé dans les centimes du stop (deux chiffres, jamais 7 aux unités, réservé à `bt_or` ; le stop recule de moins
+de 1 $). Au démarrage, le robot reprend chaque position de l'or codée : hypothèse, note (y compris `_calme` et les
+étiquettes de midi), sortie au temps = ouverture + tenue, stop inchangé. Seules les positions ouvertes après
+`CODE_DEPUIS` (heure serveur de publication) sont décodées. Essai ajouté (mémoire vide → 8 positions reprises, mêmes
+noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvertes (10 h 30) seraient fermées.

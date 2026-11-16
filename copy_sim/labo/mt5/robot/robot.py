@@ -13,7 +13,7 @@ import time
 import bt_or
 import repli_ind
 
-VERSION = 12
+VERSION = 13
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -47,6 +47,33 @@ PAUSE_AU_CALME = {"elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m
 SUFFIXE_CALME = "_calme"
 PLAFOND_POSITIONS = 30
 RESERVE_TEST = 5
+# v13 : toute position survit aux mises a jour. Le pont ne rend pas le commentaire : le nom de l'hypothese est code
+# dans les centimes du stop (deux chiffres, jamais 7 aux unites, reserve aux paniers bt_or ; stop recule de moins de
+# 1 $). A la reprise : hypothese, heure de sortie (ouverture + tenue) et stop sont retrouves. Seules les positions
+# ouvertes apres CODE_DEPUIS (heure serveur de la publication de la v13) sont decodees : avant, les centimes sont
+# quelconques et donneraient un faux nom.
+CODE_DEPUIS = 1794833180
+_NOTES = sorted(set(HYPOTHESES_NOMS := ["hasard_m1", "elan_m1", "retour_m1", "exces_m1", "fcassure_m1", "exces_m5",
+                                          "cassure_m15", "elan_m15", "ecart_midi_m5"])
+                | {n + "_calme" for n in ("elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1")}
+                | {b + x for b in ("midi_agite", "midi_calme") for x in ("", "_f", "_c")})
+CODE = {n: c for n, c in zip(_NOTES, [c for c in range(100) if c % 10 != 7])}
+NOTE_DU_CODE = {c: n for n, c in CODE.items()}
+
+
+def coder(stop, sens, note, chiffres=2):
+    """Recule le stop (plus loin du prix) jusqu'aux centimes qui codent `note`."""
+    if chiffres != 2 or note not in CODE:
+        return stop
+    c = int(round(stop * 100))
+    d = (c - CODE[note]) % 100 if sens > 0 else (CODE[note] - c) % 100
+    return round((c - d) / 100.0 if sens > 0 else (c + d) / 100.0, 2)
+
+
+def cle_de_note(note):
+    return "ecart_midi_m5" if note.startswith("midi") else note
+
+
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
@@ -170,6 +197,7 @@ class Robot:
             else:
                 o["profit"] = p["profit"]
                 connus.add(o["ticket"])
+        self.reprendre(ps, connus)
         inconnus = {t: p for t, p in ps.items() if t not in connus and p.get("symbole") == bt_or.SYMBOLE and p.get("stop")}
         if inconnus:                                    # v12 : paniers bt_or repris apres un changement de version
             try:
@@ -190,6 +218,26 @@ class Robot:
                 r = self.pont.fermer(t)
                 self.pont.noter(evenement="orpheline fermee", ticket=t, profit=p["profit"], ok=r.get("ok"))
         return ps
+
+    def reprendre(self, ps, connus):
+        """v13 : reprend les positions de l'or dont le stop code une hypothese (apres un changement de version)."""
+        for t, p in ps.items():
+            if t in connus or p.get("symbole") != SYMBOLE or not p.get("stop") \
+                    or (p.get("heure_serveur") or 0) < CODE_DEPUIS:
+                continue
+            note = NOTE_DU_CODE.get(int(round(p["stop"] * 100)) % 100)
+            if not note:
+                continue
+            cle = cle_de_note(note)
+            nom = cle[:-len(SUFFIXE_CALME)] if cle.endswith(SUFFIXE_CALME) else cle
+            if cle in self.ouvert or nom not in HYPOTHESES:
+                continue
+            self.ouvert[cle] = {"ticket": t, "sens": 1 if p["sens"] == "achat" else -1,
+                                "sortie": p["heure_serveur"] + HYPOTHESES[nom][1] - 2, "entree": p.get("prix_entree"),
+                                "profit": p.get("profit") or 0.0, "note": note}
+            connus.add(t)
+            self.pont.noter(evenement="reprise", hypothese=note, ticket=t, stop=p["stop"])
+            self.sauver()
 
     def sorties(self, maintenant, ps):
         for nom, o in list(self.ouvert.items()):
@@ -238,9 +286,8 @@ class Robot:
         e = ecart_stop(b, mini)
         ch = self.info["chiffres"]
         stop = round(px["bid"] - e, ch) if sens > 0 else round(px["ask"] + e, ch)
-        if ch == 2 and bt_or.marque(stop):               # le chiffre 7 des centimes est reserve aux paniers bt_or
-            stop = round(stop - 0.01 * sens, 2)
         nom_note = self.etiquette(nom, sens) if cle == nom else cle
+        stop = coder(stop, sens, nom_note, ch)           # v13 : le nom voyage dans les centimes du stop
         r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom_note)
         if r.get("ok") and r.get("ticket"):
             self.ouvert[cle] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
