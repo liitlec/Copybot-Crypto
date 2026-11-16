@@ -464,3 +464,15 @@ Baptiste voit les ventes perdre pendant une hausse (elan_m15, bt_or entrés avan
 4. **Retournement** : fermer et prendre le sens inverse sur une cassure franche contre la position.
 5. **Annonces** : pas d'entrée 15 min avant / après une annonce forte (calendrier Helious, APIS.md).
 Compter chaque idée au nombre d'essais (correction pour essais multiples), rendre compte dans AVIS.md.
+
+## 16/11, 11 h 40 (Paris) : bt_crypto et sorties de la mécanique BlockTrend
+1. **bt_crypto** : la mécanique bt_or sur BTCUSD et ETHUSD, à la plus petite taille permise par le courtier, en
+   variante à part (noms `bt_crypto_*`, exclus des totaux du test de la semaine). Le panier survit aux mises à jour
+   comme bt_or. Règle d'arrêt écrite avant le premier trade.
+2. **Sorties pour garder plus de gains** (Baptiste voit BlockTrend à +5 686 $ en cours et veut encaisser plus) : tester
+   au banc (or, BTC, ETH, 15 mois, après spread, walk-forward), sur la mécanique bt :
+   prise partielle (par ex. moitié à +1 R, +2 R), stop suiveur resserré quand le gain dépasse X R, objectif fixe en R,
+   sortie au temps, sortie sur retournement de la moyenne 2 jours. Comparer au réglage actuel (moyenne par panier,
+   pire creux, part des gains venant des plus gros paniers). Ce qui tient passe en variantes `_opt` sur la démo.
+   Rendre aussi à Baptiste, dans AVIS.md, le réglage de sortie conseillé pour SON BlockTrend (le labo n'y touche
+   jamais ; c'est lui qui décide de le changer).
