@@ -170,6 +170,18 @@ class Robot:
             else:
                 o["profit"] = p["profit"]
                 connus.add(o["ticket"])
+        inconnus = {t: p for t, p in ps.items() if t not in connus and p.get("symbole") == bt_or.SYMBOLE and p.get("stop")}
+        if inconnus:                                    # v12 : paniers bt_or repris apres un changement de version
+            try:
+                m5 = self.pont.bougies(bt_or.SYMBOLE, "M5", 3000)
+                d1 = self.pont.bougies(bt_or.SYMBOLE, "D1", 30)
+            except Exception:
+                m5 = d1 = None
+            if m5 and d1:
+                self.bt.adopter(inconnus, m5[:-1], d1[:-1])
+                connus.update(self.bt.tickets())
+            else:                                       # bougies absentes : on ne ferme pas ce qui ressemble a un panier
+                connus.update(t for t, p in inconnus.items() if bt_or.PanierBT.candidat(p))
         for t, p in ps.items():
             if t not in connus:
                 if time.time() - self.essais_orph.get(t, 0) < 60:      # marche ferme : un essai par minute, pas plus
@@ -226,6 +238,8 @@ class Robot:
         e = ecart_stop(b, mini)
         ch = self.info["chiffres"]
         stop = round(px["bid"] - e, ch) if sens > 0 else round(px["ask"] + e, ch)
+        if ch == 2 and bt_or.marque(stop):               # le chiffre 7 des centimes est reserve aux paniers bt_or
+            stop = round(stop - 0.01 * sens, 2)
         nom_note = self.etiquette(nom, sens) if cle == nom else cle
         r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, id=nom_note)
         if r.get("ok") and r.get("ticket"):

@@ -107,7 +107,7 @@ assert r.ouvert
 faux_mt5.positions.clear()
 r.reconcilier()
 assert not r.ouvert
-x = pont.ouvrir("XAUUSD", "achat", 0.01, stop=2600.0, id="inconnue")
+x = pont.ouvrir("XAUUSD", "achat", 0.01, stop=2645.0, id="inconnue")   # stop proche : pas un panier bt_or (v12)
 assert x["ok"]
 r.reconcilier()
 assert not pont.positions(), "orpheline fermee"
@@ -210,7 +210,7 @@ bt.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
 assert len(fp.pos) == 1 and "1" in bt.paniers, "achat : cours au-dessus de l'EMA"
 p = bt.paniers["1"]
 assert abs(p["stop"] - 40.002) < 0.01 and abs(p["pas"] - 15.0) < 1e-6 and abs(p["prochain"] - 4015.0) < 1e-6
-assert abs(list(fp.pos.values())[0]["stop"] - (4000 - 1.25 * 40.002)) < 0.02, "stop de secours chez le courtier"
+assert abs(list(fp.pos.values())[0]["stop"] - (4000 - 1.25 * 40.002)) < 0.1, "stop de secours chez le courtier (marque v12 : quelques centimes)"
 bt.bougie(m5_jusqua(8, 30, 4005.0), d1, True)
 assert len(fp.pos) == 1, "un seul panier par cote, pas d'ajout avant le pas"
 fp.bid = 4016.0
@@ -247,14 +247,62 @@ bt2.vu = None
 bt2.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
 assert not fp.pos, "plus d'entree apres la regle d'arret"
 # le robot ne ferme pas les positions du panier comme orphelines
-x = pont.ouvrir("XAUUSD", "achat", 0.01, stop=2600.0, id="bt_or_1")
+x = pont.ouvrir("XAUUSD", "achat", 0.01, stop=2600.07, id="bt_or_1")      # stop marque (v12)
 r.bt.paniers["1"] = {"tickets": [x["ticket"]], "profits": {}, "meilleur": 2650.1, "stop": 40.0, "pas": 15.0,
                       "prochain": 2665.0, "debut": 0, "secours": 2600.0}
 r.reconcilier()
 assert len(pont.positions()) == 1, "position du panier conservee"
-r.bt.paniers.clear()
+r.bt.paniers.clear()                                      # v12 : memoire perdue (changement de version) -> panier repris
 r.reconcilier()
-assert not pont.positions()
+assert len(pont.positions()) == 1 and "1" in r.bt.paniers, "panier bt_or repris, pas ferme comme orphelin"
+assert any(k.get("evenement") == "reprise" and k.get("hypothese") == "bt_or" for k in faux_mt5.notes_lues()) \
+    if hasattr(faux_mt5, "notes_lues") else True
+pont.fermer(x["ticket"])
+r.bt.paniers.clear()
+y = pont.ouvrir("XAUUSD", "achat", 0.01, stop=2645.0, id="hasard_m1")       # petite position inconnue : orpheline
+r.reconcilier()
+assert not pont.positions() and not r.bt.paniers, "une petite position inconnue reste fermee comme orpheline"
+# v12 : redemarrage avec un panier bt_or ouvert -> panier repris, rien ferme, meme stop suiveur
+fp3 = FauxPont()
+bt3 = bt_or.PanierBT(fp3, fichier="etat_bt_essai3.json")
+bt3.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+fp3.bid = 4016.0
+bt3.surveiller({q["ticket"]: q for q in fp3.positions()}, fp3.prix("XAUUSD"))
+bt3.bougie(m5_jusqua(8, 35, 4016.0), d1, True)
+assert len(fp3.pos) == 2 and all(bt_or.marque(q["stop"]) for q in fp3.pos.values()), "stops marques"
+debut = m5_jusqua(8, 0, 4000.0)[-1][0] + 300
+for i, q in enumerate(sorted(fp3.pos.values(), key=lambda q: q["ticket"])):
+    q["symbole"], q["heure_serveur"], q["prix_actuel"] = "XAUUSD", debut + 2100 * i, fp3.bid
+m5r = m5_jusqua(8, 35, 4016.0)
+av = bt3.paniers["1"]
+os.remove("etat_bt_essai3.json")
+bt4 = bt_or.PanierBT(fp3, fichier="etat_bt_essai3.json")                     # memoire vide
+assert not bt4.paniers
+bt4.adopter({q["ticket"]: q for q in fp3.positions()}, m5r, d1)
+ap = bt4.paniers.get("1")
+assert ap and sorted(ap["tickets"]) == sorted(av["tickets"]) and len(fp3.pos) == 2, "panier repris, rien ferme"
+assert abs(ap["stop"] - av["stop"]) < 1e-6 and abs(ap["pas"] - av["pas"]) < 1e-6, "meme distance de stop suiveur"
+assert abs(ap["meilleur"] - av["meilleur"]) <= 1.0 and abs(ap["prochain"] - av["prochain"]) <= 0.5, (ap, av)   # entree = ask : un spread d ecart
+assert ap["secours"] == min(q["stop"] for q in fp3.pos.values())
+# panier d'avant la v12 (stop sans marque, deja suivi) : repris par l'heure d'entree ; l'ajout par le meme stop
+anc = {1: {"ticket": 1, "symbole": "XAUUSD", "sens": "vente", "prix_entree": 3851.07, "prix_actuel": 3840.0,
+           "stop": 3910.68, "profit": 11.0, "heure_serveur": 1794816000 - 1794816000 % 86400 + 8 * 3600 + 302},
+       2: {"ticket": 2, "symbole": "XAUUSD", "sens": "vente", "prix_entree": 3830.0, "prix_actuel": 3840.0,
+           "stop": 3910.68, "profit": -10.0, "heure_serveur": 1794816000 - 1794816000 % 86400 + 9 * 3600 + 7},
+       3: {"ticket": 3, "symbole": "XAUUSD", "sens": "achat", "prix_entree": 3862.41, "prix_actuel": 3840.0,
+           "stop": 3821.71, "profit": -22.0, "heure_serveur": 1794816000 - 1794816000 % 86400 + 10 * 3600 + 905},
+       4: {"ticket": 4, "symbole": "XAUUSD", "sens": "achat", "prix_entree": 3864.01, "prix_actuel": 3840.0,
+           "stop": 3857.15, "profit": -24.0, "heure_serveur": 1794816000 - 1794816000 % 86400 + 8 * 3600 + 301}}
+d1o = [[i * 86400, 3850, 3893, 3807, 3850, 1, 20] for i in range(29)]       # ATR 86 $
+bt5 = bt_or.PanierBT(FauxPont(), fichier="etat_bt_essai5.json")
+bt5.adopter(anc, [], d1o)
+assert set(bt5.paniers) == {"-1"} and sorted(bt5.paniers["-1"]["tickets"]) == [1, 2], bt5.paniers
+assert abs(bt5.paniers["-1"]["stop"] - 0.6667 * 86) < 0.01
+os.remove("etat_bt_essai5.json")
+fp3.bid = av["meilleur"] - av["stop"] - 1.5
+bt4.surveiller({q["ticket"]: q for q in fp3.positions()}, fp3.prix("XAUUSD"))
+assert not fp3.pos and bt4.n_paniers == 1, "le panier repris sort sur le meme recul"
+os.remove("etat_bt_essai3.json")
 for f in ("etat_essai.json", "etat_bt_essai.json", "etat_bt.json"):
     if os.path.exists(f):
         os.remove(f)

@@ -20,6 +20,23 @@ HEURES = ((3, 5), (8, 0), (8, 30), (12, 0), (15, 45), (16, 0), (16, 30))
 EMA_N = 576
 ARRET_R = -20.0
 FICHIER = "etat_bt.json"
+# v12 : reprise apres changement de version (la memoire etat_bt.json peut disparaitre, et le pont ne rend pas le
+# commentaire des positions). Le stop de secours d'un panier porte une marque : son chiffre des centimes vaut 7 ; les
+# autres regles du robot evitent ce chiffre. Les paniers ouverts avant la v12 (sans marque) se reconnaissent a leur stop
+# lointain (au moins 0,6 ATR jour du prix d'entree ; les petites regles sont a 4 bougies M15 au plus, ~0,3 ATR).
+MARQUE = 7
+SEUIL_ANCIEN = 0.6
+
+
+def marquer(prix, chiffres=2):
+    v = round(prix, chiffres)
+    if chiffres != 2:
+        return v
+    return round(v + (MARQUE - round(v * 100) % 10) / 100.0, 2)
+
+
+def marque(prix):
+    return prix is not None and round(prix * 100) % 10 == MARQUE
 
 
 def ema(valeurs, n):
@@ -66,6 +83,65 @@ class PanierBT:
     def arrete(self):
         return self.cumul_r <= ARRET_R or (self.n_paniers >= 40 and self.cumul_r / self.n_paniers < -0.3)
 
+    # ------------------------------------------------------------------ reprise (changement de version)
+    @staticmethod
+    def candidat(p, d1=None):
+        """Position du robot sur l'or qui ressemble a une premiere position de panier.
+        Marquee (v12 et suivantes) : stop aux centimes 7, a au moins 0,15 ATR du prix (un panier en garde 0,17).
+        Ancienne (sans marque) : ouverte dans les 2 min qui suivent la cloture d'une bougie d'entree (HEURES) et stop
+        a au moins 0,3 ATR du prix d'entree (les regles M1/M5 qui ouvrent a ces minutes ont des stops plus courts)."""
+        if p.get("symbole") != SYMBOLE or not p.get("stop"):
+            return False
+        a = atr_jour(d1) if d1 else None
+        if a and not 0.002 * p["prix_entree"] <= a <= 0.2 * p["prix_entree"]:
+            a = None                             # bougies D1 incoherentes avec le prix : seuils fixes
+        if marque(p["stop"]):
+            return not a or p.get("prix_actuel") is None or abs(p["stop"] - p["prix_actuel"]) >= 0.15 * a
+        t = (p.get("heure_serveur") or 0) % 86400
+        a_l_heure = any(0 <= t - (h * 3600 + m * 60 + 300) <= 120 for h, m in HEURES)
+        return a_l_heure and abs(p["stop"] - p["prix_entree"]) >= (0.3 * a if a else 20.0)
+
+    def adopter(self, ps, m5, d1):
+        """ps : positions inconnues (ticket -> position). m5, d1 : bougies FERMEES. Reconstruit les paniers."""
+        groupes = {}
+        for t, p in ps.items():
+            if t not in self.tickets() and self.candidat(p, d1):
+                groupes.setdefault(str(1 if p["sens"] == "achat" else -1), []).append(p)
+        for t, p in ps.items():                                  # ajouts : meme sens et meme stop qu'un panier repris
+            cle = str(1 if p.get("sens") == "achat" else -1)
+            if p.get("symbole") == SYMBOLE and p.get("stop") and cle in groupes and p not in groupes[cle] \
+                    and any(abs(p["stop"] - q["stop"]) < 0.015 for q in groupes[cle]):
+                groupes[cle].append(p)
+        for cle, lst in groupes.items():
+            lst.sort(key=lambda q: q.get("heure_serveur") or 0)
+            if cle in self.paniers:                              # panier deja connu : on y rattache les positions
+                for q in lst:
+                    self.paniers[cle]["tickets"].append(q["ticket"])
+                    self.paniers[cle]["profits"][str(q["ticket"])] = q.get("profit") or 0.0
+                continue
+            s, debut, c0 = int(cle), lst[0].get("heure_serveur") or 0, lst[0]["prix_entree"]
+            a = atr_jour([x for x in d1 if x[0] < debut - debut % 86400]) if d1 else None
+            if a and not 0.002 * c0 <= a <= 0.2 * c0:
+                a = None
+            if not a:                                            # repli : le stop de secours initial vaut 1,25 x stop
+                a = abs(lst[0]["stop"] - c0) / (SECOURS_K * STOP_K)
+            stop, pas = STOP_K * a, PAS_K * a
+            meilleur, prochain = c0, c0 + s * pas
+            for x in m5:
+                if x[0] < debut - debut % 300:
+                    continue
+                meilleur = max(meilleur, x[2]) if s > 0 else min(meilleur, x[3])
+                while s * (x[4] - prochain) >= 0:
+                    prochain += s * pas
+            self.paniers[cle] = {"tickets": [q["ticket"] for q in lst],
+                                 "profits": {str(q["ticket"]): q.get("profit") or 0.0 for q in lst},
+                                 "meilleur": meilleur, "stop": stop, "pas": pas, "prochain": prochain,
+                                 "debut": debut, "secours": lst[0]["stop"]}
+            self.pont.noter(evenement="reprise", hypothese="bt_or", sens=s, positions=len(lst),
+                            tickets=[q["ticket"] for q in lst], meilleur=round(meilleur, 2), distance_stop=round(stop, 2))
+        if groupes:
+            self.sauver()
+
     # ------------------------------------------------------------------ sorties
     def _cloture(self, cle, raison, ps):
         p = self.paniers[cle]
@@ -107,10 +183,10 @@ class PanierBT:
     # ------------------------------------------------------------------ entrees et ajouts (a chaque bougie M5 fermee)
     def _ouvre(self, p, s, niveau, chiffres):
         px = self.pont.prix(SYMBOLE)
-        secours = p["meilleur"] - s * SECOURS_K * p["stop"]
+        secours = marquer(p["meilleur"] - s * SECOURS_K * p["stop"], chiffres)
         if (s > 0 and secours >= px["bid"]) or (s < 0 and secours <= px["ask"]):
             return False
-        r = self.pont.ouvrir(SYMBOLE, "achat" if s > 0 else "vente", LOTS, stop=round(secours, chiffres),
+        r = self.pont.ouvrir(SYMBOLE, "achat" if s > 0 else "vente", LOTS, stop=secours,
                              id="bt_or_%d" % niveau)
         self.pont.noter(evenement="ouverture", hypothese="bt_or", niveau=niveau, sens=s, ok=bool(r.get("ok")),
                         refus=r.get("refus"), prix_obtenu=r.get("prix_obtenu"), stop_secours=round(secours, chiffres),
@@ -129,7 +205,7 @@ class PanierBT:
         c = m5[-1][4]
         for cle, p in self.paniers.items():                      # stop de secours remonte, puis ajouts
             s = int(cle)
-            secours = round(p["meilleur"] - s * SECOURS_K * p["stop"], chiffres)
+            secours = marquer(p["meilleur"] - s * SECOURS_K * p["stop"], chiffres)
             if abs(secours - p.get("secours", 0)) > 0.1 * p["stop"] and s * (secours - p.get("secours", secours - s)) > 0:
                 for t in p["tickets"]:
                     self.pont.modifier(t, secours)
@@ -146,7 +222,7 @@ class PanierBT:
                 if str(s) not in self.paniers:
                     p = {"tickets": [], "profits": {}, "meilleur": c, "stop": STOP_K * a, "pas": PAS_K * a,
                          "prochain": c + s * PAS_K * a, "debut": m5[-1][0]}
-                    p["secours"] = round(c - s * SECOURS_K * p["stop"], chiffres)
+                    p["secours"] = marquer(c - s * SECOURS_K * p["stop"], chiffres)
                     if self._ouvre(p, s, 1, chiffres):
                         self.paniers[str(s)] = p
         self.sauver()

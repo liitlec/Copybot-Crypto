@@ -1338,3 +1338,18 @@ Priorité 16/11 7 h 15 : variantes `<nom>_calme` des 5 règles en pause (`elan_m
 nom (exclues du test). Elles n'ouvrent que s'il reste ≥ 5 places sous le plafond de 30 positions. Essais OK (2
 assertions ajoutées). **Non publiée** : panier `bt_or` ouvert (06:05Z) ; la survie aux changements de version n'est
 prouvée que pour `repli_ind` (v10 a fermé les positions ouvertes). Publication = écrire 12 dans `mt5/robot/VERSION`.
+
+## Relais — 16/11/2026 (≈ 11 h 50 Paris) — v12 : paniers bt_or repris après mise à jour ; publiée
+Demande de Baptiste relayée par l'autre session : faire survivre `bt_or` aux changements de version, puis publier la
+v12 sans attendre la fermeture du panier en cours. Le pont ne rend pas le commentaire des positions, et la mémoire
+`etat_bt.json` peut disparaître : la reprise se fait côté robot, sur les positions du courtier.
+- Reconnaissance : (1) **marque** : à partir de la v12, le stop de secours d'un panier finit par 7 aux centimes ; les
+  autres règles évitent ce chiffre ; le stop doit aussi être à au moins 0,15 ATR du prix ; (2) **anciens paniers**
+  (sans marque, dont celui en cours) : ouverts dans les 2 min après la clôture d'une bougie d'entrée bt_or et stop à
+  au moins 0,3 ATR du prix d'entrée ; les ajouts sont rattachés par le même stop et le même sens.
+- Reconstruction : ATR jour d'avant l'ouverture, meilleur prix depuis l'ouverture sur les bougies M5 (haut pour un
+  achat, bas pour une vente), prochain niveau d'ajout rejoué sur les clôtures M5, stop de secours = stop actuel.
+- Si les bougies manquent au démarrage, rien de ce qui ressemble à un panier n'est fermé.
+- Essais : panier repris avec le même stop suiveur et le même pas, sortie sur le même recul ; ancien panier réel
+  (vente 3 851,07, stop 3 910,68, ouvert à 08:05:00 serveur) reconnu ; les 2 achats en cours des petites règles non.
+- Limite connue : les petites positions (3 h au plus) restent fermées comme orphelines à une mise à jour.
