@@ -4718,3 +4718,9 @@
 {"heure": "2026-11-14T19:52:33Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
 {"heure": "2026-11-14T20:06:07Z", "type": "lanceur", "evenement": "demarre", "version": 10}
 {"heure": "2026-11-14T20:06:07Z", "type": "note", "evenement": "demarrage", "version": 10, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_m1"], "lots": 0.01, "repris": ["elan_m15"]}
+{"heure": "2026-11-16T05:52:27Z", "type": "lanceur", "evenement": "installee", "version": 11}
+{"heure": "2026-11-16T05:52:27Z", "type": "lanceur", "evenement": "demarre", "version": 11}
+{"heure": "2026-11-16T05:52:27Z", "type": "note", "evenement": "demarrage", "version": 11, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_m1"], "lots": 0.01, "repris": []}
+{"heure": "2026-11-16T05:52:28Z", "type": "ordre", "ticket": 497758196, "action": "fermeture", "id": "robot", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "prix_demande": 3844.6, "spread_points": 20.0, "prix_entree": 3877.09, "ok": true, "retcode": 10009, "prix_obtenu": 3844.54}
+{"heure": "2026-11-16T05:52:28Z", "type": "note", "evenement": "orpheline fermee", "ticket": 497758196, "profit": 32.49, "ok": true}
+{"heure": "2026-11-16T05:52:28Z", "type": "note", "evenement": "regime", "calme": true, "en_pause": ["cassure_m15", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1"]}
