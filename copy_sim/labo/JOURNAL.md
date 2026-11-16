@@ -1383,3 +1383,13 @@ noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvert
   aller-retour avec fiabilité qu'en fin de journée ; avant, le détecteur double à peine le hasard.** Pour (b), une
   règle de retour devra donc gagner aussi les jours mal classés (stop dur obligatoire), ou ne viser que la fin de
   journée. Prochaine étape (b) : fausses cassures du range d'Asie et écarts de 2-3 σ en M15/H1, filtrés par ce signal.
+- 15 h 20 : **banc Y bis (`banc_aller_retour2.py`, PRIORITES 15 h 30)** : précision visée ≥ 75 %. Grille de 145
+  réglages (amplitude/médiane, efficacité, traversées de l'ouverture, heure minimale), choix sur la 1re moitié des
+  jours, verdict sur la 2de. Courbe (2de moitié) : 1 jour signalé → 100 % (sans valeur) ; 8 jours → 38 % ;
+  4 jours → 50 % ; 10 jours → 30 % ; 30 jours → 17 % (base 14 %). Les 75 % de la 1re moitié ne tenaient que sur
+  8 à 12 jours : sur-ajustement. **Le détecteur à 75 % n'existe pas sur ces données.** Règle de retour à stop court
+  (tiers haut/bas de l'amplitude du jour, objectif = milieu, stop = extrême + 10 %) : sans détecteur, 206 trades,
+  −0,13 R, 43 % de gagnants ; même sur les vrais jours d'aller-retour seulement +0,06 R. **Le levier « stop court »
+  ne sauve pas non plus.** Pas de modèle appris tenté (banc N du passage 21 : réfutés ; 267 jours, 37 AR, trop peu).
+  Piste restante pour Fable : ne pas chercher à gagner l'aller-retour, mais y perdre moins (couper les règles de
+  tendance quand le détecteur de 18 h s'allume, ou réduire leur taille les jours agités sans direction).
