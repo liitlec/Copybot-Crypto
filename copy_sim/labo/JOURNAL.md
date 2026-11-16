@@ -1366,3 +1366,11 @@ noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvert
   règles, stop marqué (centimes 7), repris après mise à jour ; spread maximal 0,15 % du prix ; erreurs notées une fois.
   **Règle d'arrêt écrite avant le premier trade** : −20 R cumulés par symbole, ou moyenne < −0,3 R après 40 paniers.
   Hors test (données) : au banc du passage 24, la mécanique ne gagnait rien sur BTC et ETH. Essais OK.
+- 14 h 05 : **banc X (`banc_sorties_bt.py`) — sorties de la mécanique bt**, 12 variantes × or, BTC, ETH (M5 du
+  courtier, spread réel, 3 positions au plus, choix sur la 1re moitié, verdict sur la 2de). Or : actuel +102 R
+  (t = 2,2 ; 1re moitié +94,5, 2de +7,5) ; moitié à +1 R +64 R ; objectif +2 R +77 R ; sortie après 1 jour +65 R ;
+  retournement EMA +94 R ; meilleur à la 1re moitié = « stop 0,5 R au-delà de +3 R » : 2de moitié +8,1 R contre +7,5
+  (égalité, bruit). BTC : actuel +14 R (t = 0,4), rien ne tient en 2de moitié (toutes négatives) ; ETH : actuel −3 R,
+  choix de la 1re moitié (objectif +2 R) = −36 R en 2de moitié. **Conclusion : encaisser plus tôt coûte ; aucune
+  variante `_opt` justifiée ; le gain de la mécanique vient de quelques très gros paniers (les 10 % meilleurs font
+  ~2 fois le total sur l'or), qu'une prise partielle ou un objectif coupe.**
