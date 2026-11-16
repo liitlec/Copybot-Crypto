@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-16T12:06:19Z",
+ "ecrit": "2026-11-16T12:11:28Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 68843.63,
- "valeur": 74008.42,
- "marge_libre": 71084.67,
+ "solde": 68840.1,
+ "valeur": 74286.14,
+ "marge_libre": 71362.39,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD": {
-   "bid": 3871.29,
-   "ask": 3871.49,
+   "bid": 3868.87,
+   "ask": 3869.07,
    "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1794837979
+   "heure_serveur": 1794838274
   }
  },
  "positions_robot": [
@@ -34,10 +34,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3851.07,
-   "prix_actuel": 3871.49,
+   "prix_actuel": 3869.07,
    "stop": 3910.68,
    "objectif": null,
-   "profit": -20.42,
+   "profit": -18.0,
    "ouverte_heure_serveur": 1794816300
   },
   {
@@ -45,38 +45,38 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3860.03,
-   "prix_actuel": 3871.29,
+   "prix_actuel": 3868.87,
    "stop": 3819.6,
    "objectif": null,
-   "profit": 11.26,
+   "profit": 8.84,
    "ouverte_heure_serveur": 1794832200
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3872.52,
-   "prix_actuel": 3871.29,
-   "stop": 3867.43,
+   "prix_entree": 3870.24,
+   "prix_actuel": 3868.87,
+   "stop": 3865.03,
    "objectif": null,
-   "profit": -1.23,
-   "ouverte_heure_serveur": 1794837840
+   "profit": -1.37,
+   "ouverte_heure_serveur": 1794838140
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3871.14,
-   "prix_actuel": 3871.29,
-   "stop": 3866.06,
+   "prix_entree": 3868.24,
+   "prix_actuel": 3868.87,
+   "stop": 3862.95,
    "objectif": null,
-   "profit": 0.15,
-   "ouverte_heure_serveur": 1794837962
+   "profit": 0.63,
+   "ouverte_heure_serveur": 1794838200
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-16",
-  "perte_du_jour": -18.13,
+  "perte_du_jour": -21.32,
   "seuil": -3795.72,
   "ouvertures_bloquees": false
  },
