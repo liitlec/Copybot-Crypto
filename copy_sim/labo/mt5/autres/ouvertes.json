@@ -1,14 +1,14 @@
 {
- "ecrit": "2026-11-16T22:24:07Z",
+ "ecrit": "2026-11-16T22:29:12Z",
  "heures": "heure du serveur du courtier, en secondes",
  "par_robot": {
   "BlockGrille": {
    "positions": 16,
-   "resultat_en_cours": 3.64
+   "resultat_en_cours": -2.33
   },
   "BlockTrend": {
    "positions": 35,
-   "resultat_en_cours": 3500.75
+   "resultat_en_cours": 3559.31
   }
  },
  "positions": [
@@ -54,10 +54,10 @@
    "lots": 0.1,
    "ouverture_heure_serveur": 1794427201,
    "prix_entree": 0.92454,
-   "prix_actuel": 0.92398,
+   "prix_actuel": 0.92422,
    "stop": 0.93034,
    "objectif": null,
-   "resultat": 6.66,
+   "resultat": 3.81,
    "swap": -7.72
   },
   {
@@ -86,10 +86,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794452520,
    "prix_entree": 74063.56,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 432.41,
+   "resultat": 435.53,
    "swap": 0.0
   },
   {
@@ -102,10 +102,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794452520,
    "prix_entree": 2060.54,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1913.19,
    "objectif": null,
-   "resultat": 288.55,
+   "resultat": 289.79,
    "swap": 0.0
   },
   {
@@ -118,10 +118,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794452520,
    "prix_entree": 74063.57,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 432.41,
+   "resultat": 435.53,
    "swap": 0.0
   },
   {
@@ -134,10 +134,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794452520,
    "prix_entree": 2060.55,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1912.74,
    "objectif": null,
-   "resultat": 288.56,
+   "resultat": 289.8,
    "swap": 0.0
   },
   {
@@ -214,10 +214,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794491100,
    "prix_entree": 72942.41,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 376.35,
+   "resultat": 379.47,
    "swap": 0.0
   },
   {
@@ -230,10 +230,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794491100,
    "prix_entree": 72942.41,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 376.35,
+   "resultat": 379.47,
    "swap": 0.0
   },
   {
@@ -246,10 +246,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794496203,
    "prix_entree": 1991.21,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1913.19,
    "objectif": null,
-   "resultat": 199.81,
+   "resultat": 201.05,
    "swap": 0.0
   },
   {
@@ -262,10 +262,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794496206,
    "prix_entree": 1991.56,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1912.74,
    "objectif": null,
-   "resultat": 200.26,
+   "resultat": 201.5,
    "swap": 0.0
   },
   {
@@ -326,10 +326,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794501900,
    "prix_entree": 71618.08,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 310.13,
+   "resultat": 313.25,
    "swap": 0.0
   },
   {
@@ -342,10 +342,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794501900,
    "prix_entree": 71616.74,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 310.07,
+   "resultat": 313.19,
    "swap": 0.0
   },
   {
@@ -422,10 +422,10 @@
    "lots": 0.1,
    "ouverture_heure_serveur": 1794580607,
    "prix_entree": 0.92647,
-   "prix_actuel": 0.92398,
+   "prix_actuel": 0.92422,
    "stop": 0.93034,
    "objectif": null,
-   "resultat": 29.63,
+   "resultat": 26.77,
    "swap": -2.56
   },
   {
@@ -438,10 +438,10 @@
    "lots": 0.11,
    "ouverture_heure_serveur": 1794595961,
    "prix_entree": 0.67736,
-   "prix_actuel": 0.67357,
+   "prix_actuel": 0.67358,
    "stop": 0.67116,
    "objectif": null,
-   "resultat": -41.69,
+   "resultat": -41.58,
    "swap": -0.66
   },
   {
@@ -454,10 +454,10 @@
    "lots": 0.14,
    "ouverture_heure_serveur": 1794595962,
    "prix_entree": 0.96584,
-   "prix_actuel": 0.96283,
+   "prix_actuel": 0.96285,
    "stop": 0.95911,
    "objectif": null,
-   "resultat": -29.48,
+   "resultat": -29.28,
    "swap": 0.7
   },
   {
@@ -470,10 +470,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794596100,
    "prix_entree": 1927.96,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1913.19,
    "objectif": null,
-   "resultat": 118.85,
+   "resultat": 120.09,
    "swap": 0.0
   },
   {
@@ -486,10 +486,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794596100,
    "prix_entree": 1927.96,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1912.74,
    "objectif": null,
-   "resultat": 118.85,
+   "resultat": 120.09,
    "swap": 0.0
   },
   {
@@ -502,10 +502,10 @@
    "lots": 0.09,
    "ouverture_heure_serveur": 1794600000,
    "prix_entree": 1.10286,
-   "prix_actuel": 1.09947,
+   "prix_actuel": 1.0994,
    "stop": 1.09531,
    "objectif": null,
-   "resultat": -30.51,
+   "resultat": -31.14,
    "swap": -1.72
   },
   {
@@ -518,10 +518,10 @@
    "lots": 0.14,
    "ouverture_heure_serveur": 1794600000,
    "prix_entree": 0.55255,
-   "prix_actuel": 0.54968,
+   "prix_actuel": 0.54969,
    "stop": 0.54758,
    "objectif": null,
-   "resultat": -40.18,
+   "resultat": -40.04,
    "swap": -1.14
   },
   {
@@ -534,10 +534,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794613500,
    "prix_entree": 68148.57,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 136.66,
+   "resultat": 139.78,
    "swap": 0.0
   },
   {
@@ -550,10 +550,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794613500,
    "prix_entree": 68148.57,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 136.66,
+   "resultat": 139.78,
    "swap": 0.0
   },
   {
@@ -566,10 +566,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794634500,
    "prix_entree": 66786.17,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 68.54,
+   "resultat": 71.66,
    "swap": 0.0
   },
   {
@@ -582,10 +582,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794634500,
    "prix_entree": 66786.17,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 68.54,
+   "resultat": 71.66,
    "swap": 0.0
   },
   {
@@ -598,10 +598,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794672300,
    "prix_entree": 1871.4,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1913.19,
    "objectif": null,
-   "resultat": 46.45,
+   "resultat": 47.69,
    "swap": 0.0
   },
   {
@@ -614,10 +614,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794672300,
    "prix_entree": 1871.2,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1912.74,
    "objectif": null,
-   "resultat": 46.2,
+   "resultat": 47.44,
    "swap": 0.0
   },
   {
@@ -630,10 +630,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794676500,
    "prix_entree": 65614.33,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 9.95,
+   "resultat": 13.07,
    "swap": 0.0
   },
   {
@@ -646,10 +646,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794676500,
    "prix_entree": 65614.27,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": 9.94,
+   "resultat": 13.06,
    "swap": 0.0
   },
   {
@@ -662,10 +662,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794681000,
    "prix_entree": 1820.51,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1913.19,
    "objectif": null,
-   "resultat": -18.69,
+   "resultat": -17.45,
    "swap": 0.0
   },
   {
@@ -678,10 +678,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794681000,
    "prix_entree": 1820.58,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1912.74,
    "objectif": null,
-   "resultat": -18.6,
+   "resultat": -17.36,
    "swap": 0.0
   },
   {
@@ -694,10 +694,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794698100,
    "prix_entree": 64280.2,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": -56.76,
+   "resultat": -53.64,
    "swap": 0.0
   },
   {
@@ -710,10 +710,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794698100,
    "prix_entree": 1761.64,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1913.19,
    "objectif": null,
-   "resultat": -94.04,
+   "resultat": -92.8,
    "swap": 0.0
   },
   {
@@ -726,10 +726,10 @@
    "lots": 0.05,
    "ouverture_heure_serveur": 1794698100,
    "prix_entree": 64287.92,
-   "prix_actuel": 65415.49,
+   "prix_actuel": 65353.0,
    "stop": 67912.37,
    "objectif": null,
-   "resultat": -56.37,
+   "resultat": -53.25,
    "swap": 0.0
   },
   {
@@ -742,10 +742,10 @@
    "lots": 1.28,
    "ouverture_heure_serveur": 1794698100,
    "prix_entree": 1761.69,
-   "prix_actuel": 1835.11,
+   "prix_actuel": 1834.14,
    "stop": 1912.74,
    "objectif": null,
-   "resultat": -93.98,
+   "resultat": -92.74,
    "swap": 0.0
   },
   {
@@ -758,10 +758,10 @@
    "lots": 0.11,
    "ouverture_heure_serveur": 1794815655,
    "prix_entree": 0.6753,
-   "prix_actuel": 0.67357,
+   "prix_actuel": 0.67358,
    "stop": 0.67116,
    "objectif": null,
-   "resultat": -19.03,
+   "resultat": -18.92,
    "swap": -0.33
   },
   {
@@ -774,10 +774,10 @@
    "lots": 0.14,
    "ouverture_heure_serveur": 1794816957,
    "prix_entree": 0.9636,
-   "prix_actuel": 0.96283,
+   "prix_actuel": 0.96285,
    "stop": 0.95911,
    "objectif": null,
-   "resultat": -7.54,
+   "resultat": -7.35,
    "swap": 0.35
   },
   {
@@ -790,10 +790,10 @@
    "lots": 0.09,
    "ouverture_heure_serveur": 1794835039,
    "prix_entree": 1.10034,
-   "prix_actuel": 1.09947,
+   "prix_actuel": 1.0994,
    "stop": 1.09531,
    "objectif": null,
-   "resultat": -7.83,
+   "resultat": -8.46,
    "swap": -0.86
   },
   {
@@ -806,10 +806,10 @@
    "lots": 0.14,
    "ouverture_heure_serveur": 1794846407,
    "prix_entree": 0.55089,
-   "prix_actuel": 0.54968,
+   "prix_actuel": 0.54969,
    "stop": 0.54758,
    "objectif": null,
-   "resultat": -16.94,
+   "resultat": -16.8,
    "swap": -0.57
   },
   {
@@ -822,10 +822,10 @@
    "lots": 0.11,
    "ouverture_heure_serveur": 1794861369,
    "prix_entree": 0.67324,
-   "prix_actuel": 0.67357,
+   "prix_actuel": 0.67358,
    "stop": 0.67116,
    "objectif": null,
-   "resultat": 3.63,
+   "resultat": 3.74,
    "swap": -0.33
   }
  ],
