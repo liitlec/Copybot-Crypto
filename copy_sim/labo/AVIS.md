@@ -11,10 +11,10 @@
 | Portefeuille | Mise | Levier moyen | Par an 1995-2026 | Par an depuis 2008 | Pire baisse |
 |---|---|---|---|---|---|
 | A. ce qui tient (repli 4 indices, contre-pied Nasdaq + S&P, Fed-DAX) | **1 Kelly** | 41 fois | ruine | ruine | −100 % |
-| A | **0,5 Kelly** | 23 fois | ruine | +72 % (puis ruine) | −98 à −100 % |
+| A | **0,5 Kelly** | 23 fois | ruine (dès 1995-2007) | +72 % mais en passant par −98 % | −98 à −100 % |
 | A | 0,15 Kelly | 6,9 fois | +26 % | +28 % | −56 % |
 | A | 0,1 Kelly | 4,6 fois | +18 % | +19 % | −41 % |
-| A sans la règle Fed-DAX | 0,1 Kelly | ≈ 3 fois | — | +10 % | −29 % |
+| A sans la règle Fed-DAX | 0,1 Kelly | — | — | +10 % | −29 % |
 | B. A + les « presque » (non prouvé) | 0,1 Kelly | 7,7 fois | +25 % | +27 % | −42 % |
 | Référence : S&P 500 acheté-gardé | — | 1 fois | +9 % | +9 % | −57 % |
 
