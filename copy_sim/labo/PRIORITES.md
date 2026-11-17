@@ -509,3 +509,18 @@ mais les 7 derniers mois restent faibles (+456 $). 5 règles essayées : corrige
    puis tester un frein (mise réduite après X % de perte sur 10/20 jours, pause après une série de pertes, plafond de
    perte par semaine), et l'ajout de pièces décorrélées (repli d'indices, autres marchés) pour lisser. Objectif :
    moins de mois négatifs sans perdre plus de 20 % du total. Rendre un tableau par mois avant/après.
+
+## 17/11, 10 h 15 (Paris) : la bonne famille de règles au bon moment (pour Fable, mercredi 16 h)
+Constat du direct (lundi-mardi, allers-retours) : les règles de tendance (elan_m15, cassure_m15) font presque toute la
+perte du test (≈ −70 $), les règles de retour (fcassure_m1, retour_court_ar, variantes calme) sont légèrement
+positives. Le détecteur d'aller-retour « en avance » ne tient pas hors échantillon (38-50 %). Pistes à mesurer au
+banc (15 mois, walk-forward, correction pour essais multiples), puis en variantes à part sur la démo :
+1. **Le marché choisit** : passer en mode « retour » après une fausse cassure confirmée, en mode « tendance » après
+   une deuxième cassure qui tient (bascule rapide, sans prédire la journée).
+2. **Suivre ce qui marche** : poids de chaque famille selon son résultat récent (1 à 3 jours, ou les 10 derniers
+   trades), plancher et plafond de poids.
+3. **Les deux à la fois** : garder tendance et retour ensemble avec des tailles qui se compensent ; mesurer la
+   corrélation des deux familles jour par jour.
+4. **Filtre de direction** : les règles de tendance n'entrent que si la tendance de fond (2 jours, 20 h) va dans le
+   même sens et que le prix n'est pas déjà au bout de son range du jour.
+Comparer à la sélection actuelle et à la même sélection sans elan_m15 (qui perd aussi au banc : −398 $ sur 15 mois).
