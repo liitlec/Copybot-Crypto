@@ -59,7 +59,7 @@ Methode
   PRESQUE = HE > 0, t >= 1, deux moities > 0, gain > temoin ; sinon NE TIENT PAS.
 Sorties : donnees/rebonds_intrajour.csv (trades hors echantillon des lignes TIENT/PRESQUE) et
 donnees/rebonds_intrajour_tout.csv (toute la periode au reglage le plus choisi), colonnes regle, marche, entree,
-sortie (dates de New York), sens, r. Usage : python3 banc_intrajour.py  (~2-3 min)"""
+sortie (dates de New York), sens, r. Usage : python3 banc_intrajour.py  (~15 s ; telecharge Yahoo une fois)"""
 import os, json, time, urllib.request, warnings
 from statistics import NormalDist
 import numpy as np, pandas as pd
@@ -472,8 +472,7 @@ def bilan(nom, cfg, B, per, L, out_trades):
 
 
 def serie_ref(T, days):
-    """temoin par seance pour un reglage complet : esperance rejeu ~ moyenne sens x rendement des memes heures.
-    (approximation rapide : rejeux calcules seulement pour 1 trade sur 1, voir rejeu)"""
+    """temoin par seance pour un reglage complet : somme des esperances des rejeux de ses trades."""
     if len(T.e) == 0:
         return np.zeros(len(days))
     rj = rejeu(T); esp = np.array([v.mean() for v in rj])

@@ -414,7 +414,7 @@ def main():
             return "TIENT"
         return "PRESQUE" if constant else "NE TIENT PAS"
     L["verdict"] = L.apply(verdict, axis=1)
-    P("\nN total de reglages essayes : %d ; lignes walk-forward : %d (Bonferroni x %d)." % (Ntot, len(L), NLIGNES))
+    P("\nN total de reglages essayes : %d ; lignes walk-forward : %d + 4 groupes US = %d (Bonferroni x %d)." % (Ntot, len(L), NLIGNES, NLIGNES))
     P("Reality check de White par effet (toute la periode, tous marches et reglages) :")
     for eff, n, p0, b0, pr, br in RCS:
         P("  %-9s N = %3d : contre 0 p = %.3f (meilleur %s) ; contre B&H a exposition egale p = %.3f (meilleur %s)" % (eff, n, p0, b0, pr, br))
@@ -451,16 +451,21 @@ def main():
             P("  %-8s %-9s %-22s %3d trades %s-> : Yahoo %+6.1f bp, courtier %+6.1f bp (corr %.2f)" % (
                 k, eff, v.regle.iloc[0][:22], len(tb), b.index[0].date(), 1e4 * v.r.mean(), 1e4 * tb.r.mean(),
                 np.corrcoef(ry, tb.r.values)[0, 1] if len(tb) == len(v) and len(tb) > 2 else np.nan))
+    for _, r in L[L.verdict == "TIENT"].iterrows():
+        g = HE[(HE.effet == r.effet) & (HE.marche == r.marche)]
+        P("  %s %s, HE par fenetre de 2 ans : %s" % (r.effet, r.marche, " ".join(
+            "%d %s %+.0f bp (%d)" % (y, z.regle.iloc[0].replace("achat ", "").replace("sortie ", "->"), 1e4 * z.r.mean(), len(z))
+            for y, z in g.groupby("fen"))))
     # sorties
     garde = L[L.verdict.isin(["TIENT", "PRESQUE"])]
     rows_he, rows_all = [], []
     for _, r in garde.iterrows():
         g = HE[(HE.effet == r.effet) & (HE.marche == r.marche)]
-        rows_he.append(pd.DataFrame({"regle": ("cal_%s " % r.effet) + g.regle.values,
+        rows_he.append(pd.DataFrame({"regle": "cal_" + r.effet,
                                      "marche": r.marche, "entree": g.entree.dt.strftime("%Y-%m-%d"),
                                      "sortie": g.sortie.dt.strftime("%Y-%m-%d"), "sens": 1, "r": g.r.round(6)}))
         f = FULL[(FULL.effet == r.effet) & (FULL.marche == r.marche)]
-        rows_all.append(pd.DataFrame({"regle": "cal_%s %s" % (r.effet, f.regle.values[0]), "marche": r.marche,
+        rows_all.append(pd.DataFrame({"regle": "cal_" + r.effet, "marche": r.marche,
                                       "entree": f.entree.dt.strftime("%Y-%m-%d"), "sortie": f.sortie.dt.strftime("%Y-%m-%d"),
                                       "sens": 1, "r": f.r.round(6)}))
     cols = ["regle", "marche", "entree", "sortie", "sens", "r"]

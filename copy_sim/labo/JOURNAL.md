@@ -1616,3 +1616,12 @@ pétrole, argent, or, euro : non (9 nouveaux marchés ensemble +3,4 bp, t 1,1). 
 2020-2026 +15,9 bp (t 2,1) mais 1re moitié +0,9 ; Russell +9,5 (t 0,8). 67 % des trades S&P tombent le même jour et
 dans le même sens que le Nasdaq (corrélation des gains 0,56) : le S&P lisse sans ajouter de rendement (t journalier
 Nasdaq seul 4,25, Nasdaq + S&P 4,32). Trades hors éch. : `donnees/rebonds_grande_journee.csv`. Vérifié en relançant.
+
+## 17/11/2026 (soir) — « mieux que +10 % », point 2 : retour après excès en intrajournalier (`banc_intrajour.py`)
+552 réglages fixés d'avance, 18 lignes (grosse bougie H1/H4, écart d'ouverture de 9 h 30 NY, fin de séance / nuit ;
+NAS100+, SP500+, DJ30+ M5 courtier 15 mois, NAS H4 07/2022+, Yahoo 1 h 4 indices 2 ans) ; walk-forward 6 → 1 mois
+(H4 6 → 1 trimestre), témoin = même heure, durée et sens sur une autre séance du mois, Bonferroni sur 18 lignes,
+reality check par bloc. **Rien ne tient, rien de « presque »** : grosses bougies H1 négatives sur 7 marchés ; H4 NAS
++8 % en 3 ans (t 0,5) ; écart d'ouverture NAS +7,9 % (t 1,2, 2de moitié négative) ; fin de séance ≈ 0. Le retour après
+excès qui marche en journalier ne se retrouve pas à l'heure. Défaut de données trouvé : `nas_h4_20k` n'a que des bougies
+JOUR avant le 11/07/2022 (fausse aussi la période 2018-2022 de `banc_repli_h4.py`). Vérifié en relançant.
