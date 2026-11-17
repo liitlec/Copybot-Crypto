@@ -11,7 +11,9 @@ l'heure du premier signal : la poche s'engage quand le montage se presente ; opt
 fenetre sont joues dans l'ordre du temps) : rien n'est melange, l'ordre et les series de pertes sont ceux du marche.
 Mise : chaque position recoit n = max(1, plancher(L x compte / unite)) lots minimum, au compte connu a son debut
 (« compose » ; c'est « tout remiser apres un gain ») ; variante « fixe » : n calcule sur le compte de DEPART.
-Liquidation : si n x unite x mae >= compte au debut, la position emporte le compte (ruine). Ruine = compte < 20 % du
+Gain compte a la SORTIE de chaque position ; la mise ne voit que les sorties passees (corrige le 17/11 : la 1re version
+comptait le gain a l'entree, ce qui donnait un faux avantage aux positions qui se chevauchent). Liquidation : si
+n x unite x mae (plus le risque des positions deja ouvertes) atteint le compte, la position emporte le compte. Ruine = compte < 20 % du
 depart : la poche s'arrete. Les objectifs sont atteints au premier passage du compte (apres une sortie).
 Trois versions du meme montage : « mesure » (r tel quel), « avantage / 2 » (r - moyenne / 2) et « reference sans
 avantage » (r - moyenne - cout moyen : meme volatilite, meme mise, espérance = - couts). Un montage n'est retenu que
@@ -28,25 +30,37 @@ def versions(T):
     return {"mesure": T, "avantage / 2": T.assign(r=T.r - m / 2), "sans avantage": T.assign(r=T.r - m - c)}
 
 
-def une_fenetre(t0, r, mae, unite, grp, L, depart, mode, max_lots=50):
-    """t0, r, ... : tableaux numpy des trades de la fenetre, deja tries par t0 ; t1 n'est pas utilise pour le gain
-    (gain compte a la sortie, mais la mise d'une position ne voit que les sorties d'AVANT son debut)."""
+def une_fenetre(t0, t1, r, mae, unite, grp, L, depart, mode, max_lots=50):
+    """Trades de la fenetre, tries par t0. Le gain d'une position est compte a sa SORTIE (t1) ; la mise d'une position
+    ne voit que les sorties d'AVANT son debut (pas de regard en avant entre positions qui se chevauchent).
+    Liquidation : si n x unite x mae de la position (plus celles deja ouvertes) atteint le compte a son debut, la
+    position est perdue avec tout le compte restant."""
     E = depart; haut = depart; ruine = False
-    taille = {}
+    taille, ouverts = {}, []          # ouverts : [t1, gain en $, perte max en $]
+    def solder(jusqua):
+        nonlocal E, haut, ruine
+        ouverts.sort(key=lambda x: x[0])
+        while ouverts and (jusqua is None or ouverts[0][0] <= jusqua):
+            _, g, _ = ouverts.pop(0)
+            E = max(0.0, E + g)
+            haut = max(haut, E)
+            if E < 0.2 * depart:
+                ruine = True
+                return
     for i in range(len(r)):
+        solder(t0[i])
+        if ruine:
+            break
         base = E if mode == "compose" else depart
         g = grp[i]
         if g not in taille:
             taille[g] = max(1, min(max_lots, int(L * base / unite[i])))
         n = taille[g]
-        if n * unite[i] * mae[i] >= E:
-            E = 0.0
-        else:
-            E += n * unite[i] * r[i]
-        haut = max(haut, E)
-        if E < 0.2 * depart:
-            ruine = True
-            break
+        risque = n * unite[i] * mae[i] + sum(x[2] for x in ouverts)
+        gain = -E if risque >= E else n * unite[i] * r[i]
+        ouverts.append([t1[i], gain, n * unite[i] * mae[i]])
+    if not ruine:
+        solder(None)
     return E, haut, ruine
 
 
@@ -55,7 +69,7 @@ def evaluer(T, L, depart=100.0, mode="compose", horizons=HORIZONS, pas_jours=1, 
     T = T.sort_values("t0").reset_index(drop=True)
     if "groupe" not in T:
         T = T.assign(groupe=np.arange(len(T)))
-    t0 = T.t0.values; r = T.r.values; mae = T.mae.values; un = T.unite.values; gp = T.groupe.values
+    t0 = T.t0.values; t1 = T.t1.values; r = T.r.values; mae = T.mae.values; un = T.unite.values; gp = T.groupe.values
     debut, fin = T.t0.min().normalize(), T.t0.max()
     out = []
     for hz, d in horizons.items():
@@ -69,7 +83,7 @@ def evaluer(T, L, depart=100.0, mode="compose", horizons=HORIZONS, pas_jours=1, 
             a, b = np.searchsorted(t0, np.datetime64(s)), np.searchsorted(t0, np.datetime64(s + d))
             if b <= a:
                 res.append((depart, depart, False)); continue
-            res.append(une_fenetre(t0[a:b], r[a:b], mae[a:b], un[a:b], gp[a:b], L, depart, mode))
+            res.append(une_fenetre(t0[a:b], t1[a:b], r[a:b], mae[a:b], un[a:b], gp[a:b], L, depart, mode))
         if not res:
             continue
         E = np.array([x[0] for x in res]); H = np.array([x[1] for x in res]); R = np.array([x[2] for x in res])

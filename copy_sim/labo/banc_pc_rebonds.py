@@ -91,12 +91,12 @@ if __name__ == "__main__":
     R = pd.concat(lignes, ignore_index=True)
     R.to_csv(os.path.join(ICI, "donnees", "pc_rebonds_resultats.csv"), index=False)
     pd.set_option("display.width", 250); pd.set_option("display.max_rows", 1000)
-    v = R[(R.version != "mesure") & (R.depart == 100) & (R.mode == "compose")].copy()
+    v = R[(R.version != "mesure") & (R.depart == 100) & (R["mode"] == "compose")].copy()
     for c in ("ruine", "x2", "x3", "x5", "x10", "esperance"):
         v[c] = (100 * v[c]).round(1)
     print(v[["montage", "levier", "version", "horizon", "fenetres", "independantes", "ruine", "esperance", "x2", "x3", "x5", "x10", "bat_ref"]].to_string(index=False))
     a = R[(R.version == "avantage / 2") & (R.bat_ref == True) & R.horizon.isin(["1 semaine", "1 mois"])]
-    cand = set(zip(a.montage, a.mode, a.levier))
+    cand = set(zip(a.montage, a["mode"], a.levier))
     print("\nEssais qui battent nettement la reference (avantage / 2, 1 semaine ou 1 mois) :", sorted(cand))
     m = R[(R.version == "avantage / 2") & (R.horizon == "1 mois") & (R.depart == 100)]
     m = m[[(x, y, z) in cand for x, y, z in zip(m.montage, m["mode"], m.levier)]]
