@@ -20,6 +20,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | BlockTrend sur BTC et ETH | ne tient pas | nul quelle que soit la sortie | données seulement |
 | Or/argent en paire (écart qui revient) | ne tient pas | M5 15 mois : +854 bp hors éch., t = 0,5, p = 0,78 (le spread de l'argent, 5 bp, mange tout) ; journalier 24 ans : −11 581 bp | — |
 | « Silver Bullet » (fausse sortie de la fourchette 9-10 h New York, or et 3 indices) | ne tient pas | 96 réglages, 15-17 mois : somme des 4 marchés −193 bp hors éch. (t = −0,3), p = 0,61 ; la version inverse perd aussi | — |
+| Repli d'indices élargi (12 marchés, sorties, stops, seuils) | **tient** sur les 4 indices américains seulement ; aucune variante ne bat la règle de base | 2000-2026 : Nasdaq +42 bp par trade (t = 3,0), S&P +27, Dow +21, Russell +33 ; p = 0,003 contre ne rien faire, p = 0,54 contre la base. Attendre +2 % par an (pire baisse −13 %) à 20 % du compte par trade, +4 % (−32 %) à 50 %. Europe, Japon, métaux : rien | garder la règle actuelle |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
