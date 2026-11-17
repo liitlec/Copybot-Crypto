@@ -567,3 +567,15 @@ Baptiste : si on met les bonnes règles au bon moment, c'est gagné. Les tests �
    direct beaucoup moins. Si le score dépasse nettement le hasard : journal de jugements en direct sur la démo
    (sans ordre au début), puis variante à part.
 Ce qui tient passe en variante à part sur la démo (`_opt`, hors totaux du test, règle d'arrêt écrite avant).
+
+## 17/11, 12 h 45 (Paris) : une « poche pari » à côté (ça passe ou ça casse)
+Baptiste veut, à côté du robot sérieux, une poche petite et agressive : on accepte de tout perdre, mais si ça passe,
+ça rapporte gros. Règle : on ne parie qu'avec un avantage mesuré (sans avantage, miser gros = perdre plus vite).
+1. Candidats : bt_or (gains rares et gros, pyramidage), contre-pied du Nasdaq, repli d'indices, éventuellement
+   « suivre ce qui marche », avec des mises agressives (multiples du Kelly, pyramidage sur gain, levier).
+2. Pour chaque montage : simulation Monte-Carlo par tirage des vrais trades du banc (10 000 parcours, 3 mois et
+   12 mois, compte de départ 100 $) → chance de tout perdre, chance de finir sous 50 $, médiane, chance de ×2, ×5,
+   ×10. Tableau simple pour Baptiste. Choisir le montage qui maximise la chance de ×5 pour une chance de ruine donnée.
+3. Le meilleur montage tourne sur la démo en variante `pari_opt` (hors totaux du test), avec un compte virtuel de
+   100 $ suivi à part (résultat converti à la taille qu'il aurait eue), et la règle « poche vide = on s'arrête ».
+Aucun argent réel : la décision de passer en réel reste à Baptiste, sur son PC.
