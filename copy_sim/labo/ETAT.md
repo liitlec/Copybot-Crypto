@@ -1,6 +1,11 @@
 # État du laboratoire — après le passage 46, 17/11/2026 (11 h) — rythme : toutes les 2 h 30
 
 ## À lire d'abord (résumé de la situation, réécrit le 17/11)
+- **17/11 après-midi, poche pari (PRIORITES 12 h 45) faite** : `banc_pari.py` (Monte-Carlo, `donnees/pari_*.csv`). À 100 $,
+  le lot minimum ruine tout (72-90 % en 12 mois, avantage ÷ 2) ; seul passe le repli sur SP500+ / US2000+ à 14 fois le
+  compte virtuel (ruine 15 %, ×2 26 %, ×5 6 %). **Robot v16 publié** : `pari_opt` (`mt5/robot/pari_opt.py`, compte virtuel
+  dans `etat_pari.json`, arrêt si < 20 $ ou moyenne < 0 après 40 trades). À suivre : notes « sortie » de `pari_opt`
+  (champ `compte_virtuel`) ; vérifier dans le journal la taille réelle de SP500+ / US2000+ (supposée 0,1 lot × 1 $/pt).
 - **Robot v14 en marche** (installée le 16/11 15 h 23). Toutes les positions survivent aux mises à jour (hypothèse
   codée dans les centimes du stop) : **la règle « pas de VERSION avec un panier bt_or ouvert » est levée**. Pour une
   nouvelle version : ajouter les nouveaux noms à la FIN de `_NOTES` dans `robot.py` (sinon les codes changent).

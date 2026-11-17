@@ -1,3 +1,25 @@
+# Avis pour Baptiste — 17/11/2026, après-midi (poche pari, PRIORITES 17/11 12 h 45)
+
+1. **Poche pari de 100 $ : le vrai problème, c'est la taille minimale du courtier.** Un seul lot minimum, c'est déjà 42 % de la poche risqués par position sur l'or, et 23 à 52 fois la poche sur le Nasdaq ou le Dow. Avec ces tailles, 72 à 90 % des parcours finissent ruinés en un an si l'avantage réel n'est que la moitié de celui du banc (hypothèse prudente).
+2. **Un seul montage passe ma règle** (fixée avant de regarder) : le repli d'indices (règle prouvée) sur les deux plus petits contrats, S&P et Russell 2000, à 14 fois la poche. Sur 12 mois, avantage divisé par 2 : **1 chance sur 7 de tout perdre, 1 sur 4 de finir sous 50 $, médiane ≈ 100 $, 1 sur 4 de doubler, 1 sur 16 de ×5, 1 sur 100 de ×10.** Il est lent : environ 18 trades par an.
+3. `bt_or` en pari, c'est une loterie : 8 à 14 % de chances de ×10, mais 84 à 90 % de ruine (et il ne gagne que pendant la hausse de l'or depuis 2024).
+4. **Robot v16 publié** : `pari_opt` tourne sur la démo avec un compte virtuel de 100 $, hors totaux du test. Il s'arrête de lui-même si la poche tombe sous 20 $, ou si la moyenne est négative après 40 trades. Le test de la semaine n'est pas touché, et le filtre retiré de la v15 reste retiré.
+5. Si tu veux un vrai pari : une poche de 300 $ au lieu de 100 $ fait tomber la ruine du repli 4 indices à ≈ 33 % (et à ≈ 3 % avec 1 000 $). Passer en réel reste ta décision, sur ton PC.
+
+| Montage (poche 100 $, 12 mois, avantage ÷ 2) | Tout perdre | Sous 50 $ | Médiane | ×2 | ×5 | ×10 |
+|---|---|---|---|---|---|---|
+| **`pari_opt` : repli S&P + Russell, 14 fois la poche (choisi)** | 15 % | 25 % | 102 $ | 26 % | 6 % | 1 % |
+| même montage, sur 3 mois | 3 % | 11 % | 106 $ | 6 % | 0 % | 0 % |
+| repli 4 indices US, lot minimum | 72 % | 73 % | 18 $ | 24 % | 10 % | 0 % |
+| contre-pied du Nasdaq, lot minimum | 77 % | 77 % | 14 $ | 18 % | 7 % | 2 % |
+| contre-pied + repli | 83 % | 84 % | 14 $ | 16 % | 11 % | 3 % |
+| `bt_or` (or, 4 ans de données), lot minimum | 90 % | 90 % | 0 $ | 10 % | 10 % | 8 % |
+| les trois ensemble | 89 % | 89 % | 1 $ | 11 % | 10 % | 9 % |
+
+Avec l'avantage complet du banc (moins prudent), le choisi fait : ruine 61 %, ×5 11 % à 2 Kelly ; sur la 2de moitié seule : ruine 0 %, ×2 48 %, ×5 3 %. Détails : `banc_pari.py`, `donnees/pari_montecarlo.csv`, JOURNAL du 17/11 après-midi.
+
+**Ajouts au tableau « tout ce qui a été testé »** : poche pari à 100 $ sur bt_or, contre-pied Nasdaq, repli 4 indices, mélanges → **ne tient pas** (ruine 72-90 % à cause du lot minimum) ; poche pari repli S&P + Russell à 14 fois la poche → **presque** (ruine 15 %, ×5 6 %, preuve mince : 107 trades) → en démo (`pari_opt`).
+
 # Avis pour Baptiste — 17/11/2026 (Fable, recherche large, PRIORITES 17/11 11 h 20)
 
 **Ajout du 17/11 au soir — « savoir en direct quel moment arrive » (PRIORITES 17/11 12 h 15), 4 pistes testées, aucune ne tient :**

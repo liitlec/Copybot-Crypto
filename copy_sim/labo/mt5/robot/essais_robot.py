@@ -576,3 +576,74 @@ for f in ("etat_rebond_essai.json", "etat_repli_essai3.json"):
     if os.path.exists(f):
         os.remove(f)
 print("ESSAIS OK")
+
+
+# v16 : pari_opt (poche pari, compte virtuel 100 $, repli sur SP500+ et US2000+, levier 14 fois le compte virtuel)
+import pari_opt
+
+
+class PontPari(PontIndice):
+    def __init__(self):
+        super().__init__()
+        self.contrat = {"SP500+": 1.0, "US2000+": 1.0}
+
+    def bougies(self, s, periode="M1", nombre=100):
+        if s not in pari_opt.SYMBOLES:
+            raise ValueError("symbole absent")
+        return self.b[-nombre:]
+
+    def symbole(self, s):
+        return {"point": 0.01, "chiffres": 2, "lot_min": 0.1, "pas_lot": 0.1, "taille_contrat": self.contrat[s], "niveau_stops_points": 0}
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s in pari_opt.SYMBOLES and sens == "achat" and id == "pari_opt" and 0 < stop < self.bid and 0 < lots <= 0.5
+        self.n += 1
+        self.pos[self.n] = {"ticket": self.n, "symbole": s, "sens": sens, "prix_entree": self.bid + self.ecart, "stop": stop,
+                            "profit": 0.0, "lots": lots}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": self.bid + self.ecart}
+
+
+info = {"lot_min": 0.1, "pas_lot": 0.1, "taille_contrat": 1.0}
+assert pari_opt.lots_pour(100.0, info, 2800.0) == 0.5, "petit contrat (280 $) : 5 lots mini = 1 400 $ = 14 fois 100 $"
+assert pari_opt.lots_pour(100.0, info, 7600.0) == 0.1, "S&P (760 $) : 1 lot mini"
+assert pari_opt.lots_pour(100.0, dict(info, taille_contrat=10.0), 7600.0) == 0.0, "contrat 10 fois plus gros : trade saute"
+assert pari_opt.lots_pour(1000.0, info, 2800.0) == 0.5, "plafond 0,50 lot"
+for f in ("etat_pari_essai.json", "etat_repli_essai4.json"):
+    if os.path.exists(f):
+        os.remove(f)
+pp = PontPari()
+pp.ecart = 0.5                                                  # 2 bp, sous le plafond de 3 bp
+pa = pari_opt.Pari(pp, fichier="etat_pari_essai.json")
+pp.b = jours([x / 7.0 for x in repli] + [repli[-1] / 7.0])      # prix ~ 2 680 : petit contrat
+jour = pp.b[-1][0]
+pp.bid = repli[-1] / 7.0
+pa.tour(pp.ps(), jour + 3600, True)
+assert len(pp.pos) == 2 and set(pa.pos) == set(pari_opt.SYMBOLES), "achat sur les deux indices"
+assert all(p["lots"] == 0.5 for p in pp.pos.values()), "taille du compte virtuel (14 x 100 $ / 2 680 $ -> 0,5 lot)"
+rp4 = repli_ind.Repli(pp, fichier="etat_repli_essai4.json")
+rp4.adopter({t: p for t, p in pp.ps().items() if t not in set(pa.tickets())})
+assert not rp4.pos, "repli_ind ne prend pas les positions de pari_opt"
+assert pari_opt.Pari(pp, fichier="etat_pari_essai.json").tickets() == pa.tickets(), "reprise apres redemarrage"
+pp.b = jours([x / 7.0 for x in repli] + [repli[-1] / 7.0 - 10, repli[-1] / 7.0 + 225, repli[-1] / 7.0 + 225])
+pp.bid = repli[-1] / 7.0 + 225.0
+pa.dernier = 0
+pa.tour(pp.ps(), jour + 2 * 86400 + 3600, True)
+assert not pp.pos and not pa.pos, "sortie au-dessus de la moyenne 5 j"
+gain = 2 * (225.0 - 0.5) * 0.5
+assert abs(pa.compte - (100.0 + gain)) < 0.01 and pa.trades == 2, "compte virtuel = 100 $ + gains reels"
+# poche vide : plus d'ouverture
+pa.compte, pa.dernier = 30.0, 0
+pp.pos[950] = {"ticket": 950, "symbole": "SP500+", "sens": "achat", "prix_entree": 1.0, "stop": 0.5, "profit": -15.0}
+pa.pos["SP500+"] = {"ticket": 950, "entree": 1.0, "jour": jour, "lots": 0.1, "profit": -15.0}
+del pp.pos[950]
+pa.tour(pp.ps(), jour + 3 * 86400 + 3600, True)
+assert pa.arret == "poche vide" and pa.compte == 15.0, "stop touche : compte virtuel sous 20 $ -> arret"
+pp.b = jours([x / 7.0 for x in repli] + [repli[-1] / 7.0])
+pa.fait, pa.dernier = {}, 0
+pa.tour(pp.ps(), pp.b[-1][0] + 3600, True)
+assert not pp.pos, "poche vide : plus aucune ouverture"
+assert pari_opt.Pari(pp, fichier="etat_pari_essai.json").arret == "poche vide", "arret garde apres redemarrage"
+for f in ("etat_pari_essai.json", "etat_repli_essai4.json", "etat_pari.json"):
+    if os.path.exists(f):
+        os.remove(f)
+print("ESSAIS OK")

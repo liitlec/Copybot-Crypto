@@ -1559,3 +1559,35 @@ médiane des 9 −320 $ (essais multiples : prometteur, non prouvé). Sélection
 Robot v15 ÉCRIT, NON PUBLIÉ : variantes `elan_m15_opt` et `cassure_m15_opt` (fond 80 bougies M15, mêmes pauses au
 calme, hors totaux, règle d'arrêt écrite dans `robot.py`), noms ajoutés à la fin de `_NOTES` ; correctif : la mémoire
 gardait seulement les noms de base (les `_calme`/`_opt` étaient perdus au redémarrage). Essais OK.
+
+## 17/11/2026 (après-midi) — poche pari (PRIORITES 17/11 12 h 45), banc AP `banc_pari.py`, robot v16 `pari_opt`
+Candidats (avantage mesuré seulement) : `rebond_nas` (385 trades courtier 2018-2026, +27,7 bp, t 2,8), `repli_ind`
+4 indices US (220 trades 2020-2026, +37,9 bp, t 3,4), `bt_or` H1 08/2022-11/2026 (956 paniers, +0,16 R, t 2,1 ; M5
+15 mois : +0,38 R). Écarté : « suivre ce qui marche » (pas d'avantage prouvé face à la tendance seule). Monte-Carlo
+10 000 parcours, 63 et 252 jours, jours tirés par blocs de 20, tailles RÉELLES du courtier converties aux prix du jour
+(or 0,01 lot = 1 once ; indices 0,1 lot × 1 $/point, vérifié seulement sur DJ30+), liquidation à 50 % de marge,
+ruine = compte < 20 $. 3 scénarios : historique ; avantage ÷ 2 ; hors échantillon (Kelly sur la 1re moitié, jours de
+la 2de). Mises : lot mini, 0,5 / 1 / 2 / 3 / 5 Kelly. Choix fixé d'avance : max chance ×5 à 12 mois (avantage ÷ 2)
+avec ruine ≤ 50 %.
+- **Étape 1 : à 100 $, aucun montage ne passe.** Le lot minimum impose déjà la mise : or 42 % du compte par position
+  (Kelly ≈ 4 % → ×10 Kelly), Nasdaq 28 fois le compte, repli moyen 23 fois (Kelly ≈ 8-11). Les multiples de Kelly ne
+  changent presque rien (plancher à 1 lot). Avantage ÷ 2, 12 mois, lot mini : rebond ruine 77 % / ×5 7 % ; repli 72 %
+  / 10 % ; bt_or 90 % / 10 % (×10 : 8 %) ; rebond+repli 83 % / 11 % ; les trois 89 % / 10 %. Historique : bt_or ruine
+  84 % mais ×10 14 % (loterie) ; repli ruine 62 %, ×5 21 %.
+- **Étape 2 (ajoutée ensuite, choix par la TAILLE du contrat, pas par le résultat)** : repli sur les deux plus petits
+  contrats (SP500+ 760 $, US2000+ 280 $ par lot mini), 107 trades +45 bp. Avantage ÷ 2, 12 mois, 100 $ : lot mini ruine
+  1 %, ×2 1 % ; 1 Kelly ruine 2 %, ×2 11 %, ×5 0 % ; **2 Kelly ruine 15 %, sous 50 $ 25 %, médiane 102 $, ×2 26 %, ×5
+  6 %, ×10 1 %** ; 3 Kelly ruine 55 %. Historique 2 Kelly : ruine 61 %, ×5 11 % ; hors échantillon 2 Kelly : ruine 0 %,
+  ×2 48 %, ×5 3 % (Kelly de la 1re moitié = 3,7 seulement : 2020-2023 presque nul). Capital : à 300 $ le repli 4 indices
+  passe à ruine 33 % (1 Kelly), à 1 000 $ 3 % ; rebond_nas à 300 $ : ruine 18 %, ×5 2 % → **c'est le lot minimum, pas
+  la règle, qui ruine une poche de 100 $.**
+- Verdict : le meilleur montage selon la règle fixée = **repli SP500+ et US2000+, levier 14 fois le compte virtuel
+  (2 Kelly de l'avantage ÷ 2)**. Lent (~18 trades par an) ; espérance honnête à 12 mois : 1 chance sur 4 de doubler,
+  1 sur 16 de ×5, 1 sur 7 de ruine. Aucun montage ne donne « ×5 probable ».
+- **Robot v16** (`mt5/robot/pari_opt.py`, VERSION = 16) : `pari_opt`, règles de `repli_ind` sur SP500+ et US2000+, taille
+  = max(1, plancher(14 × compte virtuel / notionnel d'un lot mini)) lots mini, plafond 0,50 lot, trade sauté si un lot
+  mini dépasse 30 fois le compte (contrat plus gros que supposé). Compte virtuel 100 $ dans `etat_pari.json`, avance
+  du gain réel de chaque sortie. Règle d'arrêt écrite avant : compte virtuel < 20 $ (poche vide) ou moyenne négative
+  après 40 trades. Positions retirées de ce que `repli_ind` peut reprendre (survie aux mises à jour). Page de suivi :
+  exclue des totaux (préfixe `pari`). Essais OK (`essais_robot.py`, 6 contrôles ajoutés). Le filtre de fond de la v15
+  reste retiré (`OPT_FOND = {}`). Test de la semaine non touché.
