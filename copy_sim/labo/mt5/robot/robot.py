@@ -99,7 +99,8 @@ RETOUR_AR = {"retour_court_ar", "retour_strict_ar"}
 # mediane des 9 reglages -320 $ (essais multiples : non prouve). Variantes a part <nom>_opt, hors totaux du test,
 # memes tailles, memes pauses au calme. REGLE D'ARRET (ecrite avant) : arret si somme < -60 $ ou si, apres 30 trades,
 # la variante fait moins bien que sa regle d'origine sur la meme periode.
-OPT_FOND = {"elan_m15": 80, "cassure_m15": 80}
+OPT_FOND = {}   # filtre de fond RETIRE avant publication (banc_famille_wf.py, 17/11 : piste 4 en walk-forward
+# -152 $, t -0,2 : ne tient pas). Les noms restent dans _NOTES (codes stables) ; la mecanique _opt sert aux suivantes.
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
