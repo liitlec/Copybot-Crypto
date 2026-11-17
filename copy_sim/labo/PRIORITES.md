@@ -533,3 +533,18 @@ pas commencé. À finir avec des sous-agents si besoin, en parallèle des pistes
 3. **Dépôts de trading (day-trader-skill et voisins)** : lire leurs règles (ORB à 15 h 30 sur NAS100+, SP500+, DJ30+ ;
    ICT/SMC ; gestion du risque ; « Time Machine »), tester au banc ce qui est testable, en variante sur la démo ce qui
    tient. Un tableau par dépôt : idée, testé ou non, résultat.
+
+## 17/11, 11 h 20 (Paris) : chercher encore, large, et trouver d'autres découvertes
+Baptiste veut que le labo analyse tout ce qui reste ouvert et trouve de nouvelles pistes. Ce qui tient à ce jour :
+repli d'indices (prouvé, petit), panier acheté seulement (prouvé, placement), bt_or (presque, irrégulier), « suivre
+ce qui marche » (de justesse, sur le papier). Lot, chaque piste au banc sur au moins 15 mois, avec walk-forward,
+spread réel et correction pour essais multiples :
+A. Les 4 suites de Fable : pause autour des annonces US fortes (Helious) ; « Silver Bullet » 17-18 h Paris ; COT à
+   contre-courant sur l'or ; coupe-circuit journalier.
+B. Nouvelles idées : or/argent en paire (écart qui revient) ; or contre dollar ou taux réels US (données gratuites
+   d'APIS.md) ; saisonnalités (jour de la semaine, début/fin de mois, heures de Londres et New York) ; repli d'indices
+   étendu (plus de marchés, H4, sorties) pour le rendre plus gros ; bt_or rendu plus régulier (diversifié sur des
+   marchés où la mécanique tient, mise selon ATR) ; momentum croisé entre actifs (acheter les plus forts du panier) ;
+   ce que les rapports COT disent des autres marchés ; volatilité qui revient à la moyenne.
+C. Pour chaque piste qui tient : variante à part sur la démo (suffixe `_opt`, hors totaux du test), avec règle d'arrêt.
+Rendre un tableau unique « tout ce qui a été testé : tient / presque / ne tient pas » en tête d'AVIS.md.
