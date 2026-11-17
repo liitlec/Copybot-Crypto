@@ -1625,3 +1625,13 @@ reality check par bloc. **Rien ne tient, rien de « presque »** : grosses bougi
 +8 % en 3 ans (t 0,5) ; écart d'ouverture NAS +7,9 % (t 1,2, 2de moitié négative) ; fin de séance ≈ 0. Le retour après
 excès qui marche en journalier ne se retrouve pas à l'heure. Défaut de données trouvé : `nas_h4_20k` n'a que des bougies
 JOUR avant le 11/07/2022 (fausse aussi la période 2018-2022 de `banc_repli_h4.py`). Vérifié en relançant.
+
+## 17/11/2026 (soir) — « mieux que +10 % », point 3 : effets de calendrier sur indices (`banc_calendrier.py`)
+Yahoo 1990-2026 (hors éch. 2000/2004-2026), walk-forward 10 → 2 ans, 160 réglages, Bonferroni × 24, reality check par
+piste ; coûts 2 bp + nuit ; fériés NYSE reconstruits (322/322), FOMC 1994-2027 (`donnees/fomc.csv`). Résultats :
+tournant du mois NE TIENT PAS (ne bat pas l'achat-garde à exposition égale) ; veille de férié PRESQUE (Russell +29 bp
+t 2,35, DAX +32 ; sur le S&P l'effet vient du tournant du mois) ; FOMC indices US PRESQUE (groupe +29,6 bp, t 2,4, mais
+2de moitié faible) ; **FOMC DAX TIENT** : achat clôture J-2, sortie clôture J (17 h 30 Paris, avant l'annonce), 176
+trades, +31,5 bp, t 3,6, moitiés +33 / +30, Bonferroni p = 0,003 — réserve : porté par 2008-2009 et 2020-2023, 2024-2026
+≈ 0 (+10, −20, +7 bp), et non contrôlable sur la D1 du courtier (clôture à 23 h). Nuit / jour avec filtre : non.
+≈ 8 trades par an : +2,5 %/an à 1 fois le notionnel. Vérifié en relançant.
