@@ -161,3 +161,6 @@ le 14/11 0 h 54 ; il le rallume lundi matin.
 Baptiste a remis la limite à zéro : triggers Fable trig_01HzhRzT8sJujR4E4oGrTrXe et trig_01Aez2r4ijz1pRyArqRArSPQ
 réactivés, relais Opus trig_01B93bAzr4GmM8TtjavXreKC désactivé (session relais session_01FgaWowBo8qjdiVRho4b4yt gardée
 en secours). Passage Fable lancé tout de suite (PRIORITES 17/11 10 h 15 et 10 h 30 d'abord). Plus rien à faire mercredi.
+**Correction 17/11 10 h 20 :** la session Fable a échoué aussitôt (« out of usage credits », remise à zéro indiquée vers
+le 01/12). Retour en arrière : triggers Fable désactivés, relais Opus réactivé et lancé sur le gros lot.
+À revoir avec Baptiste : la date réelle de retour de Fable.
