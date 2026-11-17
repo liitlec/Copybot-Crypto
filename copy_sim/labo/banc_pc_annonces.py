@@ -14,9 +14,11 @@ Plan fixe d'avance (avant de voir un resultat) :
   Sortie : objectif 2R, 3R, 5R ; stop suiveur a 1R du plus haut (mis a jour en fin de bougie) ; « suiveur+pyr » et
   « 5R+pyr » : a +1R on ajoute une 2e unite et le stop des deux passe au prix d'entree de la 1re. Tenue max 3 h
   (et avant 23:45 serveur).
-- Couts PRUDENTS : entree = spread elargi (max des 3 bougies d'annonce) + 2 x ce spread de glissement (ordre stop
-  servi au pire prix), ou au prix d'ouverture si la bougie saute le niveau ; sortie au stop = + 1 x ce spread de
-  glissement (spread de la bougie apres 15 min) ; objectif = ordre limite, sans glissement. Dans une bougie ou le
+- Couts PRUDENTS : bid/ask exacts (achat a l'ask, vente au bid, stops et objectifs d'une vente sur l'ask), spread des
+  15 premieres minutes >= spE = max des 3 bougies d'annonce ; entree = niveau (ou ouverture si la bougie saute le
+  niveau) + 2 x spE de glissement (ordre stop servi au pire prix) ; sortie au stop = + 1 x spread de glissement ;
+  objectif = ordre limite, sans glissement. Test de resistance : glissement EN PLUS de 0,1 / 0,25 / 0,5 x l'amplitude
+  M5 d'avant a chaque ordre stop (walk-forward refait). Dans une bougie ou le
   niveau d'entree ET le stop sont touches, on suppose le PIRE (stoppe) ; stop avant objectif si les deux sont touches.
 - Grille : k {0,5 ; 1 ; 2} x stop {milieu, oppose} x sortie {2R, 3R, 5R, suiveur, suiveur+pyr, 5R+pyr} = 36 reglages,
   sur 6 univers (panier des 5 marches a notionnel egal + chaque marche seul) : N = 216 (+ 4 leviers x 2 departs pour
@@ -84,62 +86,72 @@ nomg = lambda g: "k%.1f %s %s" % g
 # ------------------------------------------------------------------ simulation d'un montage sur des bougies
 def sim(o, h, l, c, sp, tt, j0, P, d, spE, g, nwin, nmax, slip=2.0, xa=0.0):
     """Rend (sens, r, cout, mae, t_entree, t_sortie) en prix (pas encore divise par P) ou None si rien ne part.
-    Vue « achat » : pour une vente on retourne les prix (-o, -l, -h, -c). xa : glissement EN PLUS (prix) a chaque
-    ordre stop (entree, ajout, sortie au stop) pour le test de resistance."""
+    Prix du courtier : bougies BID ; ask = bid + spread, le spread des 15 premieres minutes etant au moins spE.
+    Ordre stop d'achat a l'ASK P + d (part si haut bid + spread >= P + d), ordre stop de vente au BID P - d.
+    Un achat sort au bid, une vente rachete a l'ask (on suit la serie ask). Vue « achat » : pour une vente on
+    retourne les prix (-ask). Glissement : 2 x spE a l'entree (ordre stop servi au pire), 1 x spread a la sortie au
+    stop ; xa = glissement EN PLUS (prix) a chaque ordre stop (entree, ajout, sortie) pour le test de resistance."""
     k, smode, xmode = g
     up, dn = P + d, P - d
+    n_ = len(o)
     j = None
-    for jj in range(j0, min(j0 + nwin, len(o))):
-        if h[jj] >= up or l[jj] <= dn:
+    for jj in range(j0, min(j0 + nwin, n_)):
+        if h[jj] + max(sp[jj], spE) >= up or l[jj] <= dn:
             j = jj; break
     if j is None:
         return None
-    both = h[j] >= up and l[j] <= dn
-    s = 1 if h[j] >= up else -1
-    if both:
+    sj = max(sp[j], spE)
+    hu, hd = h[j] + sj >= up, l[j] <= dn
+    s = 1 if hu else -1
+    if hu and hd:
         s = 1 if c[j] < o[j] else -1      # pire cas : on part du cote ou la bougie ne finit pas
+    jend = min(j0 + nmax, n_ - 1)
+    while jend > j and (tt[jend].hour * 60 + tt[jend].minute) > 23 * 60 + 40 and tt[jend].date() == tt[j0].date():
+        jend -= 1
+    idx = np.arange(j, jend + 1)
+    spr = np.where(idx < j0 + nwin, np.maximum(sp[idx], spE), sp[idx])
     if s == 1:
-        O, H, L, C = o, h, l, c; lev = up; stp = P if smode == "milieu" else dn
+        O, H, L, C = o[idx], h[idx], l[idx], c[idx]                       # sortie au bid
+        lev = up; stp = P if smode == "milieu" else dn                     # stop vendeur au bid
+        oe = o[j] + sj                                                     # ouverture ask (saut)
     else:
-        O, H, L, C = -o, -l, -h, -c; lev = -dn; stp = -P if smode == "milieu" else -up
-    fill = max(lev, O[j]) if j > j0 else lev
-    ce = spE * (1 + slip) + xa
-    cout = ce
-    R = fill - stp
+        O, H, L, C = -(o[idx] + spr), -(l[idx] + spr), -(h[idx] + spr), -(c[idx] + spr)   # rachat a l'ask
+        lev = -dn; stp = -P if smode == "milieu" else -up                  # stop acheteur a l'ask
+        oe = -o[j]
+    fill0 = max(lev, oe) if j > j0 else lev
+    ce = slip * spE + xa
+    fill = fill0 + ce
+    cout = sj + ce
+    R = fill0 - stp
     tgt = {"2R": 2, "3R": 3, "5R": 5, "5R+pyr": 5}.get(xmode)
     pyr = xmode.endswith("pyr"); trail = xmode.startswith("suiveur")
-    stop = stp; best = fill; ajout = None
-    jend = min(j0 + nmax, len(o) - 1)
-    while jend > j and (tt[jend].hour * 60 + tt[jend].minute) > 23 * 60 + 45 - 5 and tt[jend].date() == tt[j0].date():
-        jend -= 1
-    pire = fill; sortie = None; nu = 1
-    for jj in range(j, jend + 1):
-        sl = spE if jj < j0 + nwin else sp[jj]
+    stop = stp; best = fill0; ajout = None
+    pire = fill0; sortie = None; nu = 1
+    for q in range(len(idx)):
+        sl = spr[q]
         # 1) stop (prioritaire ; dans la bougie d'entree, toucher le stop = stoppe)
-        if L[jj] <= stop:
-            px = min(stop, O[jj]) if jj > j else stop
-            sortie = (jj, px - sl - xa); cout += nu * (sl + xa); pire = min(pire, stop); break
-        pire = min(pire, L[jj])
-        # 2) ajout (pyramide) a +1R
-        if pyr and ajout is None and H[jj] >= fill + R:
-            ajout = fill + R + sl * (1 + slip) + xa; cout += sl * (1 + slip) + xa; nu = 2
-            stop = max(stop, fill)
-            if L[jj] <= stop:                  # meme bougie : on suppose le retour au stop
-                sortie = (jj, stop - sl - xa); cout += nu * (sl + xa); break
-        # 3) objectif (ordre limite)
-        if tgt and H[jj] >= fill + tgt * R:
-            sortie = (jj, fill + tgt * R); break
+        if L[q] <= stop:
+            px = min(stop, O[q]) if q > 0 else stop
+            sortie = (q, px - sl - xa); cout += nu * (sl + xa); pire = min(pire, stop); break
+        pire = min(pire, L[q])
+        # 2) ajout (pyramide) a +1R, servi au pire (spread + glissement)
+        if pyr and ajout is None and H[q] >= fill0 + R:
+            ajout = fill0 + R + sl * (1 + slip) + xa; cout += sl * (1 + slip) + xa; nu = 2
+            stop = max(stop, fill0)
+            if L[q] <= stop:                   # meme bougie : on suppose le retour au stop
+                sortie = (q, stop - sl - xa); cout += nu * (sl + xa); break
+        # 3) objectif (ordre limite, sans glissement)
+        if tgt and H[q] >= fill0 + tgt * R:
+            sortie = (q, fill0 + tgt * R); break
         if trail:
-            best = max(best, H[jj]); stop = max(stop, best - R)
+            best = max(best, H[q]); stop = max(stop, best - R)
     if sortie is None:
-        sortie = (jend, C[jend])
-    js, px = sortie
-    # couts d'entree payes en plus du prix ; glissement de sortie deja dans px (et compte dans cout)
-    gain = (px - fill) - ce + ((px - ajout) if ajout is not None else 0.0)
-    cout_tot = cout
-    mae = max(fill - pire, 0) + ce + (max(ajout - pire, 0) if ajout is not None else 0)
+        sortie = (len(idx) - 1, C[-1])
+    q, px = sortie
+    gain = (px - fill) + ((px - ajout) if ajout is not None else 0.0)
+    mae = max(fill - pire, 0) + (max(ajout - pire, 0) if ajout is not None else 0)
     mae = max(mae, -gain)
-    return s, gain, cout_tot, mae, tt[j], tt[js]
+    return s, gain, cout, mae, tt[j], tt[idx[q]]
 
 
 def prep(D, T, pas):
