@@ -164,3 +164,5 @@ en secours). Passage Fable lancé tout de suite (PRIORITES 17/11 10 h 15 et 10 h
 **Correction 17/11 10 h 20 :** la session Fable a échoué aussitôt (« out of usage credits », remise à zéro indiquée vers
 le 01/12). Retour en arrière : triggers Fable désactivés, relais Opus réactivé et lancé sur le gros lot.
 À revoir avec Baptiste : la date réelle de retour de Fable.
+**Mise à jour 17/11 10 h 20 :** Baptiste a acheté des crédits ; Fable répond. Triggers Fable réactivés, relais Opus
+désactivé et interrompu. Fable consomme des crédits payants (≈ 109 $ sur la session v2 jusqu'au 15/11).
