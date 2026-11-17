@@ -548,3 +548,22 @@ B. Nouvelles idées : or/argent en paire (écart qui revient) ; or contre dollar
    ce que les rapports COT disent des autres marchés ; volatilité qui revient à la moyenne.
 C. Pour chaque piste qui tient : variante à part sur la démo (suffixe `_opt`, hors totaux du test), avec règle d'arrêt.
 Rendre un tableau unique « tout ce qui a été testé : tient / presque / ne tient pas » en tête d'AVIS.md.
+
+## 17/11, 12 h 15 (Paris) : savoir en direct quel moment arrive (4 pistes)
+Baptiste : si on met les bonnes règles au bon moment, c'est gagné. Les tests à 1-2 indices ne suffisent pas. Lot :
+1. **Modèle à plusieurs indices** : agitation et direction de l'or, des indices US, du dollar, des taux, heure, jour,
+   annonces, écart à la veille, fausses cassures du jour… → prédire le type de la suite (tendance / calme /
+   aller-retour) à 9 h, 12 h, 15 h 30, puis choisir la famille de règles. Modèle simple (arbre, régression), jugé hors
+   échantillon, comparé à la « triche » (+10 382 $) et à la sélection actuelle.
+2. **Les autres marchés annoncent l'or** : le Nasdaq, le dollar ou l'argent bougent-ils avant l'or (corrélations
+   décalées de 5 min à 2 h, au M5) ? Si oui, s'en servir pour entrer ou pour choisir la famille.
+3. **Bascule rapide en cours de journée** : changer de famille en minutes (pas en heures), stop serré quand on se
+   trompe ; mesurer le coût des bascules ratées.
+4. **Une IA qui juge en direct** (idée de Baptiste) : tester si un modèle de langage, à qui on montre seulement ce qui
+   était connu à l'instant t (bougies M15/H1 de l'or et des indices, sans date ni prix réels, pour qu'il ne puisse pas
+   se souvenir), dit juste « calme / tendance / aller-retour » pour les heures suivantes. Banc à l'aveugle sur au moins
+   150 moments tirés au hasard dans les 15 mois, avec des sous-agents à petit coût (modèle « haiku » ou « sonnet »),
+   score comparé au hasard et au modèle du point 1. Attention au biais de recul : juger après coup est facile, en
+   direct beaucoup moins. Si le score dépasse nettement le hasard : journal de jugements en direct sur la démo
+   (sans ordre au début), puis variante à part.
+Ce qui tient passe en variante à part sur la démo (`_opt`, hors totaux du test, règle d'arrêt écrite avant).
