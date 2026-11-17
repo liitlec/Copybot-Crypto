@@ -590,3 +590,13 @@ Nasdaq ; VIX qui bondit « presque »). Creuser autour, chaque piste en walk-for
 4. Combiner les règles qui tiennent en un portefeuille (corrélations, mise selon Kelly fractionné, levier global),
    et dire honnêtement le rendement par an attendu et la pire baisse, à 0,5 et 1 Kelly.
 Objectif : un portefeuille prouvé à plus de +10 % par an, pire baisse connue. Ce qui tient : variante `_opt` sur la démo.
+
+## 17/11, 17 h 20 (Paris) : la poche pari en « triple ou rien »
+Baptiste : 100 € qu'il accepte de perdre, à côté de tout le reste ; soit ça triple ou plus, soit c'est perdu.
+Ajouter à `pari_opt` un **objectif d'arrêt** : dès que la poche atteint ×3 (300 €), on encaisse et on s'arrête ; si
+elle tombe sous le seuil de ruine, on s'arrête aussi. Rappel : avec un objectif ×3 et un jeu sans avantage, la chance
+d'atteindre ×3 avant la ruine est d'environ 1 sur 3 ; avec un vrai avantage elle est plus haute, avec des frais plus
+basse. Calculer par Monte-Carlo sur les vrais trades (avantage ÷ 2), pour 100 € puis 500 € : chance d'atteindre ×3,
+chance de ruine, durée médiane jusqu'à l'un ou l'autre, pour chaque montage (repli S&P + Russell, contre-pied du
+Nasdaq, les deux, bt_or) et chaque mise (1 à 3 Kelly). Choisir le montage qui donne la plus forte chance de ×3, et
+l'objectif ×5 en variante. Tableau simple en tête d'AVIS.md. Mettre ce montage dans `pari_opt` (démo, compte virtuel).
