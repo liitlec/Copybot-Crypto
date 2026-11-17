@@ -307,6 +307,14 @@ def main():
             tables[(dep, L)] = R
             dire("\n### depart %d, levier %d" % (dep, L))
             dire(R.drop(columns=["se_x3"]).round(3).to_string(index=False))
+    # borne OPTIMISTE (choisie en voyant tout l'echantillon, donc biaisee) : BTC « lun achat », meilleur t plein echantillon
+    d = jour("BTC"); B = trades(d, evenements(d), ("lun", "aucun", 1, 0), sp["BTC"] + GLISS, FIN_AN)
+    B = B.assign(unite=0.01 * PRIX["BTC"])
+    dire("\n## Borne optimiste, biaisee (BTC lun achat, plein echantillon 2014-2026, %d trades, %.1f bp)" % (len(B), B.r.mean() * 1e4))
+    for dep in (100, 500):
+        R = PC.comparer(B[["t0", "t1", "r", "cout", "mae", "unite"]], 25, depart=dep)
+        dire("\n### depart %d, levier 25 (optimiste)" % dep)
+        dire(R.drop(columns=["se_x3"]).round(3).to_string(index=False))
     with open(os.path.join(SCR, "pc_weekend_sortie.txt"), "w") as f:
         f.write("\n".join(out_lignes))
     dire("\nLIGNES : " + repr(lignes))
