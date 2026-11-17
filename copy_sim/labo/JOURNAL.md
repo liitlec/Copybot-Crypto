@@ -1472,3 +1472,37 @@ rien (zéro à la marge d'erreur). `DJ30+` : pas de bougies intrajournalières (
 ajoutés si l'inventaire en donne des précis.
 
 **Total des essais : ≈ 49 180 + 54 = ≈ 49 234.**
+
+### Passage 46, suite (≈ 11 h 40) — moins de mois négatifs avec une pièce décorrélée (banc AD)
+
+`banc_pieces.py` (PRIORITES 16/11 18 h, point 2, suite du banc Z du relais ; ≈ 10 essais). Base = mélange v11 sur
+l'or (+6 635 $ sur 15 mois à 0,01 lot, **8 mois négatifs sur 16**). Pièce ajoutée = repli d'indices américains
+(règle du robot, bougies jour du courtier : NAS100+, SP500+, DJ30+, US2000+), pour un montant de marché M par trade.
+- Sur ces 15 mois le repli fait **64 trades, +78 bp par trade, 84 % de gagnants**, 15 mois positifs sur 16 : période
+  exceptionnelle (sur 6 à 8 ans chez le courtier : +25 à +40 bp). **Corrélation par mois avec la base : −0,11** ;
+  les 8 mois négatifs de la base sont tous des mois positifs du repli.
+
+| Montage | Total 15 mois | Mois négatifs | Pire mois | Pire creux |
+|---|---|---|---|---|
+| base (or seul) | +6 635 $ | 8 / 16 | −1 062 $ | −1 646 $ |
+| base + repli à 10 000 $ par trade | +11 627 $ | 3 / 16 | −783 $ | −1 390 $ |
+| base + repli à 20 000 $ par trade | +16 620 $ | **2 / 16** | −505 $ | −1 321 $ |
+| base + repli à 50 000 $ par trade | +31 596 $ | 1 / 16 | −110 $ | −2 413 $ |
+| **prudent : repli ramené à +30 bp par trade**, 10 000 $ | +8 555 $ | 6 / 16 | −1 167 $ | −1 892 $ |
+| prudent, 20 000 $ | +10 475 $ | **5 / 16** | −1 273 $ | −2 162 $ |
+| prudent, 50 000 $ | +16 235 $ | 4 / 16 | −1 588 $ | −3 712 $ |
+
+- **C'est la première idée qui tient l'objectif de Baptiste** (moins de mois négatifs sans perdre de total :
+  au contraire, le total monte), parce qu'elle ajoute une pièce qui gagne seule et ne ressemble pas à l'or. Mais la
+  moitié de l'effet vient de ce que ces 15 mois ont été très bons pour les indices : avec un repli « normal »
+  (+30 bp), on passe de 8 à 5 ou 6 mois négatifs, pas à 2, et le pire creux augmente un peu (la pièce a son propre
+  risque : un trade sur six perd, le pire −5 %).
+- Tailles : 20 000 $ de marché par trade ≈ 0,4 lot de `DJ30+` ou 0,7 lot de `NAS100+` (lot minimal 0,1 ≈ 5 165 $ sur
+  le Dow, vu au premier trade). Le robot trade au lot minimal : la pièce pèse aujourd'hui 4 fois moins que dans la
+  ligne « 20 000 $ ».
+- **Premier trade `repli_ind` en direct** : achat `DJ30+` 0,1 lot à 51 658 le 17/11 à 0 h (RSI 2 j = 9,0), stop
+  49 888, ouvert.
+- Ce banc ne change pas la sélection du test. Proposition (hors test, à décider après vendredi) : monter
+  `repli_ind` à ≈ 20 000 $ par trade s'il confirme en direct ; règle d'arrêt inchangée.
+
+**Total des essais : ≈ 49 244.**

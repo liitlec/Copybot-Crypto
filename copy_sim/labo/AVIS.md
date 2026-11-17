@@ -6,6 +6,11 @@
 4. Suite immédiate : variante à part « suivi » sur la démo (mêmes règles de tendance, coupées après 3 jours perdants), puis les retournements et les mois négatifs. Le test de la semaine n'est pas touché.
 5. Dépôts GitHub (public-apis, ECC, skills de trading) : lecture en cours par deux sous-agents, résultats au prochain point.
 
+**Ajouts de 11 h 40 :**
+- **Moins de mois négatifs : une piste tient.** Ajouter le repli d'indices américains à côté de l'or : les 8 mois négatifs de l'or sont tous des mois positifs du repli (corrélation −0,11). À 20 000 $ de marché par trade : 8 → 2 mois négatifs sur 16 et un total plus haut. Prudence : ces 15 mois ont été exceptionnels pour les indices (+78 bp par trade contre +30 d'habitude) ; avec un repli « normal » on passe plutôt de 8 à 5 mois négatifs.
+- Premier trade du repli d'indices en direct : achat du Dow (0,1 lot) cette nuit à 0 h, ouvert.
+- **Cassure de l'ouverture de Wall Street (ORB, 15 h 30)** : testée sur le Nasdaq 15 mois (18 réglages) : un peu positive sur la 1re moitié, négative sur la 2de. Non retenue ; S&P et Dow à confirmer quand le pont enverra leurs bougies M5.
+
 ## Avis du relais (17/11, 6 h 15)
 
 0. **Test, mardi 6 h 10** : sélection lundi −30,99 $ (47 trades), mardi déjà −20,88 $ (25 trades), dont `elan_m15` −23,75 $ sur 2 ; total −51,87 $. Témoin −12,41 $ mardi. Une erreur isolée à 2 h 39 (accès refusé à un fichier sous Windows) ; le robot a continué. Panier `bt_or` ouvert, pont à l'heure.
