@@ -1,0 +1,29 @@
+portefeuille,kelly,levier_moyen,an,creux,ans_neg,n_ans,debut
+base (repli 4 indices + rebond_nas),0.1,2.6,12.4,-28.4,3,32,1995
+base (repli 4 indices + rebond_nas),0.15,3.8,17.9,-40.7,4,32,1995
+base (repli 4 indices + rebond_nas),0.25,6.4,26.5,-61.2,5,32,1995
+base (repli 4 indices + rebond_nas),0.5,12.8,-100.0,-100.0,30,32,1995
+base (repli 4 indices + rebond_nas),1.0,25.4,-100.0,-100.0,31,32,1995
+base + vix_sp,0.1,2.9,12.8,-28.8,4,32,1995
+base + vix_sp,0.15,4.3,18.3,-40.9,4,32,1995
+base + vix_sp,0.25,7.2,26.7,-60.7,6,32,1995
+base + vix_sp,0.5,14.5,7.5,-100.0,11,32,1995
+base + vix_sp,1.0,28.3,-100.0,-100.0,31,32,1995
+tout (base + vix + pieces des points 1-3),0.1,2.9,12.8,-28.8,4,32,1995
+tout (base + vix + pieces des points 1-3),0.15,4.3,18.3,-40.9,4,32,1995
+tout (base + vix + pieces des points 1-3),0.25,7.2,26.7,-60.7,6,32,1995
+tout (base + vix + pieces des points 1-3),0.5,14.5,7.5,-100.0,11,32,1995
+tout (base + vix + pieces des points 1-3),1.0,28.3,-100.0,-100.0,31,32,1995
+seule : repli_SP,0.15,1.8,6.6,-32.2,7,32,1995
+seule : repli_SP,0.5,6.1,16.4,-80.3,7,32,1995
+seule : repli_NAS,0.15,0.9,4.5,-20.1,7,32,1995
+seule : repli_NAS,0.5,2.9,12.0,-57.5,8,32,1995
+seule : repli_DJ,0.15,1.2,2.4,-22.1,7,32,1995
+seule : repli_DJ,0.5,3.9,4.3,-63.5,9,32,1995
+seule : repli_RUT,0.15,0.0,-0.0,-1.3,2,32,1995
+seule : repli_RUT,0.5,0.0,-0.0,-4.3,2,32,1995
+seule : rebond_nas,0.15,1.0,7.2,-18.7,7,32,1995
+seule : rebond_nas,0.5,3.2,21.5,-58.0,9,32,1995
+seule : vix_sp,0.15,1.1,2.3,-28.4,11,32,1995
+seule : vix_sp,0.5,3.6,3.6,-75.3,13,32,1995
+reference : S&P 500 achete et garde (sans levier),,1.0,9.1,-56.8,8,32,1995
