@@ -1,6 +1,10 @@
 # État du laboratoire — après le passage 46, 17/11/2026 (11 h) — rythme : toutes les 2 h 30
 
 ## À lire d'abord (résumé de la situation, réécrit le 17/11)
+- **17/11 nuit : lot « pari court » (PRIORITES 20 h 10) FINI, robot v20 publié** : `pari_court_opt` (`mt5/robot/pari_court.py`,
+  compte virtuel 100 $ dans `etat_pari_court.json`, repli 4 indices US à 100 fois la poche, arrêt ×3 / < 20 $ / 30 jours).
+  Outil `pari_court_commun.py` (référence sans avantage). Cassures, annonces, week-end crypto : ne battent pas la
+  référence. À suivre : notes « sortie » de `pari_court_opt` (champ `compte_virtuel`, `arret`).
 - **17/11 soir : lot « mieux que +10 % » (PRIORITES 17 h) FINI, robot v19 publié** (`rebond_sp_opt`, `fomc_dax_opt`,
   hors test ; base v18 + essais patients). Points 1-3 : S&P contre-pied tient, FOMC DAX tient (faible depuis 2024),
   intrajournalier rien. Point 4 (`banc_portefeuille.py`) : 0,1 Kelly ≈ +19 %/an, −41 % (sans FOMC DAX +10 %, −29 %) ;

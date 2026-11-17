@@ -1656,3 +1656,31 @@ paramétré) et `fomc_dax_opt` (`mt5/robot/fomc_dax.py` : achat GER40+ à 17 h 2
 l'annonce, sortie 17 h 29 Paris le jour J, stop de secours 3 ATR, heure de Paris recalculée depuis l'heure serveur
 = New York + 7 h ; arrêt : somme des 16 derniers < −300 bp ou moyenne < 0 après 24 trades), taille minimale, hors
 totaux. Arrêt de `rebond_sp_opt` = celui de `rebond_nas_opt`. Essais OK (exit 0).
+
+## 17/11/2026 (nuit) — pari court, de 1 jour à 1 mois (PRIORITES 17/11 20 h 10), robot v20 `pari_court_opt`
+Outil commun `pari_court_commun.py` : fenêtres historiques RÉELLES (la poche s'engage au premier signal ; ordre et séries
+de pertes du marché), gain compté à la sortie (1re version corrigée : elle comptait le gain à l'entrée et donnait un faux
+avantage aux positions qui se chevauchent), liquidation, plafond du pont 0,50 lot par position, ruine < 20 % ; trois
+versions de chaque montage : mesurée, avantage ÷ 2, **référence sans avantage** (mêmes trades centrés sur zéro, coûts
+payés) ; « bat la référence » = chance de ×3 (avantage ÷ 2) > référence + 2 erreurs-types et espérance plus haute.
+- Cassures pyramidées et compression (BTC, ETH, NAS, or ; 828 réglages, walk-forward 4 → 1 mois) : aucune espérance
+  positive hors échantillon (4 marchés −5,2 bp, t −2,3 ; compression +0,8, t 0,3) ; le pyramidage n'ajoute rien ;
+  bat_ref = False partout. `banc_pc_cassure.py`.
+- Annonces NFP / CPI / FOMC, ordres des deux côtés (or, NAS, SP, DJ, EURUSD ; 216 réglages) : PRESQUE (+7,8 bp par
+  annonce, t 2,55, White p 0,027, Bonferroni 1,0 ; 1re moitié nulle ; glissement réel inconnu, il efface tout à 0,5 ×
+  l'amplitude) ; FOMC rien ; bat_ref = False partout. `banc_pc_annonces.py`.
+- Week-end crypto (BTC 2014-2026, ETH 2017-2026 ; 56 réglages) : −20 bp hors éch. (t −1,0) ; le courtier cote le
+  week-end au même spread ; bat_ref = False partout. `banc_pc_weekend.py`.
+- Rebonds et bt_or à forte mise (`banc_pc_rebonds.py`, 32 essais) : contre-pied Nasdaq (+21 bp, 1 136 trades), Nasdaq + S&P,
+  bt_or : ne battent pas la référence à court terme (trop peu de trades par mois, ou bt_or ruiné 83-100 % en 1 mois) ;
+  **repli 4 indices US (1 214 trades 1988-2026, +34 bp) bat la référence à 25, 50 et 100 fois le compte (1 mois)**.
+  Choix fixé d'avance (×3 en 1 mois à 100 $ max parmi ceux qui battent la référence) : repli 4 indices, levier 100,
+  mise recalculée (« tout remiser »). À 100 $, 1 mois (avantage ÷ 2 / référence) : ×2 29 / 22 %, ×3 17 / 13 %, ×5 8 / 5 %,
+  ×10 2,2 / 1,0 %, ruine 66 / 68 %, espérance +16 / −15 %. 1 semaine : ×3 7 / 5 %, ruine 41 / 42 %. 1 jour : ×3 6 / 4 %.
+  À 500 $ : le levier 100 ne bat plus nettement (plafond 0,50 lot) ; meilleur : levier 50 à mise fixe, 1 mois, ×2 18 /
+  12 %, ×3 5 / 2 %, ruine 36 / 39 %.
+Robot v20 (base v19 + essais patients) : `pari_court.PariCourt` (`pari_court_opt`), même code que `pari_opt` (réglages
+passés en attributs de classe, horizon ajouté), compte virtuel séparé `etat_pari_court.json` : repli sur NAS100+,
+SP500+, DJ30+, US2000+, levier 100 fois le compte virtuel, plafond 0,50 lot ; arrêt écrit d'avance : ×3 (on ferme tout),
+ruine < 20 $, ou 30 jours après la 1re ouverture (on ferme tout) ; pas de redémarrage sans décision de Baptiste.
+`pari_opt` inchangé dans ses règles. Essais OK (exit 0).

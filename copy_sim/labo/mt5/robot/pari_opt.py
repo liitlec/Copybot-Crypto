@@ -30,28 +30,32 @@ OBJECTIF = 3.0                 # x3 : on encaisse et on s'arrete (v18)
 FICHIER = "etat_pari.json"
 
 
-def lots_pour(compte, info, ask):
+def lots_pour(compte, info, ask, levier=LEVIER, nmax=NOTIONNEL_MAX_X):
     """Taille a jouer pour le compte virtuel ; 0 si un lot minimum est deja trop gros pour la poche."""
     pas = info.get("pas_lot") or info["lot_min"]
     unite = info["lot_min"] * info["taille_contrat"] * ask
-    if unite <= 0 or unite > NOTIONNEL_MAX_X * compte:
+    if unite <= 0 or unite > nmax * compte:
         return 0.0
-    n = max(1, int(math.floor(LEVIER * compte / unite)))
+    n = max(1, int(math.floor(levier * compte / unite)))
     lots = min(LOTS_MAX, info["lot_min"] + (n - 1) * pas if pas else info["lot_min"] * n)
     return round(math.floor(lots / pas + 1e-9) * pas, 2)
 
 
 class Pari:
+    # v20 : reglages en attributs de classe, pour que pari_court.PariCourt reprenne le meme code avec les siens
+    NOM, SYMBOLES, LEVIER, NOTIONNEL_MAX_X, OBJECTIF = NOM, SYMBOLES, LEVIER, NOTIONNEL_MAX_X, OBJECTIF
+    HORIZON = None                 # secondes apres la 1re ouverture ; au-dela : on solde et on s'arrete (pari court)
+
     def __init__(self, pont, fichier=FICHIER):
         self.pont, self.fichier = pont, fichier
-        self.compte, self.trades, self.somme, self.arret = DEPART, 0, 0.0, None
+        self.compte, self.trades, self.somme, self.arret, self.debut = DEPART, 0, 0.0, None, None
         self.pos, self.fait, self.infos, self.dernier, self.muets = {}, {}, {}, 0, set()
         try:
             with open(fichier, encoding="utf-8") as f:
                 d = json.load(f)
             self.compte, self.trades = d.get("compte", DEPART), d.get("trades", 0)
-            self.somme, self.arret = d.get("somme", 0.0), d.get("arret")
-            self.pos = {k: v for k, v in d.get("pos", {}).items() if k in SYMBOLES}
+            self.somme, self.arret, self.debut = d.get("somme", 0.0), d.get("arret"), d.get("debut")
+            self.pos = {k: v for k, v in d.get("pos", {}).items() if k in self.SYMBOLES}
             self.fait = d.get("fait", {})
         except (OSError, ValueError):
             pass
@@ -60,7 +64,7 @@ class Pari:
         try:
             with open(self.fichier, "w", encoding="utf-8") as f:
                 json.dump({"compte": self.compte, "trades": self.trades, "somme": self.somme, "arret": self.arret,
-                           "pos": self.pos, "fait": self.fait}, f)
+                           "pos": self.pos, "fait": self.fait, "debut": self.debut}, f)
         except OSError:
             pass
 
@@ -71,20 +75,26 @@ class Pari:
         self.compte = round(self.compte + (gain or 0.0), 2)
         self.trades += 1
         self.somme = round(self.somme + (gain or 0.0), 2)
-        if self.arret is None and self.compte >= OBJECTIF * DEPART:
-            self.arret = "objectif x%g atteint" % OBJECTIF
+        if self.arret is None and self.compte >= self.OBJECTIF * DEPART:
+            self.arret = "objectif x%g atteint" % self.OBJECTIF
         if self.arret is None and self.compte < POCHE_VIDE:
             self.arret = "poche vide"
         if self.arret is None and self.trades >= ARRET_N and self.somme < 0:
             self.arret = "moyenne negative apres %d trades" % ARRET_N
-        self.pont.noter(evenement="sortie", hypothese=NOM, symbole=s, raison=raison, profit=gain,
+        self.pont.noter(evenement="sortie", hypothese=self.NOM, symbole=s, raison=raison, profit=gain,
                         compte_virtuel=self.compte, arret=self.arret, essai="non prouve", **x)
 
-    def encaisser(self, ps):
-        """v18 : compte virtuel + gains latents >= objectif -> on ferme tout et on s'arrete."""
+    def encaisser(self, ps, maintenant=None):
+        """v18 : compte virtuel + gains latents >= objectif -> on ferme tout et on s'arrete.
+        v20 : idem a la fin de l'horizon (HORIZON secondes apres la 1re ouverture), quel que soit le resultat."""
         ouverts = {s: o for s, o in self.pos.items() if o["ticket"] in ps}
         latent = sum(ps[o["ticket"]].get("profit") or 0.0 for o in ouverts.values())
-        if self.arret or not ouverts or self.compte + latent < OBJECTIF * DEPART:
+        fin = bool(self.HORIZON and self.debut and maintenant is not None and maintenant - self.debut >= self.HORIZON)
+        if fin and not self.arret and not ouverts:
+            self.arret = "fin de l'horizon"
+            self.sauver()
+            return
+        if self.arret or not ouverts or (self.compte + latent < self.OBJECTIF * DEPART and not fin):
             return
         for s, o in ouverts.items():
             p = ps[o["ticket"]]
@@ -94,10 +104,10 @@ class Pari:
                 info = self.infos.get(s) or self.pont.symbole(s)
                 gain = (x - e) * o["lots"] * info["taille_contrat"] if e and x else p.get("profit")
                 del self.pos[s]
-                self.compter(round(gain, 2), s, "objectif x%g" % OBJECTIF, ticket=o["ticket"], entree=e, prix_sortie=x,
+                self.compter(round(gain, 2), s, "fin de l'horizon" if fin else "objectif x%g" % self.OBJECTIF, ticket=o["ticket"], entree=e, prix_sortie=x,
                              lots=o["lots"])
         if not self.pos:
-            self.arret = self.arret or "objectif x%g atteint" % OBJECTIF
+            self.arret = self.arret or ("fin de l'horizon" if fin else "objectif x%g atteint" % self.OBJECTIF)
         self.sauver()
 
     def tour(self, ps, maintenant, peut_ouvrir):
@@ -105,18 +115,18 @@ class Pari:
             return
         self.dernier = maintenant
         try:
-            self.encaisser(ps)
+            self.encaisser(ps, maintenant)
         except Exception as e:
             if "encaisser" not in self.muets:
                 self.muets.add("encaisser")
-                self.pont.noter(evenement="erreur", hypothese=NOM, texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
-        for s in SYMBOLES:
+                self.pont.noter(evenement="erreur", hypothese=self.NOM, texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
+        for s in self.SYMBOLES:
             try:
                 self.un(s, ps, maintenant, peut_ouvrir)
             except Exception as e:                       # ne doit jamais gener le reste du robot
                 if s not in self.muets:
                     self.muets.add(s)
-                    self.pont.noter(evenement="erreur", hypothese=NOM, symbole=s,
+                    self.pont.noter(evenement="erreur", hypothese=self.NOM, symbole=s,
                                     texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
 
     def un(self, s, ps, maintenant, peut_ouvrir):
@@ -161,21 +171,22 @@ class Pari:
         if s not in self.infos:
             self.infos[s] = self.pont.symbole(s)
         info = self.infos[s]
-        lots = lots_pour(self.compte, info, px["ask"])
+        lots = lots_pour(self.compte, info, px["ask"], self.LEVIER, self.NOTIONNEL_MAX_X)
         a = R.atr(d1)
         ecart = max(R.STOP_ATR * a, 3 * (px["ask"] - px["bid"]) + info.get("niveau_stops_points", 0) * info["point"])
         stop = round(px["bid"] - ecart, info["chiffres"])
         self.fait[s] = jour
         self.sauver()
         if lots <= 0:
-            self.pont.noter(evenement="ouverture sautee", hypothese=NOM, symbole=s, raison="lot minimum trop gros pour la poche",
+            self.pont.noter(evenement="ouverture sautee", hypothese=self.NOM, symbole=s, raison="lot minimum trop gros pour la poche",
                             compte_virtuel=self.compte)
             return
-        r = self.pont.ouvrir(s, "achat", lots, stop=stop, id=NOM)
+        r = self.pont.ouvrir(s, "achat", lots, stop=stop, id=self.NOM)
         if r.get("ok") and r.get("ticket"):
             self.pos[s] = {"ticket": r["ticket"], "entree": r.get("prix_obtenu"), "jour": jour, "lots": lots}
+            self.debut = self.debut or maintenant
             self.sauver()
-        self.pont.noter(evenement="ouverture", hypothese=NOM, symbole=s, sens=1, ok=bool(r.get("ok")), refus=r.get("refus"),
+        self.pont.noter(evenement="ouverture", hypothese=self.NOM, symbole=s, sens=1, ok=bool(r.get("ok")), refus=r.get("refus"),
                         lots=lots, notionnel=round(lots * info["taille_contrat"] * px["ask"]), compte_virtuel=self.compte,
                         bid=px["bid"], ask=px["ask"], stop=stop, atr=round(a, 2), prix_obtenu=r.get("prix_obtenu"),
                         essai="non prouve")

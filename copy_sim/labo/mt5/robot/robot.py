@@ -15,8 +15,9 @@ import repli_ind
 import rebond_nas
 import pari_opt
 import fomc_dax
+import pari_court
 
-VERSION = 19
+VERSION = 20
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -211,6 +212,7 @@ class Robot:
         self.rebond = rebond_nas.Rebond(pont)           # v15 : rebond_nas_opt, hors test (voir rebond_nas.py)
         self.rebond_sp = rebond_nas.Rebond(pont, fichier="etat_rebond_sp.json", symbole="SP500+", nom="rebond_sp_opt")  # v19
         self.fomc = fomc_dax.Fomc(pont)                 # v19 : fomc_dax_opt, hors test (voir fomc_dax.py)
+        self.pari_court = pari_court.PariCourt(pont)    # v20 : poche pari court, compte virtuel separe, hors test
         self.pari = pari_opt.Pari(pont)                 # v16 : poche pari, compte virtuel 100 $, hors test (voir pari_opt.py)
         self.charger()
 
@@ -245,6 +247,7 @@ class Robot:
         connus.update(self.pari.tickets())              # v16 : ni celles de pari_opt
         connus.update(self.rebond_sp.tickets())         # v19 : ni celles de rebond_sp_opt et fomc_dax_opt
         connus.update(self.fomc.tickets())
+        connus.update(self.pari_court.tickets())        # v20
         self.repli.adopter({t: p for t, p in ps.items() if t not in connus})   # autre position sur un indice : repli_ind
         connus.update(self.repli.tickets())
         for nom, o in list(self.ouvert.items()):
@@ -473,6 +476,7 @@ class Robot:
         self.rebond.tour(ps, maintenant, permis)        # v15 : Nasdaq, contre-pied d'une journee de grande amplitude
         self.rebond_sp.tour(ps, maintenant, permis)     # v19 : S&P, contre-pied d'une grande journee (banc_grande_journee.py)
         self.fomc.tour(ps, maintenant, permis)          # v19 : DAX avant les annonces de la Fed (banc_calendrier.py)
+        self.pari_court.tour(ps, maintenant, permis)    # v20 : pari court (repli 4 indices, levier 100, 1 mois)
         self.pari.tour(ps, maintenant, permis)          # v16 : poche pari (repli SP500+ / US2000+, compte virtuel)
         if bougies is None or "crypto" in bougies:
             self.tour_crypto(ps, maintenant, permis, (bougies or {}).get("crypto"))

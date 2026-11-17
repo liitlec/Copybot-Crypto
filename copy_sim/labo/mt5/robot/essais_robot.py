@@ -791,3 +791,57 @@ for f in ("etat_fomc_essai.json", "etat_repli_essai5.json", "etat_fomc.json", "e
     if os.path.exists(f):
         os.remove(f)
 print("ESSAIS OK")
+
+
+# v20 : pari_court_opt (poche pari court : repli 4 indices, levier 100 fois le compte virtuel, 1 mois au plus)
+import pari_court
+
+
+class PontCourt(PontPari):
+    def __init__(self):
+        super().__init__()
+        self.contrat = {s: 1.0 for s in pari_court.PariCourt.SYMBOLES}
+
+    def bougies(self, s, periode="M1", nombre=100):
+        if s not in pari_court.PariCourt.SYMBOLES:
+            raise ValueError("symbole absent")
+        return self.b[-nombre:]
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s in pari_court.PariCourt.SYMBOLES and sens == "achat" and id == "pari_court_opt" and 0 < lots <= 0.5
+        self.n += 1
+        self.pos[self.n] = {"ticket": self.n, "symbole": s, "sens": sens, "prix_entree": self.bid + self.ecart, "stop": stop,
+                            "profit": 0.0, "lots": lots}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": self.bid + self.ecart}
+
+
+assert pari_opt.lots_pour(100.0, info, 2800.0, 100.0, 120.0) == 0.5, "levier 100 : plafond 0,50 lot"
+assert pari_opt.lots_pour(100.0, info, 52000.0, 100.0, 120.0) == 0.1, "Dow : 1 lot mini (52 fois le compte) accepte"
+assert pari_opt.lots_pour(100.0, info, 52000.0) == 0.0, "pari_opt inchange : le Dow serait trop gros"
+for f in ("etat_pari_court_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+pc = PontCourt()
+pc.ecart = 0.5
+pk = pari_court.PariCourt(pc, fichier="etat_pari_court_essai.json")
+pc.b = jours([x / 7.0 for x in repli] + [repli[-1] / 7.0])
+pc.bid = repli[-1] / 7.0
+t0_ = pc.b[-1][0] + 3600
+pk.tour(pc.ps(), t0_, True)
+assert len(pc.pos) == 4 and pk.debut == t0_, "achat sur les 4 indices, debut de l'horizon note"
+assert all(p["lots"] == 0.5 for p in pc.pos.values()), "levier 100 : 0,50 lot (plafond du pont)"
+pa_ = pari_opt.Pari(pc, fichier="etat_pari_essai3.json")
+assert not set(pa_.tickets()) & set(pk.tickets()), "compte virtuel separe de pari_opt"
+pk.dernier = 0
+pk.tour(pc.ps(), t0_ + 29 * 86400, True)
+assert len(pc.pos) == 4 and not pk.arret, "avant 30 jours : on garde"
+pk.dernier = 0
+pk.tour(pc.ps(), t0_ + 30 * 86400 + 60, True)
+assert not pc.pos and pk.arret == "fin de l'horizon", "30 jours : on solde tout et on s'arrete"
+pk.fait, pk.dernier = {}, 0
+pk.tour(pc.ps(), t0_ + 31 * 86400, True)
+assert not pc.pos, "apres l'horizon : plus aucune ouverture"
+for f in ("etat_pari_court_essai.json", "etat_pari_essai3.json", "etat_pari_court.json"):
+    if os.path.exists(f):
+        os.remove(f)
+print("ESSAIS OK")

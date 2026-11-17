@@ -1,3 +1,27 @@
+# Avis pour Baptiste — 17/11/2026, nuit (pari court, de 1 jour à 1 mois, PRIORITES 17/11 20 h 10)
+
+1. **Une seule piste bat un vrai pile-ou-face : le repli des 4 indices américains, joué à 100 fois la poche.** Sur un mois, avec 100 € : 17 % de chances de tripler (contre 13 % sans avantage), 29 % de doubler, 2 % de ×10. **Mais deux fois sur trois, la poche est perdue** (66 %).
+2. **Les autres pistes ne battent pas la référence sans avantage** : cassures avec ajouts sur gain (BTC, ETH, Nasdaq, or), ordres des deux côtés aux annonces (un petit avantage, mais trop fragile), week-end crypto, et `bt_or` à forte mise (ruiné en un mois 83 à 100 % du temps).
+3. Sur 1 jour ou 1 semaine, la chance de ×3 reste petite (6 à 7 %), parce qu'il n'y a pas assez de trades dans une si courte fenêtre. Avec 500 €, le plafond de 0,50 lot par position limite la mise, et la chance de tripler en un mois tombe à 5 %.
+4. **Robot v20 publié** : `pari_court_opt` tourne sur la démo avec son propre compte virtuel de 100 €, séparé de `pari_opt` et hors totaux du test. Il s'arrête à ×3 (300 €), sous 20 €, ou 30 jours après son premier trade ; une nouvelle poche ne repart que si tu le décides.
+5. Ces chances supposent un avantage réel moitié moindre que celui mesuré. Les chiffres viennent des vraies séquences du marché (1988-2026), pas d'un tirage au hasard.
+
+**Pari court, 100 € au départ** (avantage ÷ 2 ; entre parenthèses, la même mise sans aucun avantage)
+
+| Montage | Horizon | ×2 | ×3 | ×5 | ×10 | Tout perdre | Bat la référence ? |
+|---|---|---|---|---|---|---|---|
+| **Repli 4 indices US, 100 fois la poche (choisi)** | 1 jour | 16 % (12) | 6 % (4) | 0,6 % (0,5) | 0,1 % | 34 % (35) | non |
+| même montage | 1 semaine | 20 % (14) | 7 % (5) | 1 % (1) | 0,3 % | 41 % (42) | oui |
+| même montage | **1 mois** | **29 % (22)** | **17 % (13)** | **8 % (5)** | **2 % (1)** | **66 % (68)** | **oui** |
+| même montage, 500 €, 50 fois, mise fixe | 1 mois | 18 % (12) | 5 % (2) | 0,1 % | 0 % | 36 % (39) | oui |
+| Contre-pied Nasdaq + S&P, 100 fois | 1 mois | 31 % (25) | 20 % (16) | 12 % (9) | 5 % (3) | 81 % (85) | non |
+| `bt_or`, 25 fois | 1 mois | 27 % (24) | 20 % (17) | 12 % (11) | 5 % (4) | 86 % (90) | non |
+| Annonces, ordres des deux côtés, 50 fois | 1 mois | — | 46 % (43) | — | — | 46 % (50) | non |
+| Cassures avec ajouts / compression | 1 mois | — | ≈ la référence | — | — | — | non |
+| Week-end crypto, 25 fois | 1 mois | 34 % (34) | 19 % (17) | 9 % (9) | 3 % (3) | 60 % (61) | non |
+
+Repère : sur un jeu sans avantage, tripler avant de perdre 80 % arrive environ 1 fois sur 3 sans horizon. Sur un mois, c'est moins, parce que la plupart des poches n'ont encore rien atteint au bout de 30 jours.
+
 # Avis pour Baptiste — 17/11/2026, soir (« trouver mieux que +10 % », PRIORITES 17/11 17 h)
 
 1. **Deux nouvelles règles tiennent**. Le contre-pied d'une grande journée marche aussi sur le **S&P 500** (+16 bp par trade, 801 trades depuis 2008), mais il double en partie celui du Nasdaq. On peut aussi **acheter le DAX deux jours avant une annonce de la Fed** et revendre avant l'annonce (+31 bp, 176 trades), mais c'est faible depuis 2024. Tout le reste ne tient pas : 9 autres marchés, les excès en cours de séance, le tournant du mois, la nuit contre le jour.
