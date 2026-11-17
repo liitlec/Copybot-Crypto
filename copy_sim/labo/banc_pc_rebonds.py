@@ -6,7 +6,7 @@ court ». Seules des regles a AVANTAGE PROUVE au labo sont misees :
   bt_or : paniers de la mecanique BlockTrend sur l'or (H1 courtier 08/2022-11/2026 ; « presque » : gagne surtout en 2024-26).
 Couts : 1,5 bp aller-retour (indices) + nuit pour le repli ; or : spread reel du banc. Tailles du courtier aux prix
 d'aujourd'hui (lot minimum : NAS100+ 0,1 x ~28 000 $, SP500+ 0,1 x ~7 600 $, DJ30+ 0,1 x ~51 000 $, US2000+ 0,1 x ~2 800 $,
-or 0,01 lot = 1 once ~3 880 $). Mise : levier L = 10 / 25 / 50 / 100 fois le compte (N = 4 montages x 4 leviers x 2
+or 0,01 lot = 1 once ~3 880 $), plafond du pont 0,50 lot par position (5 lots mini d'indice, 50 d'or). Mise : levier L = 10 / 25 / 50 / 100 fois le compte (N = 4 montages x 4 leviers x 2
 modes « compose » / « fixe » = 32 essais), comparee par pari_court_commun.comparer (fenetres historiques reelles,
 version mesuree, avantage / 2, reference sans avantage). Choix fixe d'avance : parmi les essais dont la version
 « avantage / 2 » bat nettement la reference (bat_ref) a 1 semaine ou 1 mois, celui qui maximise la chance de x3 en
@@ -36,7 +36,7 @@ def rebond(D, n, depuis):
     r = s * (x["close"] - x["open"]) / x["open"] - COUT
     mae = np.where(s > 0, (x["open"] - x["low"]) / x["open"], (x["high"] - x["open"]) / x["open"])
     return pd.DataFrame({"t0": x.index + pd.Timedelta(hours=1), "t1": x.index + pd.Timedelta(hours=23), "r": r.values,
-                         "cout": COUT, "mae": np.clip(mae, 0, None), "unite": UNITE[n], "marche": n})
+                         "cout": COUT, "mae": np.clip(mae, 0, None), "unite": UNITE[n], "marche": n, "max_unites": 5})
 
 
 def repli(D, n):
@@ -58,7 +58,7 @@ def repli(D, n):
             i = j + 1
         else:
             i += 1
-    return pd.DataFrame(T, columns=["t0", "t1", "r", "cout", "mae", "unite", "marche"])
+    return pd.DataFrame(T, columns=["t0", "t1", "r", "cout", "mae", "unite", "marche"]).assign(max_unites=5)
 
 
 def bt_or():

@@ -5,7 +5,9 @@ Entree : un tableau de trades (une ligne par position) avec les colonnes
   cout    : couts compris dans r (fraction), pour fabriquer la reference sans avantage ;
   mae     : pire excursion contre la position pendant la tenue (fraction >= 0) ;
   unite   : notionnel en $ d'UN lot minimum du courtier au prix d'aujourd'hui (la taille la plus petite possible) ;
-  groupe  : (facultatif) identifiant d'un panier : les positions d'un meme panier sont dimensionnees ensemble.
+  groupe  : (facultatif) identifiant d'un panier : les positions d'un meme panier sont dimensionnees ensemble ;
+  max_unites : (facultatif, 50 par defaut) plafond de lots minimum par position (le pont refuse plus de 0,50 lot :
+            indices a 0,1 lot -> 5 ; or a 0,01 lot -> 50).
 Simulation sur FENETRES HISTORIQUES REELLES (par defaut une fenetre commence a chaque jour ou un signal apparait, a
 l'heure du premier signal : la poche s'engage quand le montage se presente ; option « jours » : chaque jour a 0 h ; les trades qui commencent dans la
 fenetre sont joues dans l'ordre du temps) : rien n'est melange, l'ordre et les series de pertes sont ceux du marche.
@@ -30,7 +32,7 @@ def versions(T):
     return {"mesure": T, "avantage / 2": T.assign(r=T.r - m / 2), "sans avantage": T.assign(r=T.r - m - c)}
 
 
-def une_fenetre(t0, t1, r, mae, unite, grp, L, depart, mode, max_lots=50):
+def une_fenetre(t0, t1, r, mae, unite, grp, L, depart, mode, mx):
     """Trades de la fenetre, tries par t0. Le gain d'une position est compte a sa SORTIE (t1) ; la mise d'une position
     ne voit que les sorties d'AVANT son debut (pas de regard en avant entre positions qui se chevauchent).
     Liquidation : si n x unite x mae de la position (plus celles deja ouvertes) atteint le compte a son debut, la
@@ -54,7 +56,7 @@ def une_fenetre(t0, t1, r, mae, unite, grp, L, depart, mode, max_lots=50):
         base = E if mode == "compose" else depart
         g = grp[i]
         if g not in taille:
-            taille[g] = max(1, min(max_lots, int(L * base / unite[i])))
+            taille[g] = max(1, min(int(mx[i]), int(L * base / unite[i])))
         n = taille[g]
         risque = n * unite[i] * mae[i] + sum(x[2] for x in ouverts)
         gain = -E if risque >= E else n * unite[i] * r[i]
@@ -69,6 +71,7 @@ def evaluer(T, L, depart=100.0, mode="compose", horizons=HORIZONS, pas_jours=1, 
     T = T.sort_values("t0").reset_index(drop=True)
     if "groupe" not in T:
         T = T.assign(groupe=np.arange(len(T)))
+    mx = (T.max_unites if "max_unites" in T else pd.Series(50, index=T.index)).values
     t0 = T.t0.values; t1 = T.t1.values; r = T.r.values; mae = T.mae.values; un = T.unite.values; gp = T.groupe.values
     debut, fin = T.t0.min().normalize(), T.t0.max()
     out = []
@@ -83,7 +86,7 @@ def evaluer(T, L, depart=100.0, mode="compose", horizons=HORIZONS, pas_jours=1, 
             a, b = np.searchsorted(t0, np.datetime64(s)), np.searchsorted(t0, np.datetime64(s + d))
             if b <= a:
                 res.append((depart, depart, False)); continue
-            res.append(une_fenetre(t0[a:b], t1[a:b], r[a:b], mae[a:b], un[a:b], gp[a:b], L, depart, mode))
+            res.append(une_fenetre(t0[a:b], t1[a:b], r[a:b], mae[a:b], un[a:b], gp[a:b], L, depart, mode, mx[a:b]))
         if not res:
             continue
         E = np.array([x[0] for x in res]); H = np.array([x[1] for x in res]); R = np.array([x[2] for x in res])

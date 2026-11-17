@@ -33,7 +33,6 @@ Plan fixe d'avance (avant de voir un resultat) :
 Usage : python3 banc_pc_annonces.py   (~1-2 min)"""
 import os, sys, math
 import numpy as np, pandas as pd
-from scipy import stats
 import pari_court_commun as PC
 
 ICI = os.path.dirname(os.path.abspath(__file__))
@@ -69,7 +68,7 @@ CPI = ["2024-10-10", "2024-11-13", "2024-12-11", "2025-01-15", "2025-02-12", "20
 FOMC = [d for d in pd.read_csv(os.path.join(ICI, "donnees", "fomc.csv")).annonce if "2024-09-01" <= d <= "2026-11-17"]
 EV = sorted([(pd.Timestamp(d + " 15:30"), "NFP") for d in NFP] + [(pd.Timestamp(d + " 15:30"), "CPI") for d in CPI]
             + [(pd.Timestamp(d + " 21:00"), "FOMC") for d in FOMC])
-EV = pd.DataFrame(EV, columns=["T", "type"])
+EV = pd.DataFrame(EV, columns=["quand", "type"])
 
 M5 = {mk: charge_m5(mk) for mk in NOMS}
 UNITE = {"xau": 1 * M5["xau"].cloture.iloc[-1], "nas": 0.1 * M5["nas"].cloture.iloc[-1], "sp": 0.1 * M5["sp"].cloture.iloc[-1],
@@ -204,7 +203,7 @@ def main():
     faibles = dout[dout.rap < 2]
     P_("- dates douteuses (rapport < 2 sur l'or ET le Nasdaq) : %s" % (", ".join("%s %s %.1fx" % (r.T.date(), r.ty, r.rap) for r in faibles.itertuples()) or "aucune"))
     # ---------------- walk-forward
-    ev_t = EV.T
+    ev_t = EV.quand
     mois = ev_t.dt.to_period("M")
     couverts = sorted(TR.e.unique()); m_c = mois[couverts]
     MO = sorted(m_c.unique())
@@ -225,7 +224,7 @@ def main():
             ch += [gi] * te.sum(); oos.append(pd.DataFrame({"e": M.index[te], "gi": gi, "v": M.loc[te, gi].values}))
         O = pd.concat(oos)
         t = tstat(O.v); h1, h2 = np.array_split(O.v.values, 2)
-        p1 = stats.t.sf(t, len(O) - 1)
+        p1 = 0.5 * math.erfc(t / math.sqrt(2))   # loi normale (prudent a peu pres egal pour n > 25)
         x = TR if u == "panier" else TR[TR.mk == u]
         ntr = sum(((x.e == e) & (x.gi == g)).sum() for e, g in zip(O.e, O.gi))
         fq = pd.Series(ch).value_counts()
@@ -262,14 +261,14 @@ def temoins(TR, WF, u, out, tirages=200):
     P_ = lambda *a: (print(*a), out.append(" ".join(str(z) for z in a)))
     O = WF[u]
     reel = O.v.mean()
-    jours_ann = set(EV.T.dt.normalize())
+    jours_ann = set(EV.quand.dt.normalize())
     mks = list(NOMS) if u == "panier" else [u]
     nm = len(mks)
     rng = np.random.default_rng(5)
     # pre-calcul : pour chaque jour ouvre libre et chaque heure (15:30, 21:00), le gain de chaque reglage utilise
     gis = sorted(O.gi.unique())
     D0 = M5["xau"].index.normalize().unique()
-    D0 = D0[(D0.dayofweek < 5) & (D0 >= O.e.map(EV.T).min().normalize() - pd.Timedelta(days=200))]
+    D0 = D0[(D0.dayofweek < 5) & (D0 >= O.e.map(EV.quand).min().normalize() - pd.Timedelta(days=200))]
     libres = [d for d in D0 if d not in jours_ann]
     cache = {}
     def gain(day, hm, gi):
@@ -290,7 +289,7 @@ def temoins(TR, WF, u, out, tirages=200):
                 tot += x[1] / c[j0 - 1]
         cache[key] = tot / nm
         return cache[key]
-    hm = O.e.map(lambda e: "%02d:%02d" % (EV.T[e].hour, EV.T[e].minute)).values
+    hm = O.e.map(lambda e: "%02d:%02d:00" % (EV.quand[e].hour, EV.quand[e].minute)).values
     res = []
     for _ in range(tirages):
         dd = rng.choice(len(libres), len(O), replace=False)
@@ -364,7 +363,7 @@ def controle_m15(gis, out):
         return
     M = R.pivot(index="e", columns="gi", values="r")
     P_("Or M15 hors periode (%s -> %s, %d annonces, amplitude M5 = %.2f x M15, pire-cas M15 encore plus dur) : reglages a moyenne > 0 : %d/36"
-       % (EV.T[M.index[0]].date(), EV.T[M.index[-1]].date(), len(M), ratio, (M.mean() > 0).sum()))
+       % (EV.quand[M.index[0]].date(), EV.quand[M.index[-1]].date(), len(M), ratio, (M.mean() > 0).sum()))
     for gi in gis:
         P_("  %s : %+.1f bp/annonce, t %+.2f" % (nomg(GRILLE[gi]), 1e4 * M[gi].mean(), tstat(M[gi])))
 
