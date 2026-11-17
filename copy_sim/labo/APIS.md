@@ -8,7 +8,7 @@ utilisée. Une clé ne va jamais dans le dépôt (la demander à Baptiste par AV
 
 | API | Ce qu'elle donne | Clé ? | Répond aujourd'hui ? | Utilité pour le labo | Testé au banc ? |
 |---|---|---|---|---|---|
-| **Helious** `api.helious.io/api/calendar` | calendrier US : annonces économiques avec importance (Low/Medium/High), prévision, publié, surprise ; discours Fed, FOMC, adjudications, fériés | non | **répond** (428 lignes, 13/10/2025 → 26/11/2027) | **n° 1** : couper le robot autour des annonces High ; repérer les journées à risque d'aller-retour | non (banc X a testé l'or à 8 h 30 NY **sans** calendrier : rien) |
+| **Helious** `api.helious.io/api/calendar` | calendrier US : annonces économiques avec importance (Low/Medium/High), prévision, publié, surprise ; discours Fed, FOMC, adjudications, fériés | non | **répond** (428 lignes, 13/10/2025 → 26/11/2027 ; **vérifié le 17/11 : avant le 14/11/2026 il n'y a que des jours fériés, donc pas d'historique d'annonces**) | **n° 1** : couper le robot autour des annonces High ; repérer les journées à risque d'aller-retour | non (banc X a testé l'or à 8 h 30 NY **sans** calendrier : rien) |
 | **FXMacroData** `api.fxmacrodata.com/v1/calendar/usd` (cité par tradermonty) | calendrier USD officiel, heure exacte de publication (NY et UTC) | non pour l'USD | **répond** (501 annonces) | complément de Helious, mais **seulement l'avenir** (17/11/2026 → 2027) : utile au robot, pas au banc | non |
 | **CFTC** (données ouvertes, `publicreporting.cftc.gov`, source citée par XOOMAR) | rapport COT hebdomadaire : positions longues/courtes des spéculateurs (« non commerciaux ») par marché | non | **répond** (or : 1 942 semaines depuis 1986 ; S&P 500 e-mini, Nasdaq 100 e-mini présents) | positionnement : tester le « COT à contre-courant » (voir SKILLS_TRADING.md) sur l'or jour | non |
 | **Fed Treasury** (fiscaldata) `avg_interest_rates` | taux moyens de la dette US (bons du Trésor : 4,014 % fin octobre 2026) | non | **répond** | coût du portage des CFD (financement de nuit) ; taux sans risque | non |
@@ -26,7 +26,7 @@ utilisée. Une clé ne va jamais dans le dépôt (la demander à Baptiste par AV
 « IA » des actualités (clé, aucune preuve mesurable).
 
 ## Ce qui répond sans clé et sert vraiment (dans l'ordre)
-1. **Helious** : seul calendrier avec un historique (13 mois) → banc « pause ± 30 min autour des annonces High »
+1. **Helious** : utile pour les annonces à venir seulement (pas d'historique) ; le banc `banc_pause_annonces.py` a dû reconstruire les dates (emploi, inflation, Fed) : la pause ne tient pas. Ancien texte : banc « pause ± 30 min autour des annonces High »
    sur l'or M5 et le Nasdaq M5. Prochaine étape : `calendrier.py` qui garde une copie dans `labo/donnees/`.
 2. **CFTC COT** : 40 ans d'historique gratuit → banc « COT à contre-courant » sur l'or jour (règle dans
    SKILLS_TRADING.md).
