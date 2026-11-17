@@ -650,7 +650,8 @@ assert not pp.pos and not pa.pos, "sortie au-dessus de la moyenne 5 j"
 gain = 2 * (225.0 - 0.5) * 0.5
 assert abs(pa.compte - (100.0 + gain)) < 0.01 and pa.trades == 2, "compte virtuel = 100 $ + gains reels"
 # poche vide : plus d'ouverture
-pa.compte, pa.dernier = 30.0, 0
+assert pa.arret == "objectif x3 atteint", "v18 : 100 $ + 224,50 $ = 324,50 $ >= 300 $ -> objectif x3"
+pa.compte, pa.dernier, pa.arret = 30.0, 0, None
 pp.pos[950] = {"ticket": 950, "symbole": "SP500+", "sens": "achat", "prix_entree": 1.0, "stop": 0.5, "profit": -15.0}
 pa.pos["SP500+"] = {"ticket": 950, "entree": 1.0, "jour": jour, "lots": 0.1, "profit": -15.0}
 del pp.pos[950]
@@ -664,4 +665,36 @@ assert pari_opt.Pari(pp, fichier="etat_pari_essai.json").arret == "poche vide", 
 for f in ("etat_pari_essai.json", "etat_repli_essai4.json", "etat_pari.json"):
     if os.path.exists(f):
         os.remove(f)
+print("ESSAIS OK")
+
+
+# v18 : pari_opt « triple ou rien » : objectif d'arret a x3 (compte virtuel + gains latents >= 300 $)
+if os.path.exists("etat_pari_essai2.json"):
+    os.remove("etat_pari_essai2.json")
+pp2 = PontPari()
+pp2.ecart = 0.5
+pa2 = pari_opt.Pari(pp2, fichier="etat_pari_essai2.json")
+pa2.compte = 290.0
+pp2.b = jours([x / 7.0 for x in repli] + [repli[-1] / 7.0])
+pp2.bid = repli[-1] / 7.0
+pa2.tour(pp2.ps(), pp2.b[-1][0] + 3600, True)
+assert len(pp2.pos) == 2 and not pa2.arret, "a 290 $ : on joue encore"
+for p in pp2.pos.values():
+    p["profit"] = 4.0
+pa2.dernier = 0
+pa2.tour(pp2.ps(), pp2.b[-1][0] + 3700, True)
+assert len(pp2.pos) == 2 and not pa2.arret, "290 + 8 latents < 300 : on garde"
+pp2.bid = repli[-1] / 7.0 + 20.0
+for p in pp2.pos.values():
+    p["profit"] = 9.75
+pa2.dernier = 0
+pa2.tour(pp2.ps(), pp2.b[-1][0] + 3800, True)
+assert not pp2.pos and not pa2.pos, "objectif x3 atteint : tout est ferme"
+assert pa2.arret == "objectif x3 atteint" and pa2.compte >= 300.0, "et on s'arrete"
+assert pari_opt.Pari(pp2, fichier="etat_pari_essai2.json").arret == "objectif x3 atteint", "arret garde apres redemarrage"
+pa2.fait, pa2.dernier = {}, 0
+pa2.tour(pp2.ps(), pp2.b[-1][0] + 3900, True)
+assert not pp2.pos, "apres l'objectif : plus aucune ouverture"
+if os.path.exists("etat_pari_essai2.json"):
+    os.remove("etat_pari_essai2.json")
 print("ESSAIS OK")

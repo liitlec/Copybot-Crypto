@@ -15,7 +15,7 @@ import repli_ind
 import rebond_nas
 import pari_opt
 
-VERSION = 17
+VERSION = 18
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)

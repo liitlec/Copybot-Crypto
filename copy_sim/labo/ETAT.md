@@ -1,6 +1,11 @@
 # État du laboratoire — après le passage 46, 17/11/2026 (11 h) — rythme : toutes les 2 h 30
 
 ## À lire d'abord (résumé de la situation, réécrit le 17/11)
+- **17/11 soir : robot v18 publié** (base v17 + essais patients) : `pari_opt` « triple ou rien » (encaisse et s'arrête à
+  300 $ virtuels, ou sous 20 $). Banc `banc_pari_triple.py` (`donnees/pari_triple.csv`) : ×3 avant ruine 56 %, ruine 39 %.
+  **Lot en cours : PRIORITES 17/11 17 h « mieux que +10 % par an »** : 3 sous-agents (points 1-3 : `banc_grande_journee.py`,
+  `banc_intrajour.py`, `banc_calendrier.py`, trades hors éch. dans `donnees/rebonds_*.csv`) ; point 4 = `banc_portefeuille.py`
+  (premier passage : Kelly estimé 20-35 fois le capital, ruineux hors échantillon ; 0,1 Kelly ≈ +12 %/an, creux −28 %).
 - **17/11 après-midi, poche pari (PRIORITES 12 h 45) faite** : `banc_pari.py` (Monte-Carlo, `donnees/pari_*.csv`). À 100 $,
   le lot minimum ruine tout (72-90 % en 12 mois, avantage ÷ 2) ; seul passe le repli sur SP500+ / US2000+ à 14 fois le
   compte virtuel (ruine 15 %, ×2 26 %, ×5 6 %). **Robot v16 publié** : `pari_opt` (`mt5/robot/pari_opt.py`, compte virtuel

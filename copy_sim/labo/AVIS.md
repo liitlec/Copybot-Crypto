@@ -1,3 +1,22 @@
+# Avis pour Baptiste — 17/11/2026, soir (poche pari « triple ou rien », PRIORITES 17/11 17 h 20)
+
+1. **Ta poche de 100 € joue maintenant « triple ou rien »** (robot v18) : dès qu'elle vaut 300 € (gains en cours compris), le robot ferme tout et s'arrête ; sous 20 €, il s'arrête aussi.
+2. **Meilleure chance de tripler : le repli S&P + Russell à 14 fois la poche** (déjà en place) : **56 % de tripler, 39 % de tout perdre**, 5 % de n'avoir rien atteint en 5 ans ; il faut environ 1 an et demi en médiane. Pour comparer, un jeu sans avantage donne 29 %.
+3. Le contre-pied du Nasdaq, l'or (`bt_or`) ou les deux règles ensemble font moins bien à 100 € (23 à 27 % de tripler) : leur plus petite taille est déjà trop grosse pour la poche.
+4. **Avec 500 € au lieu de 100**, les deux règles ensemble à 1 Kelly montent à 68 % de tripler pour 24 % de ruine.
+5. Ces chiffres supposent un avantage réel moitié moindre que celui mesuré (hypothèse prudente). Le test de la semaine n'est pas touché ; le lot « mieux que +10 % par an » est en cours.
+
+| Montage (avantage ÷ 2) | Mise | Départ | Triple (×3) | Ruine | Rien en 5 ans | Durée médiane |
+|---|---|---|---|---|---|---|
+| **repli S&P + Russell (choisi, `pari_opt`)** | 2 Kelly | 100 € | **56 %** | 39 % | 5 % | ≈ 1,4 an |
+| même montage, objectif ×5 | 2 Kelly | 100 € | 42 % | 45 % | 13 % | ≈ 2 ans |
+| repli S&P + Russell | 1 Kelly | 100 € | 50 % | 11 % | 39 % | ≈ 4 ans |
+| contre-pied Nasdaq | toutes | 100 € | 23-24 % | 76-77 % | 0 % | ≈ 2 mois |
+| les deux | toutes | 100 € | 24-26 % | 74-76 % | 0 % | ≈ 2 mois |
+| `bt_or` (or) | toutes | 100 € | 26-27 % | 73 % | 0 % | ≈ 1 semaine |
+| les deux | 1 Kelly | 500 € | 68 % | 24 % | 7 % | ≈ 1,8 an |
+| contre-pied Nasdaq | 2 Kelly | 500 € | 53 % | 33 % | 14 % | ≈ 2 ans |
+
 # Avis pour Baptiste — 17/11/2026, après-midi (poche pari, PRIORITES 17/11 12 h 45)
 
 1. **Poche pari de 100 $ : le vrai problème, c'est la taille minimale du courtier.** Un seul lot minimum, c'est déjà 42 % de la poche risqués par position sur l'or, et 23 à 52 fois la poche sur le Nasdaq ou le Dow. Avec ces tailles, 72 à 90 % des parcours finissent ruinés en un an si l'avantage réel n'est que la moitié de celui du banc (hypothèse prudente).

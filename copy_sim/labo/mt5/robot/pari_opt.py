@@ -11,7 +11,12 @@ sortie cloture > moyenne 5 j ou 10 jours), avec une taille calculee sur le compt
   trade saute si un seul lot minimum depasse NOTIONNEL_MAX_X fois le compte (contrat plus gros que prevu).
   Le compte virtuel avance du gain reel de chaque sortie (en $, la taille jouee est celle qu'il aurait eue).
 REGLE D'ARRET (ecrite avant le premier trade) : poche vide = compte virtuel < 20 $ -> plus aucune ouverture ; aussi arret
-si la moyenne des trades est negative apres 40 trades. La decision de passer en reel reste a Baptiste.
+si la moyenne des trades est negative apres 40 trades.
+v18 (PRIORITES 17/11 17 h 20, « triple ou rien », banc labo/banc_pari_triple.py) : OBJECTIF D'ARRET a x3 = 300 $. Des que
+le compte virtuel plus les gains latents des positions ouvertes atteint 300 $, on ferme tout, on encaisse et on s'arrete.
+Monte-Carlo (avantage / 2, jusqu'a 5 ans) : ce montage a cette mise donne la plus forte chance de x3 avant la ruine a
+100 $ : 56 % (ruine 39 %, rien en 5 ans 5 %, duree mediane ~1,4 an) ; objectif x5 : 42 % (ruine 45 %).
+La decision de passer en reel reste a Baptiste.
 Ses positions sont connues par son fichier d'etat (etat_pari.json) ; le robot les retire de ce que repli_ind peut reprendre."""
 import json
 import math
@@ -21,6 +26,7 @@ NOM = "pari_opt"
 SYMBOLES = ("SP500+", "US2000+")
 DEPART, LEVIER, NOTIONNEL_MAX_X, LOTS_MAX = 100.0, 14.0, 30.0, 0.5
 POCHE_VIDE, ARRET_N = 20.0, 40
+OBJECTIF = 3.0                 # x3 : on encaisse et on s'arrete (v18)
 FICHIER = "etat_pari.json"
 
 
@@ -65,6 +71,8 @@ class Pari:
         self.compte = round(self.compte + (gain or 0.0), 2)
         self.trades += 1
         self.somme = round(self.somme + (gain or 0.0), 2)
+        if self.arret is None and self.compte >= OBJECTIF * DEPART:
+            self.arret = "objectif x%g atteint" % OBJECTIF
         if self.arret is None and self.compte < POCHE_VIDE:
             self.arret = "poche vide"
         if self.arret is None and self.trades >= ARRET_N and self.somme < 0:
@@ -72,10 +80,36 @@ class Pari:
         self.pont.noter(evenement="sortie", hypothese=NOM, symbole=s, raison=raison, profit=gain,
                         compte_virtuel=self.compte, arret=self.arret, essai="non prouve", **x)
 
+    def encaisser(self, ps):
+        """v18 : compte virtuel + gains latents >= objectif -> on ferme tout et on s'arrete."""
+        ouverts = {s: o for s, o in self.pos.items() if o["ticket"] in ps}
+        latent = sum(ps[o["ticket"]].get("profit") or 0.0 for o in ouverts.values())
+        if self.arret or not ouverts or self.compte + latent < OBJECTIF * DEPART:
+            return
+        for s, o in ouverts.items():
+            p = ps[o["ticket"]]
+            r = self.pont.fermer(o["ticket"])
+            if r.get("ok"):
+                e, x = o.get("entree") or p.get("prix_entree"), r.get("prix_obtenu")
+                info = self.infos.get(s) or self.pont.symbole(s)
+                gain = (x - e) * o["lots"] * info["taille_contrat"] if e and x else p.get("profit")
+                del self.pos[s]
+                self.compter(round(gain, 2), s, "objectif x%g" % OBJECTIF, ticket=o["ticket"], entree=e, prix_sortie=x,
+                             lots=o["lots"])
+        if not self.pos:
+            self.arret = self.arret or "objectif x%g atteint" % OBJECTIF
+        self.sauver()
+
     def tour(self, ps, maintenant, peut_ouvrir):
         if maintenant - self.dernier < 60:
             return
         self.dernier = maintenant
+        try:
+            self.encaisser(ps)
+        except Exception as e:
+            if "encaisser" not in self.muets:
+                self.muets.add("encaisser")
+                self.pont.noter(evenement="erreur", hypothese=NOM, texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
         for s in SYMBOLES:
             try:
                 self.un(s, ps, maintenant, peut_ouvrir)

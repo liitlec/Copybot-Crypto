@@ -1591,3 +1591,18 @@ avec ruine ≤ 50 %.
   après 40 trades. Positions retirées de ce que `repli_ind` peut reprendre (survie aux mises à jour). Page de suivi :
   exclue des totaux (préfixe `pari`). Essais OK (`essais_robot.py`, 6 contrôles ajoutés). Le filtre de fond de la v15
   reste retiré (`OPT_FOND = {}`). Test de la semaine non touché.
+
+## 17/11/2026 (soir) — poche pari « triple ou rien » (PRIORITES 17/11 17 h 20), `banc_pari_triple.py`, robot v18
+Même banc que `banc_pari.py` (trades réels, tailles du courtier, liquidation, blocs de 20 jours), scénario avantage ÷ 2,
+arrêt au premier des deux : objectif (×3, variante ×5) ou ruine (< 20 % du départ) ; 10 000 parcours, 5 ans au plus.
+Repère sans avantage : ×3 avant ruine = 29 %, ×5 = 17 %. Résultats à 100 $ (×3 / ruine / rien en 5 ans / durée médiane) :
+- repli S&P + Russell : lot mini 13 / 5 / 82 % ; 1 Kelly 50 / 11 / 39 % (≈ 4 ans) ; **2 Kelly 56 / 39 / 5 % (348 jours)** ;
+  3 Kelly 38 / 62 %. ×5 à 2 Kelly : 42 / 45 %.
+- contre-pied Nasdaq : 23-24 % / 76-77 % quelle que soit la mise (le lot mini fait déjà 28 fois la poche ; ≈ 50 jours).
+- les deux : 24-26 % / 74-76 % (lot mini du Nasdaq trop gros).
+- bt_or : 26-27 % / 73 % en ≈ 5 jours (pire qu'une pièce : le lot mini risque 42 % de la poche).
+À 500 $ : les deux à 1 Kelly 68 / 24 % (×5 : 54 / 25 %) ; repli S&P + Russell 2 Kelly 50 / 48 % ; Nasdaq 2 Kelly 53 / 33 %.
+Choix fixé d'avance (max ×3 à 100 $) : **repli S&P + Russell à 2 Kelly (levier 14) = le `pari_opt` déjà en place**.
+Robot v18 (base v17, essais patients gardés) : `pari_opt` encaisse et s'arrête dès que compte virtuel + gains latents
+≥ 300 $ (ferme ses positions), garde l'arrêt « poche vide » < 20 $. Essais OK (objectif, fermeture, redémarrage, plus
+d'ouverture après l'objectif).
