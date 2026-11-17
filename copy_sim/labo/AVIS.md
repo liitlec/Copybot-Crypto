@@ -1,4 +1,12 @@
-# Avis pour Baptiste — 17/11/2026, 11 h (passage 46, reprise)
+# Avis pour Baptiste — 17/11/2026, 13 h (Fable, recherche de fond)
+
+1. **« La bonne famille au bon moment », version rigoureuse** (`banc_famille_wf.py` : 48 réglages, 10 mois de test glissants, réglage choisi sur les 6 mois d'avant). Une seule piste passe : **suivre ce qui marche sur 5 jours** (famille à double mise si elle a gagné sur 5 jours, coupée sinon) : +1 648 $ hors échantillon contre −71 $ pour la sélection actuelle, 7 mois gagnés sur 10, p = 0,06 après correction pour 48 essais.
+2. **Mais la preuve est mince** : l'essentiel du gain vient de deux choses simples — couper les règles de retour, qui perdent sur 15 mois (−1 594 $), et miser double. Face à la tendance seule à mise égale, l'avantage tombe à +633 $ (t = 0,4) : pas prouvé. Je la garde donc **sur le papier** (`suivi_tendance.py`, sur les vrais trades), pas en position réelle `_opt`.
+3. **Les trois autres ne tiennent pas** : le marché choisit (+627 $, t = 0,9), les deux à la fois (+439 $, t = 1,0), filtre de tendance (−152 $).
+4. **Retirer `elan_m15` n'aide pas** : −708 $ sur 15 mois par rapport à la sélection actuelle (5 mois gagnés sur 10). Sa perte de cette semaine ressemble à de la malchance, pas à un défaut.
+5. Dépôts GitHub : analyse en cours, tableau par dépôt au point suivant. Le test de la semaine n'est pas touché.
+
+## Avis du relais (17/11, 11 h, passage 46)
 
 1. **« La bonne famille au bon moment », 4 pistes testées sur 15 mois d'or : une seule a un signe constant.** *Suivre ce qui marche* : quand les règles de tendance ont gagné sur les 3 derniers jours, elles gagnent ensuite +9 à +14 $ par jour ; quand elles ont perdu, −2 $. Vrai sur les deux moitiés, mais pas assez net pour être une preuve (t ≈ 1).
 2. **Les trois autres ne tiennent pas** : basculer en « retour » après une fausse cassure (−455 $ contre +1 315 $ sans bascule), mélanger tendance et retour (le retour perd sur 15 mois, donc il tire le total vers le bas), filtrer par la tendance de fond (bon sur la 1re moitié, mauvais sur la 2de).
