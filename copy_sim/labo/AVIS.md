@@ -19,6 +19,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Compression puis cassure (or, Nasdaq, argent, EURUSD, BTC) | ne tient pas | pas mieux qu'une cassure normale | — |
 | BlockTrend sur BTC et ETH | ne tient pas | nul quelle que soit la sortie | données seulement |
 | Or/argent en paire (écart qui revient) | ne tient pas | M5 15 mois : +854 bp hors éch., t = 0,5, p = 0,78 (le spread de l'argent, 5 bp, mange tout) ; journalier 24 ans : −11 581 bp | — |
+| « Silver Bullet » (fausse sortie de la fourchette 9-10 h New York, or et 3 indices) | ne tient pas | 96 réglages, 15-17 mois : somme des 4 marchés −193 bp hors éch. (t = −0,3), p = 0,61 ; la version inverse perd aussi | — |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
