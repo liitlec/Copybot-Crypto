@@ -4,7 +4,8 @@
 2. **Mais la preuve est mince** : l'essentiel du gain vient de deux choses simples — couper les règles de retour, qui perdent sur 15 mois (−1 594 $), et miser double. Face à la tendance seule à mise égale, l'avantage tombe à +633 $ (t = 0,4) : pas prouvé. Je la garde donc **sur le papier** (`suivi_tendance.py`, sur les vrais trades), pas en position réelle `_opt`.
 3. **Les trois autres ne tiennent pas** : le marché choisit (+627 $, t = 0,9), les deux à la fois (+439 $, t = 1,0), filtre de tendance (−152 $).
 4. **Retirer `elan_m15` n'aide pas** : −708 $ sur 15 mois par rapport à la sélection actuelle (5 mois gagnés sur 10). Sa perte de cette semaine ressemble à de la malchance, pas à un défaut.
-5. Dépôts GitHub : analyse en cours, tableau par dépôt au point suivant. Le test de la semaine n'est pas touché.
+5. **Dépôts GitHub : analyse finie** (`SKILLS_TRADING.md` : 7 dépôts, un tableau chacun ; `APIS.md` ; `ECC.md`). ORB, FVG et chasse aux stops d'Asie : déjà testés, rien. Un des dépôts a lui-même rejoué 27 566 trades de ce style : −0,18 R par trade après coûts. 8 sources gratuites sans clé répondent (calendrier Helious, positions COT sur l'or depuis 1986, taux US…). À tester ensuite, dans l'ordre : pause autour des annonces US fortes, « Silver Bullet » 17-18 h, COT à contre-courant sur l'or, coupe-circuit journalier.
+6. **Robot v15 (écrite par le relais, filtre de tendance en `_opt`) : je conseille de ne pas la publier telle quelle** — ce filtre est la piste 4, qui ne tient pas en walk-forward (−152 $). Le test de la semaine n'est pas touché.
 
 ## Avis du relais (17/11, 11 h, passage 46)
 

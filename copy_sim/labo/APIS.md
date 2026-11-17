@@ -1,32 +1,34 @@
-# public-apis : ce qui peut nous servir (étapes 1 et 2 faites, 16/11)
+# public-apis : ce qui peut nous servir (étapes 1 et 2 du 16/11, étape 3 finie le 17/11)
 
-Source : README de github.com/public-apis/public-apis (≈ 3 000 lignes). Lu : Calendar, Currency Exchange, Finance,
-Government (en partie). Aucun compte créé, rien installé. Une clé ne va jamais dans le dépôt.
+Source : README de github.com/public-apis/public-apis (≈ 3 000 lignes, lu en local, lecture seule). Lu : Calendar,
+Currency Exchange, Cryptocurrency, Finance, Government (en partie). Aucun compte créé, rien installé, aucune clé
+utilisée. Une clé ne va jamais dans le dépôt (la demander à Baptiste par AVIS.md).
 
-| Priorité | API | Ce qu'elle donne | Clé | Usage pour nous |
-|---|---|---|---|---|
-| 1 calendrier | Helious | résultats d'adjudications du Trésor US + annonces économiques « scorées » | non | heures et importance des annonces US → tester « couper le robot autour des annonces » |
-| 1 calendrier | TradingCalendars | jours fériés et fermetures FX / banques / bourses, séances écourtées | non | savoir d'avance les jours de marché mince (piège de l'aller-retour) |
-| 1 calendrier | Futures Clock | horaires de séance de 65 contrats à terme | non | contrôle des heures d'ouverture US (ORB 15 h 30 Paris) |
-| 2 historiques | Goldprice.dev | or, argent, cuivre au comptant et à terme, 30 ans d'histoire | non | allonger l'historique de l'or au-delà de Yahoo |
-| 2 historiques | Econdb | macro mondiale | non | régimes de fond (inflation, taux) |
-| 3 taux / COT | Fed Treasury (fiscaldata) | taux et données du Trésor US | non | portage, taux sans risque |
-| 3 taux / COT | XOOMAR | données SEC, FINRA, **CFTC** (positionnement) | à vérifier | COT si l'accès est libre |
-| 3 taux | FRED | séries de la Fed de St. Louis | oui (gratuite) | taux, à demander à Baptiste si besoin |
+## Tableau (essais du 17/11, un appel `curl` par API, sans clé, délai 15 s)
 
-Écartés : bourses actions individuelles, paiements, fiscalité, marchés de prédiction (hors sujet pour nos CFD MT5),
-les « signaux IA » payants (aucune preuve mesurable).
+| API | Ce qu'elle donne | Clé ? | Répond aujourd'hui ? | Utilité pour le labo | Testé au banc ? |
+|---|---|---|---|---|---|
+| **Helious** `api.helious.io/api/calendar` | calendrier US : annonces économiques avec importance (Low/Medium/High), prévision, publié, surprise ; discours Fed, FOMC, adjudications, fériés | non | **répond** (428 lignes, 13/10/2025 → 26/11/2027) | **n° 1** : couper le robot autour des annonces High ; repérer les journées à risque d'aller-retour | non (banc X a testé l'or à 8 h 30 NY **sans** calendrier : rien) |
+| **FXMacroData** `api.fxmacrodata.com/v1/calendar/usd` (cité par tradermonty) | calendrier USD officiel, heure exacte de publication (NY et UTC) | non pour l'USD | **répond** (501 annonces) | complément de Helious, mais **seulement l'avenir** (17/11/2026 → 2027) : utile au robot, pas au banc | non |
+| **CFTC** (données ouvertes, `publicreporting.cftc.gov`, source citée par XOOMAR) | rapport COT hebdomadaire : positions longues/courtes des spéculateurs (« non commerciaux ») par marché | non | **répond** (or : 1 942 semaines depuis 1986 ; S&P 500 e-mini, Nasdaq 100 e-mini présents) | positionnement : tester le « COT à contre-courant » (voir SKILLS_TRADING.md) sur l'or jour | non |
+| **Fed Treasury** (fiscaldata) `avg_interest_rates` | taux moyens de la dette US (bons du Trésor : 4,014 % fin octobre 2026) | non | **répond** | coût du portage des CFD (financement de nuit) ; taux sans risque | non |
+| **Goldprice.dev** | or, argent, cuivre au comptant (3 861,76 $ ce matin), historique long annoncé | non | **répond** | contrôle du prix de l'or ; historique long à vérifier dans la doc | non |
+| **Frankfurter** | taux de change BCE quotidiens, séries historiques | non | **répond** (série 2024 testée) | devises jour si on reprend la piste fin de mois FX ; on a déjà Yahoo | non |
+| **Nager.Date** | jours fériés de 90 pays (US 2026 testé) | non | **répond** | jours fériés US/UK pour éviter les séances minces (remplace TradingCalendars) | non |
+| **CoinGecko** | prix crypto (BTC 64 380 $ ce matin) | non | **répond** | contrôle BTC/ETH ; on a déjà les bougies du courtier | non |
+| **Indice peur/avidité crypto** (alternative.me) | sentiment crypto quotidien 0-100 (aujourd'hui 12, « peur extrême ») | non | **répond** | filtre de régime crypto, peu utile tant qu'on ne trade pas la crypto | non |
+| **Econdb** | macro mondiale | **oui** (401 sans clé) | ne répond pas sans clé | régimes de fond ; pas urgent | non |
+| TradingCalendars | fériés et séances écourtées | oui (gratuite, 10 appels/j) | essai du 16/11 : clé obligatoire | inutile : Helious + Nager suffisent | non |
+| FRED | séries de la Fed | oui (gratuite) | non essayé | taux ; Fed Treasury suffit pour l'instant | non |
+| Futures Clock, XOOMAR | horaires de 65 contrats ; données SEC/FINRA/CFTC | non | non essayés (adresse d'API non trouvée dans le README) | la CFTC directe remplace XOOMAR | non |
 
-## Étape 2 : essais réels (16/11, 6 h 10 Paris, un appel chacune, sans clé)
-- **Helious — oui, c'est notre calendrier.** `GET https://api.helious.io/api/calendar` (sans clé ; attention, pas
-  `helious.io/api/...`). 413 lignes d'oct. 2025 à nov. 2027 : annonces économiques (283), discours Fed (30),
-  adjudications (19), fériés (68), FOMC. Chaque ligne : `datetime_utc`, `impact` (Low/Medium/High), `forecast`,
-  `actual`, `previous`, `surprise`, `sigma`. Version gratuite : le chiffre publié n'apparaît qu'1 h après (sans gêne
-  pour couper le robot avant/après). Historique ≈ 13 mois seulement → suffit pour un premier test « pause autour des
-  annonces High » sur l'or M5.
-- **Goldprice.dev — répond** (`GET https://api.goldprice.dev/v1/prices?symbol=XAU-USD-SPOT`, sans clé : 3 869,82 $).
-  Historique long à vérifier dans la doc ; utile en complément, pas urgent (on a déjà le courtier et Yahoo).
-- **TradingCalendars — clé obligatoire** (gratuite, 10 appels/jour). Pas indispensable : Helious donne déjà les fériés.
+Écartés : actions individuelles, paiements, fiscalité, marchés de prédiction, « signaux IA » payants, sentiment
+« IA » des actualités (clé, aucune preuve mesurable).
 
-Prochaine étape utile (hors relais, quand l'usage le permet) : `calendrier.py` qui garde une copie de
-`api/calendar` dans `labo/donnees/`, puis banc « pause ± 30 min autour des annonces High » sur les règles du robot.
+## Ce qui répond sans clé et sert vraiment (dans l'ordre)
+1. **Helious** : seul calendrier avec un historique (13 mois) → banc « pause ± 30 min autour des annonces High »
+   sur l'or M5 et le Nasdaq M5. Prochaine étape : `calendrier.py` qui garde une copie dans `labo/donnees/`.
+2. **CFTC COT** : 40 ans d'historique gratuit → banc « COT à contre-courant » sur l'or jour (règle dans
+   SKILLS_TRADING.md).
+3. **Fed Treasury** : taux pour chiffrer le portage ; **Nager.Date** : fériés.
+FXMacroData sert au robot en direct (heures exactes à venir), pas au banc.
