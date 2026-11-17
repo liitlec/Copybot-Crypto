@@ -11,15 +11,11 @@
   `bt_crypto_btc` / `bt_crypto_eth`. Règles d'arrêt dans `robot.py`.
 - `python3 verif_secrets.py` avant chaque commit (lit `git diff --cached`).
 - **Lot en cours (ordre fixé le 17/11)** : 1) bonne famille au bon moment : **banc AB fait** (seul « suivre ce qui
-  marche » sur la famille tendance a un signe constant, t ≈ 1) → **à faire : variante démo `_suivi`** (elan_m15 et
-  cassure_m15 n'ouvrent que si la somme de leurs trades fermés des 3 derniers jours de bourse est > 0 ; il faut une
-  mémoire qui survive aux versions : relire `robot_journal.jsonl` est impossible depuis le robot → tenir le cumul
-  dans un fichier d'état et accepter qu'il reparte de zéro à chaque version, ou le calculer sur les bougies) ;
+  marche » sur la famille tendance a un signe constant, t ≈ 1) → **variante papier `suivi_tendance.py`** (sur les vrais trades, règle fixée le 17/11 ; à relancer à chaque passage et reporter dans AVIS) ;
   2) dépôts GitHub : sous-agents lancés au passage 46, écrire `SKILLS_TRADING.md`, compléter `APIS.md` et `ECC.md`,
-  puis banc ORB 15 h 30 sur `nas_m1_90k`, `sp_m1_90k` (DJ30+ M1 à demander au pont) ; 3) retournements (`_opt`,
+  puis banc ORB 15 h 30 sur `nas_m1_90k`, `sp_m1_90k` (DJ30+ M1 à demander au pont) ; 3) retournements : **banc AE fait, rien ne tient** (pas de `_opt`) ; ancien texte : (`_opt`,
   PRIORITES 16/11 10 h 30 : stop au point mort / suiveur, sortie anticipée, retournement, pause annonces Helious ;
-  l'alignement sur le fond est déjà réfuté au banc AB) ; 4) mois négatifs avec pièces décorrélées (repli d'indices
-  + `bt_or`, par mois). Portage : toujours pas de swaps dans `etat.json`. Amis : pas de `IDEES_AMIS.md`.
+  l'alignement sur le fond est déjà réfuté au banc AB) ; 4) mois négatifs : **banc AD fait** (repli d'indices + or : 8 → 2 mois négatifs à 20 000 $ par trade, 8 → 5 en version prudente ; proposition après vendredi : monter `repli_ind` à ≈ 20 000 $ par trade s'il confirme). Portage : toujours pas de swaps dans `etat.json`. Amis : pas de `IDEES_AMIS.md`.
 - Outils à ne pas utiliser d'ici : publication d'Artifact, envoi de message à une autre session (blocage).
 
 ## Ancien en-tête (historique du relais, 15-17/11)

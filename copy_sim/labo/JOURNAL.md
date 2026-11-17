@@ -1450,7 +1450,7 @@ Famille retour : équivalents M5 des règles M1 (`fcassure_m5` : contre la sorti
 
 Conclusion : aucune bascule tendance / retour ne tient ; la seule idée cohérente est **« suivre ce qui marche »
 sur la famille tendance** (réduire elan_m15 / cassure_m15 quand ils viennent de perdre sur 3 jours), à mesurer en
-direct comme variante à part. Elle aurait réduit ces règles dès mardi (lundi perdant).
+direct comme variante à part. **Correction (12 h 15, mesure sur les vrais trades) : elle n'aurait pas évité mardi** (voir la suite « variante papier »).
 
 **Total des essais : ≈ 49 180** (48 889 + ≈ 250 du relais, non décomptés par lui, + ≈ 45).
 
@@ -1533,3 +1533,18 @@ coût normal d'une règle de tendance un jour d'aller-retour. **Pas de variante 
 à mesurer que le hasard) ; si Baptiste y tient, la moins mauvaise est « stop à zéro après +2 A » sur `cassure_m15`.
 
 **Total des essais : ≈ 49 260.**
+
+### Passage 46, suite (≈ 12 h 15) — variante papier « suivi » sur les vrais trades de la démo
+
+Plutôt que d'ouvrir des positions en double, la variante est mesurée sur les trades réels du robot :
+`suivi_tendance.py` garde les trades `elan_m15` + `cassure_m15` seulement si la somme de la famille sur les 3 jours
+de bourse précédents est positive. **Règle fixée le 17/11, jugée sur les trades à partir de ce jour.**
+| Jour (Paris) | Trades | Famille | 3 jours d'avant | Variante |
+|---|---|---|---|---|
+| 12/11 | 8 | +108,53 $ | — | — |
+| 13/11 | 2 | −4,67 $ | — | — |
+| 16/11 | 4 | −24,81 $ | — | — |
+| 17/11 (à 12 h) | 5 | −48,75 $ | +79,05 $ | **trade : −48,75 $** |
+La variante n'aurait donc **pas** évité la perte de mardi (les 3 jours précédents étaient encore portés par la
+chute du 12/11) ; elle sera en pause mercredi (13 + 16 + 17 négatifs). C'est cohérent avec le banc : un écart moyen
+de +11 à +16 $ par jour avec t ≈ 1, pas un bouclier. À relire à chaque passage (`python3 suivi_tendance.py`).
