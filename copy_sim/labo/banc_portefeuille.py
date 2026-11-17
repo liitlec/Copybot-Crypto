@@ -150,7 +150,8 @@ def kelly_wf(X, mult, debut_ans=5):
         if a < an0:
             continue
         P = X[X.index.year < a]
-        P = P.loc[:, P.abs().sum() > 0]
+        vieux = [c for c in P.columns if (P[c] != 0).any() and P.index[(P[c] != 0).values.argmax()].year <= a - 4]
+        P = P[vieux]                                  # une piece n'entre qu'avec 3 ans d'historique au moins
         if P.shape[1] == 0:
             continue
         mu, S = P.mean().values, P.cov().values
@@ -201,23 +202,60 @@ if __name__ == "__main__":
     pd.set_option("display.width", 250)
     lignes = []
     ref = D["SP"]["close"].pct_change().reindex(idx).fillna(0)
-    jeux = {"base (repli 4 indices + rebond_nas)": [c for c in X.columns if c.startswith("repli_") or c == "rebond_nas"],
-            "base + vix_sp": [c for c in X.columns if c.startswith("repli_") or c in ("rebond_nas", "vix_sp")],
-            "tout (base + vix + pieces des points 1-3)": list(X.columns)}
-    for k in X.columns:
+    TIENT = ["repli_SP", "repli_NAS", "repli_DJ", "repli_RUT", "rebond_nas", "grande_journee:gj_fige:sp",
+             "calendrier:cal_fomc:DAX"]
+    PRESQUE = ["vix_sp", "grande_journee:gj_fige:rut", "calendrier:cal_ferie:RUSSELL", "calendrier:cal_ferie:DAX",
+               "calendrier:cal_fomc:SP500", "calendrier:cal_fomc:NAS100", "calendrier:cal_fomc:RUSSELL"]
+    TIENT = [c for c in TIENT if c in X.columns]; PRESQUE = [c for c in PRESQUE if c in X.columns]
+    jeux = {"A. ce qui tient (repli 4 indices, contre-pied Nasdaq et S&P, FOMC DAX)": TIENT,
+            "B. A + les « presque » (VIX, Russell, veilles de ferie, FOMC US)": TIENT + PRESQUE,
+            "base ancienne (repli 4 indices + contre-pied Nasdaq)": [c for c in X.columns if c.startswith("repli_") or c == "rebond_nas"]}
+    for k in TIENT + PRESQUE:
         jeux["seule : " + k] = [k]
+    SERIES = {}
     for nom, cols in jeux.items():
-        for mult in ((0.1, 0.15, 0.25, 0.5, 1.0) if not nom.startswith("seule") else (0.15, 0.5)):
+        for mult in ((0.1, 0.15, 0.25, 0.5, 1.0) if not nom.startswith("seule") else (0.15,)):
             r, W = kelly_wf(X[cols], mult)
-            b = bilan(r)
+            SERIES[(nom, mult)] = r
             levier = np.mean([sum(w.values()) for w in W.values()]) if W else np.nan
-            lignes.append(dict(portefeuille=nom, kelly=mult, levier_moyen=round(levier, 1), **b))
-    b = bilan(ref[ref.index.year >= 1995])
-    lignes.append(dict(portefeuille="reference : S&P 500 achete et garde (sans levier)", kelly=np.nan, levier_moyen=1.0, **b))
+            b = bilan(r); b8 = bilan(r[r.index.year >= 2008])
+            lignes.append(dict(portefeuille=nom, kelly=mult, levier_moyen=round(levier, 1), **b,
+                               an_2008=b8["an"], creux_2008=b8["creux"]))
+    b = bilan(ref[ref.index.year >= 1995]); b8 = bilan(ref[ref.index.year >= 2008])
+    lignes.append(dict(portefeuille="reference : S&P 500 achete et garde (sans levier)", kelly=np.nan, levier_moyen=1.0, **b,
+                       an_2008=b8["an"], creux_2008=b8["creux"]))
     T = pd.DataFrame(lignes)
-    T["an"] = (100 * T.an).round(1); T["creux"] = (100 * T.creux).round(1)
-    print("\nWalk-forward (poids estimes sur le passe, refaits chaque annee ; % par an composes, pire baisse en %) :")
+    for c in ("an", "creux", "an_2008", "creux_2008"):
+        T[c] = (100 * T[c]).round(1)
+    print("\nWalk-forward (poids estimes sur le passe, refaits chaque annee ; % par an composes, pire baisse en % ;"
+          " colonnes _2008 = depuis 2008, toutes les pieces disponibles) :")
     print(T.to_string(index=False))
     T.to_csv(os.path.join(ICI, "donnees", "portefeuille_bilan.csv"), index=False)
-    r, W = kelly_wf(X[jeux["tout (base + vix + pieces des points 1-3)"]], 0.5)
-    print("\nPoids 0,5 Kelly de la derniere annee (tout) :", W[max(W)] if W else {})
+
+    # Objectif de Baptiste : +10 % PAR MOIS (= +214 % par an compose). Quel levier faudrait-il au portefeuille A ?
+    # On prend la serie A a 0,1 Kelly (poids walk-forward) et on la multiplie par m ; Monte-Carlo 12 mois par blocs de
+    # 20 jours tires dans 2008-2026 ; ruine = perte de 80 %.
+    rA = SERIES[(list(jeux)[0], 0.1)]
+    rA = rA[rA.index.year >= 2008]
+    levA = T.levier_moyen.iloc[0]
+    rng = np.random.default_rng(10)
+    n = len(rA); v = rA.values
+    print("\nViser +10 %% par mois avec le portefeuille A (levier moyen a 0,1 Kelly = %.1f) :" % levA)
+    print("  multiple  levier  an_histo  creux_histo  mediane_12m  P(>= +214 % en 12 m)  P(ruine -80 % en 12 m)")
+    rows = []
+    for m in (1, 2, 3, 5, 8, 12, 20):
+        b = bilan(rA * m)
+        fins, ruine = [], 0
+        for _ in range(4000):
+            idx_ = np.concatenate([np.arange(s0, s0 + 20) % n for s0 in rng.integers(n, size=13)])[:252]
+            eq = np.cumprod(1 + np.clip(v[idx_] * m, -1, None))
+            ruine += eq.min() <= 0.2
+            fins.append(eq[-1])
+        fins = np.array(fins)
+        rows.append((m, m * levA, b["an"], b["creux"], np.median(fins) - 1, (fins >= 3.14).mean(), ruine / 4000))
+        print("  %5.0f x  %6.1f  %+7.1f %%  %+8.1f %%  %+9.1f %%  %14.0f %%  %18.0f %%" % (
+            m, m * levA, 100 * b["an"], 100 * b["creux"], 100 * (np.median(fins) - 1), 100 * (fins >= 3.14).mean(), 100 * ruine / 4000))
+    pd.DataFrame(rows, columns=["multiple", "levier", "an", "creux", "mediane_12m", "p_10pc_mois", "p_ruine"]).to_csv(
+        os.path.join(ICI, "donnees", "portefeuille_10pc_mois.csv"), index=False)
+    r, W = kelly_wf(X[TIENT], 0.1)
+    print("\nPoids 0,1 Kelly de la derniere annee (A) :", {k: float(v) for k, v in W[max(W)].items()} if W else {})

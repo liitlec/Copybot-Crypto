@@ -1635,3 +1635,24 @@ t 2,35, DAX +32 ; sur le S&P l'effet vient du tournant du mois) ; FOMC indices U
 trades, +31,5 bp, t 3,6, moitiés +33 / +30, Bonferroni p = 0,003 — réserve : porté par 2008-2009 et 2020-2023, 2024-2026
 ≈ 0 (+10, −20, +7 bp), et non contrôlable sur la D1 du courtier (clôture à 23 h). Nuit / jour avec filtre : non.
 ≈ 8 trades par an : +2,5 %/an à 1 fois le notionnel. Vérifié en relançant.
+
+## 17/11/2026 (soir) — « mieux que +10 % », point 4 : portefeuille (`banc_portefeuille.py`) et robot v19
+Pièces = séries journalières « rendement d'un notionnel de 1 » : repli 4 indices US, contre-pied Nasdaq (Yahoo
+1990-2026, recalculés), plus les trades HORS ÉCHANTILLON des points 1-3 (`donnees/rebonds_*.csv`). Poids Kelly
+multi-pièces f = Σ⁻¹μ estimés sur tout le passé, refaits chaque année (une pièce n'entre qu'avec 3 ans d'historique),
+poids ≥ 0. Résultats walk-forward 1995-2026 (et depuis 2008) :
+- Le Kelly estimé demande 20 à 35 fois le capital (chaque pièce n'est active que 3-13 % du temps) : **0,5 et 1 Kelly
+  ruinent hors échantillon** (A : −100 % ; août 2011 et 2018 font −60 à −80 % dès 10 fois le capital).
+- **A = ce qui tient** (repli 4 indices, contre-pied Nasdaq et S&P, FOMC DAX) à 0,1 Kelly (levier moyen 4,6) :
+  +18,1 %/an 1995-2026, +18,9 %/an depuis 2008, pire baisse −40,7 % (oct. 2011), 5 années négatives sur 32 ;
+  0,15 Kelly : +28 %/an, −56 %. **Mais** le FOMC DAX (poids 2,9) fait +80 % en 2008 et +117 % en 2009 ; sans lui :
+  +9,9 %/an depuis 2008, −28,6 % (mai 2012). Référence S&P acheté-gardé : +9,0 %/an, −53 %.
+- B = A + les « presque » (VIX, Russell, veilles de férié, FOMC US) : 0,1 Kelly +27 %/an, −42 % (non prouvé).
+- **+10 % par mois** (= +214 %/an) avec A : il faut ~5 à 8 fois le levier de 0,1 Kelly (23 à 37 fois le capital) ;
+  Monte-Carlo 12 mois (blocs de 20 jours, 2008-2026) : chance d'y arriver 26-36 %, ruine (−80 %) 4-22 % en 12 mois,
+  et l'historique complet finit ruiné (−98 % à −100 %). **Pas atteignable sans ruine quasi certaine à terme.**
+Robot v19 (base v18 / v17 avec essais patients) : `rebond_sp_opt` (règle de `rebond_nas_opt` sur SP500+, même module
+paramétré) et `fomc_dax_opt` (`mt5/robot/fomc_dax.py` : achat GER40+ à 17 h 29 Paris deux jours ouvrés avant
+l'annonce, sortie 17 h 29 Paris le jour J, stop de secours 3 ATR, heure de Paris recalculée depuis l'heure serveur
+= New York + 7 h ; arrêt : somme des 16 derniers < −300 bp ou moyenne < 0 après 24 trades), taille minimale, hors
+totaux. Arrêt de `rebond_sp_opt` = celui de `rebond_nas_opt`. Essais OK (exit 0).

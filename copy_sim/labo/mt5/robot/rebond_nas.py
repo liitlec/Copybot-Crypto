@@ -44,8 +44,9 @@ def atr(d1, n=ATR_N):
 
 
 class Rebond:
-    def __init__(self, pont, fichier=FICHIER):
+    def __init__(self, pont, fichier=FICHIER, symbole=SYMBOLE, nom=NOM):
         self.pont, self.fichier = pont, fichier
+        self.symbole, self.nom = symbole, nom          # v19 : la meme regle sert aussi a rebond_sp_opt (SP500+)
         self.pos, self.fait, self.info, self.dernier, self.muet = None, None, None, 0, False
         try:
             with open(fichier, encoding="utf-8") as f:
@@ -73,17 +74,17 @@ class Rebond:
         except Exception as e:                           # ne doit jamais gener le reste du robot
             if not self.muet:
                 self.muet = True
-                self.pont.noter(evenement="erreur", hypothese=NOM, symbole=SYMBOLE,
+                self.pont.noter(evenement="erreur", hypothese=self.nom, symbole=self.symbole,
                                 texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
 
     def un(self, ps, maintenant, peut_ouvrir):
         o = self.pos
         if o and o["ticket"] not in ps:                  # stop de secours touche, ou fermee hors robot
-            self.pont.noter(evenement="sortie", hypothese=NOM, symbole=SYMBOLE, raison="stop ou fermeture hors robot",
+            self.pont.noter(evenement="sortie", hypothese=self.nom, symbole=self.symbole, raison="stop ou fermeture hors robot",
                             ticket=o["ticket"], entree=o.get("entree"), dernier_profit=o.get("profit"), essai="non prouve")
             self.pos = o = None
             self.sauver()
-        b = self.pont.bougies(SYMBOLE, "D1", 60)
+        b = self.pont.bougies(self.symbole, "D1", 60)
         if not b or len(b) < N_MED + 3:
             return
         jour, d1 = b[-1][0], b[:-1]                      # la derniere bougie est la journee en cours
@@ -94,7 +95,7 @@ class Rebond:
                 r = self.pont.fermer(o["ticket"])
                 if r.get("ok"):
                     e, x = o.get("entree") or p.get("prix_entree"), r.get("prix_obtenu")
-                    self.pont.noter(evenement="sortie", hypothese=NOM, symbole=SYMBOLE, sens=o["sens"], ticket=o["ticket"],
+                    self.pont.noter(evenement="sortie", hypothese=self.nom, symbole=self.symbole, sens=o["sens"], ticket=o["ticket"],
                                     raison="fin de journee" if jour == o["jour"] else "nouvelle journee",
                                     entree=e, prix_sortie=x, profit=p.get("profit"),
                                     bp=round(o["sens"] * (x / e - 1) * 1e4, 1) if e and x else None, essai="non prouve")
@@ -108,11 +109,11 @@ class Rebond:
             self.fait = jour
             self.sauver()
             return
-        px = self.pont.prix(SYMBOLE)
+        px = self.pont.prix(self.symbole)
         if not px or px["bid"] <= 0 or not 0 <= (px["ask"] - px["bid"]) / px["bid"] * 1e4 <= SPREAD_MAX_BP:
             return                                       # spread anormal : on reessaie dans une minute
         if self.info is None:
-            self.info = self.pont.symbole(SYMBOLE)
+            self.info = self.pont.symbole(self.symbole)
         info = self.info
         lots = info["lot_min"]
         notionnel = lots * info["taille_contrat"] * px["ask"]
@@ -122,13 +123,13 @@ class Rebond:
         self.fait = jour
         self.sauver()
         if notionnel > NOTIONNEL_MAX:
-            self.pont.noter(evenement="ouverture sautee", hypothese=NOM, symbole=SYMBOLE, raison="taille minimale trop grosse",
+            self.pont.noter(evenement="ouverture sautee", hypothese=self.nom, symbole=self.symbole, raison="taille minimale trop grosse",
                             notionnel=round(notionnel))
             return
-        r = self.pont.ouvrir(SYMBOLE, "achat" if s > 0 else "vente", lots, stop=stop, id=NOM)
+        r = self.pont.ouvrir(self.symbole, "achat" if s > 0 else "vente", lots, stop=stop, id=self.nom)
         if r.get("ok") and r.get("ticket"):
             self.pos = {"ticket": r["ticket"], "entree": r.get("prix_obtenu"), "jour": jour, "sens": s}
             self.sauver()
-        self.pont.noter(evenement="ouverture", hypothese=NOM, symbole=SYMBOLE, sens=s, ok=bool(r.get("ok")),
+        self.pont.noter(evenement="ouverture", hypothese=self.nom, symbole=self.symbole, sens=s, ok=bool(r.get("ok")),
                         refus=r.get("refus"), lots=lots, notionnel=round(notionnel), bid=px["bid"], ask=px["ask"],
                         stop=stop, atr=round(a, 2), prix_obtenu=r.get("prix_obtenu"), essai="non prouve")

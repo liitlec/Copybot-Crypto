@@ -698,3 +698,96 @@ assert not pp2.pos, "apres l'objectif : plus aucune ouverture"
 if os.path.exists("etat_pari_essai2.json"):
     os.remove("etat_pari_essai2.json")
 print("ESSAIS OK")
+
+
+# v19 : rebond_sp_opt (meme regle que rebond_nas_opt, sur SP500+) et fomc_dax_opt (DAX avant les annonces de la Fed)
+import fomc_dax
+
+
+class PontSP(PontRebond):
+    def bougies(self, s, periode="M1", nombre=100):
+        if s != "SP500+":
+            raise ValueError("symbole absent")
+        return self.b[-nombre:]
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "SP500+" and lots == 0.1 and id == "rebond_sp_opt"
+        self.n += 1
+        self.pos[self.n] = {"ticket": self.n, "symbole": s, "sens": sens, "prix_entree": self.bid, "stop": stop, "profit": 0.0}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": self.bid}
+
+
+for f in ("etat_rebond_sp_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+ps_ = PontSP()
+rsp = rebond_nas.Rebond(ps_, fichier="etat_rebond_sp_essai.json", symbole="SP500+", nom="rebond_sp_opt")
+ps_.b = d1(calme + [19700.0, 19700.0], [100.0] * 30 + [400.0, 50.0])
+ps_.bid = 19700.0
+rsp.tour(ps_.ps(), ps_.b[-1][0] + 700, True)
+assert len(ps_.pos) == 1 and list(ps_.pos.values())[0]["sens"] == "achat", "rebond_sp_opt : achat apres une grande baisse"
+assert rebond_nas.Rebond(ps_, fichier="etat_rebond_sp_essai.json", symbole="SP500+", nom="rebond_sp_opt").tickets() == rsp.tickets()
+assert rebond_nas.Rebond(ps_).symbole == "NAS100+", "rebond_nas_opt inchange"
+os.remove("etat_rebond_sp_essai.json")
+
+# heure de Paris depuis l'heure serveur (serveur = New York + 7 h)
+srv = lambda s: int((dt_.datetime.fromisoformat(s) - dt_.datetime(1970, 1, 1)).total_seconds())
+import datetime as dt_
+assert fomc_dax.paris(srv("2026-12-07T18:29:00")).strftime("%H:%M") == "17:29", "hiver : serveur = Paris + 1 h"
+assert fomc_dax.paris(srv("2027-07-26T18:29:00")).strftime("%H:%M") == "17:29", "ete : serveur = Paris + 1 h"
+assert fomc_dax.paris(srv("2027-03-15T19:29:00")).strftime("%H:%M") == "17:29", "semaine de decalage : Paris + 2 h"
+assert fomc_dax.ouvre_avant(dt_.date(2026, 12, 9)) == dt_.date(2026, 12, 7), "deux jours ouvres avant le mercredi"
+assert fomc_dax.ouvre_avant(dt_.date(2027, 1, 27)) == dt_.date(2027, 1, 25)
+
+
+class PontDax(PontIndice):
+    def bougies(self, s, periode="M1", nombre=100):
+        if s != "GER40+":
+            raise ValueError("symbole absent")
+        return [[i * 86400, 24000, 24150, 23850, 24000, 1, 80] for i in range(nombre)]
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "GER40+" and sens == "achat" and id == "fomc_dax_opt" and 0 < stop < self.bid
+        self.n += 1
+        self.pos[self.n] = {"ticket": self.n, "symbole": s, "sens": sens, "prix_entree": self.bid + self.ecart, "stop": stop, "profit": 0.0}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": self.bid + self.ecart}
+
+
+if os.path.exists("etat_fomc_essai.json"):
+    os.remove("etat_fomc_essai.json")
+pdx = PontDax()
+pdx.bid = 24000.0
+fm = fomc_dax.Fomc(pdx, fichier="etat_fomc_essai.json")
+fm.tour(pdx.ps(), srv("2026-12-07T18:20:00"), True)
+assert not pdx.pos, "trop tot : pas d'entree"
+fm.dernier = 0
+fm.tour(pdx.ps(), srv("2026-12-04T18:30:00"), True)
+assert not pdx.pos, "pas un jour J-2 : rien"
+fm.dernier = 0
+fm.tour(pdx.ps(), srv("2026-12-07T18:30:00"), False)
+assert not pdx.pos, "ouvertures bloquees : rien"
+fm.dernier = 0
+fm.tour(pdx.ps(), srv("2026-12-07T18:31:00"), True)
+assert len(pdx.pos) == 1 and fm.pos["j"] == "2026-12-09", "achat deux jours ouvres avant la Fed, a 17 h 30 Paris"
+assert abs(list(pdx.pos.values())[0]["stop"] - (24000.0 - 3 * 300.0)) < 0.02, "stop de secours a 3 ATR"
+assert fomc_dax.Fomc(pdx, fichier="etat_fomc_essai.json").tickets() == fm.tickets(), "reprise apres redemarrage"
+rp5 = repli_ind.Repli(pdx, fichier="etat_repli_essai5.json")
+rp5.adopter({t: p for t, p in pdx.ps().items() if t not in set(fm.tickets())})
+assert not rp5.pos, "repli_ind ne prend pas la position de fomc_dax_opt"
+fm.dernier = 0
+fm.tour(pdx.ps(), srv("2026-12-08T18:31:00"), True)
+assert len(pdx.pos) == 1, "tenue la veille de la Fed"
+fm.dernier = 0
+pdx.bid = 24100.0
+fm.tour(pdx.ps(), srv("2026-12-09T18:29:30"), True)
+assert not pdx.pos and not fm.pos and fm.bps and fm.bps[-1] > 0, "sortie a 17 h 29 Paris le jour J, avant l'annonce"
+fm.dernier = 0
+fm.tour(pdx.ps(), srv("2026-12-07T18:32:00"), True)
+assert not pdx.pos, "une seule entree par annonce"
+fm.bps = [-20.0] * 15
+fm.compter(-20.0)
+assert fm.arret, "regle d'arret : somme des 16 derniers < -300 bp"
+for f in ("etat_fomc_essai.json", "etat_repli_essai5.json", "etat_fomc.json", "etat_rebond_sp.json"):
+    if os.path.exists(f):
+        os.remove(f)
+print("ESSAIS OK")

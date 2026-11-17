@@ -1,3 +1,30 @@
+# Avis pour Baptiste — 17/11/2026, soir (« trouver mieux que +10 % », PRIORITES 17/11 17 h)
+
+1. **Deux nouvelles règles tiennent**. Le contre-pied d'une grande journée marche aussi sur le **S&P 500** (+16 bp par trade, 801 trades depuis 2008), mais il double en partie celui du Nasdaq. On peut aussi **acheter le DAX deux jours avant une annonce de la Fed** et revendre avant l'annonce (+31 bp, 176 trades), mais c'est faible depuis 2024. Tout le reste ne tient pas : 9 autres marchés, les excès en cours de séance, le tournant du mois, la nuit contre le jour.
+2. **Le portefeuille de ce qui tient fait environ +19 % par an depuis 2008, mais avec une pire baisse de −41 %** (à 0,1 Kelly, environ 4,6 fois le capital). Honnêtement, une bonne part vient des années 2008-2009 de la règle Fed ; sans elle, c'est **+10 % par an pour −29 %**. Pour comparer, le S&P acheté et gardé fait +9 % par an, avec −53 %.
+3. **À 0,5 et 1 Kelly, c'est la ruine** sur les données jamais vues : le Kelly calculé demande 20 à 35 fois le capital, et les krachs de 2011 et 2018 l'effacent.
+4. **+10 % par mois n'est pas atteignable sans risquer la ruine.** Il faudrait 23 à 37 fois le capital : sur 12 mois, 26 à 36 % de chances d'y arriver, 4 à 22 % de tout perdre dans l'année, et la ruine presque sûre sur la durée (−98 à −100 % dans l'historique).
+5. **Robot v19 publié** : `rebond_sp_opt` et `fomc_dax_opt` tournent à la taille minimale, hors totaux du test, avec leurs règles d'arrêt écrites d'avance. Le premier achat Fed est prévu lundi 7/12 à 17 h 29. Le test de la semaine n'est pas touché.
+
+**Portefeuille : rendement par an et pire baisse** (walk-forward : les poids sont fixés sur le passé et refaits chaque année ; « depuis 2008 » = toutes les règles disponibles)
+
+| Portefeuille | Mise | Levier moyen | Par an 1995-2026 | Par an depuis 2008 | Pire baisse |
+|---|---|---|---|---|---|
+| A. ce qui tient (repli 4 indices, contre-pied Nasdaq + S&P, Fed-DAX) | **1 Kelly** | 41 fois | ruine | ruine | −100 % |
+| A | **0,5 Kelly** | 23 fois | ruine | +72 % (puis ruine) | −98 à −100 % |
+| A | 0,15 Kelly | 6,9 fois | +26 % | +28 % | −56 % |
+| A | 0,1 Kelly | 4,6 fois | +18 % | +19 % | −41 % |
+| A sans la règle Fed-DAX | 0,1 Kelly | ≈ 3 fois | — | +10 % | −29 % |
+| B. A + les « presque » (non prouvé) | 0,1 Kelly | 7,7 fois | +25 % | +27 % | −42 % |
+| Référence : S&P 500 acheté-gardé | — | 1 fois | +9 % | +9 % | −57 % |
+
+**Viser +10 % par mois avec A** (Monte-Carlo sur 12 mois, blocs de 20 jours tirés dans 2008-2026) : à 23 fois le capital, 26 % de chances d'y arriver et 4 % de ruine dans l'année, mais −98 % de pire baisse dans l'historique ; à 37 fois, 36 % et 22 % ; au-delà, c'est pire.
+
+**Ajouts au tableau « tout ce qui a été testé »** :
+- **Tient** : contre-pied S&P (t 3,4) ; Fed-DAX (t 3,6, p = 0,003).
+- **Presque** : Russell en contre-pied, veilles de férié, Fed sur les indices US.
+- **Ne tient pas** : contre-pied sur Dow, DAX, Nikkei, BTC, ETH, pétrole, argent, or et euro ; excès en cours de séance (552 réglages) ; tournant du mois ; nuit contre jour.
+
 # Avis pour Baptiste — 17/11/2026, soir (poche pari « triple ou rien », PRIORITES 17/11 17 h 20)
 
 1. **Ta poche de 100 € joue maintenant « triple ou rien »** (robot v18) : dès qu'elle vaut 300 € (gains en cours compris), le robot ferme tout et s'arrête ; sous 20 €, il s'arrête aussi.

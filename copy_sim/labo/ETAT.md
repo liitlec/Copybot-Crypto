@@ -1,6 +1,11 @@
 # État du laboratoire — après le passage 46, 17/11/2026 (11 h) — rythme : toutes les 2 h 30
 
 ## À lire d'abord (résumé de la situation, réécrit le 17/11)
+- **17/11 soir : lot « mieux que +10 % » (PRIORITES 17 h) FINI, robot v19 publié** (`rebond_sp_opt`, `fomc_dax_opt`,
+  hors test ; base v18 + essais patients). Points 1-3 : S&P contre-pied tient, FOMC DAX tient (faible depuis 2024),
+  intrajournalier rien. Point 4 (`banc_portefeuille.py`) : 0,1 Kelly ≈ +19 %/an, −41 % (sans FOMC DAX +10 %, −29 %) ;
+  0,5 et 1 Kelly ruinent ; +10 %/mois non atteignable. Prochains passages : suivre les notes « sortie » de
+  `rebond_sp_opt` et `fomc_dax_opt` (1re entrée FOMC : lundi 07/12/2026 17 h 29 Paris).
 - **17/11 soir : robot v18 publié** (base v17 + essais patients) : `pari_opt` « triple ou rien » (encaisse et s'arrête à
   300 $ virtuels, ou sous 20 $). Banc `banc_pari_triple.py` (`donnees/pari_triple.csv`) : ×3 avant ruine 56 %, ruine 39 %.
   **Lot en cours : PRIORITES 17/11 17 h « mieux que +10 % par an »** : 3 sous-agents (points 1-3 : `banc_grande_journee.py`,

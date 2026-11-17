@@ -14,8 +14,9 @@ import bt_or
 import repli_ind
 import rebond_nas
 import pari_opt
+import fomc_dax
 
-VERSION = 18
+VERSION = 19
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -208,6 +209,8 @@ class Robot:
         self.crypto_vu, self.crypto_muet = 0, set()
         self.repli = repli_ind.Repli(pont)
         self.rebond = rebond_nas.Rebond(pont)           # v15 : rebond_nas_opt, hors test (voir rebond_nas.py)
+        self.rebond_sp = rebond_nas.Rebond(pont, fichier="etat_rebond_sp.json", symbole="SP500+", nom="rebond_sp_opt")  # v19
+        self.fomc = fomc_dax.Fomc(pont)                 # v19 : fomc_dax_opt, hors test (voir fomc_dax.py)
         self.pari = pari_opt.Pari(pont)                 # v16 : poche pari, compte virtuel 100 $, hors test (voir pari_opt.py)
         self.charger()
 
@@ -240,6 +243,8 @@ class Robot:
             connus.update(c.tickets())
         connus.update(self.rebond.tickets())            # v15 : la position de rebond_nas_opt n'est pas a repli_ind
         connus.update(self.pari.tickets())              # v16 : ni celles de pari_opt
+        connus.update(self.rebond_sp.tickets())         # v19 : ni celles de rebond_sp_opt et fomc_dax_opt
+        connus.update(self.fomc.tickets())
         self.repli.adopter({t: p for t, p in ps.items() if t not in connus})   # autre position sur un indice : repli_ind
         connus.update(self.repli.tickets())
         for nom, o in list(self.ouvert.items()):
@@ -466,6 +471,8 @@ class Robot:
         permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
         self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
         self.rebond.tour(ps, maintenant, permis)        # v15 : Nasdaq, contre-pied d'une journee de grande amplitude
+        self.rebond_sp.tour(ps, maintenant, permis)     # v19 : S&P, contre-pied d'une grande journee (banc_grande_journee.py)
+        self.fomc.tour(ps, maintenant, permis)          # v19 : DAX avant les annonces de la Fed (banc_calendrier.py)
         self.pari.tour(ps, maintenant, permis)          # v16 : poche pari (repli SP500+ / US2000+, compte virtuel)
         if bougies is None or "crypto" in bougies:
             self.tour_crypto(ps, maintenant, permis, (bougies or {}).get("crypto"))
