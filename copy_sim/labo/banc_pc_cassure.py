@@ -32,7 +32,8 @@ reglage = meilleur t des gains par panier (somme des positions, en fraction du n
 paniers) ; on ne joue le mois m que si ce t est > 0. Une serie par (piste, marche) = 8 series, + le portefeuille des 4
 marches par piste ; refait avec « 1 position seulement » (temoin sans pyramide). Bonferroni sur 20 series.
 Temoin au hasard : memes heures d'entree, meme reglage, sens tire a pile ou face (5 000 tirages) -> p temoin.
-Le meilleur montage hors echantillon passe dans pari_court_commun.comparer(T, L, 100 / 500), L = 10, 25, 50, 100.
+Le meilleur montage hors echantillon (plus grand t), et la meilleure serie de la piste 1, passent dans
+pari_court_commun.comparer(T, L, 100 / 500), L = 10, 25, 50, 100.
 Sorties : donnees/pc_cassure.csv (trades hors echantillon, une ligne par position, colonnes t0, t1, r, cout, mae,
 unite, groupe, regle, marche) ; resume dans le scratchpad res_pc_cassure.md (ecrit a la main d'apres la sortie).
 Usage : python3 banc_pc_cassure.py   (~ 3-4 min, 4 coeurs)"""
@@ -275,12 +276,16 @@ def main():
         for reg, P in RR.items():
             if len(P) >= 30:
                 g = np.array([sum(x[1] for x in p[7]) for p in P]) * 1e4
-                sc.append((tstat(g), g.mean(), len(g), reg, np.mean([len(p[7]) for p in P])))
+                gb = np.array([sum(x[1] + x[3] for x in p[7]) for p in P]) * 1e4
+                sc.append((tstat(g), g.mean(), len(g), reg, np.mean([len(p[7]) for p in P]), gb.mean()))
         sc.sort(key=lambda x: -x[0])
-        tb, mb, nb, rb, pb = sc[0]
+        tb, mb, nb, rb, pb, bb = sc[0]
         pos = sum(1 for x in sc if x[1] > 0)
-        print("  piste %d %-8s : %3d reglages, %3d positifs ; meilleur %-32s %5d paniers %+7.1f bp (t %+.2f, Bonferroni p %.2f), %.1f pos./panier ; mediane des t %+.2f" % (
-            piste, marche, len(sc), pos, str(rb), nb, mb, tb, min(1, 828 * 0.5 * math.erfc(tb / math.sqrt(2))), pb, np.median([x[0] for x in sc])))
+        pyr = [x for x in sc if x[3][-1] > 1]; un = [x for x in sc if x[3][-1] == 1]
+        print("  piste %d %-8s : %3d reglages, %3d positifs ; meilleur %-32s %5d paniers %+7.1f bp (t %+.2f, Bonferroni p %.2f), %.1f pos./panier ;"
+              " medianes : t %+.2f, net %+.1f bp, AVANT couts %+.1f bp ; pyramide / 1 position : net %+.1f / %+.1f bp" % (
+            piste, marche, len(sc), pos, str(rb), nb, mb, tb, min(1, 828 * 0.5 * math.erfc(tb / math.sqrt(2))), pb, np.median([x[0] for x in sc]),
+            np.median([x[1] for x in sc]), np.median([x[5] for x in sc]), np.median([x[1] for x in pyr]), np.median([x[1] for x in un])))
     print("\nWalk-forward (4 mois -> 1 mois, glissant), hors echantillon : bp par panier (notionnel d'une position)")
     S, toutes = [], []
     for un in (False, True):
@@ -302,13 +307,18 @@ def main():
     T.assign(r=T.r.round(6), cout=T.cout.round(6), mae=T.mae.round(6)).to_csv(os.path.join(ICI, "donnees", "pc_cassure.csv"), index=False)
     # meilleur montage hors echantillon (parmi les series libres, plus grand t) -> comparer()
     lib = S[~S.serie.str.endswith("_1pos") & S.paniers.ge(30)].sort_values("t", ascending=False)
-    best = lib.iloc[0].serie
+    p1 = lib[lib.serie.str.startswith("p1")].iloc[0].serie
+    for best in dict.fromkeys([lib.iloc[0].serie, p1]):     # meilleur montage, puis meilleure cassure pyramidee
+        montage(best, T)
+
+
+def montage(best, T):
     piste = 1 if best.startswith("p1") else 2
     regle = "cassure_pyr" if piste == 1 else "compression_pyr"
     Tb = T[T.regle == regle]
     if not best.endswith("4marches"):
         Tb = Tb[Tb.marche == best.split("_", 1)[1]]
-    print("\nMeilleur montage hors echantillon : %s (%d positions, %d paniers ; r moyen %+.1f bp par position, cout %.1f bp)" % (
+    print("\nMontage hors echantillon : %s (%d positions, %d paniers ; r moyen %+.1f bp par position, cout %.1f bp)" % (
         best, len(Tb), Tb.groupe.nunique(), 1e4 * Tb.r.mean(), 1e4 * Tb.cout.mean()))
     cols = ["version", "horizon", "fenetres", "ruine", "x2", "x3", "x5", "x10", "esperance", "bat_ref"]
     for dep in (100.0, 500.0):
