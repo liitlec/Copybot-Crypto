@@ -69,12 +69,13 @@ m15b = [[x[0] + 900] + x[1:] for x in m15]
 m1b = [[x[0] + 60] + x[1:] for x in m1]
 r.tour({"M1": m1b, "M5": m5b, "M15": m15b})
 ps = pont.positions()
-assert len(ps) == len(r.ouvert) == 9, (len(ps), sorted(r.ouvert))
+assert len(ps) == len(r.ouvert) >= 9, (len(ps), sorted(r.ouvert))
+assert all(k.endswith("_opt") or k in robot.HYPOTHESES for k in r.ouvert)
 assert "retour_court_ar" in r.ouvert and "retour_strict_ar" not in r.ouvert, "v14 : le strict attend son detecteur"
 oc = [o for o in faux_mt5.ordres_recus if o.get("comment", "").endswith("retour_court_ar")]
 assert oc and oc[0]["sl"] > 0, oc
 assert "ecart_midi_m5" not in r.ouvert, "hors de ses heures"
-assert set(r.ouvert) <= set(robot.HYPOTHESES)
+assert {k[:-4] if k.endswith("_opt") else k for k in r.ouvert} <= set(robot.HYPOTHESES)
 for o in faux_mt5.ordres_recus:
     assert o["volume"] == 0.01 and o["sl"] > 0 and o["symbol"] == "XAUUSD", o
 for p in ps:
@@ -116,10 +117,10 @@ assert all(c % 10 != 7 for c in robot.CODE.values()) and len(set(robot.CODE.valu
 # 4) sorties au temps : 3 min (fausse cassure), 5 min (hasard, elan, retour), puis le reste
 t0[0] += 181
 r.sorties(t0[0], r.reconcilier())
-assert "fcassure_m1" not in r.ouvert and len(pont.positions()) == 8
+assert "fcassure_m1" not in r.ouvert and len(pont.positions()) == len(ps) - 1
 t0[0] += 120
 r.sorties(t0[0], r.reconcilier())
-assert not {"hasard_m1", "elan_m1", "retour_m1"} & set(r.ouvert) and len(pont.positions()) == 5
+assert not {"hasard_m1", "elan_m1", "retour_m1"} & set(r.ouvert) and len(pont.positions()) == len(ps) - 4
 t0[0] += 10800
 r.sorties(t0[0], r.reconcilier())
 assert not r.ouvert and not pont.positions()
@@ -139,6 +140,7 @@ assert not pont.positions(), "orpheline fermee"
 
 # 5 bis) l'hypothese de midi ouvre dans ses heures (12-14 h serveur)
 faux_mt5.positions.clear()
+pont = acces_robot.AccesRobot.pour_essais(faux_mt5)       # pont neuf : plafond de 30 ordres par minute (v15 : 2 ordres _opt)
 r3 = robot.Robot(pont, hasard=random.Random(3), fichier="etat_essai.json")
 t3 = [1794000000 - 1794000000 % 86400 + 13 * 3600]
 r3.heure = lambda: t3[0]

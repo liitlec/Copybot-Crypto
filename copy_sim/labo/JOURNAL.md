@@ -1548,3 +1548,14 @@ de bourse précédents est positive. **Règle fixée le 17/11, jugée sur les tr
 La variante n'aurait donc **pas** évité la perte de mardi (les 3 jours précédents étaient encore portés par la
 chute du 12/11) ; elle sera en pause mercredi (13 + 16 + 17 négatifs). C'est cohérent avec le banc : un écart moyen
 de +11 à +16 $ par jour avec t ≈ 1, pas un bouclier. À relire à chaque passage (`python3 suivi_tendance.py`).
+
+## Relais — 17/11/2026 — « la bonne famille au bon moment » (PRIORITES 10 h 15), étape 1 et piste 4 ; passé à Fable
+Banc F (`banc_familles.py`, or, 15 mois, mise fixe, 1re/2de moitié) : sélection +5 680 $ (1re +6 793, 2de −1 113) ;
+**sans `elan_m15` +6 078 $ (2de −29)** ; `elan_m15` seul −398 $ (2de −1 084). Piste 4 (règles de tendance M15
+seulement dans le sens du fond, clôture contre la moyenne de N bougies M15, et pas au bout du range du jour) :
+tendance M15 en 2de moitié −1 289 $ sans filtre ; réglage choisi en 1re moitié (fond 80 bougies ≈ 20 h, sans limite
+de range) +453 $ ; les 3 réglages à 80 bougies positifs en 2de moitié (+453, +458, +1 216), les autres négatifs ;
+médiane des 9 −320 $ (essais multiples : prometteur, non prouvé). Sélection avec tendance filtrée : +7 952 $ (2de +629).
+Robot v15 ÉCRIT, NON PUBLIÉ : variantes `elan_m15_opt` et `cassure_m15_opt` (fond 80 bougies M15, mêmes pauses au
+calme, hors totaux, règle d'arrêt écrite dans `robot.py`), noms ajoutés à la fin de `_NOTES` ; correctif : la mémoire
+gardait seulement les noms de base (les `_calme`/`_opt` étaient perdus au redémarrage). Essais OK.

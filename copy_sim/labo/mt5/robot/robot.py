@@ -13,7 +13,7 @@ import time
 import bt_or
 import repli_ind
 
-VERSION = 14
+VERSION = 15
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -60,6 +60,7 @@ _NOTES = sorted(set(HYPOTHESES_NOMS := ["hasard_m1", "elan_m1", "retour_m1", "ex
                 | {n + "_calme" for n in ("elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1")}
                 | {b + x for b in ("midi_agite", "midi_calme") for x in ("", "_f", "_c")})
 _NOTES = _NOTES + ["retour_court_ar", "retour_strict_ar"]    # v14 : ajoutes A LA FIN (codes v13 inchanges)
+_NOTES = _NOTES + ["elan_m15_opt", "cassure_m15_opt"]          # v15 : a la fin aussi
 HYPOTHESES_NOMS = HYPOTHESES_NOMS + ["retour_court_ar", "retour_strict_ar"]
 CODE = {n: c for n, c in zip(_NOTES, [c for c in range(100) if c % 10 != 7])}
 NOTE_DU_CODE = {c: n for n, c in CODE.items()}
@@ -92,6 +93,13 @@ SPREAD_REL_CRYPTO = 0.0015                             # pas d'entree ni d'ajout
 # REGLES D'ARRET (ecrites avant le premier trade) : retour_court_ar : arret si somme < -60 $ ou moyenne < -0,50 $ apres
 # 60 trades ; retour_strict_ar : arret si somme < -60 $ ou moyenne < -1 $ apres 20 trades.
 RETOUR_AR = {"retour_court_ar", "retour_strict_ar"}
+# v15 (PRIORITES 17/11 10 h 15, piste 4, banc F `banc_familles.py`) : elan_m15 et cassure_m15 n'entrent que dans le sens
+# de la tendance de fond (cloture au-dessus / en dessous de la moyenne des 80 dernieres bougies M15, ~20 h). Banc :
+# tendance M15 2de moitie -1 289 $ sans filtre, +453 $ avec ; les 3 reglages a 80 bougies positifs hors echantillon,
+# mediane des 9 reglages -320 $ (essais multiples : non prouve). Variantes a part <nom>_opt, hors totaux du test,
+# memes tailles, memes pauses au calme. REGLE D'ARRET (ecrite avant) : arret si somme < -60 $ ou si, apres 30 trades,
+# la variante fait moins bien que sa regle d'origine sur la meme periode.
+OPT_FOND = {"elan_m15": 80, "cassure_m15": 80}
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
@@ -203,7 +211,8 @@ class Robot:
         try:
             with open(self.fichier, encoding="utf-8") as f:
                 d = json.load(f)
-            self.ouvert = {k: v for k, v in d.get("ouvert", {}).items() if k in HYPOTHESES}
+            base = lambda k: k[:-len(SUFFIXE_CALME)] if k.endswith(SUFFIXE_CALME) else (k[:-4] if k.endswith("_opt") else k)
+            self.ouvert = {k: v for k, v in d.get("ouvert", {}).items() if base(k) in HYPOTHESES}
         except (OSError, ValueError):
             self.ouvert = {}
 
@@ -283,6 +292,7 @@ class Robot:
                 continue
             cle = cle_de_note(note)
             nom = cle[:-len(SUFFIXE_CALME)] if cle.endswith(SUFFIXE_CALME) else cle
+            nom = nom[:-4] if nom.endswith("_opt") else nom
             if cle in self.ouvert or nom not in HYPOTHESES:
                 continue
             self.ouvert[cle] = {"ticket": t, "sens": 1 if p["sens"] == "achat" else -1,
@@ -486,6 +496,11 @@ class Robot:
                 if nom == "retour_strict_ar" and not self.ar_strict(maintenant, bougies):
                     continue
                 s = signal(nom, b, self.hasard)
+                if s and nom in OPT_FOND and not (self.calme and nom in PAUSE_AU_CALME):
+                    n = OPT_FOND[nom]                    # v15 : variante filtree par la tendance de fond
+                    fond = b[-1][4] - sum(x[4] for x in b[-n:]) / n if len(b) >= n else 0
+                    if fond * s > 0 and nom + "_opt" not in self.ouvert and len(ps) < PLAFOND_POSITIONS - RESERVE_TEST:
+                        self.ouvrir(nom, s, b, maintenant, nom + "_opt")
                 if s:
                     self.ouvrir(nom, s, b, maintenant, cle)
 
