@@ -18,6 +18,7 @@
 ## Avis du relais (17/11, 6 h 15)
 
 0. **Bonne famille au bon moment, 1re étape** : sur 15 mois, enlever `elan_m15` améliore la sélection (+6 078 $ contre +5 680 $). Filtrer les règles de tendance par la tendance de fond (20 h) les fait passer de −1 289 $ à +453 $ hors échantillon : prometteur, pas prouvé. Variantes `_opt` prêtes (v15, non publiée) ; Fable reprend ce point.
+0. **Dépôts GitHub, 1re étape** : la cassure d'ouverture (ORB) de `day-trader-skill`, testée sur NAS100+, SP500+ et DJ30+ (15 mois, 4 réglages), ne gagne rien (≈ 0 R par trade, seconde moitié négative 10 fois sur 12). Leur outil le dit lui-même. Le détail est dans `labo/SKILLS_TRADING.md` ; prochain dépôt au passage suivant.
 0. **Test, mardi 6 h 10** : sélection lundi −30,99 $ (47 trades), mardi déjà −20,88 $ (25 trades), dont `elan_m15` −23,75 $ sur 2 ; total −51,87 $. Témoin −12,41 $ mardi. Une erreur isolée à 2 h 39 (accès refusé à un fichier sous Windows) ; le robot a continué. Panier `bt_or` ouvert, pont à l'heure.
 
 1. **Robot v14 en marche depuis 15 h 23** : désormais, toutes les positions survivent aux mises à jour. C'est vérifié au passage v13 → v14 : le témoin, `fcassure_m1` et le panier `bt_or` ont été repris ; une seule position, ouverte pendant la minute de bascule, a été fermée (+0,47 $).

@@ -1,80 +1,69 @@
-"""Banc AC : cassure de la fourchette d'ouverture (ORB) sur les indices americains (PRIORITES 15/11 15 h et 17/11
-10 h 30). Bougies du courtier, spread reel ; le serveur est a New York + 7 h, donc l'ouverture de 9 h 30 tombe a
-16:30 serveur (15 h 30 a Paris) et la cloture de 16 h a 23:00.
-Regle classique : fourchette = plus haut / plus bas des N premieres minutes (5, 15, 30) ; entree a l'ouverture de la
-bougie qui suit la premiere cloture hors de la fourchette, avant 12 h (New York) ; stop = l'autre borne de la
-fourchette (ou son milieu) ; objectif = 1 R, 2 R ou aucun ; sortie a 15 h 55 au plus tard ; un trade par jour.
-Resultat en R (1 R = distance entree - stop) apres spread, et en points de base. Reglage = 1re moitie, verdict = 2de.
-Usage : python3 banc_orb.py [ident ...]"""
-import sys
+"""Banc ORB (17/11, PRIORITES 15/11 15 h et 17/11 10 h 30) : la cassure de la fourchette d'ouverture du dépôt
+Jakeschincariol/day-trader-skill, sur les indices du courtier (M5, ~15 mois, spread réel). Ouverture US = 16 h 30
+serveur (pic de volume vérifié). Règle du dépôt : fourchette des 15 premières minutes (3 bougies M5) ; entrée à la
+première clôture M5 au-dessus (achat) / au-dessous (vente) de la fourchette, avant 17 h 45 serveur (« fenêtre ») ;
+stop au milieu de la fourchette ; objectif 1 R ; sinon sortie à 22 h 55 serveur. Variantes : objectif 2 R, stop à
+l'autre bout, fourchette 30 min. Un trade par jour au plus. Résultat en R (1 R = distance entrée-stop), après spread.
+Usage : python3 banc_orb.py"""
+import itertools
 import numpy as np, pandas as pd
 import banc_grille as G
 
 
-def orb(d, pas, n_min, stop_mode, obj):
+def orb(d, n_or=3, obj=1.0, stop="mid", fin_entree=1745, fin=2255):
     t = d["heure"].values
-    o, h, l, c, sp = (d[x].values for x in ("ouverture", "haut", "bas", "cloture", "sp"))
-    mn = (t // 60) % 1440
+    hm = ((t // 3600) % 24) * 100 + (t // 60) % 60
     jour = t // 86400
-    out = []
+    o, hi, lo, c, sp = (d[x].values for x in ("ouverture", "haut", "bas", "cloture", "sp"))
+    R = []
     for j in np.unique(jour):
-        ix = np.flatnonzero(jour == j)
-        m = mn[ix]
-        a = ix[(m >= 990) & (m < 990 + n_min)]                    # 16:30 serveur = 990 min
-        if len(a) < n_min // pas:
+        idx = np.where(jour == j)[0]
+        k0 = idx[hm[idx] == 1630]
+        if not len(k0):
             continue
-        hi, lo = h[a].max(), l[a].min()
-        suite = ix[(m >= 990 + n_min) & (m < 1375)]               # jusqu'a 22:55
-        if len(suite) < 5 or hi <= lo:
+        k0 = k0[0]
+        if k0 + n_or >= idx[-1]:
             continue
-        e = None
-        for k in suite:
-            if mn[k] >= 1140:                                     # 19:00 serveur = 12 h New York : plus d'entree
+        H, L = hi[k0:k0 + n_or].max(), lo[k0:k0 + n_or].min()
+        if H <= L:
+            continue
+        for k in range(k0 + n_or, idx[-1] + 1):
+            if hm[k] > fin_entree:
                 break
-            s = 1 if c[k] > hi else (-1 if c[k] < lo else 0)
-            if s:
-                e = k + 1; break
-        if e is None or e > suite[-1]:
-            continue
-        px = o[e] + (sp[e] if s > 0 else 0)                       # achat a l'ask ; bougies en prix vendeur
-        ref = (lo if s > 0 else hi) if stop_mode == "borne" else (hi + lo) / 2
-        R = abs(px - ref)
-        if R <= 0:
-            continue
-        stop = px - s * R
-        cible = px + s * obj * R if obj else None
-        x = None
-        for k in suite[suite >= e]:
-            bas_k, haut_k = l[k], h[k] + sp[k]
-            if (s > 0 and bas_k <= stop) or (s < 0 and haut_k >= stop):
-                x = stop; break
-            if cible is not None and ((s > 0 and h[k] >= cible) or (s < 0 and l[k] + sp[k] <= cible)):
-                x = cible; break
-        if x is None:
-            k = suite[-1]
-            x = c[k] + (sp[k] if s < 0 else 0)
-        out.append((t[e], s * (x - px) / R, s * (x - px) / px * 1e4, s))
-    return pd.DataFrame(out, columns=["t", "R", "bp", "s"])
-
-
-def st(x):
-    if len(x) < 10:
-        return "%3d tr       -            " % len(x)
-    return "%3d tr %+5.2f R (t %+.1f), %+5.1f bp, %2.0f %% gagn." % (len(x), x.R.mean(), x.R.mean() / x.R.std() * np.sqrt(len(x)), x.bp.mean(), 100 * (x.R > 0).mean())
+            s = 1 if c[k] > H else (-1 if c[k] < L else 0)
+            if not s:
+                continue
+            e = c[k] + (sp[k] if s > 0 else 0.0)
+            st = (H + L) / 2 if stop == "mid" else (L if s > 0 else H)
+            risque = s * (e - st)
+            if risque <= 0:
+                break
+            cible = e + s * obj * risque
+            r = None
+            for i in range(k + 1, idx[-1] + 1):
+                if (s > 0 and lo[i] <= st) or (s < 0 and hi[i] + sp[i] >= st):
+                    r = -1.0; break
+                if (s > 0 and hi[i] >= cible) or (s < 0 and lo[i] + sp[i] <= cible):
+                    r = obj; break
+                if hm[i] >= fin:
+                    r = s * ((c[i] if s > 0 else c[i] + sp[i]) - e) / risque; break
+            if r is None:
+                r = s * (c[idx[-1]] - e) / risque
+            R.append((j, r))
+            break
+    return pd.DataFrame(R, columns=["jour", "r"])
 
 
 if __name__ == "__main__":
-    for ident in (sys.argv[1:] or ["nas_m5_90k", "nas_m1_90k", "sp_m1_90k"]):
+    reglages = [("depot : 15 min, stop milieu, 1 R", {}), ("objectif 2 R", {"obj": 2.0}),
+                ("stop a l'autre bout, 1 R", {"stop": "bout"}), ("fourchette 30 min, 1 R", {"n_or": 6})]
+    print("essais : %d reglages x 3 indices (un t > 2 par hasard attendu ~%.1f fois)" % (len(reglages), 12 * 0.023))
+    for ident in ("nas_m5_90k", "sp_m5_90k", "dj_m5_90k"):
         d = G.charge(ident)
-        pas = int(np.median(np.diff(d["heure"].values[:500])) // 60)
-        t0, t1 = pd.to_datetime(d["heure"].iloc[[0, -1]], unit="s")
-        mil = d["heure"].iloc[len(d) // 2]
-        print("\n%s (bougies de %d min, %s -> %s) : reglage | verdict" % (ident, pas, t0.date(), t1.date()))
-        for n_min in (5, 15, 30):
-            if n_min < pas:
-                continue
-            for stop_mode in ("borne", "milieu"):
-                for obj in (1, 2, 0):
-                    x = orb(d, pas, n_min, stop_mode, obj)
-                    print("  fourchette %2d min, stop %-6s, objectif %-5s | %s | %s" % (
-                        n_min, stop_mode, ("%d R" % obj) if obj else "aucun", st(x[x.t < mil]), st(x[x.t >= mil])))
+        print("\n%s : %s -> %s" % (ident, *pd.to_datetime(d["heure"].iloc[[0, -1]], unit="s").dt.date))
+        for nom, kw in reglages:
+            x = orb(d, **kw)
+            r = x.r.values; mi = len(r) // 2
+            t_ = r.mean() / r.std() * np.sqrt(len(r)) if len(r) > 1 and r.std() > 0 else 0
+            print("  %-30s %3d trades  moy %+5.2f R (t=%+4.1f)  gagnants %2.0f %%  1re %+5.1f R  2de %+5.1f R" % (
+                nom, len(r), r.mean(), t_, 100 * (r > 0).mean(), r[:mi].sum(), r[mi:].sum()))
