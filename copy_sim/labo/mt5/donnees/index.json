@@ -358,5 +358,25 @@
   "premiere": 1537833600,
   "derniere": 1794600000,
   "fichier": "nas_h4_20k.csv.gz"
+ },
+ "sp_m5_90k": {
+  "cle": "49b5a56e1419",
+  "ecrit": "2026-11-17T09:25:02Z",
+  "symbole": "SP500+",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1754943900,
+  "derniere": 1794914700,
+  "fichier": "sp_m5_90k.csv.gz"
+ },
+ "dj_m5_90k": {
+  "cle": "a2c515692940",
+  "ecrit": "2026-11-17T09:25:05Z",
+  "symbole": "DJ30+",
+  "periode": "M5",
+  "lignes": 90000,
+  "premiere": 1754943900,
+  "derniere": 1794914700,
+  "fichier": "dj_m5_90k.csv.gz"
  }
 }
