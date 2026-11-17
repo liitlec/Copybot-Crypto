@@ -21,6 +21,8 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Or/argent en paire (écart qui revient) | ne tient pas | M5 15 mois : +854 bp hors éch., t = 0,5, p = 0,78 (le spread de l'argent, 5 bp, mange tout) ; journalier 24 ans : −11 581 bp | — |
 | « Silver Bullet » (fausse sortie de la fourchette 9-10 h New York, or et 3 indices) | ne tient pas | 96 réglages, 15-17 mois : somme des 4 marchés −193 bp hors éch. (t = −0,3), p = 0,61 ; la version inverse perd aussi | — |
 | Repli d'indices élargi (12 marchés, sorties, stops, seuils) | **tient** sur les 4 indices américains seulement ; aucune variante ne bat la règle de base | 2000-2026 : Nasdaq +42 bp par trade (t = 3,0), S&P +27, Dow +21, Russell +33 ; p = 0,003 contre ne rien faire, p = 0,54 contre la base. Attendre +2 % par an (pire baisse −13 %) à 20 % du compte par trade, +4 % (−32 %) à 50 %. Europe, Japon, métaux : rien | garder la règle actuelle |
+| `bt_or` rendu plus régulier (autres marchés, risque égal, mise selon l'ATR) | ne tient pas | Seul l'or gagne (+102 R, t = 2,2) ; Dow −64 R, S&P −37, euro −30. Portefeuille de 6 marchés : +12 R contre +103, autant de mois négatifs (6 sur 15). Alerte : sur 4 ans (H1), l'or fait −6 R puis +160 R : la mécanique ne gagne que pendant la hausse de 2024-2026. Mise selon l'ATR : +103 contre +82 R, un peu mieux mais non prouvé (t 0,6) | `bt_or` reste « presque » |
+| Momentum croisé entre actifs (acheter les plus forts, 36 réglages, 2004-2026) | ne tient pas | +3,6 % par an contre +6,3 % pour le panier acheté seulement, à risque égal (différence t = −2,2) ; p = 0,91 | — |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
