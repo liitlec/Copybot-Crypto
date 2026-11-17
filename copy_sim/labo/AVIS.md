@@ -39,6 +39,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Mise inverse à la volatilité (or, indices) | ne tient pas | rendement/creux 3,1 contre 4,0 pour la mise fixe | — |
 | Saisonnalités : jour de la semaine, début/fin de mois, heures de Londres et New York, nuit contre jour (264 réglages) | ne tient pas | rien ne bat « être acheteur le même temps » ; le lundi sur Nasdaq/S&P est « presque » (+12,6 bp, t = 1,6 à 2,2, p = 0,19 après correction) | — |
 | Bascule rapide entre tendance et retour en cours de journée (36 réglages, 18 mois) | ne tient pas | +374 $ hors éch. (t = 0,4, p = 0,84) ; une alternance au hasard fait aussi bien 1 fois sur 4 ; 73 % des bascules sont ratées et coûtent −2 689 $ ; le spread mange 54 % du gain brut | — |
+| Les autres marchés annoncent l'or (Nasdaq, S&P, Dow, argent, euro, bitcoin ; décalages de 5 min à 2 h) | ne tient pas | Une avance existe à 5 minutes seulement (corrélation +0,02, soit 0,1 bp attendu contre 0,46 bp de spread) et disparaît dès 15 min. Règle d'entrée : +230 bp hors éch., t = 0,4, p = 0,96. Filtre « les autres confirment » sur la tendance : −865 bp par rapport à sans filtre | — |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
