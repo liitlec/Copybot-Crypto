@@ -1453,3 +1453,22 @@ sur la famille tendance** (réduire elan_m15 / cassure_m15 quand ils viennent de
 direct comme variante à part. Elle aurait réduit ces règles dès mardi (lundi perdant).
 
 **Total des essais : ≈ 49 180** (48 889 + ≈ 250 du relais, non décomptés par lui, + ≈ 45).
+
+### Passage 46, suite (≈ 11 h 15) — cassure de la fourchette d'ouverture (ORB) sur les indices américains (banc AC)
+
+`banc_orb.py` (PRIORITES 15/11 15 h, point 2 ; règle classique écrite avant de lire les dépôts : fourchette des 5,
+15 ou 30 premières minutes après 15 h 30 Paris ; entrée sur la première clôture hors fourchette, avant 18 h ; stop
+à l'autre borne ou au milieu ; objectif 1 R, 2 R ou aucun ; sortie à 21 h 55 ; un trade par jour ; spread réel ;
+54 essais).
+| Marché, données | Réglage (1re moitié) | Verdict (2de moitié) |
+|---|---|---|
+| `NAS100+` M5, 15 mois (≈ 325 jours) | **de −0,05 à +0,13 R** (meilleur : 30 min, stop à la borne, objectif 1 R : +0,13 R, t = 2,0, 61 % de gagnants) | **de −0,16 à −0,01 R** (le même réglage : −0,04 R, 46 % de gagnants) |
+| `NAS100+` M1, 3 mois (66 jours) | de −0,41 à +0,37 R, aucun t > 0,5 dans le bon sens | de −0,44 à +0,09 R |
+| `SP500+` M1, 3 mois (65 jours) | de −0,21 à +0,49 R (t ≤ 0,9) | de −0,35 à +0,23 R (t ≤ 1,3) |
+**Réfuté sur le Nasdaq** : légèrement positif sur la première moitié (août 2025 – mars 2026), négatif sur la
+seconde, pour les 18 réglages : c'était le régime de l'automne 2025, pas une règle. Sur le S&P, 3 mois ne disent
+rien (zéro à la marge d'erreur). `DJ30+` : pas de bougies intrajournalières (demandées au pont : M5 de `SP500+` et
+`DJ30+`, 15 mois, pour confirmer). Les filtres propres aux dépôts (volume, écart d'ouverture, actualités) seront
+ajoutés si l'inventaire en donne des précis.
+
+**Total des essais : ≈ 49 180 + 54 = ≈ 49 234.**
