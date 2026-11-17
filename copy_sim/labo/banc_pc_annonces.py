@@ -82,9 +82,10 @@ nomg = lambda g: "k%.1f %s %s" % g
 
 
 # ------------------------------------------------------------------ simulation d'un montage sur des bougies
-def sim(o, h, l, c, sp, tt, j0, P, d, spE, g, nwin, nmax, slip=2.0):
+def sim(o, h, l, c, sp, tt, j0, P, d, spE, g, nwin, nmax, slip=2.0, xa=0.0):
     """Rend (sens, r, cout, mae, t_entree, t_sortie) en prix (pas encore divise par P) ou None si rien ne part.
-    Vue « achat » : pour une vente on retourne les prix (-o, -l, -h, -c)."""
+    Vue « achat » : pour une vente on retourne les prix (-o, -l, -h, -c). xa : glissement EN PLUS (prix) a chaque
+    ordre stop (entree, ajout, sortie au stop) pour le test de resistance."""
     k, smode, xmode = g
     up, dn = P + d, P - d
     j = None
@@ -102,7 +103,8 @@ def sim(o, h, l, c, sp, tt, j0, P, d, spE, g, nwin, nmax, slip=2.0):
     else:
         O, H, L, C = -o, -l, -h, -c; lev = -dn; stp = -P if smode == "milieu" else -up
     fill = max(lev, O[j]) if j > j0 else lev
-    cout = spE * (1 + slip)
+    ce = spE * (1 + slip) + xa
+    cout = ce
     R = fill - stp
     tgt = {"2R": 2, "3R": 3, "5R": 5, "5R+pyr": 5}.get(xmode)
     pyr = xmode.endswith("pyr"); trail = xmode.startswith("suiveur")
@@ -116,14 +118,14 @@ def sim(o, h, l, c, sp, tt, j0, P, d, spE, g, nwin, nmax, slip=2.0):
         # 1) stop (prioritaire ; dans la bougie d'entree, toucher le stop = stoppe)
         if L[jj] <= stop:
             px = min(stop, O[jj]) if jj > j else stop
-            sortie = (jj, px - sl); cout += nu * sl; pire = min(pire, stop); break
+            sortie = (jj, px - sl - xa); cout += nu * (sl + xa); pire = min(pire, stop); break
         pire = min(pire, L[jj])
         # 2) ajout (pyramide) a +1R
         if pyr and ajout is None and H[jj] >= fill + R:
-            ajout = fill + R + sl * (1 + slip); cout += sl * (1 + slip); nu = 2
+            ajout = fill + R + sl * (1 + slip) + xa; cout += sl * (1 + slip) + xa; nu = 2
             stop = max(stop, fill)
             if L[jj] <= stop:                  # meme bougie : on suppose le retour au stop
-                sortie = (jj, stop - sl); cout += nu * sl; break
+                sortie = (jj, stop - sl - xa); cout += nu * (sl + xa); break
         # 3) objectif (ordre limite)
         if tgt and H[jj] >= fill + tgt * R:
             sortie = (jj, fill + tgt * R); break
@@ -133,9 +135,9 @@ def sim(o, h, l, c, sp, tt, j0, P, d, spE, g, nwin, nmax, slip=2.0):
         sortie = (jend, C[jend])
     js, px = sortie
     # couts d'entree payes en plus du prix ; glissement de sortie deja dans px (et compte dans cout)
-    gain = (px - fill) - spE * (1 + slip) + ((px - ajout) if ajout is not None else 0.0)
+    gain = (px - fill) - ce + ((px - ajout) if ajout is not None else 0.0)
     cout_tot = cout
-    mae = max(fill - pire, 0) + spE * (1 + slip) + (max(ajout - pire, 0) if ajout is not None else 0)
+    mae = max(fill - pire, 0) + ce + (max(ajout - pire, 0) if ajout is not None else 0)
     mae = max(mae, -gain)
     return s, gain, cout_tot, mae, tt[j], tt[js]
 
@@ -151,7 +153,7 @@ def prep(D, T, pas):
     return j0
 
 
-def evenements_m5():
+def evenements_m5(xs=0.0):
     """Trades de tous les reglages, par marche et par annonce, sur les M5. Aussi le controle des dates."""
     rows, ctl = [], []
     for mk, D in M5.items():
@@ -168,7 +170,7 @@ def evenements_m5():
             ctl.append(dict(mk=mk, e=e, T=T, type=ty, rap=amp[j0] / atr, pic=(tt[j0 - 12 + np.argmax(amp[j0 - 12:j0 + 13])] - T) / pd.Timedelta(minutes=1),
                             spE=spE / sp[j0 - 24:j0].mean()))
             for gi, g in enumerate(GRILLE):
-                x = sim(o, h, l, c, sp, tt, j0, P, g[0] * atr, spE, g, 3, 36)
+                x = sim(o, h, l, c, sp, tt, j0, P, g[0] * atr, spE, g, 3, 36, xa=xs * atr)
                 if x is None:
                     continue
                 s, gain, cout, mae, t0, t1 = x
@@ -189,6 +191,42 @@ def matrice(TR, univ):
     return M
 
 
+def walk_forward(TR, P_, muet=False):
+    """Walk-forward glissant (6 mois / 1 mois) pour chaque univers ; rend (matrices, hors-echantillon)."""
+    ev_t = EV.quand
+    mois = ev_t.dt.to_period("M")
+    couverts = sorted(TR.e.unique()); m_c = mois[couverts]
+    MO = sorted(m_c.unique())
+    Ms = {u: matrice(TR, u).reindex(couverts).fillna(0) for u in UNIVERS}
+    fen = [(MO[i - 6], MO[i - 1], MO[i]) for i in range(6, len(MO))]
+    if not muet:
+        P_("\n## Walk-forward (apprentissage 6 mois, test 1 mois) : %d annonces couvertes %s -> %s ; %d mois de test %s -> %s ; N = %d"
+           % (len(couverts), ev_t[couverts[0]].date(), ev_t[couverts[-1]].date(), len(fen), fen[0][2], fen[-1][2], N))
+        P_("univers | annonces OOS | trades | gain moyen/annonce (bp du notionnel) | t | moitie 1 | moitie 2 | reglage le + pris | p Bonferroni (N=%d)" % N)
+    WF = {}
+    for u in UNIVERS:
+        M = Ms[u]; mm = m_c.reindex(M.index).values
+        oos, ch = [], []
+        for a, b, t_ in fen:
+            app = (mm >= a) & (mm <= b); te = mm == t_
+            if app.sum() < 5 or te.sum() == 0:
+                continue
+            gi = int(np.argmax([tstat(M.loc[app, g]) for g in range(len(GRILLE))]))
+            ch += [gi] * te.sum(); oos.append(pd.DataFrame({"e": M.index[te], "gi": gi, "v": M.loc[te, gi].values}))
+        O = pd.concat(oos)
+        t = tstat(O.v); h1, h2 = np.array_split(O.v.values, 2)
+        p1 = 0.5 * math.erfc(t / math.sqrt(2))   # loi normale (a peu pres la loi de Student pour n > 25)
+        x = TR if u == "panier" else TR[TR.mk == u]
+        ntr = len(x.merge(O[["e", "gi"]], on=["e", "gi"]))
+        fq = pd.Series(ch).value_counts()
+        O.attrs.update(t=t, h1=h1.mean(), h2=h2.mean(), pb=min(1, N * p1), ntr=ntr, mode=fq.index[0])
+        WF[u] = O
+        if not muet:
+            P_("%-6s | %3d | %4d | %+7.1f | %+5.2f | %+6.1f | %+6.1f | %s (%d/%d) | %.3f"
+               % (u, len(O), ntr, 1e4 * O.v.mean(), t, 1e4 * h1.mean(), 1e4 * h2.mean(), nomg(GRILLE[fq.index[0]]), fq.iloc[0], len(O), min(1, N * p1)))
+    return Ms, WF
+
+
 def main():
     out = []
     P_ = lambda *a: (print(*a), out.append(" ".join(str(z) for z in a)))
@@ -202,35 +240,7 @@ def main():
     dout = CTL[CTL.mk.isin(["xau", "nas"])].groupby(["e"]).agg(T=("T", "first"), ty=("type", "first"), rap=("rap", "max"))
     faibles = dout[dout.rap < 2]
     P_("- dates douteuses (rapport < 2 sur l'or ET le Nasdaq) : %s" % (", ".join("%s %s %.1fx" % (r.T.date(), r.ty, r.rap) for r in faibles.itertuples()) or "aucune"))
-    # ---------------- walk-forward
-    ev_t = EV.quand
-    mois = ev_t.dt.to_period("M")
-    couverts = sorted(TR.e.unique()); m_c = mois[couverts]
-    MO = sorted(m_c.unique())
-    Ms = {u: matrice(TR, u).reindex(couverts).fillna(0) for u in UNIVERS}
-    fen = [(MO[i - 6], MO[i - 1], MO[i]) for i in range(6, len(MO))]
-    P_("\n## Walk-forward (apprentissage 6 mois, test 1 mois) : %d annonces couvertes %s -> %s ; %d mois de test %s -> %s ; N = %d"
-       % (len(couverts), ev_t[couverts[0]].date(), ev_t[couverts[-1]].date(), len(fen), fen[0][2], fen[-1][2], N))
-    P_("univers | annonces OOS | trades | gain moyen/annonce (bp du notionnel) | t | moitie 1 | moitie 2 | reglage le + pris | p Bonferroni")
-    WF = {}
-    for u in UNIVERS:
-        M = Ms[u]; mm = m_c.reindex(M.index).values
-        oos, ch = [], []
-        for a, b, t_ in fen:
-            app = (mm >= a) & (mm <= b); te = mm == t_
-            if app.sum() < 5 or te.sum() == 0:
-                continue
-            gi = int(np.argmax([tstat(M.loc[app, g]) for g in range(len(GRILLE))]))
-            ch += [gi] * te.sum(); oos.append(pd.DataFrame({"e": M.index[te], "gi": gi, "v": M.loc[te, gi].values}))
-        O = pd.concat(oos)
-        t = tstat(O.v); h1, h2 = np.array_split(O.v.values, 2)
-        p1 = 0.5 * math.erfc(t / math.sqrt(2))   # loi normale (prudent a peu pres egal pour n > 25)
-        x = TR if u == "panier" else TR[TR.mk == u]
-        ntr = sum(((x.e == e) & (x.gi == g)).sum() for e, g in zip(O.e, O.gi))
-        fq = pd.Series(ch).value_counts()
-        WF[u] = O
-        P_("%-6s | %3d | %4d | %+7.1f | %+5.2f | %+6.1f | %+6.1f | %s (%d/%d) | %.3f"
-           % (u, len(O), ntr, 1e4 * O.v.mean(), t, 1e4 * h1.mean(), 1e4 * h2.mean(), nomg(GRILLE[fq.index[0]]), fq.iloc[0], len(O), min(1, N * p1)))
+    Ms, WF = walk_forward(TR, P_)
     # ---------------- reality check de White sur les 216 reglages (t studentise)
     A = np.column_stack([Ms[u][g].values for u in UNIVERS for g in range(len(GRILLE))])
     n = len(A); rng = np.random.default_rng(11)
@@ -252,7 +262,21 @@ def main():
     for k in KS:
         for s in STOPS:
             P_("%-4.1f %-8s" % (k, s) + "".join("%+12.1f" % (1e4 * Ms["panier"][GRILLE.index((k, s, x))].mean()) for x in SORTIES))
-    # par type d'annonce, meilleur univers
+    # detail du panier hors-echantillon
+    O = WF["panier"]; ty = O.e.map(EV.type)
+    P_("\nPanier hors-echantillon par type : " + " ; ".join("%s %d annonces %+.1f bp (t %+.2f)" % (k, (ty == k).sum(), 1e4 * O.v[ty == k].mean(), tstat(O.v[ty == k])) for k in ("NFP", "CPI", "FOMC")))
+    v = O.v.sort_values()
+    P_("Concentration : sans les 2 meilleures annonces %+.1f bp/annonce ; sans les 5 meilleures %+.1f ; part des annonces gagnantes %.0f %%"
+       % (1e4 * v.iloc[:-2].mean(), 1e4 * v.iloc[:-5].mean(), 100 * (O.v > 0).mean()))
+    # test de resistance au glissement : xs x amplitude M5 d'avant EN PLUS a chaque ordre stop, walk-forward refait
+    P_("\n## Resistance au glissement (en plus de 3 x le spread : xs x l'amplitude M5 moyenne d'avant, a chaque ordre stop ; walk-forward refait)")
+    P_("xs   | " + " | ".join("%-22s" % u for u in UNIVERS))
+    lig = "0    | " + " | ".join("%+6.1f bp t %+5.2f      " % (1e4 * WF[u].v.mean(), WF[u].attrs["t"]) for u in UNIVERS)
+    P_(lig)
+    for xs in (0.1, 0.25, 0.5):
+        TRx, _ = evenements_m5(xs)
+        _, W = walk_forward(TRx, P_, muet=True)
+        P_("%-4.2f | " % xs + " | ".join("%+6.1f bp t %+5.2f      " % (1e4 * W[u].v.mean(), W[u].attrs["t"]) for u in UNIVERS))
     return TR, CTL, WF, Ms, out, (ub, gb, p_rc)
 
 
