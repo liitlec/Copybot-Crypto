@@ -524,3 +524,12 @@ banc (15 mois, walk-forward, correction pour essais multiples), puis en variante
 4. **Filtre de direction** : les règles de tendance n'entrent que si la tendance de fond (2 jours, 20 h) va dans le
    même sens et que le prix n'est pas déjà au bout de son range du jour.
 Comparer à la sélection actuelle et à la même sélection sans elan_m15 (qui perd aussi au banc : −398 $ sur 15 mois).
+
+## 17/11, 10 h 30 (Paris) : finir l'analyse des dépôts GitHub (rappel, demandée le 15/11)
+État : `APIS.md` commencé (2 étapes), `ECC.md` à peine (8 lignes : seulement l'anti-secrets), `SKILLS_TRADING.md`
+pas commencé. À finir avec des sous-agents si besoin, en parallèle des pistes du 17/11 10 h 15 :
+1. **public-apis** : finir le tri (données de marché, annonces, sentiment, COT, taux), tester ce qui répond sans clé.
+2. **ECC (Everything Claude Code)** : ce qui peut servir au labo (agents, contrôles, mémoire, tests, boucles).
+3. **Dépôts de trading (day-trader-skill et voisins)** : lire leurs règles (ORB à 15 h 30 sur NAS100+, SP500+, DJ30+ ;
+   ICT/SMC ; gestion du risque ; « Time Machine »), tester au banc ce qui est testable, en variante sur la démo ce qui
+   tient. Un tableau par dépôt : idée, testé ou non, résultat.
