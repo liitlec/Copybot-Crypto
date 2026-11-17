@@ -38,6 +38,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Acheter le S&P quand le VIX bondit (> moyenne 20 j + 2 écarts), 5 jours | tient de justesse | +97 bp par trade hors éch., t = 2,0, p = 0,007 ; mais 184 trades en 34 ans, et c'est un cousin du repli d'indices | sur le papier (le robot ne voit pas le VIX) |
 | Mise inverse à la volatilité (or, indices) | ne tient pas | rendement/creux 3,1 contre 4,0 pour la mise fixe | — |
 | Saisonnalités : jour de la semaine, début/fin de mois, heures de Londres et New York, nuit contre jour (264 réglages) | ne tient pas | rien ne bat « être acheteur le même temps » ; le lundi sur Nasdaq/S&P est « presque » (+12,6 bp, t = 1,6 à 2,2, p = 0,19 après correction) | — |
+| Bascule rapide entre tendance et retour en cours de journée (36 réglages, 18 mois) | ne tient pas | +374 $ hors éch. (t = 0,4, p = 0,84) ; une alternance au hasard fait aussi bien 1 fois sur 4 ; 73 % des bascules sont ratées et coûtent −2 689 $ ; le spread mange 54 % du gain brut | — |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
