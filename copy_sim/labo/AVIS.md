@@ -1,5 +1,12 @@
 # Avis pour Baptiste — 17/11/2026 (Fable, recherche large, PRIORITES 17/11 11 h 20)
 
+**Ajout du 17/11 au soir — « savoir en direct quel moment arrive » (PRIORITES 17/11 12 h 15), 4 pistes testées, aucune ne tient :**
+- **Modèle à plusieurs indices** (71 indices) : 48 à 55 % de bonnes réponses hors échantillon, autant qu'en répondant toujours « calme » ; en $, pas mieux que la sélection actuelle.
+- **Les autres marchés annoncent l'or** : seulement 5 minutes d'avance, pour 0,1 bp attendu contre 0,46 bp de spread. **Bascule rapide** : +374 $ (t = 0,4), le hasard fait aussi bien 1 fois sur 4, et 73 % des bascules sont ratées.
+- **IA qui juge à l'aveugle** (180 moments anonymes, 2 modèles) : 48 à 52 % contre 46 % pour « toujours calme », mais 51 % pour la règle bête « les 4 heures d'avant se répètent ». Elle ne reconnaît pas l'aller-retour (5 à 7 sur 36).
+- **Ce que ça veut dire** : la seule chose prévisible est « calme ou agité » (déjà dans le robot depuis la v11). Le sens et le type d'une journée agitée ne se devinent pas d'avance avec ces données ; même en trichant, le choix de famille ne rapporterait que +338 à +1 132 $ sur 9 mois.
+- **Robot v15 bien installé sur le PC** ; `rebond_nas_opt` n'a pas encore eu de signal.
+
 1. **Recherche large finie : 12 pistes, 14 bancs, tous en walk-forward avec spread réel et correction pour essais multiples.** Une seule vraie découverte : **le contre-pied d'une grande journée sur le Nasdaq** (+28 bp par trade sur 385 trades du courtier depuis 2018, t = 2,9, toutes les années positives).
 2. **Robot v15 publié** (essais OK) : il ajoute `rebond_nas_opt` (Nasdaq, taille minimale, hors totaux du test ; arrêt écrit d'avance : somme < −1 000 bp, ou moyenne négative après 60 trades). Le filtre de tendance du relais, qui ne tenait pas, est retiré. La sélection du test n'est pas touchée.
 3. **Le repli d'indices tient toujours, mais reste petit** : +2 % par an à 20 % du compte par trade (pire baisse −13 %), sur les 4 indices américains seulement ; aucune variante ne le bat.
@@ -40,6 +47,8 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Saisonnalités : jour de la semaine, début/fin de mois, heures de Londres et New York, nuit contre jour (264 réglages) | ne tient pas | rien ne bat « être acheteur le même temps » ; le lundi sur Nasdaq/S&P est « presque » (+12,6 bp, t = 1,6 à 2,2, p = 0,19 après correction) | — |
 | Bascule rapide entre tendance et retour en cours de journée (36 réglages, 18 mois) | ne tient pas | +374 $ hors éch. (t = 0,4, p = 0,84) ; une alternance au hasard fait aussi bien 1 fois sur 4 ; 73 % des bascules sont ratées et coûtent −2 689 $ ; le spread mange 54 % du gain brut | — |
 | Les autres marchés annoncent l'or (Nasdaq, S&P, Dow, argent, euro, bitcoin ; décalages de 5 min à 2 h) | ne tient pas | Une avance existe à 5 minutes seulement (corrélation +0,02, soit 0,1 bp attendu contre 0,46 bp de spread) et disparaît dès 15 min. Règle d'entrée : +230 bp hors éch., t = 0,4, p = 0,96. Filtre « les autres confirment » sur la tendance : −865 bp par rapport à sans filtre | — |
+| Modèle à plusieurs indices (71 indices : or, indices US, argent, euro, heure, jour, annonces ; 30 réglages) pour prédire tendance / calme / aller-retour à 9 h, 12 h, 15 h 30 | ne tient pas | Bonnes réponses hors éch. : 51 %, 55 %, 48 % contre 54 %, 53 %, 44 % en répondant toujours « calme ». En $ : +232 / +150 / +68 contre +247 / +195 / −303 pour la sélection actuelle (p = 0,53) ; la tendance seule fait mieux à 9 h et 12 h. Même en trichant (type connu d'avance), le gain n'est que de +338 à +1 132 $ | — |
+| Une IA qui juge en direct (180 moments anonymes, sans date ni prix réels, 2 modèles de langage à petit coût, à l'aveugle) | ne tient pas | 52 % et 48 % de bonnes réponses (54 % en vote à deux) contre 46 % en répondant toujours « calme »… mais la règle bête « les 4 heures d'avant se répètent » fait 51 % sur les mêmes moments. Aller-retour reconnu 5 à 7 fois sur 36. L'IA ne voit que la persistance du calme, que le robot utilise déjà | pas de journal en direct |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
