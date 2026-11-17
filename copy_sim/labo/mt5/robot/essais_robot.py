@@ -517,3 +517,62 @@ for f in ("etat_essai.json", "etat_bt.json", "etat_repli.json"):
     if os.path.exists(f):
         os.remove(f)
 print("ESSAIS OK")
+
+
+# v15 : rebond_nas_opt (contre-pied d'une journee de grande amplitude sur le Nasdaq, une journee)
+import rebond_nas
+
+
+class PontRebond(PontIndice):
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "NAS100+" and lots == 0.1 and id == "rebond_nas_opt"
+        assert (stop < self.bid) if sens == "achat" else (stop > self.bid + self.ecart)
+        self.n += 1
+        self.pos[self.n] = {"ticket": self.n, "symbole": s, "sens": sens, "prix_entree": self.bid, "stop": stop, "profit": 0.0}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": self.bid}
+
+
+def d1(clo, amp):
+    return [(i * 86400, c, c + a / 2.0, c - a / 2.0, c, 1000, 10, 100) for i, (c, a) in enumerate(zip(clo, amp))]
+
+
+calme = [20000.0 + i for i in range(30)]
+assert rebond_nas.signal(d1(calme, [100.0] * 30)) == 0, "journee ordinaire : rien"
+assert rebond_nas.signal(d1(calme + [19700.0], [100.0] * 30 + [400.0])) == 1, "grande journee de baisse : achat"
+assert rebond_nas.signal(d1(calme + [20400.0], [100.0] * 30 + [400.0])) == -1, "grande journee de hausse : vente"
+assert rebond_nas.signal(d1(calme + [19700.0], [100.0] * 30 + [140.0])) == 0, "amplitude sous 1,5 mediane : rien"
+if os.path.exists("etat_rebond_essai.json"):
+    os.remove("etat_rebond_essai.json")
+pr = PontRebond()
+rb = rebond_nas.Rebond(pr, fichier="etat_rebond_essai.json")
+pr.b = d1(calme + [20400.0, 20400.0], [100.0] * 30 + [400.0, 50.0])     # derniere bougie = journee en cours
+jr = pr.b[-1][0]
+pr.bid = 20400.0
+rb.tour(pr.ps(), jr + 4 * 3600, True)
+assert not pr.pos, "trop tard dans la journee : pas d'entree"
+rb.dernier = 0
+rb.tour(pr.ps(), jr + 600, False)
+assert not pr.pos, "ouvertures bloquees : pas d'entree"
+rb.dernier = 0
+rb.tour(pr.ps(), jr + 700, True)
+assert len(pr.pos) == 1 and list(pr.pos.values())[0]["sens"] == "vente", "vente apres une grande journee de hausse"
+assert rebond_nas.Rebond(pr, fichier="etat_rebond_essai.json").tickets() == rb.tickets(), "reprise apres redemarrage"
+rp3 = repli_ind.Repli(pr, fichier="etat_repli_essai3.json")
+rp3.adopter({t: p for t, p in pr.ps().items() if t not in set(rb.tickets())})
+assert not rp3.pos, "repli_ind ne prend pas la position de rebond_nas_opt"
+rb.dernier = 0
+rb.tour(pr.ps(), jr + 3600 * 10, True)
+assert len(pr.pos) == 1, "tenue pendant la journee"
+rb.dernier = 0
+pr.bid = 20300.0
+rb.tour(pr.ps(), jr + 22 * 3600 + 46 * 60, True)
+assert not pr.pos and not rb.tickets(), "sortie en fin de journee"
+nt = [n for n in pr.notes if n.get("evenement") == "sortie" and n.get("hypothese") == "rebond_nas_opt"]
+assert nt and nt[-1]["bp"] > 0, "vente gagnante : bp positif"
+rb.dernier = 0
+rb.tour(pr.ps(), jr + 22 * 3600 + 50 * 60, True)
+assert not pr.pos, "pas de nouvelle entree le meme jour"
+for f in ("etat_rebond_essai.json", "etat_repli_essai3.json"):
+    if os.path.exists(f):
+        os.remove(f)
+print("ESSAIS OK")

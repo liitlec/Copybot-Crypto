@@ -12,6 +12,7 @@ import time
 
 import bt_or
 import repli_ind
+import rebond_nas
 
 VERSION = 15
 SYMBOLE = "XAUUSD"
@@ -205,6 +206,7 @@ class Robot:
                        for sym, n in CRYPTO]           # v13 : bt_crypto, hors test (donnees)
         self.crypto_vu, self.crypto_muet = 0, set()
         self.repli = repli_ind.Repli(pont)
+        self.rebond = rebond_nas.Rebond(pont)           # v15 : rebond_nas_opt, hors test (voir rebond_nas.py)
         self.charger()
 
     # -------------------------------------------------- memoire (fichier dans le dossier du robot)
@@ -234,7 +236,8 @@ class Robot:
         connus = set(self.bt.tickets())                 # les paniers bt_or sont geres par bt_or.py
         for c in self.crypto:
             connus.update(c.tickets())
-        self.repli.adopter(ps)                          # une position sur un indice est toujours a repli_ind
+        connus.update(self.rebond.tickets())            # v15 : la position de rebond_nas_opt n'est pas a repli_ind
+        self.repli.adopter({t: p for t, p in ps.items() if t not in connus})   # autre position sur un indice : repli_ind
         connus.update(self.repli.tickets())
         for nom, o in list(self.ouvert.items()):
             p = ps.get(o["ticket"])
@@ -459,6 +462,7 @@ class Robot:
         self.bt.surveiller(ps, px)
         permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
         self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
+        self.rebond.tour(ps, maintenant, permis)        # v15 : Nasdaq, contre-pied d'une journee de grande amplitude
         if bougies is None or "crypto" in bougies:
             self.tour_crypto(ps, maintenant, permis, (bougies or {}).get("crypto"))
         if not permis:

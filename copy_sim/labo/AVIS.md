@@ -1,5 +1,11 @@
 # Avis pour Baptiste — 17/11/2026 (Fable, recherche large, PRIORITES 17/11 11 h 20)
 
+1. **Recherche large finie : 12 pistes, 14 bancs, tous en walk-forward avec spread réel et correction pour essais multiples.** Une seule vraie découverte : **le contre-pied d'une grande journée sur le Nasdaq** (+28 bp par trade sur 385 trades du courtier depuis 2018, t = 2,9, toutes les années positives).
+2. **Robot v15 publié** (essais OK) : il ajoute `rebond_nas_opt` (Nasdaq, taille minimale, hors totaux du test ; arrêt écrit d'avance : somme < −1 000 bp, ou moyenne négative après 60 trades). Le filtre de tendance du relais, qui ne tenait pas, est retiré. La sélection du test n'est pas touchée.
+3. **Le repli d'indices tient toujours, mais reste petit** : +2 % par an à 20 % du compte par trade (pire baisse −13 %), sur les 4 indices américains seulement ; aucune variante ne le bat.
+4. **Alerte sur `bt_or`** : sur 4 ans, la mécanique fait −6 R puis +160 R : elle ne gagne que pendant la hausse de l'or de 2024-2026, et ne marche sur aucun autre marché. À garder petit.
+5. **Presque** : suivre les spéculateurs sur l'euro (COT, t = 1,7), acheter le S&P quand le VIX bondit. **Ne tient pas** : pause annonces, Silver Bullet, COT sur l'or, coupe-circuit, paire or/argent, or contre dollar et taux, saisonnalités, momentum croisé, `bt_or` diversifié.
+
 ## Tout ce qui a été testé : tient / presque / ne tient pas
 
 Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-forward, spread réel) et résiste à la correction pour essais multiples ; « presque » = gagne hors échantillon mais preuve trop mince ; sinon « ne tient pas ».
@@ -27,6 +33,11 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | COT sur 7 autres marchés (576 réglages) | presque, sur l'euro seulement, et dans le sens inverse : **suivre** les spéculateurs | Euro : +6 349 bp hors éch. sur 2006-2026 (t = 1,7), positif sur les deux moitiés, p = 0,009 parmi ses 72 réglages mais p = 0,10 sur les 576 ; 57 trades seulement, portage de nuit non compté. Argent, S&P, Nasdaq, Dow, yen, bitcoin : rien de sûr | à suivre sur le papier (un signal par semaine) |
 | Pause autour des annonces US fortes (emploi, inflation, Fed ; 24 réglages) | ne tient pas | 4 règles : +672 $ hors éch. (t = 1,2, p = 0,21), mais seulement +8 $ viennent vraiment des jours d'annonce : le reste est un effet de décalage des trades. Le calendrier Helious n'a pas d'historique : dates reconstruites à la main | — |
 | Coupe-circuit journalier, pause après pertes, refus si spread trop cher (10 réglages) | ne tient pas | Meilleur (pause 24 h après 3 pertes) : +446 $ hors éch., t = 0,5, p = 0,39 ; un tirage au hasard fait aussi bien 1 fois sur 9 | — |
+| Or contre dollar et taux réels US (14 réglages, 2006-2026) | ne tient pas | −13 856 bp hors éch. (t = −1,7) ; le lien existe le jour même mais n'annonce rien pour le lendemain | — |
+| **Contre-pied d'une grande journée sur le Nasdaq** (amplitude > 1,5 fois la médiane de 20 jours → position inverse le lendemain, une journée) | **tient** (nouveau) | 1993-2026 : +10,8 bp par trade hors éch., t = 2,3, p < 0,001 sur 18 réglages. Revérifié sur les bougies du courtier 2018-2026 : 385 trades, +28 bp par trade, t = 2,9, toutes les années positives ; surtout les achats (+39 bp, t = 3,0), ventes faibles (+15 bp, t = 1,0). Sur l'or c'est l'inverse (−13 bp) | **sur la démo dans la v15 : `rebond_nas_opt`**, hors test |
+| Acheter le S&P quand le VIX bondit (> moyenne 20 j + 2 écarts), 5 jours | tient de justesse | +97 bp par trade hors éch., t = 2,0, p = 0,007 ; mais 184 trades en 34 ans, et c'est un cousin du repli d'indices | sur le papier (le robot ne voit pas le VIX) |
+| Mise inverse à la volatilité (or, indices) | ne tient pas | rendement/creux 3,1 contre 4,0 pour la mise fixe | — |
+| Saisonnalités : jour de la semaine, début/fin de mois, heures de Londres et New York, nuit contre jour (264 réglages) | ne tient pas | rien ne bat « être acheteur le même temps » ; le lundi sur Nasdaq/S&P est « presque » (+12,6 bp, t = 1,6 à 2,2, p = 0,19 après correction) | — |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
