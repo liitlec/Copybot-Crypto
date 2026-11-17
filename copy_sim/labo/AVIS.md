@@ -11,6 +11,8 @@
 - Premier trade du repli d'indices en direct : achat du Dow (0,1 lot) cette nuit à 0 h, ouvert.
 - **Cassure de l'ouverture de Wall Street (ORB, 15 h 30)** : testée sur le Nasdaq 15 mois (18 réglages) : un peu positive sur la 1re moitié, négative sur la 2de. Non retenue ; S&P et Dow à confirmer quand le pont enverra leurs bougies M5.
 
+**Ajout de 12 h — réagir plus vite aux retournements :** 7 sorties testées sur les deux règles de tendance (sortie sur l'extrême de la dernière heure, sur inversion de l'élan, stop ramené à l'entrée, stop suiveur, retournement). Toutes embellissent la 1re moitié des 15 mois et font moins bien que la sortie simple sur la 2de : rien ne tient. Les ventes prises à contre-pied lundi sont le coût normal d'une règle de tendance un jour d'aller-retour, pas un défaut de sortie. Pas de variante `_opt` ajoutée.
+
 ## Avis du relais (17/11, 6 h 15)
 
 0. **Test, mardi 6 h 10** : sélection lundi −30,99 $ (47 trades), mardi déjà −20,88 $ (25 trades), dont `elan_m15` −23,75 $ sur 2 ; total −51,87 $. Témoin −12,41 $ mardi. Une erreur isolée à 2 h 39 (accès refusé à un fichier sous Windows) ; le robot a continué. Panier `bt_or` ouvert, pont à l'heure.

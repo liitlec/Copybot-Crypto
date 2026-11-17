@@ -1506,3 +1506,30 @@ l'or (+6 635 $ sur 15 mois à 0,01 lot, **8 mois négatifs sur 16**). Pièce ajo
   `repli_ind` à ≈ 20 000 $ par trade s'il confirme en direct ; règle d'arrêt inchangée.
 
 **Total des essais : ≈ 49 244.**
+
+### Passage 46, suite (≈ 12 h) — réagir plus vite aux retournements (banc AE)
+
+`banc_retournement.py` (PRIORITES 16/11 10 h 30, idées 2, 3, 4 ; l'idée 1 « alignement sur le fond » est réfutée au
+banc AB, piste 4 ; l'idée 5 « annonces » attend un calendrier historique). Or M15, 15 mois, spread réel, pause au
+calme, $ à 0,01 lot ; 16 essais. A = amplitude moyenne d'une bougie M15.
+
+| Sortie | elan_m15 : réglage / verdict (total) | cassure_m15 : réglage / verdict |
+|---|---|---|
+| base : 3 h au temps | +156 $ / **+332 $** | +511 $ / +96 $ |
+| sortie si clôture au-delà de l'extrême de la dernière heure | +1 146 $ / −187 $ | +192 $ / +76 $ |
+| sortie si l'élan de 3 h s'inverse | +852 $ / −190 $ | +407 $ / +97 $ |
+| stop ramené à l'entrée après +1 A | +965 $ / +38 $ | +188 $ / −14 $ |
+| stop ramené à l'entrée après +2 A | +1 768 $ (t = 2,1) / +86 $ | +518 $ / **+191 $** |
+| stop suiveur à 2 A | +1 062 $ / +106 $ | +905 $ (t = 2,0) / +54 $ |
+| stop suiveur à 3 A | +1 092 $ / +94 $ | +572 $ / +148 $ |
+| retournement (sortie puis sens inverse) | −463 $ / +222 $ | −103 $ / +2 $ |
+
+**Aucune sortie « plus rapide » ne tient hors échantillon.** Sur `elan_m15`, toutes améliorent beaucoup la première
+moitié (de +156 $ à +850 … +1 770 $) et font toutes **moins bien que la sortie simple sur la seconde** (+332 $) :
+c'est le profil exact d'un réglage chanceux. Sur `cassure_m15`, deux réglages font un peu mieux des deux côtés (stop
+à zéro après +2 A, suiveur à 3 A), d'un écart très inférieur à la marge d'erreur. Le retournement coûte un spread de
+plus et ne rapporte rien. Lundi (ventes prises à contre-pied) n'est pas un défaut de sortie corrigeable : c'est le
+coût normal d'une règle de tendance un jour d'aller-retour. **Pas de variante `_opt` de sortie sur la démo** (rien
+à mesurer que le hasard) ; si Baptiste y tient, la moins mauvaise est « stop à zéro après +2 A » sur `cassure_m15`.
+
+**Total des essais : ≈ 49 260.**
