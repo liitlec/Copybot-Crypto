@@ -25,6 +25,8 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Momentum croisé entre actifs (acheter les plus forts, 36 réglages, 2004-2026) | ne tient pas | +3,6 % par an contre +6,3 % pour le panier acheté seulement, à risque égal (différence t = −2,2) ; p = 0,91 | — |
 | COT à contre-courant sur l'or (positions des spéculateurs, 72 réglages, 2003-2026) | ne tient pas | −2 030 bp hors éch. (t = −0,4), alors qu'acheter et garder l'or fait +12 230 bp à exposition égale | — |
 | COT sur 7 autres marchés (576 réglages) | presque, sur l'euro seulement, et dans le sens inverse : **suivre** les spéculateurs | Euro : +6 349 bp hors éch. sur 2006-2026 (t = 1,7), positif sur les deux moitiés, p = 0,009 parmi ses 72 réglages mais p = 0,10 sur les 576 ; 57 trades seulement, portage de nuit non compté. Argent, S&P, Nasdaq, Dow, yen, bitcoin : rien de sûr | à suivre sur le papier (un signal par semaine) |
+| Pause autour des annonces US fortes (emploi, inflation, Fed ; 24 réglages) | ne tient pas | 4 règles : +672 $ hors éch. (t = 1,2, p = 0,21), mais seulement +8 $ viennent vraiment des jours d'annonce : le reste est un effet de décalage des trades. Le calendrier Helious n'a pas d'historique : dates reconstruites à la main | — |
+| Coupe-circuit journalier, pause après pertes, refus si spread trop cher (10 réglages) | ne tient pas | Meilleur (pause 24 h après 3 pertes) : +446 $ hors éch., t = 0,5, p = 0,39 ; un tirage au hasard fait aussi bien 1 fois sur 9 | — |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
