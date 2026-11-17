@@ -13,6 +13,24 @@ for f in ("etat_essai.json",):
         os.remove(f)
 pont = acces_robot.AccesRobot.pour_essais(faux_mt5)
 
+# 17/11 : sous Windows, remplacer garde_essai.json echoue parfois (fichier tenu un instant par l'antivirus ou
+# l'indexeur : WinError 5) ; la v16 a ete refusee pour cela. On reessaie quelques fois avant d'abandonner.
+import time as _time
+_ecrire_json = acces_robot.pont.ecrire_json
+
+
+def _ecrire_json_patient(chemin, objet):
+    for essai in range(40):
+        try:
+            return _ecrire_json(chemin, objet)
+        except PermissionError:
+            if essai == 39:
+                raise
+            _time.sleep(0.05)
+
+
+acces_robot.pont.ecrire_json = _ecrire_json_patient
+
 
 def barres(n, pas, debut=1794000000, prix=2650.0, pente=0.0, dernier_saut=0.0):
     b = []
