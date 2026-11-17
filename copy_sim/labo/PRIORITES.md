@@ -600,3 +600,14 @@ basse. Calculer par Monte-Carlo sur les vrais trades (avantage ÷ 2), pour 100 �
 chance de ruine, durée médiane jusqu'à l'un ou l'autre, pour chaque montage (repli S&P + Russell, contre-pied du
 Nasdaq, les deux, bt_or) et chaque mise (1 à 3 Kelly). Choisir le montage qui donne la plus forte chance de ×3, et
 l'objectif ×5 en variante. Tableau simple en tête d'AVIS.md. Mettre ce montage dans `pari_opt` (démo, compte virtuel).
+
+## 17/11, 20 h 10 (Paris) : pari court, de 1 jour à 1 mois, risqué mais à gros gain
+Baptiste veut une deuxième poche pari qui se décide en 1 jour à 1 mois (pas 1 an et demi). Chercher des montages
+« convexes » (perte limitée à la poche, gain possible très gros) et mesurer, pour 100 € puis 500 €, avec avantage ÷ 2 :
+chance de ×2, ×3, ×5, ×10 en 1 jour, 1 semaine, 1 mois ; chance de tout perdre ; espérance. Référence honnête : sans
+avantage, la chance d'atteindre ×3 avant la ruine est d'environ 1 sur 3 et l'espérance est négative à cause des frais.
+Pistes : cassures avec pyramidage (ajouter sur gain, stop serré) sur actifs très volatils (BTC, ETH, Nasdaq, or) ;
+jours d'annonce (inflation, emploi, Fed) avec ordres des deux côtés ; expansion après compression avec stop serré ;
+week-end crypto ; bt_or et rebonds d'indices à très forte mise sur horizon court ; enchaîner les gains (tout remiser
+après un gain) avec arrêt à l'objectif. Garder ce qui bat nettement la référence sans avantage ; le mettre en variante
+`pari_court_opt` sur la démo, compte virtuel séparé, objectif et ruine écrits d'avance. Tableau simple en tête d'AVIS.md.
