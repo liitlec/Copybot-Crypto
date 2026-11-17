@@ -579,3 +579,14 @@ Baptiste veut, à côté du robot sérieux, une poche petite et agressive : on a
 3. Le meilleur montage tourne sur la démo en variante `pari_opt` (hors totaux du test), avec un compte virtuel de
    100 $ suivi à part (résultat converti à la taille qu'il aurait eue), et la règle « poche vide = on s'arrête ».
 Aucun argent réel : la décision de passer en réel reste à Baptiste, sur son PC.
+
+## 17/11, 17 h (Paris) : trouver mieux que +10 % par an (famille qui marche : les rebonds d'indices)
+Ce qui tient vient d'une seule famille : le retour après un excès sur les indices US (repli_ind, contre-pied du
+Nasdaq ; VIX qui bondit « presque »). Creuser autour, chaque piste en walk-forward, spread réel, essais multiples :
+1. Le contre-pied d'une grande journée sur S&P, Dow, Russell, DAX, Nikkei, BTC, ETH, pétrole, argent (le même
+   réglage, puis par marché).
+2. Retour après excès en intrajournalier sur les indices (H1/H4 : grosse bougie, écart d'ouverture, fin de séance).
+3. Effets de calendrier sur indices : tournant du mois, veille de jour férié, jours de Fed, nuit contre jour.
+4. Combiner les règles qui tiennent en un portefeuille (corrélations, mise selon Kelly fractionné, levier global),
+   et dire honnêtement le rendement par an attendu et la pire baisse, à 0,5 et 1 Kelly.
+Objectif : un portefeuille prouvé à plus de +10 % par an, pire baisse connue. Ce qui tient : variante `_opt` sur la démo.
