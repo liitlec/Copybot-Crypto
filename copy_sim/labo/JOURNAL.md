@@ -1412,3 +1412,44 @@ noms et sorties, rien fermé). **Pas publiée** : 2 petites positions v12 ouvert
   (+7 779 contre +10 070) et 2de moitié −193 ; sur 10 j → 8 mois négatifs ; arrêt de la semaine après −300/−500/−800 $ :
   rien de mieux. **Aucun frein ne tient l'objectif (moins de mois négatifs pour ≤ 20 % de perte).** Non testé
   (pour Fable) : pièces décorrélées (repli d'indices, BlockRange), qui seules peuvent lisser les mois de `bt_or`.
+
+## Passage 46 — 17/11/2026 (≈ 10 h 20 – 11 h Paris) — reprise ; la bonne famille de règles au bon moment (banc AB)
+
+Reprise après le relais (15-17/11 : robot v11 → v14, bancs X, Y, Y bis, Z, `banc_mise.py`, tout est dans ce
+journal). Priorités lues jusqu'au 17/11 10 h 30. Robot **v14** en marche, pont à l'heure, 9 positions ouvertes.
+Deux sous-agents lancés en parallèle (lecture seule) : dépôts de skills de trading ; public-apis + ECC.
+
+**Banc AB** (`banc_famille.py`, PRIORITES 17/11 10 h 15 ; or, 15 mois, spread réel, $ à 0,01 lot, pause au calme
+comme la v11 ; réglage = 1re moitié, verdict = 2de ; ≈ 45 essais). Famille tendance : `elan_m15`, `cassure_m15`.
+Famille retour : équivalents M5 des règles M1 (`fcassure_m5` : contre la sortie de la fourchette d'1 h, 15 min ;
+`contre_exces_m5` : contre une bougie M5 de plus de 3 écarts-types, 15 min), car le M1 n'a que 3 mois.
+
+0. **Les règles seules** : elan_m15 +0,43 / +0,61 $ par trade (t ≈ 0,5) ; cassure_m15 +1,88 / +0,63 $ (t ≤ 1,2) ;
+   fcassure_m5 −0,23 / −0,04 $ ; contre_exces_m5 −0,97 / −1,37 $ (t = −2,0). **Sur 15 mois la famille retour
+   perd ; la famille tendance est légèrement positive.** Les deux jours d'aller-retour de cette semaine montrent
+   l'inverse, mais ce sont 2 jours.
+1. **Le marché choisit** (mode d'après la dernière sortie de la fourchette de 12 h, jugée 1 h après : elle tient
+   = mode tendance, elle échoue = mode retour ; 596 sorties jugées, 50 % tiennent) : **non.** Les règles de
+   tendance ne font pas mieux en mode tendance (elan −0,07 / −0,69 $ ; cassure +3,28 / −1,96 $) qu'en mode retour
+   (elan +1,07 / +2,60 $ ; cassure +0,05 / +3,88 $) ; les règles de retour perdent dans les deux modes. Appliquée
+   telle quelle : −455 $ sur 15 mois contre +1 315 $ sans bascule.
+2. **Suivre ce qui marche** : seule piste au signe constant. Poids 1,5 / 0,5 sur la famille tendance selon son
+   résultat des N derniers jours : +2 584 / +2 512 / +2 028 / +1 970 $ pour N = 1 / 3 / 5 / 10 contre +1 315 $, et
+   mieux sur les deux moitiés. Mesure directe : après un gain sur 3 jours, +14,3 puis +8,7 $ par jour ; après une
+   perte, −1,8 puis −2,4 $ (écart +16 et +11 $, **t = 1,0 et 1,2**). Huit écarts positifs sur huit, mais aucun
+   significatif : **indice, pas preuve**. Pour la famille retour, rien (elle perd quel que soit le poids). « Ne
+   garder que la famille qui a le mieux marché » : +490 à +684 $, moins bien que la tendance seule.
+3. **Les deux à la fois** : corrélation par jour −0,07 (elles ne se ressemblent pas : l'une compense l'autre 31 %
+   des jours), mais la famille retour perd en moyenne, donc le mélange à risque égal fait −1 067 $ : **mélanger
+   n'aide que si les deux pièces gagnent seules.**
+4. **Filtre de direction** (sens de la moyenne 2 jours et 20 h, pas au bout de la fourchette du jour) : aide au
+   réglage (elan +1,62 $), **nuit au verdict** (−0,46 $) ; pour la cassure, le filtre de fond ne change presque rien
+   (elle est déjà dans le sens du fond 9 fois sur 10). Non retenu.
+5. **Sans elan_m15** : total +607 $ contre +1 315 $, mais pire creux −416 $ contre −1 401 $ : elan_m15 apporte la
+   moitié du gain et les trois quarts du risque. (Sans la pause au calme, il perdait : banc Q, −398 $.)
+
+Conclusion : aucune bascule tendance / retour ne tient ; la seule idée cohérente est **« suivre ce qui marche »
+sur la famille tendance** (réduire elan_m15 / cassure_m15 quand ils viennent de perdre sur 3 jours), à mesurer en
+direct comme variante à part. Elle aurait réduit ces règles dès mardi (lundi perdant).
+
+**Total des essais : ≈ 49 180** (48 889 + ≈ 250 du relais, non décomptés par lui, + ≈ 45).

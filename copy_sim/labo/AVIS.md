@@ -1,4 +1,12 @@
-# Avis pour Baptiste — 17/11/2026, 6 h 15 (relais)
+# Avis pour Baptiste — 17/11/2026, 11 h (passage 46, reprise)
+
+1. **« La bonne famille au bon moment », 4 pistes testées sur 15 mois d'or : une seule a un signe constant.** *Suivre ce qui marche* : quand les règles de tendance ont gagné sur les 3 derniers jours, elles gagnent ensuite +9 à +14 $ par jour ; quand elles ont perdu, −2 $. Vrai sur les deux moitiés, mais pas assez net pour être une preuve (t ≈ 1).
+2. **Les trois autres ne tiennent pas** : basculer en « retour » après une fausse cassure (−455 $ contre +1 315 $ sans bascule), mélanger tendance et retour (le retour perd sur 15 mois, donc il tire le total vers le bas), filtrer par la tendance de fond (bon sur la 1re moitié, mauvais sur la 2de).
+3. **Sur 15 mois, ce sont les règles de retour qui perdent**, pas celles de tendance : lundi et mardi sont deux jours d'aller-retour, pas la règle générale. Sans `elan_m15` : moitié moins de gain, mais trois fois moins de creux (−416 $ contre −1 401 $).
+4. Suite immédiate : variante à part « suivi » sur la démo (mêmes règles de tendance, coupées après 3 jours perdants), puis les retournements et les mois négatifs. Le test de la semaine n'est pas touché.
+5. Dépôts GitHub (public-apis, ECC, skills de trading) : lecture en cours par deux sous-agents, résultats au prochain point.
+
+## Avis du relais (17/11, 6 h 15)
 
 0. **Test, mardi 6 h 10** : sélection lundi −30,99 $ (47 trades), mardi déjà −20,88 $ (25 trades), dont `elan_m15` −23,75 $ sur 2 ; total −51,87 $. Témoin −12,41 $ mardi. Une erreur isolée à 2 h 39 (accès refusé à un fichier sous Windows) ; le robot a continué. Panier `bt_or` ouvert, pont à l'heure.
 
