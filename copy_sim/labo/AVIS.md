@@ -1,4 +1,27 @@
-# Avis pour Baptiste — 17/11/2026, 13 h (Fable, recherche de fond)
+# Avis pour Baptiste — 17/11/2026 (Fable, recherche large, PRIORITES 17/11 11 h 20)
+
+## Tout ce qui a été testé : tient / presque / ne tient pas
+
+Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-forward, spread réel) et résiste à la correction pour essais multiples ; « presque » = gagne hors échantillon mais preuve trop mince ; sinon « ne tient pas ».
+
+| Piste | Verdict | Chiffres clés | Suite |
+|---|---|---|---|
+| Panier acheté seulement, risque égal (comptant) | **tient** (placement) | +7,6 % par an, pire baisse −12 %, 2016-2026 | registre papier |
+| Repli d'indices américains (RSI 2 j < 10) | **tient** (petit) | +20 bp par trade, t = 2,3 ; +1,6 % par an à 20 % du compte | en direct (`repli_ind`) |
+| `bt_or` (mécanique BlockTrend sur l'or) | presque | +102 R au banc, mais 8 mois négatifs sur 16 | en direct |
+| Suivre ce qui marche (5 jours) | presque | +1 648 $ hors éch., p = 0,06 ; +633 $ seulement face à la tendance seule (t = 0,4) | sur le papier |
+| Le marché choisit / les deux à la fois / filtre de tendance | ne tient pas | t = 0,9 / 1,0 / −0,2 | filtre retiré de la v15 |
+| Retirer `elan_m15` | ne tient pas | −708 $ sur 15 mois | — |
+| ORB 15 h 30 (Nasdaq, S&P, Dow), FVG, chasse aux stops d'Asie | ne tient pas | positif 1re moitié, négatif 2de | — |
+| Sorties plus rapides aux retournements (7 sorties) | ne tient pas | toutes moins bien sur la 2de moitié | — |
+| Mise selon la volatilité (×2 / ×0,5) | ne tient pas | médiane −78 $ en walk-forward sur 36 réglages | — |
+| Détecteur d'aller-retour, règles de retour à stop court | ne tient pas | 38-50 % hors échantillon ; −0,13 R par trade | — |
+| Compression puis cassure (or, Nasdaq, argent, EURUSD, BTC) | ne tient pas | pas mieux qu'une cassure normale | — |
+| BlockTrend sur BTC et ETH | ne tient pas | nul quelle que soit la sortie | données seulement |
+| Or/argent en paire (écart qui revient) | ne tient pas | M5 15 mois : +854 bp hors éch., t = 0,5, p = 0,78 (le spread de l'argent, 5 bp, mange tout) ; journalier 24 ans : −11 581 bp | — |
+<!-- fin tableau recherche large -->
+
+## Avis précédent (17/11, 13 h)
 
 0. **Test (relais, mardi 11 h 10)** : sélection lundi −30,99 $ (47 trades), mardi −48,04 $ (38 trades) : total **−79,03 $**. Hors test : `retour_court_ar` +15,43 $, variantes calme +6,58 $, témoin +7,41 $. Panier `bt_or` ouvert, v14 sans erreur, pont à l'heure.
 1. **« La bonne famille au bon moment », version rigoureuse** (`banc_famille_wf.py` : 48 réglages, 10 mois de test glissants, réglage choisi sur les 6 mois d'avant). Une seule piste passe : **suivre ce qui marche sur 5 jours** (famille à double mise si elle a gagné sur 5 jours, coupée sinon) : +1 648 $ hors échantillon contre −71 $ pour la sélection actuelle, 7 mois gagnés sur 10, p = 0,06 après correction pour 48 essais.
