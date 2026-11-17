@@ -6,10 +6,14 @@ Piste PRIORITES 17/11 17 h, point 1. Regle de base (rebond_nas, banc_vol_retour.
 Donnees (copies legeres dans donnees/gj_*.csv.gz, dates = jour de la bourse du marche) : Yahoo journalier long
   nas ^NDX (reference deja prouvee), sp ^GSPC, dj ^DJI, rut ^RUT, dax ^GDAXI, nik ^N225, btc BTC-USD, eth ETH-USD,
   oil CL=F, xag SI=F, et deux temoins xau GC=F, eur EURUSD=X ; taux 3 mois ^IRX pour le financement.
-  Ouvertures douteuses ECARTEES (pas d'entree ces jours-la) : ouverture = cloture de la veille (sauf crypto, marche
-  continu), ouverture hors [bas, haut], bougie sans amplitude, et toute periode ou plus de 5 % des 60 derniers jours
-  ont ouverture = cloture de la veille (vieilles bougies Yahoo : S&P avant ~2014, Nasdaq avant 1999, Russell avant
-  2007...). Prix <= 0 (petrole avril 2020) ecartes. Controle sur les bougies D1 du COURTIER (nas, sp, dj, us2000,
+  Ouvertures douteuses ECARTEES (pas d'entree ces jours-la) : ouverture = cloture de la veille (sauf crypto et euro,
+  marches continus), ouverture hors [bas, haut], bougie sans amplitude, et toute ANNEE ou plus de 3 % des jours ont
+  ouverture = cloture de la veille (vieilles bougies Yahoo : S&P avant 2008 et 2013, Nasdaq avant 1999, Russell avant
+  2007, Dow plusieurs annees...). NB : l'ouverture Yahoo d'un indice au comptant (9 h 30 New York) est en partie
+  perimee (valeurs pas encore cotees) : elle peut gonfler un gain de rebond ; d'ou le controle courtier. Contrats a
+  terme (petrole, argent, or) : seuls les jours ouverture = cloture de la veille sont ecartes (egalite fortuite
+  frequente, pas -> annee entiere). EURUSD=X : depuis 2011 la bougie Yahoo a cloture = ouverture (meme instant) ; on
+  prend donc l'euro depuis 2011 avec cloture J := ouverture J+1 (marche continu). Prix <= 0 (petrole avril 2020) ecartes. Controle sur les bougies D1 du COURTIER (nas, sp, dj, us2000,
   ger, xau ; 2018/2020 -> 2026 ; ouverture = debut de la journee serveur, verifiee contre la 1re bougie M5).
 Couts aller-retour (bp du notionnel) = max(spread median du courtier en M5/M1 + 0,5 bp de glissement, plancher
   prudent) ; planchers : indices 1 (Russell 1,5, Nikkei 2 : pas de M5), crypto 5, petrole/argent 3, or/euro 1 ;
@@ -44,7 +48,8 @@ DON = os.path.join(ICI, "donnees")
 TK = {"nas": "^NDX", "sp": "^GSPC", "dj": "^DJI", "rut": "^RUT", "dax": "^GDAXI", "nik": "^N225",
       "btc": "BTC-USD", "eth": "ETH-USD", "oil": "CL=F", "xag": "SI=F", "xau": "GC=F", "eur": "EURUSD=X"}
 TEMOINS, REF = ("xau", "eur"), "nas"
-CONTINU = ("btc", "eth")
+CONTINU = ("btc", "eth", "eur")
+COMPTANT = ("nas", "sp", "dj", "rut", "dax", "nik")
 # spread courtier (fichier M5/M1) et plancher prudent, bp aller-retour
 SPREAD = {"nas": ("nas_m5_90k", 1), "sp": ("sp_m5_90k", 1), "dj": ("dj_m5_90k", 1), "rut": (None, 1.5),
           "dax": ("ger_m1_90k", 1), "nik": (None, 2), "btc": ("btc_m5_90k", 5), "eth": ("eth_m5_90k", 5),
@@ -79,6 +84,10 @@ def charge(n, tk):
 def prepare(d, n):
     """Ajoute amplitude, mediane, mouvement et validite de l'ouverture."""
     d = d.copy()
+    if n == "eur":            # bougies Yahoo EURUSD=X : cloture = ouverture (meme instant) depuis 2011 -> prix = ouvertures
+        d = d[d.index >= "2011-01-01"]
+        d["close"] = d["open"].shift(-1)
+        d = d.dropna()
     pos = (d[["open", "high", "low", "close"]] > 0).all(1)
     d = d[pos]
     pc = d["close"].shift(1)
@@ -88,8 +97,11 @@ def prepare(d, n):
     d["mv"] = np.sign(d["close"] - pc)
     eq = (d["open"] - pc).abs() <= 1e-9 * d["close"]
     ok = (d["open"] <= d["high"] * 1.0001) & (d["open"] >= d["low"] * 0.9999) & (d["high"] > d["low"])
-    if n not in CONTINU:
-        ok &= ~eq & ~(eq.astype(float).rolling(60, min_periods=1).mean() > 0.05)
+    if n in COMPTANT:
+        mauvais = eq.groupby(d.index.year).transform("mean") > 0.03       # annee entiere douteuse
+        ok &= ~eq & ~mauvais
+    elif n not in CONTINU:
+        ok &= ~eq                                                         # contrats a terme : jour par jour
     trou = (d.index.to_series().diff().dt.days > 6).values                 # trou de donnees : pas d'entree
     d["okopen"] = ok & ~trou
     return d
@@ -167,9 +179,10 @@ def verdict(s, pt, tb, rc_ok=True):
 
 
 def white(M, tirages=1000):
-    n = len(M); mu = M.mean(0); V = np.sqrt(n) * mu.max()
-    Vb = np.array([np.sqrt(n) * (M[boot_idx(rng, n)].mean(0) - mu).max() for _ in range(tirages)])
-    return (Vb >= V).mean(), int(mu.argmax())
+    """Reality check studentise (chaque serie divisee par son ecart-type, facon SPA de Hansen) : p du meilleur t."""
+    n = len(M); mu = M.mean(0); sd = M.std(0) + 1e-12; V = (np.sqrt(n) * mu / sd).max()
+    Vb = np.array([(np.sqrt(n) * (M[boot_idx(rng, n)].mean(0) - mu) / sd).max() for _ in range(tirages)])
+    return (Vb >= V).mean(), int((mu / sd).argmax())
 
 
 def courtier(n, m, h, sens, cout, irx):
@@ -304,11 +317,13 @@ def main():
         for lab, cfg in (("fige", FIGE), ("retenu", RET.get(n))):
             if cfg is None:
                 continue
-            T, d = courtier(n, *cfg, C[n], irx); s = stats(T)
+            T, d = courtier(n, *cfg[-3:], C[n], irx); s = stats(T)
             ga = T.groupby(T.entree.dt.year)["r"].sum()
-            print("  %-4s %-6s %-14s %s -> %s : %4d trades, %+6.1f bp/trade, t %+5.2f, moities %+6.1f / %+6.1f, annees > 0 : %d/%d" % (
+            Y = G[(n,) + tuple(cfg[-3:])]; Y = Y[(Y.entree >= d.index[0]) & (Y.entree <= d.index[-1])]
+            print("  %-4s %-6s %-14s %s -> %s : %4d trades, %+6.1f bp/trade, t %+5.2f, moities %+6.1f / %+6.1f, annees > 0 : %d/%d"
+                  " | Yahoo meme periode %4d trades %+6.1f bp" % (
                 n, lab, "%g/%d/%s" % cfg[1:] if lab == "retenu" else "1.5/1/deux", d.index[0].date(), d.index[-1].date(),
-                s["n"], s["bp"], s["t"], s["m1"], s["m2"], (ga > 0).sum(), len(ga)))
+                s["n"], s["bp"], s["t"], s["m1"], s["m2"], (ga > 0).sum(), len(ga), len(Y), Y.r.mean() * 1e4))
 
     # ---------------------------------------------------------------- sorties
     lig, lig_tout = [], []
@@ -320,7 +335,7 @@ def main():
                 lig.append(T.assign(regle="gj_fige", marche=n))
         if VB[n] in ("TIENT", "PRESQUE"):
             lig.append(OOS[n].assign(regle="gj_wf", marche=n))
-            if RET.get(n):
+            if RET.get(n) and not (RET[n][1:] == FIGE and VA[n] in ("TIENT", "PRESQUE")):
                 lig_tout.append(G[RET[n]].assign(regle="gj_wf_%g_%d_%s" % RET[n][1:], marche=n))
     col = ["regle", "marche", "entree", "sortie", "sens", "r"]
     for L, f in ((lig, "rebonds_grande_journee.csv"), (lig_tout, "rebonds_grande_journee_tout.csv")):
@@ -343,6 +358,11 @@ def main():
         for a in tiennent:
             print("  %-5s " % a + " ".join("%+6.2f" % P[a].corr(P[b]) for b in tiennent) + "   | " +
                   " ".join("%+6.2f" % R[a].corr(R[b]) for b in tiennent))
+        for grp in (tiennent, [x for x in tiennent if x != REF]):
+            Q = P[grp].mean(1); Q = Q[(P[grp] != 0).any(axis=1).cumsum() > 0]
+            ans = Q.groupby(Q.index.year).sum()
+            print("  portefeuille poids egaux %s depuis 2007 : t journalier %+.2f, %+.0f bp/an, annees > 0 : %d/%d, creux %+.0f bp"
+                  % ("+".join(grp), tstat(Q[Q != 0]), ans.mean(), (ans > 0).sum(), len(ans), (Q.cumsum() - Q.cumsum().cummax()).min()))
         print("  part des jours de trade de la ligne ou la colonne trade aussi (meme sens) :")
         for a in tiennent:
             ta = G[(a,) + FIGE].set_index("entree")["sens"]

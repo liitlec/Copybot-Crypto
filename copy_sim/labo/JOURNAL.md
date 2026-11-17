@@ -1606,3 +1606,13 @@ Choix fixé d'avance (max ×3 à 100 $) : **repli S&P + Russell à 2 Kelly (levi
 Robot v18 (base v17, essais patients gardés) : `pari_opt` encaisse et s'arrête dès que compte virtuel + gains latents
 ≥ 300 $ (ferme ses positions), garde l'arrêt « poche vide » < 20 $. Essais OK (objectif, fermeture, redémarrage, plus
 d'ouverture après l'objectif).
+
+## 17/11/2026 (soir) — « mieux que +10 % », point 1 : contre-pied d'une grande journée sur 12 marchés (`banc_grande_journee.py`)
+Yahoo long (ouvertures vérifiées : D1 du courtier 100 % égales ; années à ouvertures périmées écartées), coûts = spread
+courtier + 0,5 bp + nuit. (a) Réglage du Nasdaq figé partout (N = 12, Bonferroni t ≥ 2,87) : **S&P 500 TIENT** (801 trades
+2008-2026, +16,4 bp, t 3,4, moitiés +15 / +17,5) ; Russell 2000 PRESQUE (+11,5 bp, t 2,1) ; Dow, DAX, Nikkei, BTC, ETH,
+pétrole, argent, or, euro : non (9 nouveaux marchés ensemble +3,4 bp, t 1,1). (b) Grille par marché en walk-forward
+(N = 216) : seul le Nasdaq tient (+28,7 bp, t 3,5) ; la grille pioche du bruit, garder le réglage figé. Courtier : S&P
+2020-2026 +15,9 bp (t 2,1) mais 1re moitié +0,9 ; Russell +9,5 (t 0,8). 67 % des trades S&P tombent le même jour et
+dans le même sens que le Nasdaq (corrélation des gains 0,56) : le S&P lisse sans ajouter de rendement (t journalier
+Nasdaq seul 4,25, Nasdaq + S&P 4,32). Trades hors éch. : `donnees/rebonds_grande_journee.csv`. Vérifié en relançant.

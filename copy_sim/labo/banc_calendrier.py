@@ -48,16 +48,16 @@ US = ["SP500", "NAS100", "DOW", "RUSSELL"]
 COURTIER = {"SP500": "sp", "NAS100": "nas", "DOW": "dj", "RUSSELL": "us2000", "DAX": "ger"}
 COUT = 2e-4
 L_APP, L_TEST = 10, 2
-NLIGNES = 20
+NLIGNES = 24
 rng = np.random.default_rng(1711)
 ND = NormalDist()
 
 
 # ------------------------------------------------------------------ donnees
-def lit_url(url):
+def lit_url(url, ua=UA):
     for e in range(4):
         try:
-            return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=40).read()
+            return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": ua}), timeout=40).read()
         except Exception as err:
             last = err; time.sleep(2 * (e + 1))
     raise RuntimeError("echec %s : %s" % (url, last))
@@ -83,7 +83,7 @@ def yahoo(nom):
 def taux():
     f = os.path.join(DON, "cal_dtb3.csv")
     if not os.path.exists(f):
-        t = pd.read_csv(io_bytes(lit_url("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTB3")))
+        t = pd.read_csv(io_bytes(lit_url("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTB3", "curl/8.0")))
         t.columns = ["date", "dtb3"]; t = t[t.date >= "1989-01-01"]
         t["dtb3"] = pd.to_numeric(t.dtb3, errors="coerce"); t.dropna().to_csv(f, index=False)
     t = pd.read_csv(f, parse_dates=["date"]).set_index("date").dtb3 / 100
@@ -186,7 +186,18 @@ class Marche:
         ok = (e >= 0) & (s > e) & (s < len(self.c))
         e, s = e[ok], s[ok]
         r = self.c[s] / self.c[e] - 1 - COUT - self.fin[e] * (self.jn[s] - self.jn[e])
-        return pd.DataFrame({"entree": self.idx[e], "sortie": self.idx[s], "r": r, "h": s - e, "ie": e})
+        return pd.DataFrame({"entree": self.idx[e], "sortie": self.idx[s], "r": r, "h": s - e, "ie": e, "ech": 1.0})
+
+    def pres_tournant(self, v):
+        """Vrai si le trade tient un des 3 derniers ou 3 premiers jours de bourse d'un mois."""
+        mo = self.idx.to_period("M"); u = mo.unique()
+        prem = np.searchsorted(mo, u, side="left"); dern = np.searchsorted(mo, u, side="right") - 1
+        m = np.zeros(len(self.c) + 1, bool)
+        for a in range(3):
+            m[np.clip(prem + a, 0, len(self.c))] = True; m[np.clip(dern - a, 0, len(self.c))] = True
+        cs = np.r_[0, np.cumsum(m)]
+        e, h = v.ie.values, v.h.values
+        return (cs[e + h + 1] - cs[e + 1]) > 0
 
 
 def tournant(M):
@@ -243,7 +254,8 @@ def nuit_jour(M):
         for f, m in F.items():
             mm = ok & m
             C["%s %s" % (seg, f)] = pd.DataFrame({"entree": M.idx[np.maximum(i - (seg == "nuit"), 0)][mm], "sortie": M.idx[mm],
-                                                 "r": r[mm], "h": 1, "ie": i[mm] - (seg == "nuit")})
+                                                 "r": r[mm], "h": 1, "ie": i[mm] - (seg == "nuit"),
+                                                 "ech": 17.5 / 24 if seg == "nuit" else 6.5 / 24})
     return C, ok
 
 
@@ -273,7 +285,7 @@ def walk_forward(M, C, ref_jour=None):
         # reference : B&H net moyen par jour dans la fenetre de test x jours tenus
         w = (M.idx >= a1) & (M.idx < b1)
         mbh = np.nanmean(M.bh[w]) if ref_jour is None else np.nanmean(ref_jour[w])
-        te["ref"] = mbh * te.h; te["regle"] = best; te["fen"] = y
+        te["ref"] = mbh * te.h * te.ech; te["regle"] = best; te["fen"] = y
         he.append(te); choix.append(best)
     return pd.concat(he), choix
 
@@ -359,6 +371,8 @@ def main():
         for k, M in MK.items():
             if eff == "nuitjour":
                 C, ok = nuit_jour(M)
+                ex_ = sorted(set(M.idx.year[~ok & (M.idx.year < 2026)]) - set(M.idx.year[ok]))
+                P("  nuit/jour %s : annees exclues (ouvertures figees) : %s" % (k, ex_ if len(ex_) < 12 else "%d-%d (%d ans)" % (ex_[0], ex_[-1], len(ex_))))
                 refj = np.where(ok, M.bh, np.nan)
             else:
                 C = EFFETS[eff](M); refj = None
@@ -369,18 +383,21 @@ def main():
                 if not len(v):
                     continue
                 mbh = np.nanmean(M.bh if refj is None else refj)
-                S["%s %s" % (k, c)] = serie(v, M.idx); R["%s %s" % (k, c)] = serie(v.assign(x=v.r - mbh * v.h), M.idx, "x")
+                S["%s %s" % (k, c)] = serie(v, M.idx); R["%s %s" % (k, c)] = serie(v.assign(x=v.r - mbh * v.h * v.ech), M.idx, "x")
             # hasard
             ph = hasard_nj(M, he, C) if eff == "nuitjour" else hasard(M, he, None)
             t = tst(he.r); ex = he.r - he.ref
             mid = he.entree.min() + (he.entree.max() - he.entree.min()) / 2
             h1, h2 = he[he.entree < mid], he[he.entree >= mid]
+            he["tom"] = M.pres_tournant(he); ht = he[~he.tom]
             final = ch[-1]
             fq = pd.Series(ch).value_counts()
             lignes.append(dict(effet=eff, marche=k, N=len(C), reglage=final, frequent="%s %d/%d" % (fq.index[0], fq.iloc[0], len(ch)),
                                trades=len(he), bp=1e4 * he.r.mean(), t=t, somme=100 * he.r.sum(),
                                h1=1e4 * h1.r.mean(), t1=tst(h1.r), h2=1e4 * h2.r.mean(), t2=tst(h2.r),
                                ex=1e4 * ex.mean(), tex=tst(ex), ph=ph, p=1 - ND.cdf(t),
+                               ex1=1e4 * (h1.r - h1.ref).mean(), ex2=1e4 * (h2.r - h2.ref).mean(),
+                               nht=len(ht), bpht=1e4 * ht.r.mean() if len(ht) else np.nan, tht=tst(ht.r),
                                debut=he.entree.min().date(), fin=he.sortie.max().date()))
             toutHE.append(he.assign(marche=k, effet=eff))
             toutFULL.append(C[final].assign(marche=k, effet=eff, regle=final))
@@ -392,24 +409,22 @@ def main():
     rcd = {e: (p0, pr) for e, _, p0, _, pr, _ in RCS}
 
     def verdict(r):
-        sig = r.pb < 0.05 or rcd[r.effet][0] < 0.05
-        bat = r.ex > 0 and r.tex > 0 and (r.ph < 0.05 if not np.isnan(r.ph) else True)
-        if r.bp > 0 and r.h1 > 0 and r.h2 > 0 and sig and bat:
+        constant = r.bp > 0 and r.h1 > 0 and r.h2 > 0 and r.ex > 0 and r.ex1 > 0 and r.ex2 > 0
+        if constant and r.pb < 0.05 and r.ph < 0.05:
             return "TIENT"
-        if r.bp > 0 and r.h1 > 0 and r.h2 > 0:
-            return "PRESQUE"
-        return "NE TIENT PAS"
+        return "PRESQUE" if constant else "NE TIENT PAS"
     L["verdict"] = L.apply(verdict, axis=1)
     P("\nN total de reglages essayes : %d ; lignes walk-forward : %d (Bonferroni x %d)." % (Ntot, len(L), NLIGNES))
     P("Reality check de White par effet (toute la periode, tous marches et reglages) :")
     for eff, n, p0, b0, pr, br in RCS:
         P("  %-9s N = %3d : contre 0 p = %.3f (meilleur %s) ; contre B&H a exposition egale p = %.3f (meilleur %s)" % (eff, n, p0, b0, pr, br))
-    P("\n%-9s %-8s %-24s %-28s %5s %6s %5s %13s %13s %6s %5s %5s %6s %s" % (
+    P("\n%-9s %-8s %-22s %-26s %5s %6s %5s %13s %13s %6s %5s %11s %5s %6s %16s %s" % (
         "effet", "marche", "reglage (derniere fen.)", "le plus choisi", "trad", "HE bp", "t", "moitie1 bp(t)", "moitie2 bp(t)",
-        "vsB&H", "t", "pHas", "pBonf", "verdict"))
+        "vsB&H", "t", "vsB&H m1/m2", "pHas", "pBonf", "hors tournant", "verdict"))
     for _, r in L.iterrows():
-        P("%-9s %-8s %-24s %-28s %5d %+6.1f %+5.2f %+6.1f(%+4.1f) %+6.1f(%+4.1f) %+6.1f %+5.2f %5.3f %6.3f %s" % (
-            r.effet, r.marche, r.reglage[:24], r.frequent[:28], r.trades, r.bp, r.t, r.h1, r.t1, r.h2, r.t2, r.ex, r.tex, r.ph, r.pb, r.verdict))
+        P("%-9s %-8s %-22s %-26s %5d %+6.1f %+5.2f %+6.1f(%+4.1f) %+6.1f(%+4.1f) %+6.1f %+5.2f %+5.1f/%+5.1f %5.3f %6.3f %4d:%+5.1f(%+4.1f) %s" % (
+            r.effet, r.marche, r.reglage[:22], r.frequent[:26], r.trades, r.bp, r.t, r.h1, r.t1, r.h2, r.t2, r.ex, r.tex,
+            r.ex1, r.ex2, r.ph, r.pb, r.nht, r.bpht, r.tht, r.verdict))
     # lignes groupees US (une moyenne par date d'entree : evite de compter 4 fois le meme evenement)
     HE = pd.concat(toutHE)
     P("\nGroupe US (4 indices, moyenne par date d'entree, HE) :")
@@ -425,7 +440,7 @@ def main():
     FULL = pd.concat(toutFULL)
     for k in MARCHES:
         b = pd.read_csv(os.path.join(MT5, COURTIER[k] + "_d1_5k.csv.gz"))
-        b.index = pd.to_datetime(b.heure, unit="s").normalize(); b = b[b.index.dayofweek < 5]
+        b.index = pd.to_datetime(b.heure, unit="s").dt.normalize(); b = b[b.index.dayofweek < 5]
         Mb = Marche(k, b.rename(columns={"cloture": "close", "ouverture": "open"}), tx)
         for eff in ("tournant", "ferie", "fomc"):
             v = FULL[(FULL.marche == k) & (FULL.effet == eff) & (FULL.entree >= b.index[0])]
