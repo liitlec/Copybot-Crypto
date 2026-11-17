@@ -156,3 +156,8 @@ Limite hebdomadaire de Fable 5.2 atteinte (remise à zéro mercredi 18/11 16 h P
 tâches Fable (trig_01HzhRzT8sJujR4E4oGrTrXe, trig_01Aez2r4ijz1pRyArqRArSPQ, session_01FgaWoznHdSUXYXX3DDSYyB) sont
 désactivées : **les réactiver mercredi après 16 h et désactiver le relais**. Le PC de Baptiste (pont) est éteint depuis
 le 14/11 0 h 54 ; il le rallume lundi matin.
+
+## 17/11, 10 h 20 (Paris) : retour de Fable 5.2
+Baptiste a remis la limite à zéro : triggers Fable trig_01HzhRzT8sJujR4E4oGrTrXe et trig_01Aez2r4ijz1pRyArqRArSPQ
+réactivés, relais Opus trig_01B93bAzr4GmM8TtjavXreKC désactivé (session relais session_01FgaWowBo8qjdiVRho4b4yt gardée
+en secours). Passage Fable lancé tout de suite (PRIORITES 17/11 10 h 15 et 10 h 30 d'abord). Plus rien à faire mercredi.
