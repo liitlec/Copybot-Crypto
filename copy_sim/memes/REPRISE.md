@@ -166,3 +166,7 @@ le 01/12). Retour en arrière : triggers Fable désactivés, relais Opus réacti
 À revoir avec Baptiste : la date réelle de retour de Fable.
 **Mise à jour 17/11 10 h 20 :** Baptiste a acheté des crédits ; Fable répond. Triggers Fable réactivés, relais Opus
 désactivé et interrompu. Fable consomme des crédits payants (≈ 109 $ sur la session v2 jusqu'au 15/11).
+**17/11 10 h 50 :** l'ancienne session Fable (430k tokens de contexte) a mangé 8 des 20 de crédits en 2 min → arrêtée,
+triggers Fable désactivés. Nouvelle session Fable à mémoire courte : session_01FgaWoySx1nKGJF6cxtDn6b (lit seulement
+MISSION/ETAT/AVIS/PRIORITES récentes, délègue les calculs à des sous-agents Opus), sur « la bonne famille de règles
+au bon moment ». Relais Opus (session_01FgaWowBo8qjdiVRho4b4yt, trigger réactivé) : dépôts GitHub + suivi du test.
