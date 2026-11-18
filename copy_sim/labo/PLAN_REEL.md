@@ -12,8 +12,9 @@ Démarrage seulement si le verdict du test (vendredi 20/11 soir) est bon, et sur
    compte, recalculée chaque semaine).
 5. **Retraits pour sécuriser** (faits par Baptiste lui-même, le robot ne retire jamais d'argent) : récupérer la mise de
    départ dès que possible, puis trader uniquement avec les gains, et retirer une part des gains de temps en temps.
-   La règle exacte (quand et combien) est calculée par le labo pour garder le meilleur équilibre entre composé et
-   sécurité.
+   **Règle retenue (banc_retrait.py, 18/11) : quand le compte a doublé, retirer la mise de départ, puis laisser
+   tourner** (100 € → retrait de 100 € à 200 € ; 500 € → retrait de 500 € à 1 000 €). Coût : ≈ 0 en scénario prudent,
+   ≈ 13 % du total à 24 mois si l'avantage mesuré se confirme ; mise récupérée en 24 mois : 82 % (mesuré), 39 % (prudent).
 6. **Ajustement mensuel** : la démo continue avec toutes les variantes (dont bt_or_plus_opt) ; chaque mois, les poids
    du compte réel bougent un peu vers ce qui a vraiment gagné en direct, jamais d'un coup.
 7. Aucune nouvelle VERSION n'est installée sur le compte réel sans l'accord explicite de Baptiste sur son PC.
