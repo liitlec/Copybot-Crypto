@@ -145,7 +145,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 
 ## Avis précédent (17/11, 13 h)
 
-0. **Test (relais, mercredi 1 h 10)** : sélection lundi −30,99 $, mardi −103,72 $, mercredi −3,48 $ (1 trade) : total **−138,19 $**. Hors test : `retour_court_ar` +46,92 $, `bt_crypto_btc` −36,88 $, témoin +14,39 $. Robot v20 sans erreur, pont à l'heure.
+0. **Test (relais, mercredi 6 h 10)** : sélection lundi −30,99 $, mardi −103,72 $, mercredi **+35,40 $** (9 trades) : total **−99,31 $**. Hors test : variantes calme +109,71 $ (dont `elan_m15_calme` +65,65 $ et `cassure_m15_calme` +37,07 $), `retour_court_ar` +4,83 $, `bt_crypto_btc` −36,88 $. Robot v20 sans erreur, panier `bt_or` toujours ouvert, pont à l'heure.
 1. **« La bonne famille au bon moment », version rigoureuse** (`banc_famille_wf.py` : 48 réglages, 10 mois de test glissants, réglage choisi sur les 6 mois d'avant). Une seule piste passe : **suivre ce qui marche sur 5 jours** (famille à double mise si elle a gagné sur 5 jours, coupée sinon) : +1 648 $ hors échantillon contre −71 $ pour la sélection actuelle, 7 mois gagnés sur 10, p = 0,06 après correction pour 48 essais.
 2. **Mais la preuve est mince** : l'essentiel du gain vient de deux choses simples — couper les règles de retour, qui perdent sur 15 mois (−1 594 $), et miser double. Face à la tendance seule à mise égale, l'avantage tombe à +633 $ (t = 0,4) : pas prouvé. Je la garde donc **sur le papier** (`suivi_tendance.py`, sur les vrais trades), pas en position réelle `_opt`.
 3. **Les trois autres ne tiennent pas** : le marché choisit (+627 $, t = 0,9), les deux à la fois (+439 $, t = 1,0), filtre de tendance (−152 $).
