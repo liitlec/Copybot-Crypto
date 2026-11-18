@@ -1,4 +1,28 @@
-# Avis pour Baptiste — 18/11/2026, après-midi (plan de mise du compte cent, et bt_or qui ajoute plus fort, PRIORITES 18/11 13 h 30)
+# Avis pour Baptiste — 18/11/2026, après-midi (règle de retrait avec intérêts composés, PRIORITES 18/11 14 h 15)
+
+1. **Règle simple conseillée : quand le compte a doublé, retire ta mise de départ, puis laisse tourner** (règle b). Avec 100 € : retirer 100 € quand le compte atteint 200 € ; avec 500 € : retirer 500 € à 1 000 €.
+2. **Ce que ça coûte** (`banc_retrait.py`, plan à −30 %, 5 000 tirages) : rien si l'avantage est moitié moindre que mesuré (total à 24 mois : 1,58 fois la mise, contre 1,57 sans retrait). Si l'avantage est celui mesuré, on laisse 13 % du total (2,62 fois la mise contre 3,00).
+3. **Ce que ça apporte** : une fois la mise retirée, tu ne peux plus perdre ton argent. Chance d'y arriver en 24 mois : 82 % (mesuré), 39 % (prudent), 14 % si l'avantage est nul. En 12 mois : 34 %, 17 %, 7 %.
+4. **Aucune règle de retrait ne protège vraiment** : la chance de finir sous la mise (retraits comptés) reste la même pour toutes les règles, 16 % à 24 mois en prudent et 59 à 64 % si l'avantage est nul. Seule la taille de la mise et le seuil d'arrêt (−34 %) protègent.
+5. **Les autres règles** : retirer en plus 25 ou 50 % des nouveaux gains ne change presque rien (2,60 et 2,59 contre 2,62). Tout retirer au-dessus de la mise chaque mois donne un revenu régulier mais tue les intérêts composés (2,21 contre 3,00). Le robot ne retire jamais d'argent : c'est toi qui le fais.
+
+**Règles de retrait, plan à −30 %, après 24 mois** (en fois la mise de départ : ×100 € ou ×500 € ; médianes ; mesuré / prudent)
+
+| Règle | Argent retiré | Mise récupérée | Reste sur le compte | Total (retiré + compte) | Finir sous la mise |
+|---|---|---|---|---|---|
+| (a) Aucun retrait | 0 / 0 | 0 % / 0 % | 3,00 / 1,57 | 3,00 / 1,57 | 0 % / 16 % |
+| **(b) Retirer la mise quand le compte double (conseillée)** | **1,00 / 0** | **82 % / 39 %** | **1,78 / 1,29** | **2,62 / 1,58** | **0 % / 16 %** |
+| (c) Comme (b), puis 25 % des nouveaux gains chaque mois | 1,11 / 0 | 82 % / 39 % | 1,67 / 1,28 | 2,60 / 1,58 | 0 % / 16 % |
+| (c) Comme (b), puis 50 % des nouveaux gains | 1,21 / 0 | 82 % / 39 % | 1,54 / 1,25 | 2,59 / 1,58 | 0 % / 16 % |
+| (d) Chaque mois, tout ce qui dépasse 1 fois la mise | 1,23 / 0,59 | 65 % / 28 % | 1,00 / 0,93 | 2,21 / 1,51 | 0 % / 15 % |
+| (d) Tout ce qui dépasse 1,5 fois la mise | 1,17 / 0,22 | 58 % / 22 % | 1,50 / 1,32 | 2,64 / 1,59 | 0 % / 16 % |
+| (d) Tout ce qui dépasse 2 fois la mise | 0,92 / 0 | 47 % / 15 % | 1,98 / 1,53 | 2,87 / 1,57 | 0 % / 16 % |
+
+- À 12 mois, toutes les règles donnent le même total médian (1,66 mesuré, 1,20 prudent) ; finir sous la mise : 2 % mesuré, 27 % prudent.
+- Si l'avantage est nul : total médian 0,81 à 0,87 fois la mise à 24 mois quelle que soit la règle, et 12 à 14 % de chances de finir sous la moitié.
+- Mêmes limites que le plan de mise : 4 ans de données, période favorable, marge et frais de nuit du compte cent non vérifiés. Avec 100 €, les lots sont arrondis grossièrement.
+
+## Avis précédent — 18/11/2026, après-midi (plan de mise du compte cent, et bt_or qui ajoute plus fort, PRIORITES 18/11 13 h 30)
 
 1. **Plan de mise calculé (`banc_plan_cent.py`, 08/2022 à 11/2026, mise recalculée chaque semaine) : voir le tableau.** Le chiffre réaliste est la colonne « prudent » (avantage divisé par 2) : +0,2 à +0,3 % par mois en médiane, presque un mois sur deux négatif, une année sur quatre en perte.
 2. **Avec 100 €, le plan à −15 % n'est pas faisable** : le plus petit lot (0,01 lot cent sur l'or) est 2,4 fois trop gros. Il faut 500 €, ou accepter le plan à −30 %.
