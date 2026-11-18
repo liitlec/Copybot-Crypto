@@ -611,3 +611,12 @@ jours d'annonce (inflation, emploi, Fed) avec ordres des deux côtés ; expansio
 week-end crypto ; bt_or et rebonds d'indices à très forte mise sur horizon court ; enchaîner les gains (tout remiser
 après un gain) avec arrêt à l'objectif. Garder ce qui bat nettement la référence sans avantage ; le mettre en variante
 `pari_court_opt` sur la démo, compte virtuel séparé, objectif et ruine écrits d'avance. Tableau simple en tête d'AVIS.md.
+
+## 18/11, 8 h 30 (Paris) : bt_or comme thermomètre de la tendance (idée de Baptiste)
+Ne pas deviner le marché : se caler sur les résultats en direct. Quand le panier bt_or gagne (tendance réelle), mettre
+en pause les règles de retour (retour_court_ar, fcassure_m1, exces_m1) ; quand bt_or n'a pas de panier ou que son
+panier perd ou stagne, les remettre, voire augmenter leur mise. Tester au banc (or, 15 mois, puis 4 ans en H1 si
+possible), walk-forward, spread réel, essais multiples : performance des règles de retour selon l'état de bt_or au
+moment de l'entrée (panier gagnant de plus de X R / pas de panier / panier perdant), puis la règle de bascule et la mise
+×0 / ×1 / ×2. Comparer à la sélection actuelle, à « suivre ce qui marche » et à la triche. Ce qui tient : variante
+`_opt` sur la démo (thermomètre = état réel du panier bt_or du robot), hors totaux du test.
