@@ -655,3 +655,15 @@ portefeuille A du 17/11 (repli 4 indices, contre-pied Nasdaq + S&P, Fed-DAX) ne 
 3. Résultat pour Baptiste : rendement par an, mois négatifs, pire baisse, pour bt_or seul, compléments seuls, et le
    mélange ; à 0,5 et 1 Kelly fractionné. Si le mélange tient : le robot l'applique (poids écrits d'avance, variante
    `_mix_opt`), hors totaux du test.
+
+## 18/11, 13 h 30 (Paris) : plan de mise pour le compte cent, et bt_or qui ajoute plus fort quand ça marche
+Baptiste passera en réel sur un compte cent (mêmes conditions que la démo, tout divisé par 100) si vendredi est bon.
+1. **Plan de mise** du mélange bt_or + rebonds d'indices, avec réinvestissement (mise en % du compte recalculée chaque
+   semaine) et fraction de Kelly : pour une pire baisse visée de −15 %, −30 % et −50 %, donner la mise de départ (en
+   lots cent pour 100 € et pour 500 €), le rendement moyen par mois, la chance d'un mois négatif, la chance de perdre
+   la moitié en 12 mois. Walk-forward, avantage ÷ 2 en scénario prudent. Seuil d'arrêt automatique conseillé.
+2. **bt_or qui ajoute plus fort** : ajouts de positions avec une taille qui monte (1-1-1 actuel ; 1-2-3 ; 1-1,5-2 ;
+   plus de positions au maximum : 3, 5, 7), éventuellement seulement quand le panier gagne déjà plus de X R ou que
+   l'ATR monte. Mesurer gain, pire baisse, mois négatifs, gain par $ de pire baisse, contre bt_or actuel à risque
+   égal (sinon on ne compare que du levier). Correction pour essais multiples. Ce qui tient : variante `bt_or_plus_opt`.
+3. Tableau simple en tête d'AVIS.md, à lire vendredi avec le verdict.
