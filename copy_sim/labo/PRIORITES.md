@@ -620,3 +620,17 @@ possible), walk-forward, spread réel, essais multiples : performance des règle
 moment de l'entrée (panier gagnant de plus de X R / pas de panier / panier perdant), puis la règle de bascule et la mise
 ×0 / ×1 / ×2. Comparer à la sélection actuelle, à « suivre ce qui marche » et à la triche. Ce qui tient : variante
 `_opt` sur la démo (thermomètre = état réel du panier bt_or du robot), hors totaux du test.
+
+## 18/11, 11 h 40 (Paris) : le calcul d'allocation par régime connu en direct
+Baptiste : il y a un calcul pour savoir quand mettre les règles de tendance, les variantes « calme » et les règles
+d'aller-retour, et maximiser le gain. Différence avec les essais précédents : utiliser seulement des régimes **connus
+en direct** — le drapeau calme/agité de la v11 (prouvé persistant), l'état du panier bt_or, l'heure — et non le type de
+journée vu après coup (banc Q). Fait nouveau à expliquer : en direct cette semaine, les variantes `_calme` (mêmes règles,
+actives seulement quand le drapeau dit calme) font +109 $ quand la sélection perd.
+1. Tableau, sur 15 mois d'or : gain moyen par trade et par jour de chaque règle (elan_m15, cassure_m15, exces_m5,
+   exces_m1, fcassure_m1, retour_court_ar, bt_or) **selon le drapeau calme/agité au moment de l'entrée**, et selon
+   l'heure. Vérifier si le « +109 $ au calme » se retrouve sur l'historique.
+2. Allocation optimale : poids de chaque règle par case (régime × heure), estimés sur le passé et rejugés hors
+   échantillon (walk-forward), avec rétrécissement vers zéro pour ne pas surapprendre ; comparer à la sélection
+   actuelle, à « tout en marche », et à la triche. Correction pour essais multiples.
+3. Si ça tient : variante `_alloc_opt` sur la démo (hors totaux du test), poids écrits d'avance.
