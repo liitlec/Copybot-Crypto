@@ -643,3 +643,15 @@ partielle à +1 R = +64 R contre +102 R. Mesurer cette fois l'ENSEMBLE bt_or + j
 parts) contre bt_or seul à mise égale : total, mois négatifs, pire baisse, part du gain gardée sur les gros paniers,
 régularité (gain par mois). 15 mois M5 et 4 ans H1, walk-forward, essais multiples. Si l'ensemble est plus régulier
 pour un coût faible (≤ 20 % du total), variante `bt_or_jumeau_opt` sur la démo, hors totaux du test.
+
+## 18/11, 12 h 30 (Paris) : le portefeuille bt_or + compléments (calcul de mélange)
+Baptiste est sûr qu'il existe un calcul pour mélanger les stratégies avec bt_or de façon qu'elles se complètent. Le
+portefeuille A du 17/11 (repli 4 indices, contre-pied Nasdaq + S&P, Fed-DAX) ne contenait PAS bt_or. Faire :
+1. Corrélations des résultats par jour, par semaine et par mois entre bt_or (+ son jumeau si retenu) et chaque règle
+   qui tient ou presque (repli_ind, rebond_nas, rebond_sp, fomc_dax, suivre ce qui marche, panier acheté seulement,
+   COT euro) : surtout, est-ce qu'elles gagnent pendant les mois où bt_or perd (avril-octobre 2026, 2023) ?
+2. Poids optimaux par trois méthodes classiques — parité de risque, moyenne-variance avec rétrécissement, Kelly
+   fractionné du portefeuille — fixés sur le passé et rejugés hors échantillon chaque année (walk-forward).
+3. Résultat pour Baptiste : rendement par an, mois négatifs, pire baisse, pour bt_or seul, compléments seuls, et le
+   mélange ; à 0,5 et 1 Kelly fractionné. Si le mélange tient : le robot l'applique (poids écrits d'avance, variante
+   `_mix_opt`), hors totaux du test.
