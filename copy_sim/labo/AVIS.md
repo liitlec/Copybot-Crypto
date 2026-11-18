@@ -1,4 +1,12 @@
-# Avis pour Baptiste — 18/11/2026, après-midi (un jumeau de bt_or qui encaisse petit à petit, PRIORITES 18/11 12 h 15)
+# Avis pour Baptiste — 18/11/2026, après-midi (portefeuille bt_or + compléments, PRIORITES 18/11 12 h 30)
+
+1. **Le calcul de mélange est fait (`banc_mix.py`, 08/2022 à 11/2026, 3 méthodes, poids fixés sur le passé et rejugés chaque semestre) : presque, pas prouvé.** À risque égal, hors échantillon (40 mois), le mélange « parité de risque » fait +26 % par an contre +18 % pour `bt_or` seul, avec 20 % de mois négatifs contre 35 %, et la même pire baisse (−7,6 % contre −7,4 %).
+2. **Mais l'écart avec `bt_or` seul peut être du hasard** (p = 0,57 après correction), et une méthode sur trois fait moins bien que `bt_or` seul (moyenne-variance : pire baisse −11,7 % contre −5,9 %). Le mélange bat nettement les compléments seuls (p = 0,03) : c'est `bt_or` qui apporte le plus.
+3. **Les compléments ne « compensent » pas `bt_or`, ils sont juste indépendants** : corrélation de −0,06 à +0,14. Pendant les 23 mois où `bt_or` perd, ils restent positifs (repli des indices +10 %, rebond Nasdaq +6 %, achat après pic du VIX +14 %), mais pas plus que les autres mois. En 2023 (`bt_or` −2,3 %), ils ajoutent +2 à +9 %.
+4. **Rendement / risque** : au demi-Kelly, le mélange donnerait +108 % par an pour une pire baisse de −24 % (`bt_or` seul : environ +20 %, −12 à −16 %), mais avec des leviers de 13 à 35 fois, non jouables. Kelly entier : pire baisse de −45 à −76 %.
+5. **Décision** : pas de variante `_mix_opt` (non prouvé, et le calcul met 44 à 75 % du poids sur Fed-DAX, la pièce la plus fragile). Les pièces tournent déjà séparément sur la démo (v20) : le direct dira si elles sont vraiment indépendantes. Test de la semaine non touché.
+
+## Avis précédent — 18/11/2026, après-midi (un jumeau de bt_or qui encaisse petit à petit, PRIORITES 18/11 12 h 15)
 
 1. **Testé avec ta correction (jumeau ajouté par-dessus `bt_or`, à la moitié, à la même et au double de sa mise ; 10 façons d'encaisser, 30 ensembles, `banc_jumeau.py`) : aucun jumeau n'est à garder.** Miser simplement plus sur `bt_or` fait aussi bien ou mieux.
 2. **Sur 18 mois (M5)**, `bt_or` seul : +5 100 $, pire baisse −1 289 $, soit 6,34 $ gagnés par $ de pire baisse, 7 mois négatifs sur 18. Le meilleur ensemble fait 6,33 et garde les 7 mois négatifs : aucun des 30 ne fait mieux.
@@ -168,6 +176,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | `bt_or` comme thermomètre : pause des règles de retour quand le panier gagne, mise ×1 ou ×2 sinon (24 réglages, 15 mois) | ne tient pas | +115 $ hors éch. (t = 0,1) ; −272 $ face aux mêmes règles à mise égale ; p = 0,38 ; le hasard fait mieux 2 fois sur 3. Sur 4 ans en H1, signe favorable mais t = 1,2 | — |
 | Allocation par régime connu en direct : poids par règle selon calme/agité × heure × état du panier `bt_or` (18 réglages, rétrécissement, 17 mois, `banc_alloc.py`) | ne tient pas | +104 $ hors éch. sur 12 mois (t 0,1) ; +72 $ contre la sélection à mise égale (p 0,29) ; variantes « calme » −1 829 $ sur l'historique ; triche +14 668 $ |
 | Jumeau de `bt_or` qui encaisse petit à petit, ajouté par-dessus (10 sorties × mise 0,5 / 1 / 2, M5 18 mois et H1 4 ans, `banc_jumeau.py`) | ne tient pas | Gain / pire baisse : 6,33 au mieux contre 6,34 (M5), 3,79 contre 3,66 (H1) mais inversé hors éch. (4,43 contre 7,67) ; p 0,87 ; miser plus sur `bt_or` fait aussi bien |
+| Portefeuille `bt_or` + compléments (repli 4 indices, rebonds Nasdaq et S&P, Fed-DAX, VIX, achat seul) : parité de risque, moyenne-variance rétrécie, Kelly ; walk-forward par semestre, 08/2022-11/2026 (`banc_mix.py`) | presque | À risque égal hors éch. : +26 %/an contre +18 % pour `bt_or` seul, 20 % de mois négatifs contre 35 %, mais p 0,57 ; corrélations −0,06 à +0,14 ; 1 méthode sur 3 fait moins bien |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
