@@ -1,6 +1,7 @@
 # État du laboratoire — après le passage 46, 17/11/2026 (11 h) — rythme : toutes les 2 h 30
 
 ## À lire d'abord (résumé de la situation, réécrit le 17/11)
+- **18/11 matin : lot « bt_or thermomètre » (PRIORITES 18/11 8 h 30) FINI, ne tient pas** (`banc_thermometre.py` : +115 $ hors éch., t 0,1 ; −272 $ à exposition égale ; p 0,38 ; témoin au hasard meilleur 64 % du temps). Pas de `_opt`, robot inchangé (v20).
 - **17/11 nuit : lot « pari court » (PRIORITES 20 h 10) FINI, robot v20 publié** : `pari_court_opt` (`mt5/robot/pari_court.py`,
   compte virtuel 100 $ dans `etat_pari_court.json`, repli 4 indices US à 100 fois la poche, arrêt ×3 / < 20 $ / 30 jours).
   Outil `pari_court_commun.py` (référence sans avantage). Cassures, annonces, week-end crypto : ne battent pas la
