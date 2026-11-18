@@ -29,18 +29,27 @@ SEUIL_ANCIEN = 0.6
 
 
 def marquer(prix, chiffres=2, plus=False):
-    """Marque du stop de secours : centimes finissant par 7 ; v21 : bt_or_plus_opt = centimes 97 exactement, et les
-    autres paniers evitent 97 (ils prennent 87)."""
+    """Marque du stop de secours : centimes finissant par 7. Codes a deux chiffres reserves (v21-v22) :
+    97 = bt_or_plus_opt, 77 = bt_or_serre_opt ; les autres paniers les evitent (-0,10 $). `plus` = code ou True (97)."""
     v = round(prix, chiffres)
     if chiffres != 2:
         return v
-    if plus:
-        return round(v + (MARQUE_PLUS - round(v * 100) % 100) / 100.0, 2)
+    code = MARQUE_PLUS if plus is True else (plus or None)
+    if code:
+        return round(v + (code - round(v * 100) % 100) / 100.0, 2)
     m = round(v + (MARQUE - round(v * 100) % 10) / 100.0, 2)
-    return round(m - 0.10, 2) if round(m * 100) % 100 == MARQUE_PLUS else m
+    while round(m * 100) % 100 in CODES_RESERVES:
+        m = round(m - 0.10, 2)
+    return m
 
 
-MARQUE_PLUS = 97
+MARQUE_PLUS, MARQUE_SERRE = 97, 77
+CODES_RESERVES = (MARQUE_PLUS, MARQUE_SERRE)
+
+
+def code_marque(prix):
+    c = round(prix * 100) % 100 if prix is not None else None
+    return c if c in CODES_RESERVES else None
 
 
 def marque_plus(prix):
@@ -77,11 +86,15 @@ class PanierBT:
     moyenne < -0,3 R apres 40 paniers. Rappel : au banc (passage 24) la mecanique ne gagnait rien sur BTC et ETH."""
 
     def __init__(self, pont, fichier=FICHIER, symbole=SYMBOLE, nom="bt_or", lots=LOTS, taille=100.0, spread_rel=None,
-                 max_pos=MAX_POS, croissant=False):
+                 max_pos=MAX_POS, croissant=False, serre=None):
         self.pont, self.fichier = pont, fichier
         # v21 : bt_or_plus_opt = memes entrees et meme stop suiveur, ajouts de taille croissante (niveau n = n x lots),
         # 5 positions au plus ; stop marque 97 ; R compte pour la mise de base. REGLE D'ARRET (ecrite avant) : -20 R.
-        self.max_pos, self.croissant, self.plus = max_pos, croissant, croissant
+        self.max_pos, self.croissant = max_pos, croissant
+        # v22 : bt_or_serre_opt = bt_or, mais au-dela de +serre[0] R de gain (meilleur prix contre la 1re entree), le recul
+        # de sortie passe a serre[1] R (banc X : « stop 0,5 R au-dela de +3 R », meme total). Marque 77. Arret : -20 R.
+        self.serre = serre
+        self.plus = MARQUE_PLUS if croissant else (MARQUE_SERRE if serre else None)
         self.symbole, self.nom, self.lots, self.taille, self.spread_rel = symbole, nom, lots, taille, spread_rel
         self.paniers = {}        # "1" / "-1" -> panier
         self.cumul_r, self.n_paniers, self.vu = 0.0, 0, None
@@ -117,7 +130,7 @@ class PanierBT:
         if a and not 0.002 * p["prix_entree"] <= a <= 0.2 * p["prix_entree"]:
             a = None                             # bougies D1 incoherentes avec le prix : seuils fixes
         if marque(p["stop"]):
-            if marque_plus(p["stop"]) != self.plus:
+            if code_marque(p["stop"]) != self.plus:
                 return False
             return not a or p.get("prix_actuel") is None or abs(p["stop"] - p["prix_actuel"]) >= 0.15 * a
         if self.nom != "bt_or":                  # pas d'ancien panier sans marque hors de l'or
@@ -161,7 +174,7 @@ class PanierBT:
             self.paniers[cle] = {"tickets": [q["ticket"] for q in lst],
                                  "profits": {str(q["ticket"]): q.get("profit") or 0.0 for q in lst},
                                  "meilleur": meilleur, "stop": stop, "pas": pas, "prochain": prochain,
-                                 "debut": debut, "secours": lst[0]["stop"]}
+                                 "debut": debut, "secours": lst[0]["stop"], "c0": c0}
             self.pont.noter(evenement="reprise", hypothese=self.nom, sens=s, positions=len(lst),
                             tickets=[q["ticket"] for q in lst], meilleur=round(meilleur, 2), distance_stop=round(stop, 2))
         if groupes:
@@ -196,12 +209,15 @@ class PanierBT:
             if len(vivants) < len(p["tickets"]):
                 self._cloture(cle, "stop de secours du courtier" if not vivants else "position manquante", ps)
                 continue
+            recul = p["stop"]
+            if self.serre and s * (p["meilleur"] - p.get("c0", p["meilleur"])) >= self.serre[0] * p["stop"]:
+                recul = self.serre[1] * p["stop"]          # v22 : suiveur resserre au-dela de +3 R
             if s > 0:
                 p["meilleur"] = max(p["meilleur"], px["bid"])
-                touche = px["bid"] <= p["meilleur"] - p["stop"]
+                touche = px["bid"] <= p["meilleur"] - recul
             else:
                 p["meilleur"] = min(p["meilleur"], px["bid"])
-                touche = px["ask"] >= p["meilleur"] + p["stop"]
+                touche = px["ask"] >= p["meilleur"] + recul
             if touche:
                 self._cloture(cle, "recul depuis le meilleur prix", ps)
 
@@ -250,7 +266,7 @@ class PanierBT:
                 s = 1 if c > ema([x[4] for x in m5[-2880:]], EMA_N) else -1
                 if str(s) not in self.paniers:
                     p = {"tickets": [], "profits": {}, "meilleur": c, "stop": STOP_K * a, "pas": PAS_K * a,
-                         "prochain": c + s * PAS_K * a, "debut": m5[-1][0]}
+                         "prochain": c + s * PAS_K * a, "debut": m5[-1][0], "c0": c}
                     p["secours"] = marquer(c - s * SECOURS_K * p["stop"], chiffres, self.plus)
                     if self._ouvre(p, s, 1, chiffres):
                         self.paniers[str(s)] = p

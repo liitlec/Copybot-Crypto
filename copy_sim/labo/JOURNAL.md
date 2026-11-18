@@ -1692,3 +1692,8 @@ contre 6,34 pour bt_or, mais 2,52 contre 3,66 sur 4 ans : non prouvé. Hors tota
 mises à jour : stop de secours marqué aux centimes 97 (bt_or les évite désormais : 87 à la place), reprise avant bt_or.
 **Règle d'arrêt (écrite avant) : −20 R cumulés (R = mise de base).** Essais : tailles 1-5, marque, non-confusion avec
 bt_or, reprise après perte de mémoire. Publiée en v21.
+- ~16 h 30 : **robot v22 : `bt_or_serre_opt`** (pour les données) : mêmes entrées, ajouts et taille que bt_or ; quand le
+  panier a gagné plus de +3 R (meilleur prix contre la 1re entrée), le recul de sortie passe de 1 R (0,6667 ATR) à 0,5 R
+  (banc X : « stop 0,5 R au-delà de +3 R », même total, 2de moitié +8,1 R contre +7,5). Hors test. Stop marqué aux
+  centimes 77 (bt_or évite 77 et 97). **Règle d'arrêt (écrite avant) : −20 R cumulés.** Essai : sortie au recul de
+  0,5 R après +3 R alors que bt_or reste ouvert ; pas de resserrement sous +3 R ; marques distinctes. Publiée en v22.

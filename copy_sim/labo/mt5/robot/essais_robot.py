@@ -398,6 +398,35 @@ assert bpp2.tickets() == bpp.tickets(), "panier plus repris apres perte de memoi
 for f in ("etat_bp_essai.json", "x_essai.json"):
     if os.path.exists(f):
         os.remove(f)
+# v22 : bt_or_serre_opt, suiveur resserre a 0,5 R au-dela de +3 R ; marque 77 ; bt_or classique ne sort pas
+fps, fpo = FauxPont(), FauxPont()
+bs = bt_or.PanierBT(fps, fichier="etat_bs_essai.json", nom="bt_or_serre_opt", serre=(3.0, 0.5))
+bo = bt_or.PanierBT(fpo, fichier="etat_bo_essai.json")
+for b_, f_ in ((bs, fps), (bo, fpo)):
+    b_.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+    assert len(f_.pos) == 1
+qs = list(fps.pos.values())[0]
+assert bt_or.code_marque(qs["stop"]) == bt_or.MARQUE_SERRE and bt_or.code_marque(list(fpo.pos.values())[0]["stop"]) is None
+R_ = bs.paniers["1"]["stop"]
+for b_, f_ in ((bs, fps), (bo, fpo)):
+    f_.bid = 4000.0 + 3 * R_ + 10
+    b_.surveiller({q["ticket"]: q for q in f_.positions()}, f_.prix("XAUUSD"))
+    f_.bid -= 0.5 * R_ + 5                                 # recul de 0,5 R + 5 $ : plus que 0,5 R, moins que 1 R
+    b_.surveiller({q["ticket"]: q for q in f_.positions()}, f_.prix("XAUUSD"))
+assert not fps.pos and bs.n_paniers == 1, "serre : sortie au recul de 0,5 R apres +3 R"
+assert fpo.pos and bo.n_paniers == 0, "bt_or classique : pas encore de sortie"
+fps2 = FauxPont(); bs2 = bt_or.PanierBT(fps2, fichier="etat_bs_essai.json", nom="bt_or_serre_opt", serre=(3.0, 0.5))
+bs2.paniers.clear(); bs2.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+fps2.bid = 4000.0 + 2 * R_
+bs2.surveiller({q["ticket"]: q for q in fps2.positions()}, fps2.prix("XAUUSD"))
+fps2.bid -= 0.5 * R_ + 5
+bs2.surveiller({q["ticket"]: q for q in fps2.positions()}, fps2.prix("XAUUSD"))
+assert fps2.pos, "serre : pas de resserrement sous +3 R"
+q2 = dict(list(fps2.pos.values())[0], symbole="XAUUSD", prix_actuel=fps2.bid, heure_serveur=0)
+assert bs2.candidat(q2, d1) and not bo.candidat(q2, d1) and not bpp.candidat(q2, d1), "marques distinctes"
+for f in ("etat_bs_essai.json", "etat_bo_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 # panier d'avant la v12 (stop sans marque, deja suivi) : repris par l'heure d'entree ; l'ajout par le meme stop
 anc = {1: {"ticket": 1, "symbole": "XAUUSD", "sens": "vente", "prix_entree": 3851.07, "prix_actuel": 3840.0,
            "stop": 3910.68, "profit": 11.0, "heure_serveur": 1794816000 - 1794816000 % 86400 + 8 * 3600 + 302},
