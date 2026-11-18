@@ -1,4 +1,12 @@
-# Avis pour Baptiste — 18/11/2026, après-midi (allocation par régime connu en direct, PRIORITES 18/11 11 h 40)
+# Avis pour Baptiste — 18/11/2026, après-midi (un jumeau de bt_or qui encaisse petit à petit, PRIORITES 18/11 12 h 15)
+
+1. **Testé avec ta correction (jumeau ajouté par-dessus `bt_or`, à la moitié, à la même et au double de sa mise ; 10 façons d'encaisser, 30 ensembles, `banc_jumeau.py`) : aucun jumeau n'est à garder.** Miser simplement plus sur `bt_or` fait aussi bien ou mieux.
+2. **Sur 18 mois (M5)**, `bt_or` seul : +5 100 $, pire baisse −1 289 $, soit 6,34 $ gagnés par $ de pire baisse, 7 mois négatifs sur 18. Le meilleur ensemble fait 6,33 et garde les 7 mois négatifs : aucun des 30 ne fait mieux.
+3. **Sur 4 ans (H1)**, petit mieux : 3,79 contre 3,66 pour le meilleur (un tiers à +1 R, un tiers à +3 R, stop remonté à l'entrée), mais 23 mois négatifs sur 52 comme `bt_or`. Hors échantillon, ça s'inverse : 4,43 contre 7,67 pour `bt_or` seul (M5 : 3,30 contre 3,51). Après correction, p = 0,87 : du bruit.
+4. **Pourquoi** : encaisser tôt coupe les gros paniers, qui font tout le gain de `bt_or` (le jumeau n'en garde que 74 à 97 %), et les baisses évitées ne compensent pas. Le jumeau ajoute du risque au même prix que `bt_or`, avec un peu moins de gain.
+5. **Décision** : pas de `bt_or_jumeau_opt`, robot inchangé (v20), test non touché. Si tu veux plus de gain, le calcul dit : augmenter la mise de `bt_or` (gain et pire baisse doublent ensemble). Suite : le portefeuille `bt_or` + compléments (12 h 30).
+
+## Avis précédent — 18/11/2026, après-midi (allocation par régime connu en direct, PRIORITES 18/11 11 h 40)
 
 1. **Le calcul d'allocation est fait (`banc_alloc.py`, 17 mois d'or, 18 réglages, walk-forward, spread réel) : il ne tient pas.** Hors échantillon, 12 mois : +104 $ (t = 0,1), 6 mois gagnants sur 12 ; face à la sélection actuelle à mise égale : +72 $ (t = 0,1, p = 0,29 après correction).
 2. **Le « +109 $ au calme » ne se retrouve pas dans l'historique** : les mêmes règles jouées seulement au calme perdent 1 829 $ sur 17 mois (−5 $ par jour). Un gain de 109 $ ou plus en 3 jours arrive dans 7 % des fenêtres (5 % quand la sélection perd) : c'est de la chance, pas un avantage.
@@ -159,6 +167,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Une IA qui juge en direct (180 moments anonymes, sans date ni prix réels, 2 modèles de langage à petit coût, à l'aveugle) | ne tient pas | 52 % et 48 % de bonnes réponses (54 % en vote à deux) contre 46 % en répondant toujours « calme »… mais la règle bête « les 4 heures d'avant se répètent » fait 51 % sur les mêmes moments. Aller-retour reconnu 5 à 7 fois sur 36. L'IA ne voit que la persistance du calme, que le robot utilise déjà | pas de journal en direct |
 | `bt_or` comme thermomètre : pause des règles de retour quand le panier gagne, mise ×1 ou ×2 sinon (24 réglages, 15 mois) | ne tient pas | +115 $ hors éch. (t = 0,1) ; −272 $ face aux mêmes règles à mise égale ; p = 0,38 ; le hasard fait mieux 2 fois sur 3. Sur 4 ans en H1, signe favorable mais t = 1,2 | — |
 | Allocation par régime connu en direct : poids par règle selon calme/agité × heure × état du panier `bt_or` (18 réglages, rétrécissement, 17 mois, `banc_alloc.py`) | ne tient pas | +104 $ hors éch. sur 12 mois (t 0,1) ; +72 $ contre la sélection à mise égale (p 0,29) ; variantes « calme » −1 829 $ sur l'historique ; triche +14 668 $ |
+| Jumeau de `bt_or` qui encaisse petit à petit, ajouté par-dessus (10 sorties × mise 0,5 / 1 / 2, M5 18 mois et H1 4 ans, `banc_jumeau.py`) | ne tient pas | Gain / pire baisse : 6,33 au mieux contre 6,34 (M5), 3,79 contre 3,66 (H1) mais inversé hors éch. (4,43 contre 7,67) ; p 0,87 ; miser plus sur `bt_or` fait aussi bien |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
