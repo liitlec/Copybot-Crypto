@@ -1,4 +1,24 @@
-# Avis pour Baptiste — 18/11/2026, après-midi (portefeuille bt_or + compléments, PRIORITES 18/11 12 h 30)
+# Avis pour Baptiste — 18/11/2026, après-midi (plan de mise du compte cent, et bt_or qui ajoute plus fort, PRIORITES 18/11 13 h 30)
+
+1. **Plan de mise calculé (`banc_plan_cent.py`, 08/2022 à 11/2026, mise recalculée chaque semaine) : voir le tableau.** Le chiffre réaliste est la colonne « prudent » (avantage divisé par 2) : +0,2 à +0,3 % par mois en médiane, presque un mois sur deux négatif, une année sur quatre en perte.
+2. **Avec 100 €, le plan à −15 % n'est pas faisable** : le plus petit lot (0,01 lot cent sur l'or) est 2,4 fois trop gros. Il faut 500 €, ou accepter le plan à −30 %.
+3. **Si l'avantage est nul** (c'est le vrai risque : 4 ans de données, dont la grande hausse de l'or de 2024-2026), le plan à −30 % finit l'année en perte 65 % du temps, et le plan à −50 % perd la moitié du compte 38 % du temps. Je déconseille le plan à −50 %.
+4. **`bt_or` qui ajoute plus fort (`banc_bt_plus.py`, 36 réglages, à risque égal) : ne tient pas.** Sur 18 mois, 1-2-3 jusqu'à 7 positions fait 8,62 $ gagnés par $ de pire baisse contre 6,34 ; mais sur 4 ans c'est l'inverse (2,52 contre 3,66), et le hasard l'explique (p = 0,42 à 0,95). Pas de `bt_or_plus_opt`.
+5. **Rappel** : le labo ne calcule que sur la démo et ne passe aucun ordre réel ; ce tableau est une aide, pas une promesse. Robot inchangé (v20), test de la semaine non touché.
+
+**Plan de mise, mélange `bt_or` + rebonds d'indices** (entre parenthèses : `bt_or` seul)
+
+| Pire baisse visée | Risque par R sur l'or | Lot cent or, 100 € | Lot cent or, 500 € | Gain par mois, mesuré (médiane) | Gain par mois, prudent (médiane) | Mois négatif | Perdre la moitié en 12 mois | Année en perte | Arrêt automatique conseillé |
+|---|---|---|---|---|---|---|---|---|---|
+| −15 % | 0,22 % (0,34 %) | 0,01, trop gros (il faudrait 0,004) | 0,02 (0,03) | +1,3 % (+0,6 %) | +0,2 % (+0,1 %) | 48 % | 0 % | 25 % (31 %) | à −17 % du plus haut |
+| −30 % | 0,47 % (0,72 %) | 0,01 | 0,05 (0,07) | +2,8 % (+1,2 %) | +0,3 % (0,0 %) | 48 % | 0 % | 27 % (33 %) | à −34 % |
+| −50 % | 0,88 % (1,37 %) | 0,02 (0,03) | 0,08 (0,13) | +4,9 % (+1,9 %) | +0,3 % (−0,2 %) | 49 % | 5 % | 30 % (37 %) | à −55 % |
+
+- « Pire baisse visée » : 9 trajectoires sur 10 restent au-dessus sur 12 mois, en scénario prudent. Les trois dernières colonnes de chances sont aussi en scénario prudent.
+- Rejoué sur l'autre moitié des données, la pire baisse réelle est restée sous la cible pour le mélange (−7 à −33 %) ; `bt_or` seul a fait zéro sur 2022-2024 avec −16 à −54 %.
+- Le mélange suppose des positions sur indices d'environ 7,5 fois le compte au plan −30 % (14 fois à −50 %) : marge et frais de nuit du compte cent non vérifiés. Lots indices pour 100 € à −30 % : Nasdaq 0,32, S&P 1,21, Dow 0,18, US2000 3,29 (lots cent).
+
+## Avis précédent — 18/11/2026, après-midi (portefeuille bt_or + compléments, PRIORITES 18/11 12 h 30)
 
 1. **Le calcul de mélange est fait (`banc_mix.py`, 08/2022 à 11/2026, 3 méthodes, poids fixés sur le passé et rejugés chaque semestre) : presque, pas prouvé.** À risque égal, hors échantillon (40 mois), le mélange « parité de risque » fait +26 % par an contre +18 % pour `bt_or` seul, avec 20 % de mois négatifs contre 35 %, et la même pire baisse (−7,6 % contre −7,4 %).
 2. **Mais l'écart avec `bt_or` seul peut être du hasard** (p = 0,57 après correction), et une méthode sur trois fait moins bien que `bt_or` seul (moyenne-variance : pire baisse −11,7 % contre −5,9 %). Le mélange bat nettement les compléments seuls (p = 0,03) : c'est `bt_or` qui apporte le plus.
@@ -177,6 +197,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Allocation par régime connu en direct : poids par règle selon calme/agité × heure × état du panier `bt_or` (18 réglages, rétrécissement, 17 mois, `banc_alloc.py`) | ne tient pas | +104 $ hors éch. sur 12 mois (t 0,1) ; +72 $ contre la sélection à mise égale (p 0,29) ; variantes « calme » −1 829 $ sur l'historique ; triche +14 668 $ |
 | Jumeau de `bt_or` qui encaisse petit à petit, ajouté par-dessus (10 sorties × mise 0,5 / 1 / 2, M5 18 mois et H1 4 ans, `banc_jumeau.py`) | ne tient pas | Gain / pire baisse : 6,33 au mieux contre 6,34 (M5), 3,79 contre 3,66 (H1) mais inversé hors éch. (4,43 contre 7,67) ; p 0,87 ; miser plus sur `bt_or` fait aussi bien |
 | Portefeuille `bt_or` + compléments (repli 4 indices, rebonds Nasdaq et S&P, Fed-DAX, VIX, achat seul) : parité de risque, moyenne-variance rétrécie, Kelly ; walk-forward par semestre, 08/2022-11/2026 (`banc_mix.py`) | presque | À risque égal hors éch. : +26 %/an contre +18 % pour `bt_or` seul, 20 % de mois négatifs contre 35 %, mais p 0,57 ; corrélations −0,06 à +0,14 ; 1 méthode sur 3 fait moins bien |
+| `bt_or` qui ajoute plus fort (tailles 1-2-3 ou 1-1,5-2, 3 / 5 / 7 positions, ajout seulement si gain > 1 R ou ATR en hausse ; 36 réglages à risque égal, `banc_bt_plus.py`) | ne tient pas | M5 18 mois : 8,62 contre 6,34 de gain / pire baisse ; H1 4 ans : 2,52 contre 3,66 ; p corrigée 0,42 à 0,95 ; hors éch. bon en M5, mauvais en H1 |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)
