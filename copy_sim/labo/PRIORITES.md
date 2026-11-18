@@ -634,3 +634,12 @@ actives seulement quand le drapeau dit calme) font +109 $ quand la sélection pe
    échantillon (walk-forward), avec rétrécissement vers zéro pour ne pas surapprendre ; comparer à la sélection
    actuelle, à « tout en marche », et à la triche. Correction pour essais multiples.
 3. Si ça tient : variante `_alloc_opt` sur la démo (hors totaux du test), poids écrits d'avance.
+
+## 18/11, 12 h 15 (Paris) : un jumeau de bt_or qui encaisse petit à petit
+Idée de Baptiste : à côté de bt_or (qui attend le recul de 0,67 ATR pour tout fermer), un second robot, mêmes entrées,
+qui encaisse ses gains progressivement (objectif évolutif : par exemple un tiers à +1 R, un tiers à +2 R, le reste au
+stop suiveur ; ou suiveur qui se resserre par paliers ; ou objectif qui monte avec l'ATR). Rappel du banc X : prise
+partielle à +1 R = +64 R contre +102 R. Mesurer cette fois l'ENSEMBLE bt_or + jumeau (moitié de mise chacun, et autres
+parts) contre bt_or seul à mise égale : total, mois négatifs, pire baisse, part du gain gardée sur les gros paniers,
+régularité (gain par mois). 15 mois M5 et 4 ans H1, walk-forward, essais multiples. Si l'ensemble est plus régulier
+pour un coût faible (≤ 20 % du total), variante `bt_or_jumeau_opt` sur la démo, hors totaux du test.
