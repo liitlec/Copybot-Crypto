@@ -1,4 +1,12 @@
-# Avis pour Baptiste — 18/11/2026, matin (bt_or comme thermomètre de la tendance, PRIORITES 18/11 8 h 30)
+# Avis pour Baptiste — 18/11/2026, après-midi (allocation par régime connu en direct, PRIORITES 18/11 11 h 40)
+
+1. **Le calcul d'allocation est fait (`banc_alloc.py`, 17 mois d'or, 18 réglages, walk-forward, spread réel) : il ne tient pas.** Hors échantillon, 12 mois : +104 $ (t = 0,1), 6 mois gagnants sur 12 ; face à la sélection actuelle à mise égale : +72 $ (t = 0,1, p = 0,29 après correction).
+2. **Le « +109 $ au calme » ne se retrouve pas dans l'historique** : les mêmes règles jouées seulement au calme perdent 1 829 $ sur 17 mois (−5 $ par jour). Un gain de 109 $ ou plus en 3 jours arrive dans 7 % des fenêtres (5 % quand la sélection perd) : c'est de la chance, pas un avantage.
+3. **Par régime, une seule chose gagne** : le panier `bt_or` (+16 à +18 $ par panier, calme ou agité, +13,75 $ par jour). La cassure M15 gagne un peu en agité (+1,56 $ par trade, t = 1,3) et perd au calme. Les règles de retour perdent partout, surtout la nuit (fausse cassure M5 en Asie : −1 673 $, t jusqu'à −3,8).
+4. **Pourquoi le calcul échoue** : en trichant (poids connus d'avance) il ferait +14 668 $, mais les bonnes cases changent d'un mois à l'autre. Il garde 8 cases sur 90 et mise 5 fois moins : il évite des pertes (+1 839 $ face à « tout en marche », t = 1,1), il ne crée pas de gain. Des étiquettes décalées au hasard font mieux 1 fois sur 4.
+5. **Décision** : pas de variante `_alloc_opt`, robot inchangé (v20), test de la semaine non touché. Résultat fragile en plus : décaler 11 étiquettes sur 10 000 le fait passer de +104 $ à −465 $.
+
+## Avis précédent — 18/11/2026, matin (bt_or comme thermomètre de la tendance, PRIORITES 18/11 8 h 30)
 
 1. **Ton idée testée sur 15 mois d'or (`banc_thermometre.py`, 24 réglages, walk-forward, spread réel) : elle ne tient pas.** Hors échantillon : +115 $ sur 10 mois (t = 0,1), 4 mois gagnants sur 10 ; face aux mêmes règles à mise égale sans thermomètre : −272 $ ; p = 0,38 après correction.
 2. **Pourquoi** : les règles de retour perdent dans tous les états du panier, presque autant : −0,31 bp par trade sans panier, −0,75 bp panier perdant, −0,91 bp panier gagnant (plus de 1 R). L'écart va dans ton sens mais il est trop petit et change de signe d'une moitié à l'autre.
@@ -150,6 +158,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Modèle à plusieurs indices (71 indices : or, indices US, argent, euro, heure, jour, annonces ; 30 réglages) pour prédire tendance / calme / aller-retour à 9 h, 12 h, 15 h 30 | ne tient pas | Bonnes réponses hors éch. : 51 %, 55 %, 48 % contre 54 %, 53 %, 44 % en répondant toujours « calme ». En $ : +232 / +150 / +68 contre +247 / +195 / −303 pour la sélection actuelle (p = 0,53) ; la tendance seule fait mieux à 9 h et 12 h. Même en trichant (type connu d'avance), le gain n'est que de +338 à +1 132 $ | — |
 | Une IA qui juge en direct (180 moments anonymes, sans date ni prix réels, 2 modèles de langage à petit coût, à l'aveugle) | ne tient pas | 52 % et 48 % de bonnes réponses (54 % en vote à deux) contre 46 % en répondant toujours « calme »… mais la règle bête « les 4 heures d'avant se répètent » fait 51 % sur les mêmes moments. Aller-retour reconnu 5 à 7 fois sur 36. L'IA ne voit que la persistance du calme, que le robot utilise déjà | pas de journal en direct |
 | `bt_or` comme thermomètre : pause des règles de retour quand le panier gagne, mise ×1 ou ×2 sinon (24 réglages, 15 mois) | ne tient pas | +115 $ hors éch. (t = 0,1) ; −272 $ face aux mêmes règles à mise égale ; p = 0,38 ; le hasard fait mieux 2 fois sur 3. Sur 4 ans en H1, signe favorable mais t = 1,2 | — |
+| Allocation par régime connu en direct : poids par règle selon calme/agité × heure × état du panier `bt_or` (18 réglages, rétrécissement, 17 mois, `banc_alloc.py`) | ne tient pas | +104 $ hors éch. sur 12 mois (t 0,1) ; +72 $ contre la sélection à mise égale (p 0,29) ; variantes « calme » −1 829 $ sur l'historique ; triche +14 668 $ |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)

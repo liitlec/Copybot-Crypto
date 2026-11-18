@@ -1,6 +1,7 @@
 # État du laboratoire — après le passage 46, 17/11/2026 (11 h) — rythme : toutes les 2 h 30
 
 ## À lire d'abord (résumé de la situation, réécrit le 17/11)
+- **18/11 après-midi : lot « allocation par régime » (PRIORITES 18/11 11 h 40) FINI, ne tient pas** (`banc_alloc.py`, `donnees/alloc_wf.csv` : +104 $ hors éch. 12 mois, t 0,1 ; +72 $ contre R0 à exposition égale, p RC 0,29 ; témoin meilleur 26 % ; `_calme` historique −1 829 $, +109 $ en 3 j = 7 % des fenêtres). Pas de `_alloc_opt`, robot inchangé (v20). Seul bt_or gagne dans tous les régimes ; pire case : fcassure_m5 en Asie.
 - **18/11 matin : lot « bt_or thermomètre » (PRIORITES 18/11 8 h 30) FINI, ne tient pas** (`banc_thermometre.py` : +115 $ hors éch., t 0,1 ; −272 $ à exposition égale ; p 0,38 ; témoin au hasard meilleur 64 % du temps). Pas de `_opt`, robot inchangé (v20).
 - **17/11 nuit : lot « pari court » (PRIORITES 20 h 10) FINI, robot v20 publié** : `pari_court_opt` (`mt5/robot/pari_court.py`,
   compte virtuel 100 $ dans `etat_pari_court.json`, repli 4 indices US à 100 fois la poche, arrêt ×3 / < 20 $ / 30 jours).
