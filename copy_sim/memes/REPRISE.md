@@ -171,3 +171,4 @@ triggers Fable désactivés. Nouvelle session Fable à mémoire courte : session
 MISSION/ETAT/AVIS/PRIORITES récentes, délègue les calculs à des sous-agents Opus), sur « la bonne famille de règles
 au bon moment ». Relais Opus (session_01FgaWowBo8qjdiVRho4b4yt, trigger réactivé) : dépôts GitHub + suivi du test.
 **17/11 11 h 30 :** session Opus neuve « recherche large » session_01FgaWovYYH5frsN38twmQXR (PRIORITES 17/11 11 h 20). Fable session_01FgaWoySx1nKGJF6cxtDn6b à l'arrêt (≈ 6 de crédits restants).
+**18/11 11 h 40 :** relais Opus toutes les 2 h 30 (trig_01B93bAzr4GmM8TtjavXreKC série A, trig_0191oZGpy5RG7neAyucJvAUm série B), jusqu'à nouvel ordre. Fable : une session neuve par lot (dernière : session_01FgaWoyJr6m9ZasMH9dBxAF, allocation par régime).
