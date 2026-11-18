@@ -667,3 +667,10 @@ Baptiste passera en réel sur un compte cent (mêmes conditions que la démo, to
    l'ATR monte. Mesurer gain, pire baisse, mois négatifs, gain par $ de pire baisse, contre bt_or actuel à risque
    égal (sinon on ne compare que du levier). Correction pour essais multiples. Ce qui tient : variante `bt_or_plus_opt`.
 3. Tableau simple en tête d'AVIS.md, à lire vendredi avec le verdict.
+
+## 18/11, 14 h 15 (Paris) : règle de retrait avec intérêts composés (voir PLAN_REEL.md)
+Simuler, sur le mélange au plan −30 % (mêmes données que banc_plan_cent.py, scénario mesuré et prudent), plusieurs
+règles de retrait : (a) aucun retrait ; (b) retirer la mise de départ dès que le compte fait ×2, puis rien ; (c) (b) puis
+retirer 25 %, 50 % des gains au-dessus du plus haut chaque mois ; (d) retirer chaque mois tout ce qui dépasse un plafond.
+Pour 100 € et 500 € sur 12 et 24 mois : argent retiré (médiane, chance d'avoir récupéré la mise), valeur du compte,
+total (retiré + compte), chance de finir sous la mise de départ en comptant les retraits. Conseiller une règle simple.
