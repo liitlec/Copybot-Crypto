@@ -17,7 +17,7 @@ import pari_opt
 import fomc_dax
 import pari_court
 
-VERSION = 20
+VERSION = 21
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -205,6 +205,7 @@ class Robot:
         self.calme, self.calme_vu = None, 0      # regime de l'or (None = inconnu : pas de pause), heure du dernier calcul
         self.essais_orph = {}   # ticket -> heure du dernier essai de fermeture d'une orpheline
         self.bt = bt_or.PanierBT(pont)
+        self.btp = bt_or.PanierBT(pont, fichier="etat_bt_plus.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
         self.crypto = [bt_or.PanierBT(pont, fichier="etat_%s.json" % n, symbole=sym, nom=n, lots=None, taille=None)
                        for sym, n in CRYPTO]           # v13 : bt_crypto, hors test (donnees)
         self.crypto_vu, self.crypto_muet = 0, set()
@@ -240,7 +241,7 @@ class Robot:
     def reconcilier(self):
         """Aligne la memoire sur le compte : note les stops touches, ferme les positions orphelines."""
         ps = {p["ticket"]: p for p in self.pont.positions()}
-        connus = set(self.bt.tickets())                 # les paniers bt_or sont geres par bt_or.py
+        connus = set(self.bt.tickets()) | set(self.btp.tickets())   # paniers bt_or et bt_or_plus_opt : bt_or.py
         for c in self.crypto:
             connus.update(c.tickets())
         connus.update(self.rebond.tickets())            # v15 : la position de rebond_nas_opt n'est pas a repli_ind
@@ -270,10 +271,12 @@ class Robot:
             except Exception:
                 m5 = d1 = None
             if m5 and d1:
-                self.bt.adopter(inconnus, m5[:-1], d1[:-1])
+                self.btp.adopter(inconnus, m5[:-1], d1[:-1])     # v21 : marque 97 d'abord
+                connus.update(self.btp.tickets())
+                self.bt.adopter({t: p for t, p in inconnus.items() if t not in connus}, m5[:-1], d1[:-1])
                 connus.update(self.bt.tickets())
             else:                                       # bougies absentes : on ne ferme pas ce qui ressemble a un panier
-                connus.update(t for t, p in inconnus.items() if self.bt.candidat(p))
+                connus.update(t for t, p in inconnus.items() if self.bt.candidat(p) or self.btp.candidat(p))
         for c in self.crypto:                           # paniers bt_crypto repris de la meme facon
             inc = {t: p for t, p in ps.items() if t not in connus and p.get("symbole") == c.symbole and p.get("stop")}
             if not inc:
@@ -471,6 +474,7 @@ class Robot:
         self.sorties(maintenant, ps)
         px = self.pont.prix(SYMBOLE)
         self.bt.surveiller(ps, px)
+        self.btp.surveiller(ps, px)
         permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
         self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
         self.rebond.tour(ps, maintenant, permis)        # v15 : Nasdaq, contre-pied d'une journee de grande amplitude
@@ -503,6 +507,7 @@ class Robot:
                 d1 = bougies.get("D1") if bougies else self.pont.bougies(SYMBOLE, "D1", 30)
                 if long5 and d1:
                     self.bt.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
+                    self.btp.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
             for nom, hyp in HYPOTHESES.items():
                 if hyp[0] != periode or nom in self.ouvert or nom in ETEINTES:
                     continue

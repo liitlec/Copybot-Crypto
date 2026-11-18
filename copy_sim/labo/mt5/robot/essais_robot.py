@@ -365,6 +365,39 @@ assert not fc.pos and bc2.n_paniers == 1 and abs(bc2.cumul_r) < 2, bc2.cumul_r
 for f in ("etat_c_essai.json", "x_essai.json"):
     if os.path.exists(f):
         os.remove(f)
+# v21 : bt_or_plus_opt, ajouts de taille croissante (1, 2, 3... x 0,01 lot), stop marque 97, distinct de bt_or
+class FauxPontP(FauxPont):
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert id.startswith("bt_or_plus_opt_") and stop > 0
+        niv = int(id.rsplit("_", 1)[1])
+        assert abs(lots - 0.01 * niv) < 1e-9, (id, lots)
+        self.n += 1
+        e = self.bid + 0.2 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "symbole": "XAUUSD", "sens": sens, "prix_entree": e, "stop": stop,
+                            "profit": 0.0, "id": id, "heure_serveur": 0, "prix_actuel": self.bid, "lots": lots}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+fpp = FauxPontP()
+bpp = bt_or.PanierBT(fpp, fichier="etat_bp_essai.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
+bpp.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+for k, px in enumerate((4016.0, 4031.0, 4046.0, 4061.0, 4076.0, 4091.0)):
+    fpp.bid = px
+    bpp.surveiller({q["ticket"]: q for q in fpp.positions()}, fpp.prix("XAUUSD"))
+    bpp.bougie(m5_jusqua(8, 35 + 5 * k, px), d1, True)
+assert len(fpp.pos) == 5, len(fpp.pos)
+assert sorted(round(q["lots"], 2) for q in fpp.pos.values()) == [0.01, 0.02, 0.03, 0.04, 0.05]
+assert all(bt_or.marque_plus(q["stop"]) for q in fpp.pos.values()), [q["stop"] for q in fpp.pos.values()]
+bto = bt_or.PanierBT(FauxPont(), fichier="x_essai.json")
+q0 = dict(list(fpp.pos.values())[0], prix_actuel=fpp.bid)
+assert not bto.candidat(q0, d1) and bpp.candidat(q0, d1), "bt_or ne prend pas un panier plus, et inversement"
+assert not bt_or.marque_plus(bt_or.marquer(3922.95)) and bt_or.marque(bt_or.marquer(3922.95)), "bt_or evite 97"
+os.remove("etat_bp_essai.json")
+bpp2 = bt_or.PanierBT(fpp, fichier="etat_bp_essai.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
+bpp2.adopter({t: dict(q, prix_actuel=fpp.bid) for t, q in fpp.pos.items()}, m5_jusqua(9, 5, 4091.0), d1)
+assert bpp2.tickets() == bpp.tickets(), "panier plus repris apres perte de memoire"
+for f in ("etat_bp_essai.json", "x_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 # panier d'avant la v12 (stop sans marque, deja suivi) : repris par l'heure d'entree ; l'ajout par le meme stop
 anc = {1: {"ticket": 1, "symbole": "XAUUSD", "sens": "vente", "prix_entree": 3851.07, "prix_actuel": 3840.0,
            "stop": 3910.68, "profit": 11.0, "heure_serveur": 1794816000 - 1794816000 % 86400 + 8 * 3600 + 302},

@@ -1684,3 +1684,11 @@ passés en attributs de classe, horizon ajouté), compte virtuel séparé `etat_
 SP500+, DJ30+, US2000+, levier 100 fois le compte virtuel, plafond 0,50 lot ; arrêt écrit d'avance : ×3 (on ferme tout),
 ruine < 20 $, ou 30 jours après la 1re ouverture (on ferme tout) ; pas de redémarrage sans décision de Baptiste.
 `pari_opt` inchangé dans ses règles. Essais OK (exit 0).
+
+## Relais — 18/11/2026 (~14 h Paris) — robot v21 : `bt_or_plus_opt` (pour les données, non prouvé)
+Demande de Baptiste relayée : mêmes entrées et même stop suiveur que `bt_or`, ajouts de taille croissante (niveau n =
+n × 0,01 lot, 5 positions au plus). Banc de Fable (`banc_bt_plus.py`) : 8,62 $ gagnés par $ de pire baisse sur 18 mois
+contre 6,34 pour bt_or, mais 2,52 contre 3,66 sur 4 ans : non prouvé. Hors totaux du test (suffixe _opt). Survie aux
+mises à jour : stop de secours marqué aux centimes 97 (bt_or les évite désormais : 87 à la place), reprise avant bt_or.
+**Règle d'arrêt (écrite avant) : −20 R cumulés (R = mise de base).** Essais : tailles 1-5, marque, non-confusion avec
+bt_or, reprise après perte de mémoire. Publiée en v21.
