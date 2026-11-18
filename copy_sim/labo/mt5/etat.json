@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-18T22:00:29Z",
+ "ecrit": "2026-11-18T22:05:34Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -10,22 +10,22 @@
   "lots_par_position": 0.5
  },
  "solde": 67874.94,
- "valeur": 72376.95,
- "marge_libre": 69101.05,
+ "valeur": 72267.72,
+ "marge_libre": 68991.82,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "BTCUSD": {
-   "bid": 62354.1,
-   "ask": 62371.08,
-   "spread_points": 1698.0,
+   "bid": 62424.95,
+   "ask": 62441.94,
+   "spread_points": 1699.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795046427
+   "heure_serveur": 1795046733
   },
   "DJ30+": {
    "bid": 50216.02,
@@ -78,7 +78,7 @@
    "sens": "achat",
    "lots": 0.1,
    "prix_entree": 51658.0,
-   "prix_actuel": 50216.02,
+   "prix_actuel": 50216.04,
    "stop": 49887.66,
    "objectif": null,
    "profit": -144.2,
@@ -92,7 +92,7 @@
    "prix_actuel": 25754.87,
    "stop": 25273.44,
    "objectif": null,
-   "profit": -47.16,
+   "profit": -47.17,
    "ouverte_heure_serveur": 1794968103
   },
   {
@@ -111,10 +111,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 64593.23,
-   "prix_actuel": 62371.08,
+   "prix_actuel": 62441.94,
    "stop": 64564.47,
    "objectif": null,
-   "profit": 22.22,
+   "profit": 21.51,
    "ouverte_heure_serveur": 1794971413
   },
   {
@@ -144,10 +144,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 63671.47,
-   "prix_actuel": 62371.08,
+   "prix_actuel": 62441.94,
    "stop": 64564.47,
    "objectif": null,
-   "profit": 13.0,
+   "profit": 12.29,
    "ouverte_heure_serveur": 1795019706
   },
   {
@@ -166,10 +166,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 63106.21,
-   "prix_actuel": 62371.08,
+   "prix_actuel": 62441.94,
    "stop": 64564.47,
    "objectif": null,
-   "profit": 7.35,
+   "profit": 6.64,
    "ouverte_heure_serveur": 1795024218
   },
   {
@@ -219,7 +219,7 @@
  ],
  "garde_fou": {
   "jour_paris": "2026-11-18",
-  "perte_du_jour": 364.81,
+  "perte_du_jour": 378.11,
   "seuil": -3606.9,
   "ouvertures_bloquees": false
  },
