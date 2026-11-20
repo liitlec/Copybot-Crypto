@@ -1,5 +1,23 @@
 # Avis pour Baptiste — 18/11/2026, après-midi (règle de retrait avec intérêts composés, PRIORITES 18/11 14 h 15)
 
+## VERDICT du test de la semaine 16-20/11 (état vendredi 22 h 40 ; je le confirme à 1 h 10 après la clôture)
+
+**Réponse courte : pas encore « un truc ».** La semaine finit positive (+387 $ en trades fermés), mais presque tout vient d'un seul panier `bt_or` (+760 $ vendredi). Le chemin a été très mauvais (−287 $ jeudi soir sur le compte simulé), et la sélection ne bat pas le témoin de façon significative. 1 critère tenu sur 4.
+
+| Critère (fixé le 15/11) | Trades fermés seulement (base de la décision) | Avec le non encaissé (−28 $) | Tenu ? |
+|---|---|---|---|
+| 1. Total positif sur la semaine | +386,67 $ | +358,59 $ | **oui** |
+| 2a. Jours agités positifs au total | +490,39 $ (4 jours) | — | oui |
+| 2b. Jours calmes à moins de 10 $ de perte | mardi (seul jour calme) −103,72 $ | — | **non** |
+| 2c. Information : part du meilleur jour | vendredi = 200 % du total (sans lui : −387 $) | — | — |
+| 3. Bat le témoin de plus de 2 écarts types par trade | sélection +0,96 $ ± 2,00 (405 trades) contre témoin −0,08 $ ± 0,12 : écart +1,03 $ pour 2 ET = 4,00 $ | — | **non** |
+| 4. Plus bas du compte simulé de 100 $ au-dessus de 70 $ | plus bas −287,10 $ (jeudi soir) | fin de semaine 458,59 $ | **non** |
+
+Compte simulé de 100 $, jour par jour (trades fermés) : lundi 69,01 $ (−30,99) · mardi −34,71 $ (−103,72) · mercredi 9,82 $ (+44,53) · jeudi −287,10 $ (−296,92) · vendredi 486,67 $ (+773,77).
+
+**Pourquoi ça a lâché** : les règles de tendance M15 (`elan_m15`, `cassure_m15`) et `repli_ind` ont perdu gros lundi-jeudi (journées d'aller-retour) ; `bt_or` a tout rattrapé vendredi en un seul panier. Les variantes calme (+110 $) et les jumeaux de `bt_or` (`bt_or_plus_opt` +2 313 $, `bt_or_serre_opt` +516 $, hors test) confirment surtout que le gain de la semaine, c'est la mécanique `bt_or` sur une tendance de l'or. À confirmer sur 2 à 3 semaines de plus avant toute taille réelle, comme prévu ; pas de signal sérieux au sens des 4 critères.
+
+
 1. **Règle simple conseillée : quand le compte a doublé, retire ta mise de départ, puis laisse tourner** (règle b). Avec 100 € : retirer 100 € quand le compte atteint 200 € ; avec 500 € : retirer 500 € à 1 000 €.
 2. **Ce que ça coûte** (`banc_retrait.py`, plan à −30 %, 5 000 tirages) : rien si l'avantage est moitié moindre que mesuré (total à 24 mois : 1,58 fois la mise, contre 1,57 sans retrait). Si l'avantage est celui mesuré, on laisse 13 % du total (2,62 fois la mise contre 3,00).
 3. **Ce que ça apporte** : une fois la mise retirée, tu ne peux plus perdre ton argent. Chance d'y arriver en 24 mois : 82 % (mesuré), 39 % (prudent), 14 % si l'avantage est nul. En 12 mois : 34 %, 17 %, 7 %.
