@@ -1,19 +1,19 @@
 # Avis pour Baptiste — 18/11/2026, après-midi (règle de retrait avec intérêts composés, PRIORITES 18/11 14 h 15)
 
-## VERDICT du test de la semaine 16-20/11 (état vendredi 22 h 40 ; je le confirme à 1 h 10 après la clôture)
+## VERDICT du test de la semaine 16-20/11 (DÉFINITIF, fenêtre close vendredi 23 h ; chiffres du samedi 0 h 10)
 
-**Réponse courte : pas encore « un truc ».** La semaine finit positive (+387 $ en trades fermés), mais presque tout vient d'un seul panier `bt_or` (+760 $ vendredi). Le chemin a été très mauvais (−287 $ jeudi soir sur le compte simulé), et la sélection ne bat pas le témoin de façon significative. 1 critère tenu sur 4.
+**Réponse courte : pas encore « un truc ».** La semaine finit positive (+384 $ en trades fermés), mais presque tout vient d'un seul panier `bt_or` (+760 $ vendredi). Le chemin a été très mauvais (−287 $ jeudi soir sur le compte simulé), et la sélection ne bat pas le témoin de façon significative. 1 critère tenu sur 4.
 
-| Critère (fixé le 15/11) | Trades fermés seulement (base de la décision) | Avec le non encaissé (−28 $) | Tenu ? |
+| Critère (fixé le 15/11) | Trades fermés seulement (base de la décision) | Avec le non encaissé (−71 $) | Tenu ? |
 |---|---|---|---|
-| 1. Total positif sur la semaine | +386,67 $ | +358,59 $ | **oui** |
-| 2a. Jours agités positifs au total | +490,39 $ (4 jours) | — | oui |
+| 1. Total positif sur la semaine | +383,94 $ | +312,90 $ | **oui** |
+| 2a. Jours agités positifs au total | +487,66 $ (4 jours) | — | oui |
 | 2b. Jours calmes à moins de 10 $ de perte | mardi (seul jour calme) −103,72 $ | — | **non** |
-| 2c. Information : part du meilleur jour | vendredi = 200 % du total (sans lui : −387 $) | — | — |
-| 3. Bat le témoin de plus de 2 écarts types par trade | sélection +0,96 $ ± 2,00 (405 trades) contre témoin −0,08 $ ± 0,12 : écart +1,03 $ pour 2 ET = 4,00 $ | — | **non** |
-| 4. Plus bas du compte simulé de 100 $ au-dessus de 70 $ | plus bas −287,10 $ (jeudi soir) | fin de semaine 458,59 $ | **non** |
+| 2c. Information : part du meilleur jour | vendredi = 201 % du total (sans lui : −387 $) | — | — |
+| 3. Bat le témoin de plus de 2 écarts types par trade | sélection +0,95 $ ± 1,99 (406 trades) contre témoin −0,08 $ ± 0,12 (1 259) : écart +1,02 $ pour 2 ET = 3,99 $ | — | **non** |
+| 4. Plus bas du compte simulé de 100 $ au-dessus de 70 $ | plus bas −287,10 $ (jeudi soir) | fin de semaine 412,90 $ | **non** |
 
-Compte simulé de 100 $, jour par jour (trades fermés) : lundi 69,01 $ (−30,99) · mardi −34,71 $ (−103,72) · mercredi 9,82 $ (+44,53) · jeudi −287,10 $ (−296,92) · vendredi 486,67 $ (+773,77).
+Compte simulé de 100 $, jour par jour (trades fermés) : lundi 69,01 $ (−30,99) · mardi −34,71 $ (−103,72) · mercredi 9,82 $ (+44,53) · jeudi −287,10 $ (−296,92) · vendredi 483,94 $ (+771,04).
 
 **Pourquoi ça a lâché** : les règles de tendance M15 (`elan_m15`, `cassure_m15`) et `repli_ind` ont perdu gros lundi-jeudi (journées d'aller-retour) ; `bt_or` a tout rattrapé vendredi en un seul panier. Les variantes calme (+110 $) et les jumeaux de `bt_or` (`bt_or_plus_opt` +2 313 $, `bt_or_serre_opt` +516 $, hors test) confirment surtout que le gain de la semaine, c'est la mécanique `bt_or` sur une tendance de l'or. À confirmer sur 2 à 3 semaines de plus avant toute taille réelle, comme prévu ; pas de signal sérieux au sens des 4 critères.
 
