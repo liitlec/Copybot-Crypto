@@ -107,6 +107,8 @@ def lire():
         except ValueError:
             continue
         ev = d.get("evenement")
+        if ev == "sortie panier":                 # 20/11 : paniers bt_* fermés d'un coup (une ligne par panier)
+            ev = "sortie"
         if d.get("type") == "ordre" and d.get("action") == "ouverture" and d.get("ticket"):
             tickets[d["ticket"]] = d.get("id")  # pour rattacher une fermeture sans nom à son hypothèse
         if ev == "orpheline fermee" and isinstance(d.get("profit"), (int, float)):
