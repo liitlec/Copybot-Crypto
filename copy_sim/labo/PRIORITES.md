@@ -707,3 +707,12 @@ Précision de Baptiste : les paliers se font avec un **coefficient multiplicateu
 Ce qui tient : variante `grille_opt` sur la démo, hors totaux, règle d'arrêt écrite avant. Tableau simple en tête d'AVIS.md.
 **FAIT le 21/11 au soir** : points 1 à 4, rien ne tient (banc_grille_coef, banc_pyramide_coef, banc_annonces_levier,
 banc_financement) ; pas de `grille_opt`, robot v22 inchangé. Détail en tête d'AVIS.md.
+
+## 21/11, 15 h 20 (Paris) : poche pari tendance (demande de Baptiste dans la session de suivi)
+Baptiste veut une poche séparée (100 à 200 € en compte cent) qui vise gros et qu'il retire dès l'objectif atteint.
+Monte-Carlo sur les vrais paniers (banc_pari.py, banc_bt_plus.py ; M5 18 mois et H1 4 ans ; mesuré / prudent = avantage
+÷ 2 / sans avantage) : bt_or et bt_or_plus (ajouts 1-2-3), mise de 3 à 15 % du compte par panier, objectif d'arrêt ×2,
+×3 ou ×5 (on encaisse et on s'arrête), plancher 20 %. Pour chaque montage : chance d'atteindre l'objectif, ruine, durée
+médiane, résultat sur la semaine 16-20/11 ; comparer à pari_opt (repli S&P + Russell, 56 % de tripler). Meilleur montage
+en variante `pari_tendance_opt` sur la démo (compte virtuel séparé, hors totaux, essais patients, nouvelle VERSION).
+Tableau en tête d'AVIS.md.
