@@ -1,3 +1,18 @@
+# Avis pour Baptiste — 21/11/2026, soir (piste 2 : grilles et martingales sécurisées — point 4 fait, points 1-3 en cours)
+
+**Point 4 (annonces US à fort levier ; arbitrage du financement crypto) : rien ne tient.**
+
+| Piste | Banc | Meilleur résultat honnête | Mois positifs | Pire baisse | Verdict |
+|---|---|---|---|---|---|
+| Annonces US, or, risque 10 % par annonce | `banc_annonces_levier.py` (72 réglages × 4 jeux) | walk-forward or M5 : +24 % sur 12 mois (bt_or au même risque : +341 %) ; or H1 4 ans : −89 % | 42 % (M5) | −33 % à −84 % | **ne tient pas** |
+| Financement crypto (comptant acheté, perpétuel vendu) | `banc_financement.py` (34 réglages, BTC et ETH 2022-2026) | +3,0 % **par an** (+1,3 % de plus que les bons du Trésor) | 35 % (les autres mois : à plat) | −0,3 % | **pas d'avantage** (p corrigé 0,46) |
+
+1. Annonces : aucun des 288 essais ne fait 10 % par mois en médiane ; le meilleur sur l'or fait +1,5 % par mois, avec un « saut » de −10 % du compte tous les 1,6 mois.
+2. Sur 4 ans (H1), la même règle perd 89 % et ruine un compte cent sur 24 mois une fois sur trois (31 %).
+3. Les fichiers du courtier ne montrent pas l'élargissement du spread aux annonces : les vrais coûts seraient encore pires.
+4. Financement crypto : le taux payé est de +6,6 % par an sur BTC (+5,9 % sur ETH), mais après frais il reste environ 3 à 4,5 % par an, soit à peu près le taux sans risque, plus le risque d'une faillite de plateforme.
+5. Ce montage est de toute façon impossible sur la démo MT5 (pas de vrai comptant ni de perpétuel) ; robot inchangé pour ce point.
+
 # Avis pour Baptiste — 21/11/2026 (viser au moins +10 % par mois, PRIORITES 21/11)
 
 **Réponse courte : +10 % par mois n'est pas atteignable de façon honnête avec ce qu'on a.** Rien de nouveau ne tient ; le seul bouton qui reste est la taille de la mise, et elle achète du rendement avec du risque d'arrêt.
