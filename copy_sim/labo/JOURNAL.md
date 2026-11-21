@@ -1706,3 +1706,13 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
 - `banc_dix.py` (6 montages, 5 000 tirages) : 10 %/mois médian = mise × 2,5 (L 18,8) en mesuré seulement ; prudent +2,7 %/mois,
   arrêt 34 % à 24 mois ; levier non stable entre moitiés (≈ +2,3 %/mois rejoué sur 08/2022-09/2024). Compromis : plan −50 %.
 - Point 3 : aucune variante démo ajoutée (rien n'a passé la preuve) ; robot v22 inchangé, pas de nouvelle VERSION.
+
+## 21/11/2026 soir — piste 2 : grilles et martingales sécurisées (coefficient variable) — rien ne tient
+- Grille contre le prix (`banc_grille_coef.py`, N = 105) : walk-forward −11,7 % (M5) / −14,7 % (H1), p 0,94 / 1,00 ;
+  résultat dominé par l'ordre intrabougie (le M1 et le réel BlockFIFO confirment l'ordre défavorable aux grilles) ;
+  simulateur : stop BlockFIFO du 02/10/2026 retrouvé (18 h 53, 64 pos., −12 651 $ ; réel 18 h 57, 60 pos., −12 500 $).
+- Pyramide à coefficient (`banc_pyramide_coef.py`, N = 105) : walk-forward −43,5 % / +84,7 % contre bt_or +149 % / +390 %,
+  p 0,10 / 0,29 ; contrôle bt_or exact (295 / 956 paniers).
+- Annonces US à fort levier (`banc_annonces_levier.py`, 72 × 4) : ne tient pas ; financement crypto (`banc_financement.py`,
+  données data.binance.vision) : +3 % par an, ≈ taux sans risque, p 0,46 ; impossible sur MT5.
+- Aucune variante `grille_opt` ; robot v22 inchangé.

@@ -705,3 +705,5 @@ Précision de Baptiste : les paliers se font avec un **coefficient multiplicateu
 4. Ensuite si le temps le permet : annonces US avec fort levier ; arbitrage des taux de financement crypto (si les
    données sont accessibles gratuitement).
 Ce qui tient : variante `grille_opt` sur la démo, hors totaux, règle d'arrêt écrite avant. Tableau simple en tête d'AVIS.md.
+**FAIT le 21/11 au soir** : points 1 à 4, rien ne tient (banc_grille_coef, banc_pyramide_coef, banc_annonces_levier,
+banc_financement) ; pas de `grille_opt`, robot v22 inchangé. Détail en tête d'AVIS.md.

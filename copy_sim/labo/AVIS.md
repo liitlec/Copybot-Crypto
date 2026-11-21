@@ -1,4 +1,23 @@
-# Avis pour Baptiste — 21/11/2026, soir (piste 2 : grilles et martingales sécurisées — points 1 et 4 faits, 2 et 3 en cours)
+# Avis pour Baptiste — 21/11/2026, soir (piste 2 : grilles et martingales sécurisées — LOT TERMINÉ, points 1 à 4)
+
+**Réponse courte : rien ne tient. Pas de `grille_opt` sur la démo, robot inchangé (v22).** Les 10-20 % par mois des grilles viennent de mois positifs nombreux payés par des « sauts » rares qui effacent des mois, voire des années.
+
+| Famille (or, sécurités : stop global, filtre de tendance, pause) | Réglages | Hors échantillon (walk-forward) M5 / H1 | Comparé à bt_or au même risque | p corrigé M5 / H1 | Verdict |
+|---|---|---|---|---|---|
+| 1. Grille contre le prix (×1 à ×2, cloche BlockFIFO) | 105 | −11,7 % / −14,7 % | bt_or +0,9 % / +3,4 % | 0,94 / 1,00 | **ne tient pas** |
+| 2. Pyramide dans le sens du prix (×0,8 à ×2, cloche) | 105 | −43,5 % / +84,7 % | bt_or +149 % / +390 % | 0,10 / 0,29 | **ne tient pas** |
+| 4a. Annonces US à fort levier | 72 × 4 | +24 % / −89 % | bt_or +341 % / +373 % | 0,10 / 0,07 | **ne tient pas** |
+| 4b. Financement crypto | 34 | +3 % par an (≈ taux sans risque) | — | 0,46 | **pas d'avantage** |
+| BlockFIFO réel (référence) | — | −6 269 $ en 5 jours (59 % de gagnants ; le 02/10 seul : −10 684 $) | — | — | — |
+
+1. Pyramide : 29 réglages sur 105 font un peu mieux que bt_or sur tout l'historique (surtout ×1,2-1,3 ou ×0,8), mais rien ne se confirme hors échantillon ; ×2 est injouable sous 1 000 à 3 000 € (lot minimum).
+2. Sauts (point 3) : la grille contre le prix en fait un tous les 1 à 5 mois sur 4 ans (−10 à −13 % chacun) ; la pyramide presque jamais, mais elle a de nombreuses grosses pertes « presque au maximum » (bt_or : 45 en 4 ans).
+3. Mois positifs : jusqu'à 90-94 % avec la martingale ×2, qui perd pourtant 26 % en 4 ans ; bt_or n'a que 50-56 % de mois positifs mais gagne.
+4. Ruine sur 24 mois, compte cent de 500 € : grille contre le prix 100 % (BlockFIFO rejoué) ; pyramide ×1,0 avec sécurités 3,4 %, bt_or 4,8 %, ×0,8 9,1 % (tout cela si la pire perte d'un panier vaut 5 % du compte ; à 3 % la ruine de bt_or tombe à 0,2 %).
+5. Conseil : garder bt_or tel quel, avec une pire perte de panier d'environ 3 % du compte sur le compte cent, et ne pas relancer BlockFIFO ni de martingale, même « sécurisée ».
+
+
+## Détail point 1
 
 **Point 1 (grille / martingale contre le prix sur l'or, coefficient 1,0 à 2,0 et cloche BlockFIFO, avec stop global, filtre de tendance et pause) : ne tient pas.** (`banc_grille_coef.py`, 105 réglages, M5 17 mois, H1 4 ans, contrôle M1)
 
@@ -16,6 +35,8 @@
 5. Sur un compte cent de 100 €, presque aucune martingale n'est même posable (lot minimum trop gros pour le risque voulu). **Pas de `grille_opt` sur la démo pour la grille contre le prix.**
 
 
+
+## Détail point 4
 
 **Point 4 (annonces US à fort levier ; arbitrage du financement crypto) : rien ne tient.**
 

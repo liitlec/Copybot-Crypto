@@ -55,7 +55,21 @@ VERDICT FIXE D'AVANCE : TIENT = walk-forward hors echantillon > 0 ET > bt_or au 
   (contre zero) < 0,10 sur les deux jeux, ET ruine 24 mois Monte-Carlo a 500 EUR < 5 % pour la variante la plus
   choisie par le walk-forward H1, a X = 5 % ; PRESQUE = du bon cote hors echantillon sur les deux jeux mais p >= 0,10
   ou ruine >= 5 % ; sinon NE TIENT PAS.
-RESULTAT (execution du 21/11/2026 ...) : a remplir.
+RESULTAT (execution du 21/11/2026, 486 s dont 477 s de ruine, 5000 tirages, rien de reduit) : NE TIENT PAS.
+  Controles exacts (M5 295 paniers / +114,1 R ; H1 956 / +153,4 R = banc_bt_regulier.simule panier par panier).
+  Walk-forward : M5 (12 fenetres 12/2025 -> 11/2026) -43,5 % contre bt_or +149,4 % (memes mois, meme risque) ; H1
+  (14 fenetres 08/2023 -> 11/2026) +84,7 % contre +390,0 %. Le choix d'apprentissage va surtout aux coefficients 2,0
+  (petite pire baisse car lot de base minuscule : L_max 430-555 ATR) qui ne tiennent pas en test. White contre zero :
+  p corrige M5 0,102, H1 0,288 (N = 105) ; contre bt_or au meme risque : 0,414 / 0,673.
+  Tout l'echantillon : 29/105 variantes battent bt_or en gain/pire baisse sur M5 ET H1, toutes en sortie fixe,
+  surtout coefficients <= 1,3 ou 0,8 ; ecarts petits et non significatifs (p ci-dessus). Sorties « serre » et « pm »
+  nuisent partout (H1 gain/creux median 0,14 et 0,76 contre 2,18 en fixe). Coefficient 2,0 : le pire en H1 (0,97).
+  Sauts (stop global) : par construction (L_max -> X) presque jamais : 0-1 par variante du tableau en 17 mois M5 et en
+  52 mois H1, taille 5,0 % a X = 5 % ; les « quasi-sauts » (>= 75 % de X) sont frequents : bt_or 30 (M5) et 45 (H1).
+  Ruine MC 24 mois 500 EUR (X = 5 %) : bt_or 4,8 %, 1,0/0,25/3/fixe 3,4 %, cloche/0,25/10 2,7 %, 0,8/0,25/5 9,1 % ;
+  coefficients 2,0 a 10 paliers : 100 % (lot de base ideal < 0,005 once : injouable sous ~1 000-3 000 EUR).
+  Ordre inverse dans la bougie (meilleur prix d'abord) : -6 a -45 points de % sur M5 (sorties plus tot) ; M1 contre
+  M5 sur 3 mois : memes paniers, ecart < 0,01 %.
 Ecrit donnees/pyramide_coef.csv. Usage : python3 banc_pyramide_coef.py"""
 import os, time, itertools, warnings
 from multiprocessing import Pool
