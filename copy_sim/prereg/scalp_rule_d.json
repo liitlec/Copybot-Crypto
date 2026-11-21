@@ -1,0 +1,17 @@
+{
+  "nom": "D : score de qualité (20 % meilleurs) + sortie C",
+  "debut_ts": 1792136733,
+  "debut": "2026-10-16 09:45 (heure de Paris)",
+  "regle": {
+    "selection": "score de qualité du PC (nuit/scalp_score.py) calculé à +5 s ; réappris toutes les 30 min sur les lancements dont les 10 min de suivi sont finies ; on achète si le score est au-dessus du 80e centile des scores de l'apprentissage",
+    "entree": "+5 s après le bloc de création, aucun achat dans le slot de création (comme le score du PC), lancements enrichis seulement",
+    "sortie": "comme C : si gain < +20 % à 60 s, revente ; sinon stop suiveur −30 % sous le plus haut, au plus tard 9 min",
+    "mise_et_frais": "0,1 SOL ; 1,25 % par côté ; 0,000105 SOL par transaction"
+  },
+  "quantile": 0.8,
+  "reapprentissage_s": 1800,
+  "evaluation": "lancements créés après debut_ts uniquement ; comparé à la même sélection revendue à 60 s et à tous les lancements avec la sortie C",
+  "verdict": "après au moins 300 trades de D : gagnant seulement si la moyenne dépasse 2 fois sa marge d'erreur, reste positive sans les 3 meilleurs trades ET bat « tous les lancements, sortie C »",
+  "limite_connue": "les métadonnées (X, Telegram, site) sont parfois récupérées après +5 s : en réel elles ne seraient pas toujours disponibles à la décision",
+  "origine": "16/10 matin : sur 934 lancements, le score double la part de runs (11-13 % contre 6 %) mais reste négatif avec une revente à 60 s ; C capte mieux les runs"
+}
