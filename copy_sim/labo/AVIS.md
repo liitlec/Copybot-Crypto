@@ -1,4 +1,21 @@
-# Avis pour Baptiste — 21/11/2026, soir (piste 2 : grilles et martingales sécurisées — point 4 fait, points 1-3 en cours)
+# Avis pour Baptiste — 21/11/2026, soir (piste 2 : grilles et martingales sécurisées — points 1 et 4 faits, 2 et 3 en cours)
+
+**Point 1 (grille / martingale contre le prix sur l'or, coefficient 1,0 à 2,0 et cloche BlockFIFO, avec stop global, filtre de tendance et pause) : ne tient pas.** (`banc_grille_coef.py`, 105 réglages, M5 17 mois, H1 4 ans, contrôle M1)
+
+| Réglage | Gain par mois (médiane) M5 / H1 | Mois positifs M5 / H1 | Pire baisse M5 / H1 | « Sauts » (stop global) sur 4 ans | Ruine 24 mois, 500 € |
+|---|---|---|---|---|---|
+| BlockFIFO v25 rejoué (contrôle) | −17 % / −4 % | 18 % / 42 % | −94 % / −98 % | 47, un par mois environ, −12 % chacun | 100 % |
+| BlockFIFO avec filtre et pause | −13 % / −1 % | 12 % / 46 % | −87 % / −86 % | 37 | 100 % |
+| Pas 0,2 ATR, ×1,5, 10 paliers, stop −10 % (le moins mauvais) | +1,7 % / +1,8 % | 82 % / 79 % | −14 % / −36 % | 11 (un tous les 4,7 mois ; chacun efface 5,7 mois de gain) | 0 %, mais 64 % finissent sous la mise ; minimum 195 € pour poser le lot |
+| Martingale ×2, 10 paliers, stop −10 % | +0,5 % / +0,5 % | 94 % / 90 % | −10 % / −32 % | 5 (un tous les 10 mois ; chacun efface 22 mois) ; total 4 ans −26 % | impossible sous 1 276 € (lot minimum) |
+
+1. C'est exactement le piège : 90 % de mois positifs et pourtant −26 % sur 4 ans avec la martingale ×2, car un seul « saut » efface près de 2 ans de petits gains.
+2. Le résultat d'une grille dépend surtout de l'ordre des prix à l'intérieur d'une bougie : en supposant le cas flatteur, la médiane des réglages fait +32 % (M5) ; avec l'ordre que confirment les bougies M1 et le réel, elle fait −33 % (M5) et −94 % (H1). Seuls 2 réglages sur 107 gagnent sur 4 ans.
+3. Le simulateur retrouve le vrai stop de BlockFIFO : le 02/10/2026 à 18 h 53, 64 positions d'achat coupées pour −12 651 $ (réel : 18 h 57, 60 positions, −12 500 $ ; total réel −6 269 $, simulé −7 169 $).
+4. Tests : walk-forward hors échantillon −11,7 % (M5) et −14,7 % (H1) contre +0,9 % et +3,4 % pour bt_or au même risque ; p corrigé 0,94 et 1,00 (105 essais).
+5. Sur un compte cent de 100 €, presque aucune martingale n'est même posable (lot minimum trop gros pour le risque voulu). **Pas de `grille_opt` sur la démo pour la grille contre le prix.**
+
+
 
 **Point 4 (annonces US à fort levier ; arbitrage du financement crypto) : rien ne tient.**
 

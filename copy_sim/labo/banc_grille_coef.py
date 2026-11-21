@@ -24,8 +24,13 @@ REGLE (commune a toutes les variantes) :
   apres un stop global 24 h ou 72 h (les deux cotes).
 - Couts : spread reel de la bougie (achat a prix + sp, vente a prix, vente touchee quand haut + sp touche) ; portage
   6 %/an du notionnel (/252 par jour de bourse) sur les positions tenues a la derniere bougie du jour (~23 h serveur).
-- Ordre intrabougie PESSIMISTE par panier : ouverture (saut traite comme un trou : execution au prix d'ouverture),
-  puis extreme defavorable (ajouts, stop), puis extreme favorable (sorties), puis cloture.
+- Ordre intrabougie, par panier : ouverture (saut traite comme un trou : execution au prix d'ouverture), puis extreme
+  defavorable (ajouts, stop), puis extreme favorable (sorties), puis cloture [« def », convention des consignes].
+  AJOUT AVANT L'EXECUTION COMPLETE (apres un essai de vitesse sur 4 variantes) : pour une grille, « defavorable
+  d'abord » fait recolter a chaque bougie l'aller-retour bas -> haut (ajout au bas puis sortie au haut), ce qui est
+  OPTIMISTE pour le gain. Toutes les mesures sont donc faites aussi avec « favorable d'abord » [« fav »] ; le verdict
+  est le PIRE des deux ; l'ordre « prudent » (total median M5 des variantes le plus bas) sert au tableau et au rejeu
+  exact ; le M1 dit lequel est le plus proche de la realite.
 - Unites : 0,01 lot = 1 once, 1 $ de mouvement = 1 $ par once. Mode % : lots fractionnaires, rendements en % du compte
   (invariant d'echelle). Mode compte cent : lots arrondis a 0,01 once (min 0,01 ; lot de base < 0,005 once = lot min
   impossible = ruine), compte en euros (1,16 $/EUR).
@@ -52,13 +57,27 @@ RIGUEUR : walk-forward M5 6 mois -> 1 mois glissant, H1 12 -> 3 mois glissant ; 
 compare a ne rien faire et a bt_or (banc_freq.simule_v H7/N1/std = banc_bt_regulier.simule) mis a la meme pire baisse
 que la variante choisie sur l'apprentissage. Reality check de White (BR.white, jours x 105 variantes, % journaliers,
 contre zero) -> p corrige par jeu.
-VERDICT FIXE D'AVANCE : TIENT = walk-forward hors echantillon > 0 ET > bt_or au meme risque sur M5 ET H1, p corrige
+VERDICT FIXE D'AVANCE (pour chaque ordre, puis le pire des deux) : TIENT = walk-forward hors echantillon > 0 ET > bt_or au meme risque sur M5 ET H1, p corrige
 < 0,10 sur les deux jeux, ET ruine 24 mois Monte-Carlo 500 EUR < 5 % pour la variante la plus choisie par le
 walk-forward H1 ; PRESQUE = du bon cote hors echantillon sur les deux jeux mais p >= 0,10 ou ruine >= 5 % ; sinon NE
 TIENT PAS.
 Tableau : controle, variante la plus choisie WF M5 et WF H1, meilleure gain/pire baisse H1 et M5, meilleur % de mois
-positifs H1, BlockFIFO securise S10, martingale x2 base (A0.2|x2|N10) -> controles M1/M5 et ordre optimiste dessus.
-RESULTAT (execution du 21/11/2026 ...) : a remplir.
+positifs H1, meilleur total M5, BlockFIFO securise S10, martingale x2 (A0.2|x2|N10), base -> controles M1/M5 et
+ordres dessus (selection faite dans l'ordre prudent).
+RESULTAT (execution du 21/11/2026, 70 s, 4 processus, rien de reduit) : verdict NE TIENT PAS (le pire des deux ordres).
+  L'ORDRE INTRABOUGIE DECIDE DE TOUT : total median des 105 variantes sur M5 +34 % (def) contre -34 % (fav) ; H1 +364 %
+  contre -96 %. Variantes > 0 : M5 87 (def) / 10 (fav), H1 76 (def) / 1 (fav). Le M1 et le REEL tranchent pour « fav »
+  sur les pas fins : BlockFIFO v25 rejoue 29/09 -> 05/10/2026 en M1 fav = -7 169 $ avec LE stop du 02/10 18:53 achat
+  -12 651 $ (64 positions ; reel 18:57, -12 500 $, 60 positions ; reel total -6 269 $) ; en M1 def ou M5 def, pas de
+  stop et +2 563 / +1 228 $. Sur 3 mois M1 : BlockFIFO M1 def -19,6 %, M1 fav -56 %, M5 def +28,8 %, M5 fav -66,8 %.
+  Pour les pas >= 0,2 ATR, M1 et M5 donnent a peu pres la meme chose quel que soit l'ordre ; en H1 l'ecart reste enorme.
+  fav : WF M5 -11,7 % (bt_or meme risque +0,9 %), WF H1 -14,7 % (bt_or +3,4 %), p corrige M5 0,94, H1 1,00.
+  def : WF M5 +12,2 %, H1 +143 %, p 0,000 / 0,000 mais ruine MC 24 m 500 EUR = 100 % (la plus choisie en H1,
+  F1.5|xcl|Ninf|F|S5, demande 1 200 EUR pour poser le lot minimum) -> au mieux PRESQUE, et ce resultat vient du biais.
+  % de mois positifs eleve meme quand la variante perd (fav H1 : A0.2|x2|N10 90 % de mois > 0, total -26 %).
+  Sauts (fav, H1 4 ans) : de 1 tous les 10 mois (x2, sans lot min possible sous 1 276 EUR) a 1 tous les 0,3 mois ;
+  chaque saut efface 6 a 22 mois de gain median quand celui-ci est > 0. Les martingales x1,5-x2 a 10-20 paliers ne sont
+  pas posables sur 100-500 EUR au risque prevu (solde minimal 1 300 a 12 400 EUR ; x1,5 sans limite : 1,5 M EUR).
 Ecrit donnees/grille_coef.csv. Usage : python3 banc_grille_coef.py"""
 import os, time, warnings
 from multiprocessing import Pool
@@ -380,7 +399,8 @@ def tache(arg):
 # ------------------------------------------------------------------ mesures
 def serie(r):
     E = pd.Series(r["eq"], pd.to_datetime(np.array(r["jours"]) * 86400, unit="s"))
-    x = E / E.shift(1).fillna(B_INIT) - 1
+    E = E.clip(lower=1e-9 * B_INIT)
+    x = (E / E.shift(1).fillna(B_INIT) - 1).clip(lower=-0.999)
     return x
 
 
@@ -434,8 +454,8 @@ def ruine(x, fmed, IDX):
 
 def rejeu_exact(arg):
     """Rejeu arrondi au lot cent (H1) depuis un debut de mois : ruine / sous la mise."""
-    k, i0, i1, cap = arg
-    r = simule("or H1", VAR[k], cap=cap * EURUSD, pas_lot=0.01, i0=i0, i1=i1)
+    k, i0, i1, cap, opt = arg
+    r = simule("or H1", VAR[k], cap=cap * EURUSD, pas_lot=0.01, i0=i0, i1=i1, opt=opt)
     if r["inf"]:
         return True, True
     E = np.array(r["eq"]) / (cap * EURUSD)
@@ -480,77 +500,66 @@ def walk_forward(X, PANS, bt, L_app, L_test):
 
 
 # ------------------------------------------------------------------ programme
-if __name__ == "__main__":
-    a5, b5 = BR.charge("xau_m5_2025a"), BR.charge("xau_m5_90k")
-    d5 = pd.concat([a5, b5[b5.heure > a5.heure.iloc[-1]]], ignore_index=True)
-    dh = BR.charge("xau_h1_50k")
-    dh = dh[dh.heure >= pd.Timestamp("2022-08-01").timestamp()].reset_index(drop=True)
-    d1 = BR.charge("xau_m1_90k")
-    DATA["or M5"] = (d5, 300, BR.H_M5); DATA["or H1"] = (dh, 3600, BJ.H_H1); DATA["or M1"] = (d1, 60, BR.H_M5)
-    print("Grille fixee : N = %d variantes (controle = %s). 4 processus." % (NV, NOMV[CTRL]))
+def campagne(ordre, d5, dh):
+    """Toutes les mesures pour un ordre intrabougie (def = defavorable d'abord ; fav = favorable d'abord)."""
+    opt = ordre == "fav"
     with Pool(4) as pool:
-        out = pool.map(tache, [(j, k) for j in ("or M5", "or H1") for k in range(NV)], chunksize=1)
-    print("Simulations M5 + H1 : %.0f s" % (time.time() - T00))
+        out = pool.map(tache, [(j, k, dict(opt=opt)) for j in ("or M5", "or H1") for k in range(NV)], chunksize=1)
     RES = {"or M5": out[:NV], "or H1": out[NV:]}
     LIG, XS, PANS = [], {}, {}
-    IDX = None
-    for jeu, d, m5, debut, la, lt in (("or M5", d5, True, 600, 6, 1), ("or H1", dh, False, 60, 12, 3)):
+    for jeu, m5 in (("or M5", True), ("or H1", False)):
         R = RES[jeu]
         X = pd.DataFrame({k: serie(R[k]) for k in range(NV)}).fillna(0.0)
         X = X.iloc[25:] if m5 else X.iloc[22:]          # rechauffage ATR 20 j / EMA
         XS[jeu] = X; PANS[jeu] = [R[k]["pan"] for k in range(NV)]
         nm = len(X.index.to_period("M").unique())
-        if jeu == "or H1":
-            IDX = boot_idx(len(X), 5000, 504, 20, 2111)
+        IDX = boot_idx(len(X), 5000, 504, 20, 2111)
         for k in range(NV):
             r = R[k]
-            m = mesures(X[k], r["pan"], nm)
             fmed = float(np.median(r["f"])) if r["f"] else 0.0
-            lig = dict(jeu=jeu, variante=NOMV[k], **{kk: VAR[k][kk] for kk in ("pas", "coef", "lev", "sortie", "stop", "filtre", "pause", "ent", "ema")},
-                       **m, positions=r["npos"][0], pct_pos_gagnantes=100 * r["npos"][1] / max(1, r["npos"][0]), lot_base_oz_par_k=fmed * 1000)
-            if jeu == "or H1":
-                lig.update(ruine(X[k], fmed, IDX))
+            lig = dict(ordre=ordre, jeu=jeu, variante=NOMV[k],
+                       **{kk: VAR[k][kk] for kk in ("pas", "coef", "lev", "sortie", "stop", "filtre", "pause", "ent", "ema")},
+                       **mesures(X[k], r["pan"], nm), positions=r["npos"][0],
+                       pct_pos_gagnantes=100 * r["npos"][1] / max(1, r["npos"][0]), lot_base_oz_par_k=fmed * 1000)
+            lig.update(ruine(X[k], fmed, IDX))
             LIG.append(lig)
     T = pd.DataFrame(LIG)
-    # Monte-Carlo aussi sur M5 (ruine), meme graine
-    X5 = XS["or M5"]; I5 = boot_idx(len(X5), 5000, 504, 20, 2111)
-    for k in range(NV):
-        fm = T[(T.jeu == "or M5")].lot_base_oz_par_k.iloc[k] / 1000
-        rr = ruine(X5[k], fm, I5)
-        for kk in ("mc_ruine_100_12m", "mc_ruine_100_24m", "mc_ruine_500_12m", "mc_ruine_500_24m", "mc_sous_mise_500_24m", "solde_min_eur"):
-            T.loc[(T.jeu == "or M5") & (T.variante == NOMV[k]), kk] = rr[kk]
-    # ---------------------------------------------------------------- White + walk-forward
     SYN = {}
     for jeu, d, m5, debut, la, lt in (("or M5", d5, True, 600, 6, 1), ("or H1", dh, False, 60, 12, 3)):
         X = XS[jeu] * 100
         kb, pc = BR.white(X.values)
         bt = bt_or_jour(jeu, d, m5, debut, X.index)
         o, ob, fq = walk_forward(X, PANS[jeu], bt, la, lt)
-        cro, crb = creux_add(o.values), creux_add(ob.values)
         mo = o.groupby(o.index.to_period("M")).sum()
-        SYN[jeu] = dict(p=pc, best=NOMV[kb], oos=o.sum(), bt=ob.sum(), cro=cro, crb=crb, fq=fq, mpos=100 * (mo > 0).mean(), nm=len(mo),
-                        ok=o.sum() > 0 and o.sum() > ob.sum(), dob=(o.index[0].date(), o.index[-1].date()))
+        SYN[jeu] = dict(p=pc, best=NOMV[kb], oos=o.sum(), bt=ob.sum(), cro=creux_add(o.values), crb=creux_add(ob.values), fq=fq,
+                        mpos=100 * (mo > 0).mean(), nm=len(mo), ok=o.sum() > 0 and o.sum() > ob.sum(), dob=(o.index[0].date(), o.index[-1].date()))
         T.loc[T.jeu == jeu, "p_white_corrige"] = pc
-        print("\n=== %s : %s -> %s, %d jours" % (jeu, X.index[0].date(), X.index[-1].date(), len(X)))
+        print("\n=== ordre %s, %s : %s -> %s, %d jours" % (ordre, jeu, X.index[0].date(), X.index[-1].date(), len(X)))
         print("Reality check de White (N = %d, contre zero) : meilleur %s, p corrige = %.3f" % (NV, NOMV[kb], pc))
-        print("Walk-forward %d -> %d mois (%s -> %s, %d mois) : hors echantillon %+.1f %% (creux %+.1f %%, mois > 0 %.0f %%) ; "
-              "bt_or meme risque %+.1f %% (creux %+.1f %%) ; ne rien faire 0" % (la, lt, *SYN[jeu]["dob"], len(mo), o.sum(), cro,
-                                                                                SYN[jeu]["mpos"], ob.sum(), crb))
+        print("Walk-forward %d -> %d mois (%s -> %s, %d mois de test) : hors echantillon %+.1f %% (creux %+.1f %%, mois > 0 %.0f %%) ; "
+              "bt_or meme risque %+.1f %% (creux %+.1f %%) ; ne rien faire 0" % (la, lt, *SYN[jeu]["dob"], len(mo), o.sum(), SYN[jeu]["cro"],
+                                                                                SYN[jeu]["mpos"], ob.sum(), SYN[jeu]["crb"]))
         print("  choix : " + " ; ".join("%s %d" % (a, b) for a, b in fq.head(6).items()))
-    # ---------------------------------------------------------------- tableau des variantes parlantes
-    TH, T5 = T[T.jeu == "or H1"].set_index("variante"), T[T.jeu == "or M5"].set_index("variante")
-    rap = lambda Z: Z.total_pct / -Z.pire_baisse.replace(0, np.nan)
-    sel = [NOMV[CTRL]]
-    for z in (SYN["or M5"]["fq"].index[0], SYN["or H1"]["fq"].index[0], rap(TH.drop(NOMV[CTRL])).idxmax(), rap(T5.drop(NOMV[CTRL])).idxmax(),
-              TH.drop(NOMV[CTRL]).pct_mois_pos.idxmax(), "F1.5|xcl|Ninf|F|S10|ED|P24|HR", "A0.2|x2|N10|T1|S10|ED|P24|HR"):
-        if z in NOMV and z not in sel:
-            sel.append(z)
-    print("\n=== Variantes du tableau (M5 17 mois / H1 4 ans) ; sauts = stop global ou marge ; ruine H1 (rejeu mensuel ; MC)")
+    kH = SYN["or H1"]["fq"].index[0]
+    ru = T[(T.jeu == "or H1") & (T.variante == kH)].mc_ruine_500_24m.iloc[0] if kH in NOMV else 100.0
+    deux = SYN["or M5"]["ok"] and SYN["or H1"]["ok"]
+    v = "TIENT" if deux and SYN["or M5"]["p"] < 0.10 and SYN["or H1"]["p"] < 0.10 and ru < 5 else ("PRESQUE" if deux else "NE TIENT PAS")
+    SYN["verdict"], SYN["ruine_kH"], SYN["kH"] = v, ru, kH
+    W = pd.DataFrame([dict(ordre=ordre, jeu=j, variante="WF choisi", total_pct=SYN[j]["oos"], pire_baisse=SYN[j]["cro"], pct_mois_pos=SYN[j]["mpos"],
+                           p_white_corrige=SYN[j]["p"], choix=" ; ".join("%s %d" % (a, b) for a, b in SYN[j]["fq"].items())) for j in ("or M5", "or H1")] +
+                     [dict(ordre=ordre, jeu=j, variante="WF bt_or meme risque", total_pct=SYN[j]["bt"], pire_baisse=SYN[j]["crb"]) for j in ("or M5", "or H1")])
+    return T, W, SYN
+
+
+def affiche(T, sel, ordre):
+    TH = T[(T.jeu == "or H1") & (T.ordre == ordre)].set_index("variante")
+    T5 = T[(T.jeu == "or M5") & (T.ordre == ordre)].set_index("variante")
+    print("\n=== Variantes du tableau, ordre %s (M5 17 mois / H1 4 ans) ; sauts = stop global ou marge ; ruine sur H1" % ordre)
     for z in sel:
         for jeu, Z in (("M5", T5), ("H1", TH)):
             r = Z.loc[z]
-            print("%-32s %s gain/mois med %+6.2f %%  mois>0 %3.0f %%  pire baisse %6.1f %%  total %+8.1f %%  paniers/mois %5.1f  sauts %3d "
-                  "(1/%4.1f mois, med %4.1f %%, pire %4.1f %%, efface %4.1f mois)" % (
+            print("%-32s %s gain/mois med %+6.2f %%  mois>0 %3.0f %%  pire baisse %6.1f %%  total %+9.4g %%  pan/mois %5.1f  sauts %3d "
+                  "(1/%4.1f mois, med %4.1f %%, pire %5.1f %%, efface %4.1f mois)" % (
                       z, jeu, r.gain_mois_med, r.pct_mois_pos, r.pire_baisse, r.total_pct, r.paniers_mois, r.sauts, r.un_saut_tous_mois,
                       r.saut_med, r.saut_pire, r.mois_effaces))
         r = TH.loc[z]
@@ -558,7 +567,38 @@ if __name__ == "__main__":
               "sous la mise MC 24 m 500 EUR %.0f %% ; solde min pour le lot min %.0f EUR" % (
                   r.rejeu_ruine_100_12m, r.rejeu_ruine_100_24m, r.rejeu_ruine_500_12m, r.rejeu_ruine_500_24m, r.mc_ruine_100_12m,
                   r.mc_ruine_100_24m, r.mc_ruine_500_12m, r.mc_ruine_500_24m, r.mc_sous_mise_500_24m, r.solde_min_eur))
-    # rejeu exact arrondi au lot cent (H1), variantes du tableau
+
+
+if __name__ == "__main__":
+    a5, b5 = BR.charge("xau_m5_2025a"), BR.charge("xau_m5_90k")
+    d5 = pd.concat([a5, b5[b5.heure > a5.heure.iloc[-1]]], ignore_index=True)
+    dh = BR.charge("xau_h1_50k")
+    dh = dh[dh.heure >= pd.Timestamp("2022-08-01").timestamp()].reset_index(drop=True)
+    d1 = BR.charge("xau_m1_90k")
+    DATA["or M5"] = (d5, 300, BR.H_M5); DATA["or H1"] = (dh, 3600, BJ.H_H1); DATA["or M1"] = (d1, 60, BR.H_M5)
+    print("Grille fixee : N = %d variantes (controle = %s). 4 processus. Deux ordres intrabougie." % (NV, NOMV[CTRL]))
+    TT, WW, SY = [], [], {}
+    for ordre in ("def", "fav"):
+        T, W, S = campagne(ordre, d5, dh)
+        TT.append(T); WW.append(W); SY[ordre] = S
+        print("Ordre %s : verdict %s (%.0f s)" % (ordre, S["verdict"], time.time() - T00))
+    T = pd.concat(TT, ignore_index=True)
+    # ordre prudent = celui dont le total median M5 des variantes est le plus bas
+    med = {o: T[(T.ordre == o) & (T.jeu == "or M5")].total_pct.median() for o in SY}
+    pru = min(med, key=med.get)
+    print("\nTotal median M5 des %d variantes : def %+.1f %%, fav %+.1f %% -> ordre prudent = %s" % (NV, med["def"], med["fav"], pru))
+    TP = T[T.ordre == pru]
+    TH, T5 = TP[TP.jeu == "or H1"].set_index("variante"), TP[TP.jeu == "or M5"].set_index("variante")
+    rap = lambda Z: Z.total_pct / -Z.pire_baisse.replace(0, np.nan)
+    sel = [NOMV[CTRL]]
+    for z in (SY[pru]["or M5"]["fq"].index[0], SY[pru]["or H1"]["fq"].index[0], rap(TH.drop(NOMV[CTRL])).idxmax(), rap(T5.drop(NOMV[CTRL])).idxmax(),
+              TH.drop(NOMV[CTRL]).pct_mois_pos.idxmax(), T5.drop(NOMV[CTRL]).total_pct.idxmax(), "F1.5|xcl|Ninf|F|S10|ED|P24|HR",
+              "A0.2|x2|N10|T1|S10|ED|P24|HR", "A0.2|x1.3|N10|T1|S10|ED|P24|HR"):
+        if z in NOMV and z not in sel:
+            sel.append(z)
+    for o in ("def", "fav"):
+        affiche(T, sel, o)
+    # rejeu exact arrondi au lot cent (H1), variantes du tableau, ordre prudent
     dT = np.array(prepare("or H1")["t"])
     mo_h = pd.to_datetime(dT, unit="s").to_period("M"); MOH = mo_h.unique()
     taches = []
@@ -566,14 +606,13 @@ if __name__ == "__main__":
         k = NOMV.index(z)
         for h in (12, 24):
             for a in range(1, len(MOH) - h + 1):
-                i0 = int(np.argmax(mo_h == MOH[a])); fin = mo_h <= MOH[a + h - 1]
-                i1 = int(np.flatnonzero(fin)[-1]) + 1
+                i0 = int(np.argmax(mo_h == MOH[a])); i1 = int(np.flatnonzero(mo_h <= MOH[a + h - 1])[-1]) + 1
                 for cap in (100, 500):
-                    taches.append((k, max(0, i0 - 24 * 30), i1, cap, h, i0))
+                    taches.append((k, i0, i1, cap, h))
     with Pool(4) as pool:
-        ex = pool.map(rejeu_exact, [(k, i0w, i1, cap) for k, i0w, i1, cap, h, i0 in taches], chunksize=4)
+        ex = pool.map(rejeu_exact, [(k, i0, i1, cap, pru == "fav") for k, i0, i1, cap, h in taches], chunksize=4)
     EX = pd.DataFrame([dict(variante=NOMV[t[0]], cap=t[3], h=t[4], ruine=e[0], sous=e[1]) for t, e in zip(taches, ex)])
-    print("Rejeu EXACT arrondi au lot cent (H1, depart a chaque debut de mois, entrees des 30 jours avant inclus pour le rechauffage) :")
+    print("\nRejeu EXACT arrondi au lot cent (H1, ordre %s, depart a chaque debut de mois, ATR/EMA deja calcules) :" % pru)
     for z in sel:
         g = EX[EX.variante == z]
         print("  %-32s " % z + " ; ".join("%d EUR %d m ruine %.0f %% sous mise %.0f %%" % (c, h, 100 * g[(g.cap == c) & (g.h == h)].ruine.mean(),
@@ -581,59 +620,54 @@ if __name__ == "__main__":
                                            for c in (100, 500) for h in (12, 24)))
         for c in (100, 500):
             for h in (12, 24):
-                T.loc[(T.jeu == "or H1") & (T.variante == z), "exact_ruine_%d_%dm" % (c, h)] = 100 * EX[(EX.variante == z) & (EX.cap == c) & (EX.h == h)].ruine.mean()
-    # ---------------------------------------------------------------- controles : M1 contre M5 et ordre optimiste (3 mois)
+                T.loc[(T.ordre == pru) & (T.jeu == "or H1") & (T.variante == z), "exact_ruine_%d_%dm" % (c, h)] = \
+                    100 * EX[(EX.variante == z) & (EX.cap == c) & (EX.h == h)].ruine.mean()
+    # controles : M1 contre M5, deux ordres (3 mois)
     t1m = prepare("or M1")["t"]
     ta, tb = t1m[0] + 25 * 86400, t1m[-1]
-    print("\nControle de l'ordre intrabougie, %s -> %s (entrees seulement dans cette fenetre, solde 10 000 $) :"
-          % (pd.to_datetime(ta, unit="s").date(), pd.to_datetime(tb, unit="s").date()))
+    print("\nControle de l'ordre intrabougie, entrees %s -> %s, solde 10 000 $ :" % (pd.to_datetime(ta, unit="s").date(), pd.to_datetime(tb, unit="s").date()))
     i5 = int(np.searchsorted(prepare("or M5")["t"], tb, "right"))
+    combos = [("or M1", False), ("or M1", True), ("or M5", False), ("or M5", True)]
     with Pool(4) as pool:
-        cm = pool.map(tache, [(j, NOMV.index(z), dict(te0=ta, te1=tb, opt=o_, i1=(i5 if j == "or M5" else None)))
-                              for z in sel for j, o_ in (("or M1", False), ("or M5", False), ("or M5", True))])
+        cm = pool.map(tache, [(j, NOMV.index(z), dict(te0=ta, te1=tb, opt=o_, i1=(i5 if j == "or M5" else None))) for z in sel for j, o_ in combos])
+    f = lambda r: (r["acct"] + r["lat"] - B_INIT) / B_INIT * 100
+    ns = lambda r: sum(p[6] in "SM" for p in r["pan"])
     for q, z in enumerate(sel):
-        r1, r5, r5o = cm[3 * q: 3 * q + 3]
-        f = lambda r: (r["acct"] + r["lat"] - B_INIT) / B_INIT * 100
-        ns = lambda r: sum(p[6] in "SM" for p in r["pan"])
-        print("  %-32s M1 %+6.1f %% (%d paniers, %d sauts) | M5 pessimiste %+6.1f %% (%d, %d) | M5 optimiste %+6.1f %% (%d, %d)" % (
-            z, f(r1), len(r1["pan"]), ns(r1), f(r5), len(r5["pan"]), ns(r5), f(r5o), len(r5o["pan"]), ns(r5o)))
-    # ---------------------------------------------------------------- controle BlockFIFO v25 contre le reel (29/09 -> 05/10/2026)
+        print("  %-32s " % z + " | ".join("%s %s %+7.1f %% (%d pan., %d sauts)" % (j[3:], "fav" if o_ else "def", f(r), len(r["pan"]), ns(r))
+                                          for (j, o_), r in zip(combos, cm[4 * q: 4 * q + 4])))
+    # controle BlockFIFO v25 contre le reel (29/09 -> 05/10/2026)
     t0r, t1r = pd.Timestamp("2026-09-29 18:40").timestamp(), pd.Timestamp("2026-10-05 08:31").timestamp()
-    print("\nBlockFIFO v25 rejoue sur sa periode reelle (%s -> %s, solde 100 000 $, lots 0,02 cloche arrondis a 0,01 lot) :"
-          % (pd.to_datetime(t0r, unit="s"), pd.to_datetime(t1r, unit="s")))
     hreel = pd.read_csv(os.path.join(ICI, "mt5", "autres", "historique.csv.gz"))
-    hreel = hreel[hreel.magique == 701100]
+    hreel = hreel[hreel.magique == 701100].copy()
     hreel["j"] = pd.to_datetime(hreel.fermeture_heure_serveur, unit="s").dt.date
     hreel["net"] = hreel.resultat + hreel.commission + hreel.swap
     reel = hreel.groupby("j").agg(n=("net", "size"), g=("net", lambda x: (x > 0).sum()), s=("net", "sum"))
+    print("\nBlockFIFO v25 rejoue sur sa periode reelle (%s -> %s, solde 100 000 $, lot 0,02 cloche arrondi a 0,01 lot) ; reel : %d positions, "
+          "%.1f %% gagnantes, %+.0f $" % (pd.to_datetime(t0r, unit="s"), pd.to_datetime(t1r, unit="s"), len(hreel), 100 * (hreel.net > 0).mean(), hreel.net.sum()))
     for j in ("or M1", "or M5"):
-        Tt = prepare(j)["t"]; i1 = int(np.searchsorted(Tt, t1r, "right"))
-        r = simule(j, VAR[CTRL], cap=1e5, pas_lot=1.0, te0=t0r, te1=t1r, i1=i1, log=True)
-        P = pd.DataFrame(r["pan"], columns=["t0", "t1", "s", "nmax", "res", "pct", "typ", "B0"])
-        P = P[P.t0 >= t0r]
-        tot = r["acct"] + r["lat"] - 1e5
-        print("  %s : %d positions fermees, %.1f %% gagnantes, %d paniers (%d achat), resultat %+.0f $ (dont latent fin %+.0f $, %d positions "
-              "ouvertes) ; stops : %s" % (j, r["npos"][0], 100 * r["npos"][1] / max(1, r["npos"][0]), len(P), (P.s > 0).sum(), tot, r["lat"],
-                                          r["ouverts"], ", ".join("%s %s %+.0f $ (%d pos.)" % (pd.to_datetime(a, unit="s"), "achat" if s > 0 else "vente", g, nn)
-                                                                  for a, s, g, nn in P[P.typ.isin(["S", "M"])][["t1", "s", "res", "nmax"]].values) or "aucun"))
-        print("    achats %+.0f $, ventes %+.0f $" % (P[P.s > 0].res.sum(), P[P.s < 0].res.sum()))
-        for jj, (nn, gg, ss) in sorted(r["jlog"].items()):
-            dd = pd.to_datetime(jj * 86400, unit="s").date()
-            rr = reel.loc[dd] if dd in reel.index else None
-            print("    %s simule %4d pos. %5.1f %% gagn. %+8.0f $ | reel %s" % (dd, nn, 100 * gg / nn, ss,
-                  "%4d pos. %5.1f %% gagn. %+8.0f $" % (rr.n, 100 * rr.g / rr.n, rr.s) if rr is not None else "-"))
-    print("  reel : %d positions, %.1f %% gagnantes, %+.0f $" % (len(hreel), 100 * (hreel.net > 0).mean(), hreel.net.sum()))
-    # ---------------------------------------------------------------- verdict
-    kH = NOMV.index(SYN["or H1"]["fq"].index[0]) if SYN["or H1"]["fq"].index[0] in NOMV else None
-    ru = TH.loc[NOMV[kH]].mc_ruine_500_24m if kH is not None else 100.0
-    deux = SYN["or M5"]["ok"] and SYN["or H1"]["ok"]
-    v = "TIENT" if deux and SYN["or M5"]["p"] < 0.10 and SYN["or H1"]["p"] < 0.10 and ru < 5 else ("PRESQUE" if deux else "NE TIENT PAS")
-    print("\n=== Verdict (fixe d'avance) : %s. WF M5 %+.1f %% (bt_or %+.1f %%), WF H1 %+.1f %% (bt_or %+.1f %%), p corrige M5 %.3f H1 %.3f, N = %d, "
-          "ruine MC 24 m 500 EUR de la variante la plus choisie en H1 (%s) = %.1f %%" % (
-              v, SYN["or M5"]["oos"], SYN["or M5"]["bt"], SYN["or H1"]["oos"], SYN["or H1"]["bt"], SYN["or M5"]["p"], SYN["or H1"]["p"], NV,
-              NOMV[kH] if kH is not None else "-", ru))
-    W = pd.DataFrame([dict(jeu=j, variante="WF choisi", total_pct=SYN[j]["oos"], pire_baisse=SYN[j]["cro"], pct_mois_pos=SYN[j]["mpos"],
-                           p_white_corrige=SYN[j]["p"], choix=" ; ".join("%s %d" % (a, b) for a, b in SYN[j]["fq"].items())) for j in SYN] +
-                     [dict(jeu=j, variante="WF bt_or meme risque", total_pct=SYN[j]["bt"], pire_baisse=SYN[j]["crb"]) for j in SYN])
-    pd.concat([T, W], ignore_index=True).round(4).to_csv(os.path.join(ICI, "donnees", "grille_coef.csv"), index=False)
-    print("Ecrit donnees/grille_coef.csv (%d lignes). Duree totale %.0f s." % (len(T) + len(W), time.time() - T00))
+        for o_ in (False, True):
+            Tt = prepare(j)["t"]; i1 = int(np.searchsorted(Tt, t1r, "right"))
+            r = simule(j, VAR[CTRL], cap=1e5, pas_lot=1.0, te0=t0r, te1=t1r, i1=i1, log=True, opt=o_)
+            P = pd.DataFrame(r["pan"], columns=["t0", "t1", "s", "nmax", "res", "pct", "typ", "B0"])
+            print("  %s %s : %d positions fermees, %.1f %% gagnantes, %d paniers, resultat %+.0f $ (latent fin %+.0f $, %d pos. ouvertes) ; "
+                  "achats %+.0f $, ventes %+.0f $ ; stops : %s" % (
+                      j, "fav" if o_ else "def", r["npos"][0], 100 * r["npos"][1] / max(1, r["npos"][0]), len(P), r["acct"] + r["lat"] - 1e5, r["lat"],
+                      r["ouverts"], P[P.s > 0].res.sum(), P[P.s < 0].res.sum(),
+                      ", ".join("%s %s %+.0f $ (%d pos.)" % (pd.to_datetime(a, unit="s"), "achat" if s > 0 else "vente", g, nn)
+                                for a, s, g, nn in P[P.typ.isin(["S", "M"])][["t1", "s", "res", "nmax"]].values) or "aucun"))
+            for jj, (nn, gg, ss) in sorted(r["jlog"].items()):
+                dd = pd.to_datetime(jj * 86400, unit="s").date()
+                rr = reel.loc[dd] if dd in reel.index else None
+                print("    %s simule %4d pos. %5.1f %% gagn. %+8.0f $ | reel %s" % (dd, nn, 100 * gg / nn, ss,
+                      "%4d pos. %5.1f %% gagn. %+8.0f $" % (rr.n, 100 * rr.g / rr.n, rr.s) if rr is not None else "-"))
+    # verdict : le pire des deux ordres
+    rang = {"TIENT": 2, "PRESQUE": 1, "NE TIENT PAS": 0}
+    v = min((SY[o]["verdict"] for o in SY), key=rang.get)
+    for o in ("def", "fav"):
+        S = SY[o]
+        print("Ordre %s : %s. WF M5 %+.1f %% (bt_or meme risque %+.1f %%), WF H1 %+.1f %% (bt_or %+.1f %%), p corrige M5 %.3f H1 %.3f, N = %d, "
+              "ruine MC 24 m 500 EUR de la plus choisie en H1 (%s) = %.1f %%" % (o, S["verdict"], S["or M5"]["oos"], S["or M5"]["bt"], S["or H1"]["oos"],
+                                                                                S["or H1"]["bt"], S["or M5"]["p"], S["or H1"]["p"], NV, S["kH"], S["ruine_kH"]))
+    print("=== Verdict (fixe d'avance, le pire des deux ordres) : %s" % v)
+    pd.concat([T] + WW, ignore_index=True).round(4).to_csv(os.path.join(ICI, "donnees", "grille_coef.csv"), index=False)
+    print("Ecrit donnees/grille_coef.csv (%d lignes). Duree totale %.0f s." % (len(T) + sum(len(w) for w in WW), time.time() - T00))
