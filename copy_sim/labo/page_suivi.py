@@ -19,7 +19,7 @@ TEMOIN = "hasard_m1"
 def hors_total(nom):
     """Témoins à pile ou face et variantes « calme » : affichés, mais hors des totaux et du tableau par jour."""
     nom = str(nom)
-    return nom.startswith("hasard") or nom in VARIANTES_CALME or nom in ARRETEES or nom.endswith("_opt") or nom.startswith("bt_crypto") or nom.endswith("_ar") or nom.endswith("_mise") or nom.startswith("pari")
+    return nom.startswith("hasard") or nom in VARIANTES_CALME or nom in ARRETEES or nom.endswith("_opt") or nom.startswith("bt_crypto") or nom.endswith("_ar") or nom.endswith("_mise") or nom.startswith("pari") or nom.startswith("grille")
 
 
 # 16/11 (Baptiste) : les stratégies arrêtées ne comptent plus dans les totaux et disparaissent du tableau
