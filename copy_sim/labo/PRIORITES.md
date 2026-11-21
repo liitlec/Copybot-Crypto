@@ -674,3 +674,17 @@ règles de retrait : (a) aucun retrait ; (b) retirer la mise de départ dès que
 retirer 25 %, 50 % des gains au-dessus du plus haut chaque mois ; (d) retirer chaque mois tout ce qui dépasse un plafond.
 Pour 100 € et 500 € sur 12 et 24 mois : argent retiré (médiane, chance d'avoir récupéré la mise), valeur du compte,
 total (retiré + compte), chance de finir sous la mise de départ en comptant les retraits. Conseiller une règle simple.
+
+## 21/11 (Paris) : viser au moins +10 % par mois — proposition de Fable
+Baptiste veut au minimum +10 % par mois (compte cent, 100 à 500 €, réinvestissement, retrait de la mise quand le
+compte double). Ce qu'on a : bt_or (moteur), repli_ind, rebond_nas, rebond_sp, fomc_dax ; mélange ≈ +2,8 %/mois
+(mesuré) / +0,3 % (prudent) au plan −30 %. Le 17/11 : 10 %/mois avec le portefeuille A = 23 à 37 fois le capital, ruine
+presque sûre sur la durée. Mission :
+1. Chercher ce qui pourrait vraiment rapprocher de 10 %/mois SANS tricher sur la preuve : nouvelles sources d'avantage
+   à fréquence plus haute (plus de paniers bt_or : autres heures d'entrée, M15/H1, plusieurs paniers par jour ; autres
+   actifs où une mécanique de tendance tient sur 4 ans), meilleure utilisation du capital (marge, mise selon la
+   volatilité, pyramidage seulement en tendance confirmée), poche pari bien dimensionnée.
+2. Proposer 2 ou 3 montages concrets, chacun avec : rendement mensuel médian, chance d'atteindre ≥ 10 % sur un mois
+   donné et en moyenne sur 12 mois, mois négatifs, pire baisse, chance de ruine sur 12 et 24 mois — en scénario mesuré,
+   prudent et sans avantage. Dire honnêtement lequel est le meilleur compromis et si 10 %/mois est atteignable.
+3. Ce qui tient : variante sur la démo, hors totaux, règle d'arrêt écrite avant.
