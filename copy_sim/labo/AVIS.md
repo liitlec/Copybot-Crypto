@@ -1,4 +1,30 @@
-# Avis pour Baptiste — 18/11/2026, après-midi (règle de retrait avec intérêts composés, PRIORITES 18/11 14 h 15)
+# Avis pour Baptiste — 21/11/2026 (viser au moins +10 % par mois, PRIORITES 21/11)
+
+**Réponse courte : +10 % par mois n'est pas atteignable de façon honnête avec ce qu'on a.** Rien de nouveau ne tient ; le seul bouton qui reste est la taille de la mise, et elle achète du rendement avec du risque d'arrêt.
+
+1. **Plus de paniers `bt_or` : ne tient pas** (`banc_freq.py`, 22 réglages, M5 18 mois et H1 4 ans). Deux ou trois paniers par côté, une entrée toutes les heures, la reprise immédiate : c'est la même exposition en plus gros (corrélation 0,92 à 0,99 avec `bt_or`). À risque égal le gain ne bouge presque pas ; p corrigée 0,83 (M5) et 0,27 (H1) ; choisi en walk-forward, c'est moins bien que `bt_or` sur les deux jeux.
+2. **Tendance sur d'autres actifs, en journalier, 14 marchés depuis 1970 à 2021 selon l'actif : ne tient pas** (`banc_tend_actifs.py`, 24 réglages). Aucun actif ne tient seul. Le portefeuille de tous fait +3,4 % par an pour une pire baisse de −30 % (0,3 % par mois), avec 51 % de mois négatifs. Le coût de portage (2 à 3 R par an) mange presque tout. Bitcoin et ether gagnent, mais pas plus que de simplement les acheter.
+3. **Les montages (`banc_dix.py`, 5 000 tirages, 12 et 24 mois)** : pour faire 10 % par mois en rythme médian il faut 2,5 fois la mise du plan actuel (montage B), et ça ne marche que si l'avantage mesuré est entièrement vrai. Si l'avantage est moitié moindre : +2,7 % par mois, pire baisse de −60 % une fois sur dix, arrêt automatique 1 fois sur 3 en 24 mois.
+4. **Le levier « pour 10 % » ne se retrouve pas d'une période à l'autre** : calculé sur 10/2024-11/2026 puis rejoué sur 08/2022-09/2024, il donne environ +2,3 % par mois. Les +13,8 % par mois du rejeu complet viennent de la hausse de l'or de 2024-2026 (`bt_or` : +1 R sur la première moitié, +154 R sur la seconde).
+5. **Mon conseil** : rester au plan −30 % pour démarrer (A). Si tu acceptes plus de risque, le plan −50 % (C) est le meilleur compromis : +7,7 % par mois si tout est vrai, +2,4 % en prudent, arrêt 5 % sur 12 mois. La poche pari et `bt_or` seul coûtent beaucoup d'arrêts pour peu de gain. **Robot inchangé (v22), aucune nouvelle variante** : rien n'a passé la preuve. Attente réaliste : 2 à 3 % par mois.
+
+**Montages, compte cent de 100 ou 500 €, 12 mois** (mesuré / prudent = avantage ÷ 2 / sans avantage ; arrêt automatique compris)
+
+| Montage | Rythme médian par mois | Chance qu'un mois fasse ≥ +10 % | Chance de ≥ 10 % par mois en moyenne sur 12 mois | Mois négatifs | Pire baisse (1 cas sur 10) | Arrêt automatique, 12 mois | Arrêt, 24 mois |
+|---|---|---|---|---|---|---|---|
+| **A. Plan −30 % actuel** (mélange, arrêt à −34 %) | +4,4 % / +1,6 % / −1,4 % | 20 % / 14 % / 9 % | 9 % / 3 % / 1 % | 32 % / 48 % / 58 % | −19 % / −30 % / −35 % | 0 % / 4 % / 40 % | 0,2 % / 16 % / 79 % |
+| B. Même mélange, mise × 2,5 (arrêt à −60 %) | **+10,0 %** / +2,7 % / −5,0 % | 42 % / 28 % / 16 % | 50 % / 19 % / 5 % | 33 % / 49 % / 53 % | −43 % / −60 % / −63 % | 0,2 % / 12 % / 60 % | 1 % / 34 % / 91 % |
+| **C. Plan −50 %** (mise × 1,9, arrêt à −54 %) | +7,7 % / +2,4 % / −3,2 % | 36 % / 24 % / 15 % | 35 % / 12 % / 4 % | 33 % / 49 % / 57 % | −33 % / −49 % / −56 % | 0,1 % / 5 % / 45 % | 0,2 % / 20 % / 83 % |
+| D. 90 % plan −30 % + 10 % poche pari | +8,2 % / +2,4 % / −2,0 % | 37 % / 29 % / 22 % | 40 % / 13 % / 4 % | 50 % / 59 % / 61 % | −48 % / −60 % / −62 % | 1 % / 12 % / 34 % | 5 % / 35 % / 72 % |
+| E. 80 % + 20 % poche pari | +6,7 % / −1,9 % / −5,0 % | 31 % / 22 % / 16 % | 40 % / 15 % / 6 % | 48 % / 47 % / 44 % | −64 % / −65 % / −66 % | 39 % / 67 % / 81 % | 70 % / 92 % / 98 % |
+| F. `bt_or` seul, mise maximale utile | +3,3 % / −2,2 % / −4,5 % | 33 % / 23 % / 16 % | 29 % / 13 % / 4 % | 38 % / 37 % / 34 % | −62 % / −62 % / −62 % | 49 % / 72 % / 88 % | 78 % / 94 % / 99 % |
+
+- « Rythme médian » = ce que fait le compte sur 12 mois dans le cas médian, ramené à un mois. Le mois typique pris seul est plus bas (plan A : +2,8 % mesuré, +0,3 % prudent, comme le 18/11).
+- Ruine (compte sous 20 % de la mise) : 0 % partout avec l'arrêt automatique, qui coupe avant. Finir sous la mise à 12 mois en prudent : 26 % (A), 33 % (B), 30 % (C), 52 % (E).
+- Rejeu sur l'historique réel 08/2022-11/2026 (une seule trajectoire) : A fait une médiane de +1,9 % par mois (11 mois sur 52 à ≥ 10 %, 17 négatifs, pire baisse −17 %) ; B +4,1 % (pire baisse −41 %) ; C +3,2 % (−31 %) ; E et F touchent leur arrêt en 2023.
+- Marge et lot : aucun montage ne dépasse 24 fois le capital hors poche ; le lot minimum cent passe à 100 € (écart d'arrondi 10 à 19 %) et à 500 € (moins de 10 %).
+
+## Avis précédent — 18/11/2026, après-midi (règle de retrait avec intérêts composés, PRIORITES 18/11 14 h 15)
 
 ## VERDICT du test de la semaine 16-20/11 (DÉFINITIF, fenêtre close vendredi 23 h ; chiffres du samedi 0 h 10)
 
@@ -240,6 +266,9 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 | Jumeau de `bt_or` qui encaisse petit à petit, ajouté par-dessus (10 sorties × mise 0,5 / 1 / 2, M5 18 mois et H1 4 ans, `banc_jumeau.py`) | ne tient pas | Gain / pire baisse : 6,33 au mieux contre 6,34 (M5), 3,79 contre 3,66 (H1) mais inversé hors éch. (4,43 contre 7,67) ; p 0,87 ; miser plus sur `bt_or` fait aussi bien |
 | Portefeuille `bt_or` + compléments (repli 4 indices, rebonds Nasdaq et S&P, Fed-DAX, VIX, achat seul) : parité de risque, moyenne-variance rétrécie, Kelly ; walk-forward par semestre, 08/2022-11/2026 (`banc_mix.py`) | presque | À risque égal hors éch. : +26 %/an contre +18 % pour `bt_or` seul, 20 % de mois négatifs contre 35 %, mais p 0,57 ; corrélations −0,06 à +0,14 ; 1 méthode sur 3 fait moins bien |
 | `bt_or` qui ajoute plus fort (tailles 1-2-3 ou 1-1,5-2, 3 / 5 / 7 positions, ajout seulement si gain > 1 R ou ATR en hausse ; 36 réglages à risque égal, `banc_bt_plus.py`) | ne tient pas | M5 18 mois : 8,62 contre 6,34 de gain / pire baisse ; H1 4 ans : 2,52 contre 3,66 ; p corrigée 0,42 à 0,95 ; hors éch. bon en M5, mauvais en H1 |
+| Plus de paniers `bt_or` : toutes les heures / 2 h / 4 h, reprise immédiate, 2 ou 3 paniers par côté, échelles rapide et lente (22 réglages, M5 18 mois et H1 4 ans, `banc_freq.py`) | ne tient pas | Corrélation 0,92 à 0,99 avec `bt_or` : même exposition en plus gros. Gain / pire baisse à risque égal : 6,88 au mieux contre 6,34 (M5), 3,56 contre 3,66 (H1) pour 2 paniers ; p corrigée 0,83 / 0,27 ; hors éch. 1,17 contre 3,51 (M5), 5,62 contre 7,67 (H1) | — |
+| Mécanique de panier de tendance en JOURNALIER sur 14 marchés (EMA 50 / 100 / 200 j, pyramide 1 ou 3, stop 2 ou 3 ATR ; 24 réglages, portage compris, `banc_tend_actifs.py`) | ne tient pas (aucun actif seul) ; portefeuille : trop petit | Portefeuille : +3,0 R par an contre +1,9 pour acheter-et-garder (t 1,4), moins bien que lui depuis 2016 ; +3,4 % par an à pire baisse −30 % ; 51 % de mois négatifs ; corrélation −0,03 avec `bt_or`. BTC +0,58 R par panier (t 2,7) mais pas mieux qu'acheter. Le portage coûte 2 à 3 R par an | — |
+| Viser +10 % par mois par la taille de mise (6 montages, 5 000 tirages, `banc_dix.py`) | pas atteignable honnêtement | Mise × 2,5 : médiane +10,0 % par mois en mesuré, +2,7 % en prudent, arrêt 34 % à 24 mois ; levier appris sur une moitié et rejoué sur l'autre : ≈ +2,3 % par mois. Meilleur compromis : plan −50 % (+7,7 % / +2,4 %, arrêt 5 % à 12 mois) | plan −30 % gardé ; robot v22 inchangé |
 <!-- fin tableau recherche large -->
 
 ## Avis précédent (17/11, 13 h)

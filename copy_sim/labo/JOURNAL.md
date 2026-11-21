@@ -1697,3 +1697,12 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
   (banc X : « stop 0,5 R au-delà de +3 R », même total, 2de moitié +8,1 R contre +7,5). Hors test. Stop marqué aux
   centimes 77 (bt_or évite 77 et 97). **Règle d'arrêt (écrite avant) : −20 R cumulés.** Essai : sortie au recul de
   0,5 R après +3 R alors que bt_or reste ouvert ; pas de resserrement sous +3 R ; marques distinctes. Publiée en v22.
+
+## 21/11/2026 — viser +10 % par mois (PRIORITES 21/11, 3 points) — rien de nouveau ne tient
+- `banc_freq.py` (22 réglages) : plus de paniers `bt_or` = même exposition (corr. 0,92-0,99) ; p corrigée 0,83 (M5), 0,27 (H1) ;
+  walk-forward moins bon que `bt_or` sur les deux jeux. Ne tient pas.
+- `banc_tend_actifs.py` (14 marchés × 24 réglages, journalier, portage compris) : aucun actif ne tient ; portefeuille +3,4 %/an
+  à pire baisse −30 %, t 1,4 contre acheter-et-garder. Ne tient pas.
+- `banc_dix.py` (6 montages, 5 000 tirages) : 10 %/mois médian = mise × 2,5 (L 18,8) en mesuré seulement ; prudent +2,7 %/mois,
+  arrêt 34 % à 24 mois ; levier non stable entre moitiés (≈ +2,3 %/mois rejoué sur 08/2022-09/2024). Compromis : plan −50 %.
+- Point 3 : aucune variante démo ajoutée (rien n'a passé la preuve) ; robot v22 inchangé, pas de nouvelle VERSION.
