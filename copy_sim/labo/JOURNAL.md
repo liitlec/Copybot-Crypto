@@ -1716,3 +1716,10 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
 - Annonces US à fort levier (`banc_annonces_levier.py`, 72 × 4) : ne tient pas ; financement crypto (`banc_financement.py`,
   données data.binance.vision) : +3 % par an, ≈ taux sans risque, p 0,46 ; impossible sur MT5.
 - Aucune variante `grille_opt` ; robot v22 inchangé.
+
+## 21/11/2026 fin d'après-midi — poche pari tendance (PRIORITES 21/11 15 h 20)
+- `banc_pari_tendance.py` (10 000 parcours, 24 mois, paniers réels bt_or / bt_or_plus, M5 18 mois et H1 4 ans) : choix fixé
+  d'avance = bt_or, 3 % par R, objectif x5 (prudent H1 : x5 22,6 %, ruine 11,0 %, rien 66 % ; mesuré H1 49 % / 1,9 %).
+  Mises plus fortes : plus de ruine sans plus d'objectif ; bt_or_plus moins bon partout (pire panier −6,6 R).
+- Robot v23 : `pari_tendance_opt` (pari_tendance.py, compte virtuel 11 600 $, marque 57, objectif x5, plancher 20 %,
+  arrêt si cumul négatif après 40 paniers), hors totaux (nom en « pari »). Essais OK ; VERSION = 23.

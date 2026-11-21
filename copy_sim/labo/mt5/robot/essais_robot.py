@@ -906,4 +906,72 @@ assert not pc.pos, "apres l'horizon : plus aucune ouverture"
 for f in ("etat_pari_court_essai.json", "etat_pari_essai3.json", "etat_pari_court.json"):
     if os.path.exists(f):
         os.remove(f)
+# v23 : pari_tendance_opt (poche pari tendance, compte virtuel 11 600 $, mise 3 % par R, objectif x5, marque 57)
+import pari_tendance
+d1t = [[i * 86400, 4000, 4030, 3970, 4000, 1, 20] for i in range(29)]      # ATR 60 $
+class FauxPontT(FauxPont):
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert id.startswith("pari_tendance_opt_") and stop > 0 and 0 < lots <= 1.0
+        self.n += 1
+        e = self.bid + 0.2 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "symbole": "XAUUSD", "sens": sens, "prix_entree": e, "stop": stop,
+                            "profit": 0.0, "id": id, "heure_serveur": 0, "prix_actuel": self.bid, "lots": lots}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+    def positions(self):
+        for p in self.pos.values():
+            s = 1 if p["sens"] == "achat" else -1
+            p["profit"] = round(s * ((self.bid if s > 0 else self.bid + 0.2) - p["prix_entree"]) * p["lots"] * 100, 2)
+        return list(self.pos.values())
+
+for f in ("etat_pt_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+assert pari_tendance.lots_pour(11600.0, 40.0) == 0.08, "3 % de 11 600 $ = 348 $ pour 40 $ de stop : 8 x 0,01 lot"
+assert pari_tendance.lots_pour(100.0, 40.0) == 0.01 and pari_tendance.lots_pour(1e7, 40.0) == 1.0, "minimum et plafond"
+ft = FauxPontT()
+pt = pari_tendance.PanierPari(ft, fichier="etat_pt_essai.json")
+pt.bougie(m5_jusqua(8, 0, 4000.0), d1t, True)
+assert len(ft.pos) == 1 and list(ft.pos.values())[0]["lots"] == 0.08, "panier ouvert a la taille du compte virtuel"
+q = list(ft.pos.values())[0]
+assert bt_or.code_marque(q["stop"]) == bt_or.MARQUE_PARI, q["stop"]
+assert not bt_or.PanierBT(FauxPont(), fichier="x_essai.json").candidat(dict(q, prix_actuel=ft.bid), d1t), "bt_or ne prend pas le pari"
+assert pt.candidat(dict(q, prix_actuel=ft.bid), d1t)
+assert bt_or.code_marque(bt_or.marquer(3922.55)) is None and bt_or.marque(bt_or.marquer(3922.55)), "bt_or evite 57"
+ft.bid = 4016.0
+pt.surveiller({x["ticket"]: x for x in ft.positions()}, ft.prix("XAUUSD"))
+pt.bougie(m5_jusqua(8, 35, 4016.0), d1t, True)
+assert len(ft.pos) == 2 and all(x["lots"] == 0.08 for x in ft.pos.values()), "ajout a la meme taille (1-1-1)"
+os.remove("etat_pt_essai.json")                                   # changement de version : memoire perdue
+pt2 = pari_tendance.PanierPari(ft, fichier="etat_pt_essai.json")
+pt2.adopter({t: dict(x, prix_actuel=ft.bid, heure_serveur=0) for t, x in ft.pos.items()}, m5_jusqua(8, 35, 4016.0), d1t)
+assert pt2.tickets() == pt.tickets(), "panier pari repris apres perte de memoire"
+pt2.paniers["1"]["lots0"] = 0.08
+ft.bid = pt2.paniers["1"]["meilleur"] - pt2.paniers["1"]["stop"] - 1
+ps_ = {x["ticket"]: x for x in ft.positions()}
+gain = sum(x["profit"] for x in ps_.values())
+pt2.surveiller(ps_, ft.prix("XAUUSD"))
+assert not ft.pos and pt2.n_paniers == 1 and abs(pt2.compte - (11600.0 + gain)) < 0.02, (pt2.compte, gain)
+assert pari_tendance.PanierPari(ft, fichier="etat_pt_essai.json").compte == pt2.compte, "compte virtuel garde"
+pt3 = pari_tendance.PanierPari(ft, fichier="etat_pt_essai.json")    # objectif x5 : on ferme tout et on s'arrete
+pt3.compte = 5 * 11600.0 - 10.0
+ft.bid = 4000.0
+pt3.bougie(m5_jusqua(8, 0, 4000.0), d1t, True)
+assert len(ft.pos) == 1
+ft.bid = 4010.0
+pt3.surveiller({x["ticket"]: x for x in ft.positions()}, ft.prix("XAUUSD"))
+assert not ft.pos and pt3.arret and pt3.arret.startswith("objectif x5"), pt3.arret
+pt3.vu = None
+pt3.bougie(m5_jusqua(8, 30, 4010.0), d1t, True)
+assert not ft.pos, "apres l'objectif : plus aucun panier"
+pt4 = pari_tendance.PanierPari(ft, fichier="etat_pt_essai.json")
+assert pt4.arret, "arret garde apres redemarrage"
+pt4.arret, pt4.compte = None, 2000.0                               # sous 20 % du depart
+pt4.paniers = {"1": {"tickets": [], "profits": {}, "meilleur": 4000.0, "stop": 40.0, "pas": 15.0, "prochain": 4015.0,
+                     "debut": 0, "secours": 3950.07, "c0": 4000.0, "lots0": 0.01}}
+pt4._cloture("1", "essai", {})
+assert pt4.arret == "poche vide", pt4.arret
+for f in ("etat_pt_essai.json", "x_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 print("ESSAIS OK")

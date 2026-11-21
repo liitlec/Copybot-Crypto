@@ -1,3 +1,25 @@
+# Avis pour Baptiste — 21/11/2026, fin d'après-midi (poche pari tendance, PRIORITES 21/11 15 h 20)
+
+**Réponse courte : le meilleur montage est `bt_or` avec une petite mise (3 % du compte par R) et un objectif ×5. Il est sur la démo en variante `pari_tendance_opt` (v23, compte virtuel séparé, hors totaux).** Viser gros en misant gros ne marche pas : plus de mise donne surtout plus de ruine.
+
+Poche de 100 € (compte cent), 24 mois, Monte-Carlo sur les vrais paniers (`banc_pari_tendance.py`). « Prudent » = avantage divisé par 2 ; c'est la colonne à regarder.
+
+| Montage | ×objectif atteint : mesuré 18 mois / mesuré 4 ans / prudent 4 ans / sans avantage | Ruine (sous 20 €) : mesuré 4 ans / prudent / sans avantage | Durée médiane (prudent) | Semaine 16-20/11 |
+|---|---|---|---|---|
+| **`bt_or`, 3 %, ×5 (choisi)** | 94 % / 49 % / **23 %** / 8 % | 2 % / **11 %** / 36 % | 15 mois (66 % n'ont rien atteint en 24 mois) | 100 € → 140 € |
+| `bt_or`, 3 %, ×3 | 98 % / 67 % / 39 % / 19 % | 2 % / 11 % / 35 % | 12 mois | 140 € |
+| `bt_or`, 5 %, ×3 | 95 % / 70 % / 44 % / 24 % | 18 % / 45 % / 71 % | 8 mois | 166 € |
+| `bt_or`, 10 %, ×3 | 69 % / 49 % / 34 % / 24 % | 51 % / 66 % / 76 % | 3 mois | 232 € |
+| `bt_or_plus` (ajouts 1-2-3), 3 %, ×3 | 89 % / 61 % / 38 % / 23 % | 38 % / 61 % / 77 % | 4 mois | 219 € |
+| `bt_or_plus`, 7,5 %, ×5 | 41 % / 27 % / 18 % / 12 % | 72 % / 82 % / 88 % | 1 mois | 397 € |
+| Référence `pari_opt` (repli S&P + Russell), ×3 | prudent : 56 % en 5 ans | prudent : 39 % | ~17 mois | — |
+
+1. Avec 3 % du compte par R, la poche a environ 1 chance sur 4 de faire ×5 en 2 ans si l'avantage n'est que la moitié de ce qu'on a mesuré, et 1 chance sur 9 d'être vidée ; le plus souvent (2 fois sur 3), elle n'a encore rien atteint au bout de 2 ans.
+2. Monter la mise ne fait pas plus de ×3 ou ×5 : à 10 % par R, la ruine passe à 66 % (prudent) pour à peine 34 % de ×3.
+3. `bt_or_plus` (ajouts 1-2-3) fait de très belles semaines (la semaine du 16/11 : 100 € → 397 € à 7,5 %), mais ses gros paniers perdants (jusqu'à −6,6 R) le ruinent une fois sur deux ou plus.
+4. Sur la démo : `pari_tendance_opt` joue les paniers `bt_or` sur un compte virtuel de 11 600 $ (= 100 € en compte cent × 100), 3 % par R, encaisse et s'arrête à ×5 (58 000 $) ; s'arrête aussi si la poche passe sous 20 % ou si le cumul est négatif après 40 paniers (règle écrite avant).
+5. Limites : le choix tombe sur la plus petite mise testée (3 %), une mise plus petite n'a pas été testée ; et c'est un pari, pas un placement. **Robot v23 : VERSION publiée, essais OK.**
+
 # Avis pour Baptiste — 21/11/2026, soir (piste 2 : grilles et martingales sécurisées — LOT TERMINÉ, points 1 à 4)
 
 **Réponse courte : rien ne tient. Pas de `grille_opt` sur la démo, robot inchangé (v22).** Les 10-20 % par mois des grilles viennent de mois positifs nombreux payés par des « sauts » rares qui effacent des mois, voire des années.

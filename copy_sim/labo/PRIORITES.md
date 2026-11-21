@@ -716,3 +716,4 @@ Monte-Carlo sur les vrais paniers (banc_pari.py, banc_bt_plus.py ; M5 18 mois et
 médiane, résultat sur la semaine 16-20/11 ; comparer à pari_opt (repli S&P + Russell, 56 % de tripler). Meilleur montage
 en variante `pari_tendance_opt` sur la démo (compte virtuel séparé, hors totaux, essais patients, nouvelle VERSION).
 Tableau en tête d'AVIS.md.
+**FAIT le 21/11** : bt_or, 3 % par R, objectif x5 (prudent H1 : x5 23 %, ruine 11 %) ; `pari_tendance_opt` en v23 (VERSION publiée, essais OK).
