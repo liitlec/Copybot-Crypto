@@ -688,3 +688,20 @@ presque sûre sur la durée. Mission :
    donné et en moyenne sur 12 mois, mois négatifs, pire baisse, chance de ruine sur 12 et 24 mois — en scénario mesuré,
    prudent et sans avantage. Dire honnêtement lequel est le meilleur compromis et si 10 %/mois est atteignable.
 3. Ce qui tient : variante sur la démo, hors totaux, règle d'arrêt écrite avant.
+
+## 21/11 (Paris) : piste 2 — grilles et martingales sécurisées, coefficient multiplicateur variable
+Baptiste : des gens font 10-20 % par mois ; tester les familles qui produisent ces chiffres, avec une vraie sécurité.
+Précision de Baptiste : les paliers se font avec un **coefficient multiplicateur**, pas toujours ×2 (par exemple ×1,2,
+×1,3, ×1,5, ×2, ou une « cloche » comme BlockFIFO : monte jusqu'à ×3 au niveau 5 puis décroît). Tester sur l'or (M1/M5,
+15 mois, spread réel), puis 4 ans en H1 :
+1. **Grille / martingale contre le prix** : écart entre paliers (fixe en $, ou en fraction d'ATR), coefficient
+   (1,0 ; 1,2 ; 1,3 ; 1,5 ; 2,0 ; cloche), nombre de paliers max, sortie du panier (gain total visé, FIFO par blocs
+   comme BlockFIFO, ou point mort), et **sécurité** obligatoire : stop global du panier (en % du compte ou en $),
+   filtre de tendance (pas de grille contre une tendance forte, en s'appuyant sur bt_or / l'ATR), pause après un stop.
+2. **Grille dans le sens du prix** (pyramide à coefficient), pour comparer.
+3. Mesurer comme d'habitude (walk-forward, essais multiples) : gain par mois médian, % de mois positifs (c'est la force
+   de ces méthodes), pire baisse, et surtout **fréquence et taille des « sauts »** (stop global touché) sur 4 ans ;
+   chance de ruine à 12 et 24 mois sur un compte cent de 100-500 €. Comparer à BlockFIFO réel (−6 269 $).
+4. Ensuite si le temps le permet : annonces US avec fort levier ; arbitrage des taux de financement crypto (si les
+   données sont accessibles gratuitement).
+Ce qui tient : variante `grille_opt` sur la démo, hors totaux, règle d'arrêt écrite avant. Tableau simple en tête d'AVIS.md.
