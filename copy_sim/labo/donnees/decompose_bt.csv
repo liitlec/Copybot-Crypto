@@ -1,0 +1,53 @@
+jeu,variante,paniers,total_R,R_panier,pire_baisse_R,mois_neg,mois,tirages_et,tirages_q05,tirages_q50,tirages_q95,part_tirages_pos,p_sens,p_sens_R_panier,part_pct
+or M5,(a) bt_or tel quel,295.0,114.058,0.3866,-18.301,7.0,17.0,,,,,,0.004,0.0005,
+or M5,(b) sans renforcements,295.0,38.0629,0.129,-9.4999,8.0,17.0,,,,,,0.012,0.0005,
+or M5,"(c) hasard, 3 positions (moy.)",474.6475,78.1317,0.1646,-20.8011,6.0,17.0,13.6795,55.9193,78.2226,100.9649,1.0,,,
+or M5,"(c) hasard, 1 position (moy.)",474.6475,20.9961,0.0442,-9.5105,7.0,17.0,7.7765,7.9234,20.8866,33.2855,0.9955,,,
+or M5,"(e) toujours acheteur, 3 pos.",255.0,92.7302,0.3636,-25.0585,9.0,17.0,,,,,,,,
+or M5,"(e) toujours acheteur, 1 pos.",255.0,31.2684,0.1226,-15.1617,7.0,17.0,,,,,,,,
+or M5,decomposition : tendance+frais (hasard 1 pos.),,20.9961,,,,,,,,,,,,18.4083
+or M5,decomposition : pyramide sans signal (c3-c1),,57.1356,,,,,,,,,,,,50.0934
+or M5,decomposition : signal de sens (a-c3),,35.9263,,,,,,,,,,,,31.4983
+or M5,decomposition : pyramide avec signal (a-b),,75.9951,,,,,,,,,,,,66.6285
+or M5,decomposition : toujours acheteur 3 pos. (e3),,92.7302,,,,,,,,,,,,81.3009
+or M5,decomposition : toujours acheteur 1 pos. (e1),,31.2684,,,,,,,,,,,,27.4145
+or M5,decomposition : signal au-dela de l'achat seul (a-e3),,21.3278,,,,,,,,,,,,18.6991
+or H1,(a) bt_or tel quel,956.0,153.3681,0.1604,-40.3842,22.0,52.0,,,,,,0.0405,0.0005,
+or H1,(b) sans renforcements,956.0,58.3382,0.061,-12.2624,20.0,52.0,,,,,,0.019,0.0005,
+or H1,"(c) hasard, 3 positions (moy.)",1431.313,108.1006,0.0755,-37.1568,23.0,52.0,26.3807,63.0747,108.7582,151.0153,1.0,,,
+or H1,"(c) hasard, 1 position (moy.)",1431.313,26.4724,0.0185,-18.3641,24.0,52.0,15.5089,1.3467,26.448,51.7914,0.96,,,
+or H1,"(e) toujours acheteur, 3 pos.",795.0,243.6664,0.3065,-25.3022,20.0,52.0,,,,,,,,
+or H1,"(e) toujours acheteur, 1 pos.",795.0,76.1712,0.0958,-17.3495,25.0,52.0,,,,,,,,
+or H1,decomposition : tendance+frais (hasard 1 pos.),,26.4724,,,,,,,,,,,,17.2607
+or H1,decomposition : pyramide sans signal (c3-c1),,81.6282,,,,,,,,,,,,53.2237
+or H1,decomposition : signal de sens (a-c3),,45.2675,,,,,,,,,,,,29.5156
+or H1,decomposition : pyramide avec signal (a-b),,95.0299,,,,,,,,,,,,61.9619
+or H1,decomposition : toujours acheteur 3 pos. (e3),,243.6664,,,,,,,,,,,,158.8768
+or H1,decomposition : toujours acheteur 1 pos. (e1),,76.1712,,,,,,,,,,,,49.6656
+or H1,decomposition : signal au-dela de l'achat seul (a-e3),,-90.2983,,,,,,,,,,,,-58.8768
+or H1 2022-08->2024-09,(a) bt_or tel quel,481.0,-0.8742,-0.0018,-40.3842,15.0,26.0,,,,,,0.8766,0.8791,
+or H1 2022-08->2024-09,(b) sans renforcements,481.0,11.7357,0.0244,-12.2624,10.0,26.0,,,,,,0.3108,0.1594,
+or H1 2022-08->2024-09,"(c) hasard, 3 positions (moy.)",711.0055,20.7907,0.0292,-37.0592,13.0,26.0,18.3629,-10.4059,21.1641,49.154,0.867,,,
+or H1 2022-08->2024-09,"(c) hasard, 1 position (moy.)",711.0055,6.5666,0.0092,-14.6535,12.0,26.0,10.67,-10.8492,6.7686,23.9195,0.724,,,
+or H1 2022-08->2024-09,"(e) toujours acheteur, 3 pos.",400.0,100.7289,0.2518,-25.3022,12.0,26.0,,,,,,,,
+or H1 2022-08->2024-09,"(e) toujours acheteur, 1 pos.",400.0,35.0802,0.0877,-13.4786,12.0,26.0,,,,,,,,
+or H1 2022-08->2024-09,decomposition : tendance+frais (hasard 1 pos.),,6.5666,,,,,,,,,,,,-751.1847
+or H1 2022-08->2024-09,decomposition : pyramide sans signal (c3-c1),,14.2242,,,,,,,,,,,,-1627.1774
+or H1 2022-08->2024-09,decomposition : signal de sens (a-c3),,-21.6649,,,,,,,,,,,,2478.3622
+or H1 2022-08->2024-09,decomposition : pyramide avec signal (a-b),,-12.6099,,,,,,,,,,,,1442.5137
+or H1 2022-08->2024-09,decomposition : toujours acheteur 3 pos. (e3),,100.7289,,,,,,,,,,,,-11522.9102
+or H1 2022-08->2024-09,decomposition : toujours acheteur 1 pos. (e1),,35.0802,,,,,,,,,,,,-4013.0038
+or H1 2022-08->2024-09,decomposition : signal au-dela de l'achat seul (a-e3),,-101.6031,,,,,,,,,,,,11622.9102
+or H1 2024-10->2026-11,(a) bt_or tel quel,475.0,154.2423,0.3247,-18.7409,8.0,26.0,,,,,,0.0005,0.0005,
+or H1 2024-10->2026-11,(b) sans renforcements,475.0,46.6025,0.0981,-9.7644,10.0,26.0,,,,,,0.012,0.0005,
+or H1 2024-10->2026-11,"(c) hasard, 3 positions (moy.)",720.3075,87.3098,0.1212,-21.4979,11.0,26.0,19.2092,55.4225,87.3216,120.2464,0.9995,,,
+or H1 2024-10->2026-11,"(c) hasard, 1 position (moy.)",720.3075,19.9058,0.0276,-14.1446,12.0,26.0,11.2054,1.6689,20.0259,38.1494,0.9635,,,
+or H1 2024-10->2026-11,"(e) toujours acheteur, 3 pos.",395.0,142.9374,0.3619,-22.5687,9.0,26.0,,,,,,,,
+or H1 2024-10->2026-11,"(e) toujours acheteur, 1 pos.",395.0,41.091,0.104,-17.3495,13.0,26.0,,,,,,,,
+or H1 2024-10->2026-11,decomposition : tendance+frais (hasard 1 pos.),,19.9058,,,,,,,,,,,,12.9056
+or H1 2024-10->2026-11,decomposition : pyramide sans signal (c3-c1),,67.404,,,,,,,,,,,,43.7001
+or H1 2024-10->2026-11,decomposition : signal de sens (a-c3),,66.9325,,,,,,,,,,,,43.3944
+or H1 2024-10->2026-11,decomposition : pyramide avec signal (a-b),,107.6398,,,,,,,,,,,,69.7862
+or H1 2024-10->2026-11,decomposition : toujours acheteur 3 pos. (e3),,142.9374,,,,,,,,,,,,92.6707
+or H1 2024-10->2026-11,decomposition : toujours acheteur 1 pos. (e1),,41.091,,,,,,,,,,,,26.6405
+or H1 2024-10->2026-11,decomposition : signal au-dela de l'achat seul (a-e3),,11.3048,,,,,,,,,,,,7.3293
