@@ -738,3 +738,18 @@ aller-retour » = +20,87 % cumulés en 4 ans (+0,40 %/mois), meilleur mois +4,53
 Le verdict du test 16-20/11 reste « échec » (critère 4 : le compte simulé de 100 $ serait passé sous 70 $ dès lundi).
 **FAIT le 22/11** : banc_reconcilie (écart = définition ; décider sur +1,6 %/mois prudent), banc_decompose_bt (pyramide +
 hausse de l'or ; toujours acheteur fait mieux sur 4 ans), banc_fin_seance (ne tient pas). Robot v23 inchangé.
+
+## 22/11 (Paris) : bt_or doit mieux entrer en position
+Baptiste : « il faut que bt_or rentre mille fois mieux en position ». Constat du 22/11 : le sens bat de peu le hasard
+(+153 R contre +108 R), la pyramide fait la moitié du gain, toujours acheteur fait +244 R. Tester, à risque égal et en
+walk-forward (H1 4 ans + M5 18 mois, essais multiples), des ENTRÉES de meilleure qualité, mesurées surtout par
+l'excursion défavorable (MAE) et la part de paniers qui touchent leur stop initial :
+1. Entrer sur repli dans la tendance (attendre un retour de 0,25 à 0,5 ATR vers la moyenne au lieu des heures fixes).
+2. Entrer sur cassure confirmée (plus haut / plus bas de N heures franchi en clôture) au lieu des heures fixes.
+3. Alignement de fond : tendance journalière (moyenne 20-50 j ou pente) dans le même sens ; et version « toujours
+   acheteur + pyramide » comme référence à battre (+244 R).
+4. Filtre de volatilité (ATR qui monte) et d'heure (sessions Londres / New York).
+5. Stop initial plus serré permis par une meilleure entrée (même risque en $, plus de taille) : est-ce que le gain par
+   R monte vraiment ?
+Comparer chaque entrée au sens tiré au sort à risque égal (≥ 1 000 tirages), sur 2022-2024 et 2024-2026 séparément.
+Ce qui tient : variante `bt_or_entree_opt` sur la démo (hors totaux, règle d'arrêt écrite avant).
