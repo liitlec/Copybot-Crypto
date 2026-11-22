@@ -1,5 +1,7 @@
 # Avis pour Baptiste — 22/11/2026, soir (« bt_or doit mieux entrer en position », PRIORITES 22/11)
 
+**Pont muet depuis samedi 21/11 1 h 24 (Paris)** ; le marché a rouvert lundi 0 h. Si ton PC est éteint, c'est normal ; sinon, vérifie le pont. La v23 (`pari_tendance_opt`) s'installera à la reprise.
+
 **Réponse courte : aucune des 5 pistes ne fait mieux entrer `bt_or`. Pas de `bt_or_entree_opt`, robot inchangé (v23).** Toutes trient des périodes ou multiplient les paniers ; aucune ne rend l'entrée plus juste, et aucune ne bat hors échantillon la référence « toujours acheteur + pyramide ».
 
 Hors échantillon (walk-forward), à risque égal, sur les mêmes mois :
