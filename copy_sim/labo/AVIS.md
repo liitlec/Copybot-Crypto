@@ -1,3 +1,19 @@
+# Avis pour Baptiste — 22/11/2026 (contre-expertise externe : 3 travaux, PRIORITES 22/11)
+
+**Réponse courte : l'expert a raison sur l'essentiel.** Le plan −30 % fait environ +1,6 % par mois en prudent (pas +0,3 %), mais seulement grâce au levier ; `bt_or` gagne surtout par la pyramide et la hausse de l'or, pas par un vrai signal de sens ; le momentum de fin de séance ne tient pas. **Robot inchangé (v23), aucune nouvelle variante.**
+
+| Travail | Banc | Résultat principal | Verdict |
+|---|---|---|---|
+| 1. Réconcilier le plan −30 % | `banc_reconcilie.py` | Mêmes réglages dans les deux bancs (levier 7,5). Prudent : mois typique +0,3 %, moyenne des mois +2,7 %, **rythme du compte sur 12 mois +1,6 %** (compte médian ×1,21) ; 27 % de chances d'une année en perte ; 48 % de mois négatifs | écart = définition, pas erreur |
+| 2. Décomposer `bt_or` | `banc_decompose_bt.py` | 4 ans (H1) : `bt_or` +153 R ; sans renforcements +58 R ; sens au hasard +108 R ; **toujours acheteur +244 R** (pire baisse −25 contre −40). 2022-2024 : `bt_or` −1 R | gain = ~½ pyramide + hausse de l'or ; le signal ne bat pas l'achat simple |
+| 3. Fin de séance S&P / Nasdaq / Dow | `banc_fin_seance.py` | 12 derniers mois réservés : S&P −4,0 bp par jour, Nasdaq −3,7, Dow −6,1 ; 4 mois positifs sur 13 ; −236 bp pendant les 6 mois négatifs de `bt_or` (repli d'indices : +609 bp) | **ne tient pas** (White p 0,81) |
+
+1. Plan −30 % : la bonne mesure pour décider est le rythme du compte sur 12 mois (+1,6 % par mois en prudent, +4,3 % si l'avantage mesuré est vrai), toujours avec ses deux risques : 27 % d'années en perte et la moitié des mois négatifs. Le « +0,3 % » est le mois typique, pas ce que rapporte l'année.
+2. Sans levier, la note de l'expert se retrouve à peu près : +0,4 à +0,7 % par mois selon la taille donnée à `bt_or` (+0,50 % par mois et −7,5 % de pire baisse dans la version la plus proche, contre +0,40 % et −5,4 % chez lui).
+3. `bt_or` : environ la moitié du gain vient des renforcements ; le signal « prix contre moyenne de 2 jours » bat un sens tiré au sort (p 0,04 sur 4 ans), mais fait 90 R de moins que d'acheter tout le temps et rien du tout en 2022-2024, quand l'or ne montait pas franchement.
+4. Conséquence pratique : `bt_or` est surtout un pari sur la hausse de l'or avec une pyramide ; si l'or fait du surplace ou baisse longtemps, il faut s'attendre à ce qu'il ne gagne plus.
+5. Fin de séance : la règle publiée ne marche ni sur l'apprentissage (−0,7 bp) ni sur les 12 mois réservés ; elle perd pendant les mauvais mois de `bt_or`, alors que le repli d'indices les compense. Rien à mettre sur la démo.
+
 # Avis pour Baptiste — 21/11/2026, fin d'après-midi (poche pari tendance, PRIORITES 21/11 15 h 20)
 
 **Réponse courte : le meilleur montage est `bt_or` avec une petite mise (3 % du compte par R) et un objectif ×5. Il est sur la démo en variante `pari_tendance_opt` (v23, compte virtuel séparé, hors totaux).** Viser gros en misant gros ne marche pas : plus de mise donne surtout plus de ruine.

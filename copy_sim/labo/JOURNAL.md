@@ -1723,3 +1723,11 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
   Mises plus fortes : plus de ruine sans plus d'objectif ; bt_or_plus moins bon partout (pire panier −6,6 R).
 - Robot v23 : `pari_tendance_opt` (pari_tendance.py, compte virtuel 11 600 $, marque 57, objectif x5, plancher 20 %,
   arrêt si cumul négatif après 40 paniers), hors totaux (nom en « pari »). Essais OK ; VERSION = 23.
+
+## 22/11/2026 — contre-expertise externe (3 travaux)
+- `banc_reconcilie.py` : plan −30 %, mêmes réglages (L 7,4975) ; prudent : médiane du mois +0,29 %, moyenne +2,72 %,
+  géométrique / rythme 12 mois +1,58 % (×1,21), années en perte 27 %, mois négatifs 48 %. Note de l'expert non retrouvée
+  à l'identique (taille de bt_or non précisée) : +0,50 %/mois, pire baisse −7,5 % dans l'interprétation la plus proche.
+- `banc_decompose_bt.py` (2 000 tirages) : H1 4 ans bt_or +153,4 R, 1 position +58,3, hasard 3 pos. +108,1, hasard 1 pos.
+  +26,5, toujours acheteur 3 pos. +243,7 ; 2022-2024 bt_or −0,9 R (p 0,88). M5 : signal p 0,004, pyramide 50-67 %.
+- `banc_fin_seance.py` : réserve 12 mois SP −3,95 bp (t −1,4), NAS −3,74, DJ −6,08 ; White p 0,81 ; ne tient pas.

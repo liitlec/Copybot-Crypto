@@ -736,3 +736,5 @@ Note de l'expert, à vérifier aussi : rejeu « moitié du capital sur chaque st
 aller-retour » = +20,87 % cumulés en 4 ans (+0,40 %/mois), meilleur mois +4,53 %, pire baisse −5,36 % ; piste
 « acheter Nasdaq / vendre S&P après un retard d'un point » : 50 signaux, perd après frais → écartée.
 Le verdict du test 16-20/11 reste « échec » (critère 4 : le compte simulé de 100 $ serait passé sous 70 $ dès lundi).
+**FAIT le 22/11** : banc_reconcilie (écart = définition ; décider sur +1,6 %/mois prudent), banc_decompose_bt (pyramide +
+hausse de l'or ; toujours acheteur fait mieux sur 4 ans), banc_fin_seance (ne tient pas). Robot v23 inchangé.
