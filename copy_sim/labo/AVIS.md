@@ -1,3 +1,21 @@
+# Avis pour Baptiste — 22/11/2026, soir (« bt_or doit mieux entrer en position », PRIORITES 22/11)
+
+**Réponse courte : aucune des 5 pistes ne fait mieux entrer `bt_or`. Pas de `bt_or_entree_opt`, robot inchangé (v23).** Toutes trient des périodes ou multiplient les paniers ; aucune ne rend l'entrée plus juste, et aucune ne bat hors échantillon la référence « toujours acheteur + pyramide ».
+
+Hors échantillon (walk-forward), à risque égal, sur les mêmes mois :
+
+| Piste | Banc (essais) | 4 ans H1 : choisi / `bt_or` / toujours acheteur + pyramide | 17 mois M5 : choisi / `bt_or` / toujours acheteur | Écart défavorable médian (`bt_or` 0,51 R) | Bat le hasard en 2022-2024 ? | Verdict |
+|---|---|---|---|---|---|---|
+| 1-2. Repli dans la tendance, cassure | `banc_entree_moment.py` (20) | +246 / +179 / **+320** R | +43 / **+63** / +30 R | 0,42-0,50 | non (sauf 1 réglage) | ne tient pas |
+| 3-4. Fond journalier, volatilité, heure | `banc_entree_filtres.py` (17) | +242 / +179 / **+320** R | **+91** / +63 / +30 R | 0,49-0,52 | seulement les versions « acheteur » | ne tient pas |
+| 5. Stop initial plus serré (même risque en $) | `banc_entree_stop.py` (29) | **+339** / +179 / +320 R | +28 / **+63** / +30 R | 0,51-0,56 | non | ne tient pas |
+
+1. Attendre un repli de 0,25 ATR donne de meilleurs paniers (+0,29 R par panier au lieu de +0,16) mais 2 fois moins nombreux ; l'écart défavorable médian ne baisse presque pas (0,47 contre 0,51 R) et un panier sur deux touche toujours son stop de départ.
+2. Les filtres de fond, de volatilité et d'heure choisissent des moments, pas de meilleures entrées ; le meilleur sur 4 ans est « acheter seulement quand l'or est au-dessus de sa moyenne 50 jours » (+452 R à risque égal contre +425 pour l'achat permanent), une différence trop petite pour compter.
+3. Un stop plus serré ne fait pas monter le gain par R : le spread pèse 2 à 2,5 fois plus et le stop est touché 6 fois plus souvent ; le beau chiffre sur 4 ans (+339 R) vient en partie des grandes bougies d'une heure et ne se retrouve pas en M5 (+28 R contre +63 pour `bt_or`).
+4. Sur 2022-2024, quand l'or ne montait pas franchement, aucune entrée qui garde le sens « prix contre moyenne de 2 jours » ne fait mieux qu'un sens tiré au sort : le problème de `bt_or` n'est pas le moment d'entrée mais le sens, qui ne vaut que dans une forte tendance.
+5. Seule idée qui reste debout : sur 4 ans, l'achat permanent avec pyramide fait mieux que `bt_or` (+320 contre +179 R hors échantillon), mais il perd sur les 17 derniers mois (+30 contre +63 R) et c'est un pari pur sur la hausse de l'or ; je ne le mets pas sur la démo sans ta décision.
+
 # Avis pour Baptiste — 22/11/2026 (contre-expertise externe : 3 travaux, PRIORITES 22/11)
 
 **Réponse courte : l'expert a raison sur l'essentiel.** Le plan −30 % fait environ +1,6 % par mois en prudent (pas +0,3 %), mais seulement grâce au levier ; `bt_or` gagne surtout par la pyramide et la hausse de l'or, pas par un vrai signal de sens ; le momentum de fin de séance ne tient pas. **Robot inchangé (v23), aucune nouvelle variante.**

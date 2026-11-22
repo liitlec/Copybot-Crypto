@@ -1731,3 +1731,10 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
 - `banc_decompose_bt.py` (2 000 tirages) : H1 4 ans bt_or +153,4 R, 1 position +58,3, hasard 3 pos. +108,1, hasard 1 pos.
   +26,5, toujours acheteur 3 pos. +243,7 ; 2022-2024 bt_or −0,9 R (p 0,88). M5 : signal p 0,004, pyramide 50-67 %.
 - `banc_fin_seance.py` : réserve 12 mois SP −3,95 bp (t −1,4), NAS −3,74, DJ −6,08 ; White p 0,81 ; ne tient pas.
+
+## 22/11/2026 soir — bt_or doit mieux entrer en position (5 pistes) — rien ne tient
+- Walk-forward H1 (14 fenêtres, risque égal) : choisi +246 (repli/cassure), +242 (filtres), +339 (stop serré) contre
+  bt_or +179 et toujours acheteur + pyramide +320 R ; M5 : +43 / +91 / +28 contre bt_or +63 et achat +30 R.
+- White H1 : 0,28 (moment), 0,010 (filtres, meilleure A50 = acheteur au-dessus de la MM50), 0,001 (stop serré) ; aucune
+  variante au sens EMA 2 j ne bat le hasard sur 2022-2024 ; MAE médiane 0,42-0,56 R contre 0,51.
+- Attention : « % de stops initiaux » n'a pas la même définition dans les bancs (48 % moment, 1,9 % filtres et stop).

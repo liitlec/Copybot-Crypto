@@ -38,6 +38,27 @@ moities H1 (variante la plus choisie en H1) et MAE mediane (en ATR, le R changea
 que bt_or ; PRESQUE = walk-forward du bon cote sur les deux jeux mais un autre critere manque ; sinon NE TIENT PAS.
 Controle : la regle 0,667/i/fixe au sens bt_or redonne banc_decompose_bt / BR.simule (H1 956 paniers +153,4 R ;
 M5 295 paniers +114,1 R) panier par panier.
+Ajout (hors grille, controle seulement) : meme comparaison H1 contre chemin M5 sur les 17 mois communs, sens bt_or et
+achat, regles 0,25 / 0,4 / 0,5 (i et ii, pas fixe) et 0,667.
+RESULTAT (execution du 22/11/2026, 14 s) : NE TIENT PAS (walk-forward M5 du mauvais cote).
+  Controles : 0,667/i/fixe sens bt_or = BR.simule panier par panier (H1 956 / +153,4 R ; M5 295 / +114,1 R) ;
+  hasard 0,667 H1 +108,7 R ; toujours acheteur 0,667 H1 +243,7 R brut (= +425,2 R a risque egal, fa 1,75).
+  (i) stop serre ET suiveur serre : le gain par R BAISSE. H1 R/panier 0,25 : +0,035 ; 0,4 : +0,022/+0,045 ; 0,5 :
+    +0,097/+0,119 ; 0,667 : +0,160 ; 1,0 : +0,209/+0,223. A risque egal : 0,25 +62 R, 0,4 +27/+62 R contre +153 R ;
+    M5 pareil (0,25 +4 R, 0,4 +7/+12 R contre +114 R). Le spread passe de 0,016 a 0,029-0,036 R/panier (H1) : il mange
+    ~ la moitie du maigre R/panier a 0,25, mais l'essentiel de la perte vient du bruit (stop touche avant le mouvement).
+  (ii) stop serre puis 0,667 ATR a cliquet apres +1 R : brut bien plus haut (bt_or H1 0,25 ii +336,5 R / 2197 paniers ;
+    0,5 ii prop +226,8 R), car les paniers coupes vite liberent le cote ; a risque egal H1 +190 a +252 R contre +153 ;
+    R/panier quasi inchange (0,15-0,19 contre 0,16). Sur toujours acheteur : 0,25 ii +641,5 brut / +538,4 a risque egal
+    contre +425,2 (reference). MAIS M5 : bt_or 0,25 ii +119 R a risque egal contre +114, achat 0,25 ii +50 contre +66.
+  Granularite : M1 contre M5 (3 mois) ecarts faibles (0,25 i -0,005 R/pan, 0,25 ii -0,018, 0,4 ii -0,03 pour bt_or ;
+    l'achat un peu mieux en M1) -> M5 fiable. H1 contre M5 (17 mois) : H1 FLATTE le 0,25 (bt_or 0,25 i +53,7 contre
+    +10,4 ; achat 0,25 ii +204,9 contre +164,7) ; a partir de 0,4 le H1 est un peu pessimiste.
+  Walk-forward : H1 +338,8 R (choix surtout achat 0,25 ii) contre bt_or +179,0 et achat 0,667 +319,6 ; M5 +27,5 contre
+    +62,5 et +30,2 -> mauvais cote. White H1 p = 0,001 (meilleur achat 0,25 ii), M5 p = 0,83. Moities H1 au sens bt_or :
+    2022-2024 p hasard 0,46-0,89 pour toutes les regles serrees (le sens reste nul sur la 1re moitie).
+  MAE mediane en R ~0,51-0,56 partout (~0,5 R par construction) ; en ATR elle baisse avec le stop (0,14 a 0,25 contre
+  0,34) ; % stop initial monte (11 % a 0,25 contre 1,9 %) : le stop serre est plus souvent touche, pas mieux place.
 Ecrit donnees/entree_stop.csv. Usage : python3 banc_entree_stop.py
 """
 import os, time, warnings, multiprocessing as mp

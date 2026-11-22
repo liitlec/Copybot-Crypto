@@ -753,3 +753,5 @@ l'excursion défavorable (MAE) et la part de paniers qui touchent leur stop init
    R monte vraiment ?
 Comparer chaque entrée au sens tiré au sort à risque égal (≥ 1 000 tirages), sur 2022-2024 et 2024-2026 séparément.
 Ce qui tient : variante `bt_or_entree_opt` sur la démo (hors totaux, règle d'arrêt écrite avant).
+**FAIT le 22/11 au soir** : 5 pistes, rien ne tient (banc_entree_moment, banc_entree_filtres, banc_entree_stop) ;
+pas de `bt_or_entree_opt`, robot v23 inchangé.
