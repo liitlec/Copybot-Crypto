@@ -210,7 +210,7 @@ def traite(nom, d, kw, L_app, L_test, decoupe):
             row.update(spread_R_pan=P["CO"][idx, s][O].mean(), npos_moy=P["NP"][idx, s][O].mean(),
                        mae_med_R=np.median(P["MAE"][idx, s][O]), mae_p75_R=np.percentile(P["MAE"][idx, s][O], 75),
                        mae_med_atr=np.median(P["MAEatr"][idx, s][O]), pct_stop_init=100 * P["DR"][idx, s][O].mean(),
-                       R_pan_1pos=P["G1"][idx, s][O].mean())
+                       R_pan_1pos=P["G1"][idx, s][O].mean(), pct_perdants=100 * (g[O] < 0).mean())
             V.append(row)
             if sn == "bt_or" and r == ("i", S0, "f"):
                 ref = BR.simule(d, **kw)
@@ -278,52 +278,52 @@ def traite(nom, d, kw, L_app, L_test, decoupe):
     return T, wf, pw, fq.index[0]
 
 
-def controle_m1(d5):
-    """Memes entrees M5 (sens bt_or), chemin en M1 contre chemin en M5, jours couverts par xau_m1_90k."""
-    m1 = BR.charge("xau_m1_90k")
-    B = prepare(d5, 576, BR.H_M5, 600)
-    t1d = m1.heure.values
-    A1 = dict(c=m1.cloture.tolist(), hi=m1.haut.tolist(), lo=m1.bas.tolist(), sp=m1.sp.tolist(),
-              finj=[False] * len(m1), dpos=[0] * len(m1))
-    fin = t1d[-1]
-    n5 = int(np.searchsorted(B["t"], fin, side="right"))
-    pos1 = {t: j for j, t in enumerate(t1d)}
-    sel = [(k, i) for k, i in enumerate(B["ik"]) if B["t"][i] >= t1d[0] + 86400 and (B["t"][i] + 240) in pos1]
-    egal = np.mean([abs(B["c"][i] - A1["c"][pos1[B["t"][i] + 240]]) < 1e-6 for _, i in sel])
-    print("\n=== Controle M1 contre M5 (%s -> %s) : %d heures d'entree, cloture M1 = cloture M5 dans %.0f %% des cas"
-          % (pd.to_datetime(t1d[0], unit="s").date(), pd.to_datetime(fin, unit="s").date(), len(sel), 100 * egal))
+def controle_grain(nomc, nomf, Bc, df, off, gros, regles):
+    """Memes entrees que le jeu grossier Bc (heure, prix, spread, ATR, sens pris dans Bc) ; chemin du panier rejoue en
+    bougies grossieres ou en bougies fines df (bougie fine d'entree = derniere de la bougie grossiere : heure + off)."""
+    tf = df.heure.values
+    Af = dict(c=df.cloture.tolist(), hi=df.haut.tolist(), lo=df.bas.tolist(), sp=df.sp.tolist(),
+              finj=[False] * len(df), dpos=[0] * len(df))
+    fin = tf[-1]
+    nc = int(np.searchsorted(Bc["t"], fin - gros, side="right"))
+    posf = {t: j for j, t in enumerate(tf)}
+    sel = [(k, i) for k, i in enumerate(Bc["ik"]) if tf[0] + 86400 <= Bc["t"][i] and i < nc and (Bc["t"][i] + off) in posf]
+    egal = np.mean([abs(Bc["c"][i] - Af["c"][posf[Bc["t"][i] + off]]) < 0.051 for _, i in sel])
+    print("\n=== Controle %s contre %s (%s -> %s) : %d heures d'entree ; cloture %s = cloture %s a 5 cents pres dans %.0f %% des cas"
+          % (nomf, nomc, pd.to_datetime(tf[0], unit="s").date(), pd.to_datetime(fin, unit="s").date(), len(sel), nomf, nomc, 100 * egal))
     rows = []
-    for regle in [("i", 0.25, "f"), ("ii", 0.25, "f"), ("i", 0.4, "f"), ("ii", 0.4, "f"), ("i", S0, "f")]:
-        mode, a, _ = regle
-        res = {}
-        for jeu in ("M5", "M1"):
-            bu = {1: -1, -1: -1}; out = []
-            for k, i in sel:
-                s = 1 if B["signal"][k] == 0 else -1
-                if B["t"][i] < bu[s]:
-                    continue
-                stop, pas = a * B["atr"][i], BR.PAS * B["atr"][i]
-                d2 = S0 * B["atr"][i] if mode == "ii" else None
-                if jeu == "M5":
-                    q, g3, g1, mae, dr, co, npos, _ = panier(B, i, s, stop, pas, d2, n5)
-                    tq = B["t"][q] if q < n5 else None
-                else:
-                    j = pos1[B["t"][i] + 240]
-                    q, g3, g1, mae, dr, co, npos, _ = panier(A1, j, s, stop, pas, d2, len(t1d), c0=B["c"][i], sp0=B["sp"][i])
-                    tq = t1d[q] // 300 * 300 if q < len(t1d) else None
-                if tq is None:
-                    bu[s] = 1e18
-                    continue
-                bu[s] = tq
-                out.append((g3, mae, dr, co))
-            o = np.array(out)
-            res[jeu] = o
-            rows.append(dict(jeu="controle M1/M5", variante="bt_or | " + nom_regle(regle), chemin=jeu, pan_complet=len(o),
-                             tot_complet=o[:, 0].sum(), Rpan_complet=o[:, 0].mean(), mae_med_R=np.median(o[:, 1]),
-                             pct_stop_init=100 * o[:, 2].mean(), spread_R_pan=o[:, 3].mean()))
-        print("  %-22s M5 : %3d paniers %+6.1f R (%+.3f R/pan, %%stop %4.1f) | M1 : %3d paniers %+6.1f R (%+.3f R/pan, %%stop %4.1f)"
-              % (nom_regle(regle), len(res["M5"]), res["M5"][:, 0].sum(), res["M5"][:, 0].mean(), 100 * res["M5"][:, 2].mean(),
-                 len(res["M1"]), res["M1"][:, 0].sum(), res["M1"][:, 0].mean(), 100 * res["M1"][:, 2].mean()))
+    for sn in ("bt_or", "achat"):
+        for regle in regles:
+            mode, a, _ = regle
+            res = {}
+            for jeu in (nomc, nomf):
+                bu = {1: -1, -1: -1}; out = []
+                for k, i in sel:
+                    s = 1 if (sn == "achat" or Bc["signal"][k] == 0) else -1
+                    if Bc["t"][i] < bu[s]:
+                        continue
+                    stop, pas = a * Bc["atr"][i], BR.PAS * Bc["atr"][i]
+                    d2 = S0 * Bc["atr"][i] if mode == "ii" else None
+                    if jeu == nomc:
+                        q, g3, g1, mae, dr, co, npos, _ = panier(Bc, i, s, stop, pas, d2, nc)
+                        tq = Bc["t"][q] if q < nc else None
+                    else:
+                        j = posf[Bc["t"][i] + off]
+                        q, g3, g1, mae, dr, co, npos, _ = panier(Af, j, s, stop, pas, d2, len(tf), c0=Bc["c"][i], sp0=Bc["sp"][i])
+                        tq = tf[q] // gros * gros if q < len(tf) else None
+                    if tq is None:
+                        bu[s] = 1e18
+                        continue
+                    bu[s] = tq
+                    out.append((g3, mae, dr, co))
+                o = np.array(out)
+                res[jeu] = o
+                rows.append(dict(jeu="controle %s/%s" % (nomf, nomc), variante="%s | %s" % ("bt_or" if sn == "bt_or" else "toujours acheteur", nom_regle(regle)),
+                                 chemin=jeu, pan_complet=len(o), tot_complet=o[:, 0].sum(), Rpan_complet=o[:, 0].mean(),
+                                 mae_med_R=np.median(o[:, 1]), pct_stop_init=100 * o[:, 2].mean(), spread_R_pan=o[:, 3].mean()))
+            print("  %-6s %-18s %s : %4d paniers %+7.1f R (%+.3f R/pan, %%stop %4.1f) | %s : %4d paniers %+7.1f R (%+.3f R/pan, %%stop %4.1f)"
+                  % (sn, nom_regle(regle), nomc, len(res[nomc]), res[nomc][:, 0].sum(), res[nomc][:, 0].mean(), 100 * res[nomc][:, 2].mean(),
+                     nomf, len(res[nomf]), res[nomf][:, 0].sum(), res[nomf][:, 0].mean(), 100 * res[nomf][:, 2].mean()))
     return pd.DataFrame(rows)
 
 
@@ -335,8 +335,10 @@ if __name__ == "__main__":
     dh = dh[dh.heure >= pd.Timestamp("2022-08-01").timestamp()].reset_index(drop=True)
     TH, WH, PWH, VH = traite("or H1", dh, dict(span=48, heures=BJ.H_H1, debut=60), 12, 3, True)
     T5, W5, PW5, V5 = traite("or M5", d5, dict(span=576, heures=BR.H_M5, debut=600), 6, 1, False)
-    TC = controle_m1(d5)
-    T = pd.concat([TH, T5, TC], ignore_index=True)
+    RC = [("i", 0.25, "f"), ("ii", 0.25, "f"), ("i", 0.4, "f"), ("ii", 0.4, "f"), ("i", 0.5, "f"), ("ii", 0.5, "f"), ("i", S0, "f")]
+    TC = controle_grain("M5", "M1", prepare(d5, 576, BR.H_M5, 600), BR.charge("xau_m1_90k"), 240, 300, RC)
+    TC2 = controle_grain("H1", "M5", prepare(dh, 48, BJ.H_H1, 60), d5, 3300, 3600, RC)
+    T = pd.concat([TH, T5, TC, TC2], ignore_index=True)
     T.round(4).to_csv(os.path.join(ICI, "donnees", "entree_stop.csv"), index=False)
     # ---------------------------------------------- verdict
     h = TH.set_index("variante")
