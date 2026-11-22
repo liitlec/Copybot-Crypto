@@ -12,7 +12,7 @@ Cinq definitions, sur CHAQUE combinaison : (a) mediane du mois isole (tous mois 
 (c) moyenne geometrique mensuelle par trajectoire (V12^(1/12) - 1) puis mediane ; (d) « rythme median 12 mois » =
 mediane(V12)^(1/12) - 1 ; (e) % de mois negatifs ; plus (f) exp(moyenne des log(1 + mois)) - 1 (controle de (c)).
 NB : (c) et (d) sont egales par construction (x -> x^(1/12) est croissante : la mediane passe a travers).
-Rejeu historique (UNE trajectoire, 51 mois, scenarios appliques a l'histoire par ampute) : (a), (b), (e) sur les mois
+Rejeu historique (UNE trajectoire, 52 mois calendaires, scenarios appliques a l'histoire par ampute) : (a), (b), (e) sur les mois
 calendaires ; (c) = valeur finale^(1/nb mois) - 1 ; (d) = mediane des fenetres glissantes de 12 mois.
 Controles attendus : A sans arret prudent (a) = +0,29 % (annexe D) ; B avec arret prudent (a) = +0,22 % et (d) = +1,60 %
 (annexe C, donnees/dix.csv, M0 12 mois).
@@ -25,7 +25,26 @@ entiere ou 48 derniers mois ; compose quotidien, 50/50 du compte. Le nombre de p
 copie de la logique d'entree de banc_bt_regulier.simule (controle : 956 paniers).
 Ecrit donnees/reconcilie.csv. Usage : python3 banc_reconcilie.py
 
-RESULTAT (execution du 22/11/2026, XX s, 5000 tirages, rien de reduit) : A REMPLIR
+RESULTAT (execution du 22/11/2026, 11 s, 5000 tirages, rien de reduit) : verdict RECONCILIE, l'ecart est une affaire de
+DEFINITION, pas de reglage. Controles exacts : L 7,4975 ; A sans arret prudent (a) +0,29 % ; B arret -34 % prudent
+(a) +0,22 %, (d) +1,60 % ; mesure (d) +4,38 %. Les deux bancs ont les memes series, poids, L, frais et courbe hebdo.
+Prudent, 12 mois (A sans arret | B arret -34 %) : (a) med. mois +0,29 | +0,22 ; (b) moy. mois +2,72 | +2,76 ;
+(c) = (d) +1,58 | +1,60 ; (e) mois < 0 48 | 48 % ; (f) +2,10 | +2,14 ; compte median x1,21, moyen x1,39-1,40 ;
+annee en perte 27 | 26 %. Mesure : (a) +2,77, (b) +5,5, (d) +4,3-4,4, M<0 32 %. Nul : (a) -2,1, (b) 0,0, (d) -1,2/-1,4,
+M<0 64 % (58 % avec arret : mois geles a 0).
+Changer de tirages (A -> B) bouge (d) de +0,03 pt ; ajouter l'arret le bouge de -0,02 pt et (a) de -0,07/-0,09 pt.
+Changer de DEFINITION dans un meme reglage : +1,3 pt. Cause : mois tres asymetriques (asymetrie ~ +4 : bt_or fait
+peu de grands mois et beaucoup de petits mois rouges), donc mediane d'un mois (0,3 %) << rythme compose (1,6 %) <<
+moyenne (2,7 %, tiree par les rares grands mois ; perte de composition ~ 1,1 pt).
+Rejeu historique prudent (UNE trajectoire, 52 mois) : (a) +0,16, (b) +2,67, (c) +2,08, (d) +1,54, M<0 48 % ; pire baisse
+40,8 % : l'arret -34 % SE DECLENCHE le 21/09/2023 (nul : 05/06/2023) et fige le compte a x0,74. Mesure : (c) +4,79,
+pire baisse 17 %, pas d'arret.
+DECIDER avec (d) / (c) (compte median a 12 mois, ici x1,21 prudent = +1,6 %/mois) et TOUJOURS avec P(annee en perte)
+27 % et le % de mois negatifs 48 % ; (a) seule sous-estime ce qu'on gagne, (b) seule le surestime.
+NOTE DE L'EXPERT : NON retrouvee a l'identique. Interpretation la plus proche (bt_or 1/3 du notionnel par position,
++0,04 %/AR, 48 mois) : +27,4 %, +0,50 %/mois, meilleur mois +7,16 %, pire baisse -7,5 % (cible +20,87 / +0,40 /
++4,53 / -5,36). Sa taille bt_or n'est pas ecrite et ses donnees ne sont pas les notres ; l'ordre de grandeur
+(+0,4 a +0,7 %/mois sans levier) est le meme : les +1,6 %/mois du plan viennent du levier L 7,5.
 """
 import os, time, contextlib, io, warnings
 warnings.simplefilter("ignore")
@@ -133,7 +152,7 @@ if __name__ == "__main__":
     print("Donnees %s -> %s (%d jours), bt_or %+.0f R ; poids %s ; L plan -30 %% = %.4f (controle 7,4975)" % (
         X.index[0].date(), X.index[-1].date(), len(X), gh.sum(), np.round(w, 3), L30))
     print("Reglages : les deux bancs importent les memes series, poids, L, courbe hebdo et ampute ; differences = "
-          "jeu de tirages (A / B) et arret (aucun / -34 %%).")
+          "jeu de tirages (A / B) et arret (aucun / -34 %).")
 
     rows = []
     print("\n=== Monte-Carlo 12 mois, %d tirages, plan -30 %% (L %.3f)" % (PC.NPAR, L30))
