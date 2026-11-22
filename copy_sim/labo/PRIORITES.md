@@ -717,3 +717,22 @@ médiane, résultat sur la semaine 16-20/11 ; comparer à pari_opt (repli S&P + 
 en variante `pari_tendance_opt` sur la démo (compte virtuel séparé, hors totaux, essais patients, nouvelle VERSION).
 Tableau en tête d'AVIS.md.
 **FAIT le 21/11** : bt_or, 3 % par R, objectif x5 (prudent H1 : x5 23 %, ruine 11 %) ; `pari_tendance_opt` en v23 (VERSION publiée, essais OK).
+
+## 22/11 (Paris) : contre-expertise externe (avis d'un autre modèle sur le dossier complet) — 3 travaux
+Baptiste a fait relire le dossier par une autre IA. Ses points retenus :
+1. **Réconcilier le plan −30 %** : l'annexe C (banc_dix.py) donne +1,6 %/mois en prudent (« rythme médian » composé
+   sur 12 mois), l'annexe D (banc_plan_cent.py) +0,3 % (médiane d'un mois pris seul). Rejouer les deux avec les MÊMES
+   dates, lots, frais, règles d'arrêt et la même définition du rendement mensuel ; donner les deux définitions côte à
+   côte (médiane du mois isolé, moyenne géométrique, rythme médian sur 12 mois) et dire laquelle utiliser pour décider.
+2. **Décomposer bt_or** (or M5 18 mois et H1 4 ans, mêmes horaires d'entrée) : (a) bt_or tel quel ; (b) sans
+   renforcements (une seule position) ; (c) sens des entrées tiré au sort, avec et sans renforcements, à risque
+   comparable (au moins 1 000 tirages) ; (d) idem sur 2022-2024 seul et 2024-2026 seul. Dire quelle part du résultat
+   vient du signal de sens, de la pyramide, et de la grande tendance de l'or.
+3. **Momentum de fin de séance sur le S&P 500** (effet publié sur l'ETF 1993-2013) : rendement de la clôture de la
+   veille à 10 h New York → prendre ce sens à 15 h 30, sortir à 16 h ; CFD SP500+ du courtier (M5, spread réel), aussi
+   Nasdaq/Dow/Russell ; période réservée (les 12 derniers mois lus une seule fois) ; mesurer l'apport au portefeuille,
+   surtout pendant les mois faibles de bt_or. Comparer au repli d'indices (référence).
+Note de l'expert, à vérifier aussi : rejeu « moitié du capital sur chaque stratégie, sans levier, 0,04 % par
+aller-retour » = +20,87 % cumulés en 4 ans (+0,40 %/mois), meilleur mois +4,53 %, pire baisse −5,36 % ; piste
+« acheter Nasdaq / vendre S&P après un retard d'un point » : 50 signaux, perd après frais → écartée.
+Le verdict du test 16-20/11 reste « échec » (critère 4 : le compte simulé de 100 $ serait passé sous 70 $ dès lundi).
