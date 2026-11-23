@@ -184,12 +184,13 @@ def _probas(cout, lam, L, au_trade=False):
     return res
 
 
-def _poids(p, prise):
+def _poids(p, prise, neutre=1.0):
+    """neutre = 1 : convention préenregistrée ; neutre = 2 : contrôle (prendre tout = 2 partout = TOUT après egal)."""
     if prise == "doux":
-        w = np.clip(1 + 10 * (p - 0.5), 0, 2)
+        w = np.clip(1 + 10 * (p - 0.5), 0, 2) if neutre == 1.0 else 2 * np.clip(10 * (p - 0.45), 0, 1)
     else:
         w = np.where(p > {"s50": .50, "s55": .55, "s60": .60}[prise], 2.0, 0.0)
-    return np.where(np.isnan(p), 1.0, w)                                            # pas de modèle -> 1
+    return np.where(np.isnan(p), neutre, w)                                         # pas de modèle -> neutre
 
 
 _CP = {}
@@ -202,46 +203,46 @@ def probas(cout, lam, L, au_trade=False):
     return _CP[k]
 
 
-def W_meta(cout, lam, L, prise):
+def W_meta(cout, lam, L, prise, neutre=1.0):
     pr = probas(cout, lam, L)
-    W = pd.DataFrame(1.0, index=JOURS, columns=FAMS)
+    W = pd.DataFrame(neutre, index=JOURS, columns=FAMS)
     for f in FAMS:
-        w = _poids(pr[f].values, prise)
+        w = _poids(pr[f].values, prise, neutre)
         if f not in TRADES:
-            w = np.where(pr[f + "_pos"].values, w, 1.0)                             # jour sans position : 1
+            w = np.where(pr[f + "_pos"].values, w, neutre)                          # jour sans position : neutre
         W[f] = w
     return W
 
 
-def grille():
+def grille(neutre=1.0):
     g = {}
     for l in LAMBDAS:
         for L in FENETRES:
             for p in PRISES:
-                g["l%d_L%d_%s" % (l, L, p)] = (lambda c, l=l, L=L, p=p: W_meta(c, l, L, p))
+                g["l%d_L%d_%s" % (l, L, p)] = (lambda c, l=l, L=L, p=p: W_meta(c, l, L, p, neutre))
     return g
 
 
 # ---------------------------------------------------------------------------------------- complément trade par trade
-def serie_trade(cout, lam, L, prise):
+def serie_trade(cout, lam, L, prise, neutre=1.0):
     """Série journalière (conventions S.pnl) avec poids trade par trade (or) et poids journaliers (indices)."""
-    Wd = W_meta(cout, lam, L, prise)
+    Wd = W_meta(cout, lam, L, prise, neutre)
     prt = probas(cout, lam, L, au_trade=True)
     T = S.trades(cout)
     Pf = S.pnl_fams(Wd, cout)                                                       # indices : mêmes poids que la version jugée
     We = Wd.copy()
     for f in TRADES:
         x = T[T.fam == f].reset_index(drop=True)
-        w = _poids(prt[f].values, prise)
+        w = _poids(prt[f].values, prise, neutre)
         Pf[f] = pd.Series(w * x.g.values, index=x.jour.values).groupby(level=0).sum().reindex(JOURS).fillna(0)
-        We[f] = pd.Series(w, index=x.jour.values).groupby(level=0).mean().reindex(JOURS).fillna(1.0)
+        We[f] = pd.Series(w, index=x.jour.values).groupby(level=0).mean().reindex(JOURS).fillna(neutre)
     return S.egal(Pf.sum(1), We)
 
 
-def evalue_trade(nom):
+def evalue_trade(nom, neutre=1.0):
     print("\n--- Complément (hors critère) : %s, trades or jugés à leur décision ---" % nom)
     for cout in (1.0, 2.0):
-        Ser = {n: serie_trade(cout, l, L, p) for n, (l, L, p) in
+        Ser = {n: serie_trade(cout, l, L, p, neutre) for n, (l, L, p) in
                zip(GRILLE_NOMS, [(l, L, p) for l in LAMBDAS for L in FENETRES for p in PRISES])}
         Wt, W5 = S.W_tout(), S.W_suivre5(cout)
         tout, s5 = S.egal(S.pnl(Wt, cout), Wt), S.egal(S.pnl(W5, cout), W5)
@@ -278,4 +279,11 @@ if __name__ == "__main__":
             f, m.sum(), 100 * pp.mean(), 100 * yy[pp].mean() if pp.any() else np.nan,
             100 * yy[~pp].mean() if (~pp).any() else np.nan))
     evalue_trade("p3 meta (trade par trade)")
+    # CONTRÔLE AJOUTÉ APRÈS le premier lancement (non préenregistré, hors CSV) : avec neutre = 1, une famille
+    # journalière « toujours prise » reçoit 2 les jours de position et 1 les jours sans position -> levier gratuit
+    # que l'exposition égale ne voit presque pas (repli_ind n'est en position que ~25 % des jours) ; idem le repli
+    # « pas de modèle -> 1 » face à « pris -> 2 ». Contrôle : neutre = 2 (jours sans position, sans trade dans le
+    # complément, sans modèle) et doux = 2 x clip(10 (p - 0,45), 0, 1) ; « tout prendre » redevient alors TOUT.
+    S.evalue("p3 meta controle neutre2 (hors CSV)", grille(2.0))
+    evalue_trade("p3 meta controle neutre2 (trade par trade)", 2.0)
     print("%.0f s" % (time.time() - t0))

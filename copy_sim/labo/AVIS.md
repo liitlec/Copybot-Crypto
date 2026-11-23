@@ -1,6 +1,6 @@
 # Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
 
-**En cours : 3 pistes finies sur 7, aucune ne tient (la piste 1 est « presque »). Robot inchangé pour l'instant.**
+**En cours : 4 pistes finies sur 7, aucune ne tient (la piste 1 est « presque »). Robot inchangé pour l'instant.**
 
 Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P), chaque jour un poids de 0 à 2 par famille décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois, même exposition que « tout en marche », spread réel puis doublé, reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. Références hors échantillon (spread réel) : **tout en marche +87 u (2023-mi-2024) / +324 u (mi-2024-2026)** ; suivre ce qui marche sur 5 jours −96 / +34 u.
 
@@ -8,6 +8,7 @@ Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or`
 |---|---|---|---|---|---|---|
 | 1. Modèle de régime caché (HMM 2-3 états, en ligne, hystérésis) | `banc_regime_p1.py` (36) | **+128** / +87 / −96 | **+348** / +324 / +34 | +349 / +296 | 0,091 | presque |
 | 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | +90 / +87 / −96 | +316 / **+324** / +34 | +282 / +296 | 0,085 | ne tient pas |
+| 7. Sortie qui s'adapte (stop resserré quand l'efficacité chute, sortie au temps, objectif partiel) | `banc_regime_p7.py` (24) | **+126** / +87 / −96 | +298 / **+324** / +34 | +252 / +296 | 0,476 | ne tient pas |
 | 2. Mesures tendance/bruit (Kaufman, Hurst, ratio de variance, autocorrélation, ADX, VWAP) | `banc_regime_p2.py` (30) | +37 / **+87** / −96 | +271 / **+324** / +34 | +246 / +296 | 0,985 | ne tient pas |
 
 Piste 1 (modèle de régime caché) :
@@ -16,6 +17,13 @@ Piste 1 (modèle de régime caché) :
 3. Mais la preuve est mince : t = 0,8 contre « tout en marche », p corrigé 0,091 au spread réel (il faut < 0,05) ; sur la période réservée (depuis mai 2026) il fait pareil (+97 contre +99 u).
 4. Le modèle sépare surtout les journées agitées des calmes, pas la tendance du va-et-vient, et le walk-forward a pris la carte inverse pendant presque un an (06/2023-04/2024) : le sens de l'effet n'est pas stable.
 5. Verdict : « presque », pas de variante sur la démo ; à revoir avec quelques mois de plus.
+
+Piste 7 (sortie qui s'adapte toute seule) :
+1. Au lieu de deviner le régime, on change la sortie de `bt_or` et de la cassure or : stop resserré de moitié quand l'efficacité de Kaufman passe sous 0,25, sortie après 12 h sans progrès, moitié encaissée à +1 ATR.
+2. En 2022-24 (or heurté), le stop resserré aide : +126 u contre +87 pour « tout en marche » ; mais en 2024-26 (forte tendance) il fait moins bien : +298 contre +324, et +87 contre +99 sur la période réservée.
+3. La sortie au temps et l'objectif partiel coupent les grands paniers gagnants, qui font l'essentiel du gain de `bt_or` : ils dégradent partout.
+4. Contrôle sur l'or M5 (06/2025-11/2026) : `bt_or` d'origine +114 R ; avec stop resserré +43 R (2,6 fois plus de paniers) ; les 12 variantes font toutes moins bien.
+5. p corrigé 0,476 ; au spread doublé, elle perd contre « tout en marche » en 2024-26 (+252 contre +296 u).
 
 Piste 2 (mesures tendance / bruit) :
 1. Six mesures sur l'or H1 et quatre sur les indices, lissées et combinées, donnent les poids (tendance forte : familles de tendance ×2 ; bruit : familles de retour ×2).
