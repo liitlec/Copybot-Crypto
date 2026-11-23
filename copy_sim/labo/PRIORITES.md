@@ -796,3 +796,26 @@ bandit (Hedge / Exp3 / Thompson) entre familles, avec plancher ; (5) régime com
 COT) ; (7) règles robustes aux deux régimes (sortie qui se resserre quand l'efficacité chute). Critère : gain hors
 échantillon sur 2022-2024 ET 2024-2026, meilleur que « tout en marche » et que « suivre ce qui marche » (5 jours),
 p corrigé < 0,05, robuste à un spread doublé.
+
+## 23/11, 11 h (Paris) : réponse de GPT Astra (tour 2) — à intégrer au lot « renforts gagnants »
+1. **Risque par panier** (toutes couches comprises, frais et glissement inclus) : central 0,5 % et 1 % ; agressif 2 % et
+   3 % ; 12 % en test de résistance. Monte-Carlo par **blocs de semaines entières, tous marchés ensemble** (garder le
+   parcours intrajournalier et les positions simultanées), probabilité de franchir −30 % depuis un sommet sur 24 mois,
+   séparément de la ruine. Rappel : 1−(1−r)^n → −30 % atteint après 36 pertes à 1 %, 18 à 2 %, 12 à 3 %, 3 à 12 %.
+2. **Faisabilité compte cent** : calculer la perte au stop en devise du compte (équivalent OrderCalcProfit), arrondir le
+   volume vers le bas au pas autorisé ; si le lot minimal (1re position ET demi-lot de renfort) dépasse le budget, compter
+   un **signal ignoré**. Faire le replay pour 100 € et 500 €.
+3. **Filtre placebo** pour « séance calme / inside day » : tirer au hasard autant de séances que le filtre réel, mois par
+   mois, même proportion achat/vente et volatilités préalables comparables, mêmes horaires, renforts et frais ; répéter
+   ≥ 1 000 fois. Le filtre ne vaut que s'il bat la distribution placebo.
+4. **Diversification à risque global constant** : or seul → or + un indice + une paire de devises (même perte totale si
+   tous les stops sont touchés) → puis argent, BTC, ETH un à un. Critère décisif : perte du portefeuille **les jours où
+   les stratégies perdent ensemble**, puis croissance nette et temps passé sous le dernier sommet. Une faible corrélation
+   des cours ne suffit pas.
+5. **Interrupteur de pyramide fondé sur la valeur ajoutée des renforts** (causal) : à chaque entrée, deux paniers virtuels
+   au même bid/ask, A = position seule + stop suiveur, B = même règle + 2 renforts ; Δi = (PnL_B − PnL_A) / risque initial ;
+   après 20 paires, si la somme des 20 derniers Δ < 0 → le panier suivant joue A, sinon B. Comparer chronologiquement
+   « toujours A », « toujours B », « interrupteur » ; mesurer les pertes évitées et combien des 5 meilleurs paniers
+   renforcés il manque. Mesurer d'abord le résultat apparié B − A sur 2022-2024 (si positif, couper la pyramide aurait
+   aggravé). Témoin à battre : deux renforts fixes à risque réduit.
+6. Le +108 R du sens aléatoire : donner la distribution sur ≥ 1 000 graines (déjà fait en partie, la republier).
