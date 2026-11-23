@@ -1,13 +1,21 @@
 # Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
 
-**En cours : 2 pistes finies sur 7, aucune ne tient. Robot inchangé pour l'instant.**
+**En cours : 3 pistes finies sur 7, aucune ne tient (la piste 1 est « presque »). Robot inchangé pour l'instant.**
 
 Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P), chaque jour un poids de 0 à 2 par famille décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois, même exposition que « tout en marche », spread réel puis doublé, reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. Références hors échantillon (spread réel) : **tout en marche +87 u (2023-mi-2024) / +324 u (mi-2024-2026)** ; suivre ce qui marche sur 5 jours −96 / +34 u.
 
 | Piste | Banc (réglages) | 2022-24 : choisi / tout / suivre 5 j | 2024-26 : choisi / tout / suivre 5 j | Spread doublé (2024-26 : choisi / tout) | p corrigé | Verdict |
 |---|---|---|---|---|---|---|
+| 1. Modèle de régime caché (HMM 2-3 états, en ligne, hystérésis) | `banc_regime_p1.py` (36) | **+128** / +87 / −96 | **+348** / +324 / +34 | +349 / +296 | 0,091 | presque |
 | 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | +90 / +87 / −96 | +316 / **+324** / +34 | +282 / +296 | 0,085 | ne tient pas |
 | 2. Mesures tendance/bruit (Kaufman, Hurst, ratio de variance, autocorrélation, ADX, VWAP) | `banc_regime_p2.py` (30) | +37 / **+87** / −96 | +271 / **+324** / +34 | +246 / +296 | 0,985 | ne tient pas |
+
+Piste 1 (modèle de régime caché) :
+1. Un modèle à 2 ou 3 états, réestimé chaque mois sur le passé seulement, décide chaque jour : régime « agité » → familles de tendance de l'or ×2 et retour ×0, l'inverse au calme.
+2. C'est la seule piste qui bat « tout en marche » sur les deux périodes : +128 u contre +87 en 2022-24, +348 contre +324 en 2024-26 ; et encore au spread doublé (+349 contre +296).
+3. Mais la preuve est mince : t = 0,8 contre « tout en marche », p corrigé 0,091 au spread réel (il faut < 0,05) ; sur la période réservée (depuis mai 2026) il fait pareil (+97 contre +99 u).
+4. Le modèle sépare surtout les journées agitées des calmes, pas la tendance du va-et-vient, et le walk-forward a pris la carte inverse pendant presque un an (06/2023-04/2024) : le sens de l'effet n'est pas stable.
+5. Verdict : « presque », pas de variante sur la démo ; à revoir avec quelques mois de plus.
 
 Piste 2 (mesures tendance / bruit) :
 1. Six mesures sur l'or H1 et quatre sur les indices, lissées et combinées, donnent les poids (tendance forte : familles de tendance ×2 ; bruit : familles de retour ×2).
