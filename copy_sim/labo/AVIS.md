@@ -1,3 +1,20 @@
+# Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
+
+**En cours : 1 piste finie sur 7. Robot inchangé pour l'instant.**
+
+Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P), chaque jour un poids de 0 à 2 par famille décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois, même exposition que « tout en marche », spread réel puis doublé, reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. Références hors échantillon (spread réel) : **tout en marche +87 u (2023-mi-2024) / +324 u (mi-2024-2026)** ; suivre ce qui marche sur 5 jours −96 / +34 u.
+
+| Piste | Banc (réglages) | 2022-24 : choisi / tout / suivre 5 j | 2024-26 : choisi / tout / suivre 5 j | Spread doublé (2024-26 : choisi / tout) | p corrigé | Verdict |
+|---|---|---|---|---|---|---|
+| 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | +90 / +87 / −96 | +316 / **+324** / +34 | +282 / +296 | 0,085 | ne tient pas |
+
+Piste 4 (bandit) :
+1. Le meilleur réglage choisi chaque mois est presque toujours Exp3 avec un apprentissage lent : ses poids restent proches de « tout en marche », d'où +90 u contre +87 u en 2022-24, mais +316 contre +324 en 2024-26.
+2. Les versions qui réagissent vite (Hedge fort, Thompson avec oubli) se concentrent sur les familles qui viennent de gagner et retombent dans le défaut de « suivre 5 jours », qui perd −96 u en 2022-24.
+3. Contre « suivre 5 jours », le bandit gagne nettement (p 0,004), mais contre « tout en marche » il ne fait pas mieux (p 0,085 au spread réel).
+4. Au spread doublé, même constat : +282 u contre +296 pour « tout en marche » en 2024-26.
+5. Conclusion : sur ces familles, le gain récent ne prédit pas le gain suivant ; garder tout en marche reste le meilleur choix simple.
+
 # Avis pour Baptiste — 23/11/2026 (Lot A : la pyramide sur nos autres stratégies)
 
 **Réponse courte : ajouter des renforts n'améliore aucune de nos autres stratégies. Une seule chose tient, déjà connue : l'or « toujours acheteur » avec la pyramide de `bt_or`. Il est sur la démo en `achat_or_pyr_opt` (robot v25, hors totaux, essais OK).**
