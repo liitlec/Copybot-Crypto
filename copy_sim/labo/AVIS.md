@@ -1,3 +1,56 @@
+# Avis pour Baptiste — 23/11/2026, soir (Lot E : vérification de l'étude d'Astra « type de séance sur l'or », PRIORITES 23/11 12 h)
+
+**Réponse courte : les chiffres d'Astra sont exacts, mais aucun de ses signaux ne rapporte quand on les branche sur nos robots. Chaque gain est dans la marge d'une coupure tirée au hasard (meilleur p 0,22, 1,00 après correction). Sur 12,7 ans de H4, le type de journée se devine un tout petit peu mieux que le hasard (AUC 0,55), mais ça ne se transforme pas en argent. Pas de variante `_opt`, robot inchangé.** Banc `banc_lote.py`, contrat figé et poussé avant les résultats (efcbbf1).
+
+**1. Reproduction et heures**
+
+| Contrôle | Résultat |
+|---|---|
+| Ses scripts, sans modification | Mêmes chiffres : calme 71/229, 28/89, 29/94, 7/19 ; FOMC 0 sur 76 après 13 h, amplitude ×1,62 ; cassure 590 / 242 / 251 / 48 occasions |
+| Fuseau de sa source H4 | Heure **serveur STARTRADER − 3 h**, été comme hiver (écart médian 0,2 pb, contre 7 pb ou plus avec un autre décalage) |
+| Son « 9 h » | = 12 h serveur = **11 h à Paris** (pas 9 h) |
+| Sa 2e source (H1 en UTC) | Décalée d'1 h en hiver par rapport à la première (petit défaut, sans effet sur ses conclusions) |
+| « 20 ans » de H4 | Non : vraies bougies 4 h seulement **depuis 06/2013** (avant, une bougie par jour) → 12,7 ans |
+
+**2-3. Ses drapeaux sur nos robots** (or H1 du courtier 08/2022 → 11/2026, 1 106 jours, décision à 11 h Paris ; spread réel + 50 % de glissement ; unités à risque égal ; positions ouvertes avant 11 h gardées)
+
+Drapeaux : FOMC 34 jours, calme 210, cassure 501, indéterminé 464. Bases : `bt_or` seul −5 / +95 u, retour seul −12 / −52, 50/50 −9 / +22 (2022-24 / 2024-26).
+
+| Règle | Jours | Gain 2022-24 / 2024-26 | Coupure au hasard (médiane) | p hasard | Pire baisse (base) | Spread ×3 |
+|---|---|---|---|---|---|---|
+| `bt_or` seul, coupé les jours FOMC | 34 | +1,8 / −0,7 | −0,5 | 0,38 | −24,8 (−26,1) | +1,2 |
+| `bt_or` seul, coupé les jours calmes | 210 | +12,4 / −8,8 | −4,8 | 0,22 | −21,3 (−26,1) | +4,8 |
+| `bt_or` seul, coupé les jours de cassure | 501 | −0,6 / −42,7 | −24,2 | 0,89 | −22,1 | −41,4 |
+| Retour seul, coupé les jours FOMC | 34 | +1,7 / +2,7 | +2,7 | 0,37 | −66,7 (−73,6) | +5,2 |
+| Retour seul, coupé les jours calmes | 210 | −2,3 / +11,6 | +5,7 | 0,37 | −63,8 | +12,8 |
+| Retour seul, coupé les jours de cassure | 501 | +10,8 / +20,1 | +22,3 | 0,30 | −45,9 | +39,4 |
+| 50/50, retour coupé les jours de cassure | 501 | +5,4 / +10,0 | +11,1 | 0,29 | −15,3 (−13,9) | +19,7 |
+| 50/50, les 5 autres règles | 34-501 | toutes < ±7 | — | 0,23-0,89 | — | — |
+
+1. **FOMC** : il a raison, ces jours bougent plus. Mais sur nos robots, ça ne change rien (34 jours, ±2 u).
+2. **Calme** : couper `bt_or` les jours calmes aide en 2022-24 (+12) et coûte en 2024-26 (−9), avec p 0,22.
+3. **Cassure** : couper la famille retour semble rapporter (+31 u), mais une coupure au hasard du même nombre de jours rapporte presque autant (+22). Ce n'est pas le signal qui aide : la famille retour perd presque tout le temps. Couper `bt_or` ces jours-là coûte −43 u.
+4. Semaines perdantes, espérance par semaine et IC : quasi identiques à la base pour les 12 règles (détails dans `donnees/lote_robots.csv`). Après correction de Holm, p = 1,00 partout.
+
+**4. Le test « jour » du lot D refait sur 12,7 ans de H4** (06/2013 → 02/2026, ≈ 3 000 jours prévus hors échantillon ; décisions à 7 h, 11 h et 15 h Paris, les heures du quadrillage H4)
+
+| Décision | Modèle | AUC (IC 95 %) | Gain/risque par an (toujours 1 : 0,33) | Gain 2014-19 / 2020-26 | Placebo p |
+|---|---|---|---|---|---|
+| 7 h | logistique | **0,56 (0,54-0,58)** | 0,23 | +66 / −100 R | 0,24 |
+| 7 h | arbre | 0,53 (0,51-0,55) | 0,45 | +28 / +14 | 0,26 |
+| 11 h | logistique | **0,56 (0,54-0,58)** | 0,10 | −13 / −67 | 0,37 |
+| 11 h | arbre | 0,55 (0,53-0,57) | 0,37 | +9 / +8 | 0,17 |
+| 15 h | logistique | 0,55 (0,53-0,57) | 0,36 | +15 / −1 | 0,04 |
+| 15 h | arbre | 0,53 (0,51-0,55) | 0,33 | 0 / +2 | 0,58 |
+| **SPA, 6 règles** | | | | | **p = 0,61** |
+
+1. **Avec 3 000 jours, on voit enfin quelque chose** : le type du reste de la journée se devine un peu mieux que pile ou face (AUC 0,55-0,56, borne basse au-dessus de 0,5). Sur 4 ans (lot D), c'était invisible (AUC 0,47-0,52).
+2. **Mais c'est trop faible pour payer.** Une seule règle bat son placebo, et sur une seule période (15 h logistique, p 0,04, +15 puis −1 R). Le test SPA dit p 0,61. Il faudrait environ 56 % de bons jours, et une AUC de 0,55 n'y suffit pas.
+3. Le `bt_or` rejoué en H4 suit bien le vrai (corrélation 0,88), mais il gagne +19 R en 2022-24 quand le vrai perd −5 R. Le contrat le déclare donc non validé : la colonne argent est indicative.
+4. **Le type de journée se retourne un peu, il ne se prolonge pas** : corrélation avec la veille −0,06 (seuil 0,035). Une journée de tendance est plutôt suivie d'une journée moins tendue, pas d'une autre tendance.
+
+**Conclusion** : l'étude d'Astra est propre et reproductible. Mais ce qu'elle détecte (FOMC agités, matins calmes un peu mieux repérés, AUC 0,55) est réel sans être exploitable par nos robots à risque égal. Il n'y a rien à mettre en démo.
+
 # Avis pour Baptiste — 23/11/2026, soir (Lot D, points 6-8 : deviner la JOURNÉE de tendance à 9 h, 11 h, 14 h)
 
 **Réponse courte : non. À 9 h, 11 h ou 14 h, rien de ce qu'on connaît ne dit si la suite de la journée sera en tendance ou en aller-retour (AUC 0,47 à 0,52, alors que 0,50 = pile ou face). Aucune des 6 règles ne bat « toujours 1 » sur les deux périodes. Pas de variante démo.** Banc `banc_lotd_jour.py`, contrat figé et poussé avant les résultats.

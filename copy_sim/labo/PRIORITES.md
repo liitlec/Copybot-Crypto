@@ -924,3 +924,4 @@ base, mais 26-29 % une fois corrigé du jour de la semaine et du mois ; jours de
    refaire le point « jour » du lot D sur ~20 ans à la résolution 4 h : le faire.
 5. Si quelque chose tient contre le témoin aléatoire : variante démo `_opt` hors totaux. Contrat figé avant.
 Résultats en tête d'AVIS.md.
+**FAIT le 23/11 soir** : `banc_lote.py` (contrat efcbbf1) ; reproduction exacte ; son « 9 h » = 11 h Paris (source = serveur − 3 h) ; H4 réelles seulement depuis 06/2013 ; 12 règles sur nos robots : aucune ne bat la coupure au hasard (p Holm 1,00) ; jour sur 12,7 ans : AUC 0,55-0,56 significative mais SPA p 0,61, rien d'exploitable. Pas de variante démo.
