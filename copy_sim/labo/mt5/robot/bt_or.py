@@ -30,7 +30,7 @@ SEUIL_ANCIEN = 0.6
 
 def marquer(prix, chiffres=2, plus=False):
     """Marque du stop de secours : centimes finissant par 7. Codes a deux chiffres reserves (v21-v22) :
-    97 = bt_or_plus_opt, 77 = bt_or_serre_opt, 57 = pari_tendance_opt (v23) ; les autres paniers les evitent (-0,10 $). `plus` = code ou True (97)."""
+    97 = bt_or_plus_opt, 77 = bt_or_serre_opt, 57 = pari_tendance_opt (v23), 37 = gpt_pyramide_opt (v24) ; les autres paniers les evitent (-0,10 $). `plus` = code ou True (97)."""
     v = round(prix, chiffres)
     if chiffres != 2:
         return v
@@ -45,7 +45,8 @@ def marquer(prix, chiffres=2, plus=False):
 
 MARQUE_PLUS, MARQUE_SERRE = 97, 77
 MARQUE_PARI = 57                # v23 : pari_tendance_opt (pari_tendance.py)
-CODES_RESERVES = (MARQUE_PLUS, MARQUE_SERRE, MARQUE_PARI)
+MARQUE_GPT = 37                 # v24 : gpt_pyramide_opt (gpt_pyramide.py)
+CODES_RESERVES = (MARQUE_PLUS, MARQUE_SERRE, MARQUE_PARI, MARQUE_GPT)
 
 
 def code_marque(prix):

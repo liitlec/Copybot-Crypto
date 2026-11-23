@@ -974,4 +974,62 @@ assert pt4.arret == "poche vide", pt4.arret
 for f in ("etat_pt_essai.json", "x_essai.json"):
     if os.path.exists(f):
         os.remove(f)
+# v24 : gpt_pyramide_opt (renforts gagnants, donnees seulement, marque 37, stops chez le courtier)
+import gpt_pyramide
+class FauxPontG(FauxPontT):
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert id == "gpt_pyramide_opt" and lots in (0.02, 0.01) and bt_or.code_marque(stop) == 37, (id, lots, stop)
+        assert (sens == "achat" and stop < self.bid) or (sens == "vente" and stop > self.bid + 0.2)
+        self.n += 1
+        e = self.bid + 0.2 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "symbole": "XAUUSD", "sens": sens, "prix_entree": e, "stop": stop,
+                            "profit": 0.0, "id": id, "heure_serveur": 0, "prix_actuel": self.bid, "lots": lots}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+J0 = 1794009600 - 1794009600 % 86400
+d1g = [[J0 - 86400 * (60 - i), 0, 3990.0 + i + 10, 3990.0 + i - 10, 3990.0 + i, 1, 20] for i in range(60)]   # hausse, amplitude 20
+d1g[-1] = [J0 - 86400, 0, d1g[-2][2] - 1, d1g[-2][3] + 1, 4049.0, 1, 20]                                       # veille = inside day
+s_, R_ = gpt_pyramide.parametres(d1g)
+assert s_ == 1 and abs(R_ - 0.25 * (20 * 13 + 18) / 14) < 1e-9, (s_, R_)
+assert gpt_pyramide.parametres(d1g[:-1] + [[J0 - 86400, 0, 4080, 4040, 4070, 1, 20]]) == (0, None), "ni calme ni inside : rien"
+def m15g(h, m, o, c):
+    t = J0 + h * 3600 + m * 60
+    return [[t - 900, c, c + 1, c - 1, c, 1, 20], [t, o, max(o, c) + 0.5, min(o, c) - 0.5, c, 1, 20]]
+for f in ("etat_gpt_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+fg = FauxPontG(); fg.bid = 4050.0
+g = gpt_pyramide.GptPyramide(fg, fichier="etat_gpt_essai.json")
+g.tour({}, m15g(7, 45, 4050.0, 4050.0), d1g, True)
+assert not fg.pos, "pas d'entree hors de la bougie de 08:00"
+g.tour({}, m15g(8, 0, 4050.0, 4050.0), d1g, True)
+assert len(fg.pos) == 1 and g.panier and g.panier["s"] == 1, "achat a 08:00 apres un inside day en tendance"
+q = list(fg.pos.values())[0]
+assert abs(q["stop"] - (4050.2 - R_)) < 1.0 and bt_or.code_marque(q["stop"]) == 37
+g.tour({x["ticket"]: x for x in fg.positions()}, m15g(8, 15, 4050.0, 4050.0), d1g, True)
+assert len(fg.pos) == 1 and g.panier, "une seule entree par seance"
+fg.bid = 4050.2 + 1.1 * R_
+ps_ = {x["ticket"]: x for x in fg.positions()}
+g.tour(ps_, m15g(8, 30, fg.bid, fg.bid), d1g, True)                 # cloture a +1,1 R : stop au point mort, renfort en attente
+assert g.panier["be"] and g.panier["attente"] == 1.0 and abs(q["stop"] - 4050.2) < 1.0, q["stop"]
+g.tour({x["ticket"]: x for x in fg.positions()}, m15g(8, 45, fg.bid, fg.bid), d1g, True)   # ouverture encore au-dela : renfort
+assert len(fg.pos) == 2 and sorted(x["lots"] for x in fg.pos.values()) == [0.01, 0.02], "renfort de 0,5 x V"
+assert all(bt_or.code_marque(x["stop"]) == 37 for x in fg.pos.values())
+os.remove("etat_gpt_essai.json")                                   # memoire perdue : reprise par la marque 37
+g2 = gpt_pyramide.GptPyramide(fg, fichier="etat_gpt_essai.json")
+g2.adopter({x["ticket"]: x for x in fg.positions()})
+assert sorted(g2.tickets()) == sorted(g.tickets()) and g2.panier["R"] == gpt_pyramide.R_REPRISE, "panier repris apres perte de memoire"
+assert not bt_or.PanierBT(FauxPont(), fichier="x_essai.json").candidat(dict(q, prix_actuel=fg.bid), d1t), "bt_or ne prend pas gpt"
+assert bt_or.code_marque(bt_or.marquer(3922.35)) is None, "bt_or evite 37"
+fg.pos.clear()                                                     # stop touche chez le courtier
+g2.panier["profits"] = {str(t): -2.0 * g2.panier["R"] for t in g2.panier["tickets"][:1]}
+g2.tour({}, m15g(9, 0, 4040.0, 4040.0), d1g, True)
+assert g2.panier is None and g2.n == 1 and abs(g2.cumul_r + 1.0) < 0.01, g2.cumul_r
+g2.cumul_r = -15.0
+g2.fait = None
+g2.tour({}, m15g(8, 0, 4050.0, 4050.0), d1g, True)
+assert not fg.pos and g2.arrete(), "regle d'arret : -15 R"
+for f in ("etat_gpt_essai.json", "x_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 print("ESSAIS OK")

@@ -17,8 +17,9 @@ import pari_opt
 import fomc_dax
 import pari_court
 import pari_tendance
+import gpt_pyramide
 
-VERSION = 23
+VERSION = 24
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -209,6 +210,8 @@ class Robot:
         self.btp = bt_or.PanierBT(pont, fichier="etat_bt_plus.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
         self.bts = bt_or.PanierBT(pont, fichier="etat_bt_serre.json", nom="bt_or_serre_opt", serre=(3.0, 0.5))
         self.btt = pari_tendance.PanierPari(pont)       # v23 : pari_tendance_opt, compte virtuel separe, hors totaux
+        self.gpt = gpt_pyramide.GptPyramide(pont)       # v24 : gpt_pyramide_opt, donnees seulement, hors totaux
+        self.gpt_muet = False
         self.crypto = [bt_or.PanierBT(pont, fichier="etat_%s.json" % n, symbole=sym, nom=n, lots=None, taille=None)
                        for sym, n in CRYPTO]           # v13 : bt_crypto, hors test (donnees)
         self.crypto_vu, self.crypto_muet = 0, set()
@@ -244,7 +247,7 @@ class Robot:
     def reconcilier(self):
         """Aligne la memoire sur le compte : note les stops touches, ferme les positions orphelines."""
         ps = {p["ticket"]: p for p in self.pont.positions()}
-        connus = set(self.bt.tickets()) | set(self.btp.tickets()) | set(self.bts.tickets()) | set(self.btt.tickets())   # paniers bt_or et bt_or_plus_opt : bt_or.py
+        connus = set(self.bt.tickets()) | set(self.btp.tickets()) | set(self.bts.tickets()) | set(self.btt.tickets()) | set(self.gpt.tickets())   # paniers bt_or et bt_or_plus_opt : bt_or.py
         for c in self.crypto:
             connus.update(c.tickets())
         connus.update(self.rebond.tickets())            # v15 : la position de rebond_nas_opt n'est pas a repli_ind
@@ -266,6 +269,8 @@ class Robot:
                 o["profit"] = p["profit"]
                 connus.add(o["ticket"])
         self.reprendre(ps, connus)
+        self.gpt.adopter({t: p for t, p in ps.items() if t not in connus})   # v24 : positions marquees 37
+        connus.update(self.gpt.tickets())
         inconnus = {t: p for t, p in ps.items() if t not in connus and p.get("symbole") == bt_or.SYMBOLE and p.get("stop")}
         if inconnus:                                    # v12 : paniers bt_or repris apres un changement de version
             try:
@@ -466,6 +471,22 @@ class Robot:
         eff = abs(auj[-1][4] - auj[0][1]) / a
         return a >= 1.3 * med and eff < 0.2
 
+    def tour_gpt(self, ps, bougies, permis):
+        """v24 : gpt_pyramide_opt ; ses erreurs restent chez lui (notees une fois)."""
+        try:
+            m15 = bougies.get("M15") if bougies else self.pont.bougies(SYMBOLE, "M15", 10)
+            m15 = (m15 or [])[:-1]
+            d1 = []
+            if m15 and m15[-1][0] != self.gpt.vu:
+                d1 = (bougies.get("D1") if bougies else self.pont.bougies(SYMBOLE, "D1", 60)) or []
+                d1 = d1[:-1]
+            self.gpt.tour(ps, m15, d1, permis)
+        except Exception as e:
+            if not self.gpt_muet:
+                self.gpt_muet = True
+                self.pont.noter(evenement="erreur", hypothese=gpt_pyramide.NOM,
+                                texte=("%s: %s" % (type(e).__name__, e)).split("'")[0][:120])
+
     def info_crypto(self, sym):
         if not hasattr(self, "_info_c"):
             self._info_c = {}
@@ -484,6 +505,7 @@ class Robot:
         self.btp.surveiller(ps, px)
         self.bts.surveiller(ps, px)
         self.btt.surveiller(ps, px)
+        self.tour_gpt(ps, bougies, bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees"))
         permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
         self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
         self.rebond.tour(ps, maintenant, permis)        # v15 : Nasdaq, contre-pied d'une journee de grande amplitude
