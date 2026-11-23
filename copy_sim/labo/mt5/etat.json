@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-23T08:32:23Z",
+ "ecrit": "2026-11-23T08:37:32Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,56 +9,45 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 66367.69,
- "valeur": 77178.2,
- "marge_libre": 74291.43,
+ "solde": 66369.19,
+ "valeur": 77327.02,
+ "marge_libre": 74438.87,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
-  "BTCUSD": {
-   "bid": 61458.34,
-   "ask": 61475.29,
-   "spread_points": 1695.0,
-   "point": 0.01,
-   "chiffres": 2,
-   "lot_min": 0.01,
-   "pas_lot": 0.01,
-   "taille_contrat": 1.0,
-   "heure_serveur": 1795429942
-  },
   "ETHUSD": {
-   "bid": 1724.3,
-   "ask": 1726.85,
-   "spread_points": 255.0,
+   "bid": 1720.02,
+   "ask": 1722.56,
+   "spread_points": 254.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795429942
+   "heure_serveur": 1795430251
   },
   "GER40+": {
-   "bid": 24947.1,
-   "ask": 24948.7,
+   "bid": 24907.1,
+   "ask": 24908.7,
    "spread_points": 160.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.1,
    "pas_lot": 0.1,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795429942
+   "heure_serveur": 1795430251
   },
   "XAUUSD": {
-   "bid": 3610.43,
-   "ask": 3610.64,
-   "spread_points": 21.0,
+   "bid": 3607.06,
+   "ask": 3607.26,
+   "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1795429942
+   "heure_serveur": 1795430251
   }
  },
  "positions_robot": [
@@ -67,10 +56,10 @@
    "sens": "achat",
    "lots": 0.1,
    "prix_entree": 25294.33,
-   "prix_actuel": 24947.1,
+   "prix_actuel": 24907.1,
    "stop": 24339.46,
    "objectif": null,
-   "profit": -38.17,
+   "profit": -42.59,
    "ouverte_heure_serveur": 1795140967
   },
   {
@@ -78,10 +67,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3618.24,
-   "prix_actuel": 3610.64,
+   "prix_actuel": 3607.26,
    "stop": 3682.67,
    "objectif": null,
-   "profit": 7.6,
+   "profit": 10.98,
    "ouverte_heure_serveur": 1795421100
   },
   {
@@ -89,10 +78,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3618.19,
-   "prix_actuel": 3610.64,
+   "prix_actuel": 3607.26,
    "stop": 3682.97,
    "objectif": null,
-   "profit": 7.55,
+   "profit": 10.93,
    "ouverte_heure_serveur": 1795421100
   },
   {
@@ -100,10 +89,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3618.04,
-   "prix_actuel": 3610.64,
+   "prix_actuel": 3607.26,
    "stop": 3682.77,
    "objectif": null,
-   "profit": 7.4,
+   "profit": 10.78,
    "ouverte_heure_serveur": 1795421100
   },
   {
@@ -111,32 +100,21 @@
    "sens": "vente",
    "lots": 0.05,
    "prix_entree": 3618.12,
-   "prix_actuel": 3610.64,
+   "prix_actuel": 3607.26,
    "stop": 3682.57,
    "objectif": null,
-   "profit": 37.4,
+   "profit": 54.3,
    "ouverte_heure_serveur": 1795421101
-  },
-  {
-   "symbole": "BTCUSD",
-   "sens": "achat",
-   "lots": 0.01,
-   "prix_entree": 61672.18,
-   "prix_actuel": 61458.34,
-   "stop": 59027.37,
-   "objectif": null,
-   "profit": -2.14,
-   "ouverte_heure_serveur": 1795421108
   },
   {
    "symbole": "ETHUSD",
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 1731.09,
-   "prix_actuel": 1724.3,
+   "prix_actuel": 1720.02,
    "stop": 1629.17,
    "objectif": null,
-   "profit": -0.07,
+   "profit": -0.11,
    "ouverte_heure_serveur": 1795421109
   },
   {
@@ -144,10 +122,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3616.86,
-   "prix_actuel": 3610.43,
+   "prix_actuel": 3607.06,
    "stop": 3560.04,
    "objectif": null,
-   "profit": -6.43,
+   "profit": -9.8,
    "ouverte_heure_serveur": 1795421700
   },
   {
@@ -155,10 +133,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3620.48,
-   "prix_actuel": 3610.43,
+   "prix_actuel": 3607.06,
    "stop": 3553.17,
    "objectif": null,
-   "profit": -10.05,
+   "profit": -13.42,
    "ouverte_heure_serveur": 1795422900
   },
   {
@@ -166,10 +144,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3620.41,
-   "prix_actuel": 3610.43,
+   "prix_actuel": 3607.06,
    "stop": 3553.97,
    "objectif": null,
-   "profit": -9.98,
+   "profit": -13.35,
    "ouverte_heure_serveur": 1795422900
   },
   {
@@ -177,10 +155,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3620.43,
-   "prix_actuel": 3610.43,
+   "prix_actuel": 3607.06,
    "stop": 3553.77,
    "objectif": null,
-   "profit": -10.0,
+   "profit": -13.37,
    "ouverte_heure_serveur": 1795422900
   },
   {
@@ -188,10 +166,10 @@
    "sens": "achat",
    "lots": 0.05,
    "prix_entree": 3620.49,
-   "prix_actuel": 3610.43,
+   "prix_actuel": 3607.06,
    "stop": 3553.57,
    "objectif": null,
-   "profit": -50.3,
+   "profit": -67.15,
    "ouverte_heure_serveur": 1795422900
   },
   {
@@ -199,10 +177,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3633.76,
-   "prix_actuel": 3610.43,
+   "prix_actuel": 3607.06,
    "stop": 3578.0,
    "objectif": null,
-   "profit": -23.33,
+   "profit": -26.7,
    "ouverte_heure_serveur": 1795425300
   },
   {
@@ -210,33 +188,33 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3625.76,
-   "prix_actuel": 3610.64,
+   "prix_actuel": 3607.26,
    "stop": 3638.22,
    "objectif": 3595.74,
-   "profit": 15.12,
+   "profit": 18.5,
    "ouverte_heure_serveur": 1795427100
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3607.47,
-   "prix_actuel": 3610.43,
-   "stop": 3598.13,
+   "prix_entree": 3610.83,
+   "prix_actuel": 3607.06,
+   "stop": 3602.13,
    "objectif": null,
-   "profit": 2.96,
-   "ouverte_heure_serveur": 1795429801
+   "profit": -3.77,
+   "ouverte_heure_serveur": 1795430100
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-23",
-  "perte_du_jour": -132.39,
+  "perte_du_jour": -143.22,
   "seuil": -4080.41,
   "ouvertures_bloquees": false
  },
  "robot": {
-  "version_installee": 23,
-  "version_precedente": 22,
+  "version_installee": 24,
+  "version_precedente": 23,
   "en_marche": true,
   "dernier_refus": {
    "version": 16,
