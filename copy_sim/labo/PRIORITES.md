@@ -776,3 +776,20 @@ Ajout du 23/11 (Baptiste) : tester la même règle « renforts gagnants » de GP
 Pour chaque marché : résultat à risque égal, 2022-2024 et 2024-2026 séparés, et surtout **corrélation avec bt_or**
 (un panier sur un marché qui ne bouge pas comme l'or est ce qui peut vraiment ajouter du gain). Donner le portefeuille
 « paniers multi-marchés » à risque égal (parité de risque) contre bt_or seul.
+
+## 23/11 (Paris) : deux lots en parallèle
+**Lot A — la pyramide sur nos autres stratégies.** Ajouter des renforts uniquement sur position gagnante (moitié du
+volume à +1 R puis +1,5 R, stop au point mort à +1 R, suiveur à 1,5 R ; et la pyramide bt_or à 0,25 ATR) à :
+repli_ind, rebond_nas, rebond_sp, fomc_dax, elan_m15, cassure_m15, exces_m5, retour_court_ar, tendance 50/200 S&P,
+« toujours acheteur » or. À risque égal contre la même stratégie sans renforts ; 2022-2024 et 2024-2026 séparés ;
+walk-forward ; essais multiples. Ce qui tient : variante `_pyr_opt` sur la démo, hors totaux.
+**Lot B — déterminer le type de marché en direct** (les 7 pistes NON encore testées du dossier envoyé à GPT le 23/11,
+voir `copy_sim/reports` ou la liste ci-dessous) : (1) modèle de régime probabiliste (chaîne de Markov cachée / Hamilton,
+ajusté en ligne) avec hystérésis ; (2) mesures tendance/bruit : ratio d'efficacité de Kaufman, exposant de Hurst
+glissant, ratio de variance de Lo-MacKinlay, autocorrélation M5/M15, ADX, croisements de la VWAP, lissés et combinés ;
+(3) méta-étiquetage (prendre ou non chaque signal) avec validation purgée et embargo ; (4) pondération en ligne type
+bandit (Hedge / Exp3 / Thompson) entre familles, avec plancher ; (5) régime commun or / indices / dollar / taux ;
+(6) informations de début de journée (écart d'ouverture, VIX, volatilité implicite de l'or si disponible, annonces,
+COT) ; (7) règles robustes aux deux régimes (sortie qui se resserre quand l'efficacité chute). Critère : gain hors
+échantillon sur 2022-2024 ET 2024-2026, meilleur que « tout en marche » et que « suivre ce qui marche » (5 jours),
+p corrigé < 0,05, robuste à un spread doublé.
