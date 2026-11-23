@@ -1,3 +1,26 @@
+# Avis pour Baptiste — 23/11/2026 (Lot A : la pyramide sur nos autres stratégies)
+
+**Réponse courte : ajouter des renforts n'améliore aucune de nos autres stratégies. Une seule chose tient, déjà connue : l'or « toujours acheteur » avec la pyramide de `bt_or`. Il est sur la démo en `achat_or_pyr_opt` (robot v25, hors totaux, essais OK).**
+
+Total à risque égal (en points de base), sans renforts / renforts « gagnants » de GPT / pyramide `bt_or` :
+
+| Stratégie | 2022-2024 | 2024-2026 | Hors échantillon : choix contre sans renforts | Verdict |
+|---|---|---|---|---|
+| repli_ind (indices) | 1 024 / 1 024 / 811 | 6 093 / 6 093 / 4 303 | 7 726 contre 7 784 | non |
+| rebond_nas, rebond_sp | identiques (trade d'un jour) | identiques | identique | non |
+| fomc_dax | 1 258 / 1 258 / 798 | 25 / 25 / 5 | 528 contre 539 | non |
+| elan_m15 | 1 459 / 1 382 / 716 | 50 / 81 / −339 | 411 contre 2 417 | non |
+| cassure_m15 | 13 / −122 / 169 | 1 430 / 1 051 / −86 | 1 239 contre 1 848 | non |
+| exces_m5 | 805 / 754 / 746 | 658 / 686 / 692 | 1 287 contre 1 256 | non |
+| retour_court_ar | −3 852 / −4 011 / −3 949 | −2 361 / −2 509 / −2 481 | −6 616 contre −5 575 | non |
+| **or toujours acheteur** | 3 032 / 2 157 / **3 701** | 3 702 / 4 206 / **9 349** | **10 940 contre 5 840** | **tient (pyramide)** |
+
+1. Sur les indices (repli, rebonds, FOMC), les renforts ne servent à rien ou coûtent : ces trades sont courts et leur gain vient du rebond lui-même, pas d'une tendance qui s'étire.
+2. Sur les règles courtes de l'or (elan, cassure, excès, retour), les renforts n'aident pas non plus ; elan_m15 perd même beaucoup hors échantillon (411 contre 2 417).
+3. Seul l'or « toujours acheteur » gagne vraiment à la pyramide (choisie 13 fois sur 14 en hors échantillon, test de White p 0,001), mais c'est la même mécanique que `bt_or` avec le sens toujours à l'achat : un pari sur la hausse de l'or.
+4. Sur la démo : `achat_or_pyr_opt` = `bt_or` en achat seulement, 0,01 lot, 3 positions, mêmes heures et même stop suiveur ; règle d'arrêt de `bt_or` (−20 R ou moyenne < −0,3 R après 40 paniers), écrite avant.
+5. Limites : rebond_nas / rebond_sp ne tiennent qu'une bougie journalière (aucun renfort possible), fomc_dax et la tendance 50/200 du S&P ont trop peu de trades (37 et 3) pour juger.
+
 # Avis pour Baptiste — 23/11/2026 (règle « renforts gagnants » de GPT Astra, sur l'or et sur les autres marchés)
 
 **Réponse courte : la règle de GPT gagne un peu sur l'or, mais moins que `bt_or` sur les 2 dernières années, et ses +3,21 %/semaine ne se retrouvent pas avec les vrais prix du courtier (−3,25 %/semaine sur la même fenêtre). À 12 % de risque par panier, elle ruine le compte une fois sur deux à trois. Elle tourne sur la démo pour les données : `gpt_pyramide_opt`, robot v24 (hors totaux, 0,02 lot, arrêt à −15 R).**

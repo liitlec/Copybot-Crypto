@@ -30,7 +30,7 @@ SEUIL_ANCIEN = 0.6
 
 def marquer(prix, chiffres=2, plus=False):
     """Marque du stop de secours : centimes finissant par 7. Codes a deux chiffres reserves (v21-v22) :
-    97 = bt_or_plus_opt, 77 = bt_or_serre_opt, 57 = pari_tendance_opt (v23), 37 = gpt_pyramide_opt (v24) ; les autres paniers les evitent (-0,10 $). `plus` = code ou True (97)."""
+    97 = bt_or_plus_opt, 77 = bt_or_serre_opt, 57 = pari_tendance_opt (v23), 37 = gpt_pyramide_opt (v24), 17 = achat_or_pyr_opt (v25) ; les autres paniers les evitent (-0,10 $). `plus` = code ou True (97)."""
     v = round(prix, chiffres)
     if chiffres != 2:
         return v
@@ -46,7 +46,8 @@ def marquer(prix, chiffres=2, plus=False):
 MARQUE_PLUS, MARQUE_SERRE = 97, 77
 MARQUE_PARI = 57                # v23 : pari_tendance_opt (pari_tendance.py)
 MARQUE_GPT = 37                 # v24 : gpt_pyramide_opt (gpt_pyramide.py)
-CODES_RESERVES = (MARQUE_PLUS, MARQUE_SERRE, MARQUE_PARI, MARQUE_GPT)
+MARQUE_ACHAT = 17               # v25 : achat_or_pyr_opt (toujours acheteur + pyramide)
+CODES_RESERVES = (MARQUE_PLUS, MARQUE_SERRE, MARQUE_PARI, MARQUE_GPT, MARQUE_ACHAT)
 
 
 def code_marque(prix):
@@ -88,7 +89,7 @@ class PanierBT:
     moyenne < -0,3 R apres 40 paniers. Rappel : au banc (passage 24) la mecanique ne gagnait rien sur BTC et ETH."""
 
     def __init__(self, pont, fichier=FICHIER, symbole=SYMBOLE, nom="bt_or", lots=LOTS, taille=100.0, spread_rel=None,
-                 max_pos=MAX_POS, croissant=False, serre=None):
+                 max_pos=MAX_POS, croissant=False, serre=None, sens_force=None):
         self.pont, self.fichier = pont, fichier
         # v21 : bt_or_plus_opt = memes entrees et meme stop suiveur, ajouts de taille croissante (niveau n = n x lots),
         # 5 positions au plus ; stop marque 97 ; R compte pour la mise de base. REGLE D'ARRET (ecrite avant) : -20 R.
@@ -96,7 +97,11 @@ class PanierBT:
         # v22 : bt_or_serre_opt = bt_or, mais au-dela de +serre[0] R de gain (meilleur prix contre la 1re entree), le recul
         # de sortie passe a serre[1] R (banc X : « stop 0,5 R au-dela de +3 R », meme total). Marque 77. Arret : -20 R.
         self.serre = serre
-        self.plus = MARQUE_PLUS if croissant else (MARQUE_SERRE if serre else None)
+        # v25 : achat_or_pyr_opt = meme mecanique, sens force (toujours acheteur, banc_pyr_strategies / banc_decompose_bt :
+        # +243,7 R contre bt_or +153,4 R en H1 4 ans ; surtout la hausse de l'or). Marque 17. REGLE D'ARRET : celle de
+        # bt_or (-20 R ou moyenne < -0,3 R apres 40 paniers), ecrite avant le premier panier.
+        self.sens_force = sens_force
+        self.plus = MARQUE_PLUS if croissant else (MARQUE_SERRE if serre else (MARQUE_ACHAT if sens_force else None))
         self.symbole, self.nom, self.lots, self.taille, self.spread_rel = symbole, nom, lots, taille, spread_rel
         self.paniers = {}        # "1" / "-1" -> panier
         self.cumul_r, self.n_paniers, self.vu = 0.0, 0, None
@@ -265,7 +270,7 @@ class PanierBT:
         if (t.tm_hour, t.tm_min) in HEURES and spread_ok and not self.arrete() and len(m5) >= 2500:
             a = atr_jour(d1)
             if a and a > 0:
-                s = 1 if c > ema([x[4] for x in m5[-2880:]], EMA_N) else -1
+                s = self.sens_force or (1 if c > ema([x[4] for x in m5[-2880:]], EMA_N) else -1)
                 if str(s) not in self.paniers:
                     p = {"tickets": [], "profits": {}, "meilleur": c, "stop": STOP_K * a, "pas": PAS_K * a,
                          "prochain": c + s * PAS_K * a, "debut": m5[-1][0], "c0": c}

@@ -1032,4 +1032,31 @@ assert not fg.pos and g2.arrete(), "regle d'arret : -15 R"
 for f in ("etat_gpt_essai.json", "x_essai.json"):
     if os.path.exists(f):
         os.remove(f)
+# v25 : achat_or_pyr_opt (toujours acheteur + pyramide bt_or, marque 17)
+for f in ("etat_ba_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+class FauxPontA(FauxPont):
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert id.startswith("achat_or_pyr_opt_") and lots == 0.01 and stop > 0
+        self.n += 1
+        e = self.bid + 0.2 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "sens": sens, "prix_entree": e, "stop": stop, "profit": 0.0, "id": id}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+fa = FauxPontA()
+fa.bid = 3800.0
+ba = bt_or.PanierBT(fa, fichier="etat_ba_essai.json", nom="achat_or_pyr_opt", sens_force=1)
+ba.bougie(m5_jusqua(8, 0, 3800.0, base=3900.0), d1t, True)          # prix sous l'EMA : bt_or vendrait, ici on achete
+assert len(fa.pos) == 1 and "1" in ba.paniers and list(fa.pos.values())[0]["sens"] == "achat", fa.pos
+qa = dict(list(fa.pos.values())[0], symbole="XAUUSD", prix_actuel=fa.bid, heure_serveur=0)
+assert bt_or.code_marque(qa["stop"]) == bt_or.MARQUE_ACHAT and ba.candidat(qa, d1t)
+assert not bt_or.PanierBT(FauxPont(), fichier="x_essai.json").candidat(qa, d1t), "bt_or ne prend pas le panier acheteur"
+assert bt_or.code_marque(bt_or.marquer(3922.15)) is None, "bt_or evite 17"
+fb = FauxPont(); fb.bid = 3800.0; bv = bt_or.PanierBT(fb, fichier="x_essai.json")
+bv.bougie(m5_jusqua(8, 0, 3800.0, base=3900.0), d1t, True)
+assert list(fb.pos.values())[0]["sens"] == "vente", "bt_or inchange (vend sous l'EMA)"
+for f in ("etat_ba_essai.json", "x_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 print("ESSAIS OK")

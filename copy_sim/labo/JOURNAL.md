@@ -1747,3 +1747,9 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
 - `banc_multi_marches.py` : bt_or négatif sur S&P, Dow, EUR, ETH, DAX, pétrole ; GPT « ajoute » Nasdaq, S&P, EUR, pétrole
   (59-176 paniers, p White 0,33) ; portefeuille parité de risque ne tient pas.
 - Robot v24 : `gpt_pyramide_opt` (gpt_pyramide.py, marque 37, 0,02 lot, arrêt −15 R ou moy. < −0,3 R après 30), essais OK.
+
+## 23/11/2026 — Lot A : pyramide sur nos autres stratégies
+- `banc_pyr_strategies.py` (10 stratégies × origine / renforts gagnants / pyramide bt_or ; White N = 20) : aucune
+  stratégie améliorée sauf « toujours acheteur » or + pyramide (10 940 contre 5 840 bp hors échantillon, p 0,001) ;
+  contrôles : repli_ind = banc_blockrange_ohlc ; achat or origine +76,17 R, pyramide +243,67 R (= banc_decompose_bt e1/e3).
+- Robot v25 : `achat_or_pyr_opt` (PanierBT sens_force=1, marque 17, arrêt bt_or), hors totaux ; essais OK.

@@ -19,7 +19,7 @@ import pari_court
 import pari_tendance
 import gpt_pyramide
 
-VERSION = 24
+VERSION = 25
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -210,6 +210,7 @@ class Robot:
         self.btp = bt_or.PanierBT(pont, fichier="etat_bt_plus.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
         self.bts = bt_or.PanierBT(pont, fichier="etat_bt_serre.json", nom="bt_or_serre_opt", serre=(3.0, 0.5))
         self.btt = pari_tendance.PanierPari(pont)       # v23 : pari_tendance_opt, compte virtuel separe, hors totaux
+        self.bta = bt_or.PanierBT(pont, fichier="etat_bt_achat.json", nom="achat_or_pyr_opt", sens_force=1)   # v25
         self.gpt = gpt_pyramide.GptPyramide(pont)       # v24 : gpt_pyramide_opt, donnees seulement, hors totaux
         self.gpt_muet = False
         self.crypto = [bt_or.PanierBT(pont, fichier="etat_%s.json" % n, symbole=sym, nom=n, lots=None, taille=None)
@@ -247,7 +248,7 @@ class Robot:
     def reconcilier(self):
         """Aligne la memoire sur le compte : note les stops touches, ferme les positions orphelines."""
         ps = {p["ticket"]: p for p in self.pont.positions()}
-        connus = set(self.bt.tickets()) | set(self.btp.tickets()) | set(self.bts.tickets()) | set(self.btt.tickets()) | set(self.gpt.tickets())   # paniers bt_or et bt_or_plus_opt : bt_or.py
+        connus = set(self.bt.tickets()) | set(self.btp.tickets()) | set(self.bts.tickets()) | set(self.btt.tickets()) | set(self.gpt.tickets()) | set(self.bta.tickets())   # paniers bt_or et bt_or_plus_opt : bt_or.py
         for c in self.crypto:
             connus.update(c.tickets())
         connus.update(self.rebond.tickets())            # v15 : la position de rebond_nas_opt n'est pas a repli_ind
@@ -281,6 +282,8 @@ class Robot:
             if m5 and d1:
                 self.btt.adopter(inconnus, m5[:-1], d1[:-1])     # v23 : marque 57 d'abord
                 connus.update(self.btt.tickets())
+                self.bta.adopter({t: p for t, p in inconnus.items() if t not in connus}, m5[:-1], d1[:-1])   # v25 : 17
+                connus.update(self.bta.tickets())
                 self.btp.adopter({t: p for t, p in inconnus.items() if t not in connus}, m5[:-1], d1[:-1])   # v21 : 97
                 connus.update(self.btp.tickets())
                 self.bts.adopter({t: p for t, p in inconnus.items() if t not in connus}, m5[:-1], d1[:-1])   # v22 : 77
@@ -288,7 +291,7 @@ class Robot:
                 self.bt.adopter({t: p for t, p in inconnus.items() if t not in connus}, m5[:-1], d1[:-1])
                 connus.update(self.bt.tickets())
             else:                                       # bougies absentes : on ne ferme pas ce qui ressemble a un panier
-                connus.update(t for t, p in inconnus.items() if self.bt.candidat(p) or self.btp.candidat(p) or self.bts.candidat(p) or self.btt.candidat(p))
+                connus.update(t for t, p in inconnus.items() if self.bt.candidat(p) or self.btp.candidat(p) or self.bts.candidat(p) or self.btt.candidat(p) or self.bta.candidat(p))
         for c in self.crypto:                           # paniers bt_crypto repris de la meme facon
             inc = {t: p for t, p in ps.items() if t not in connus and p.get("symbole") == c.symbole and p.get("stop")}
             if not inc:
@@ -505,6 +508,7 @@ class Robot:
         self.btp.surveiller(ps, px)
         self.bts.surveiller(ps, px)
         self.btt.surveiller(ps, px)
+        self.bta.surveiller(ps, px)
         self.tour_gpt(ps, bougies, bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees"))
         permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
         self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
@@ -541,6 +545,7 @@ class Robot:
                     self.btp.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
                     self.bts.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
                     self.btt.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
+                    self.bta.bougie(long5[:-1], d1[:-1], 0 <= px["ask"] - px["bid"] <= SPREAD_MAX)
             for nom, hyp in HYPOTHESES.items():
                 if hyp[0] != periode or nom in self.ouvert or nom in ETEINTES:
                     continue
