@@ -55,7 +55,7 @@
 
 # Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
 
-**En cours : 6 pistes finies sur 7, aucune ne tient. Robot inchangé (v25, celle du Lot A).**
+**Réponse courte : aucune des 7 pistes ne devine le type de marché mieux que « tout laisser en marche ». Pas de variante `_regime_opt`, robot inchangé (v25, celle du Lot A).** Trois pistes (3, 5, 6) semblaient passer, mais seulement en grossissant les familles d'indices souvent sans position ; à risque égal, l'écart disparaît (meilleur p corrigé 0,26 ; Holm entre les 7 pistes inutile, aucune sous 0,05).
 
 Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P). Chaque jour, un poids de 0 à 2 par famille, décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois ; spread réel puis doublé ; reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. **Correction en cours de route** : comparer « à exposition égale » (somme des poids) grossissait à tort les familles souvent sans position (un témoin fixe « indices seuls » passait le critère avec +761 u). Chaque piste est donc aussi jugée **à risque égal** (volatilité mesurée sur les 6 mois d'avant), et doit passer les deux mesures.
 
@@ -68,7 +68,15 @@ Hors échantillon, spread réel. Références : tout en marche **+87 u (2022-24)
 | 3. Méta-étiquetage (prendre ou non chaque signal, purge + embargo) | `banc_regime_p3.py` (16) | 167 / 549 | 93 / 348 | 0,004 / **0,261** | 336 | ne tient pas (faux positif à exposition égale) |
 | 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | 90 / 316 | 75 / 297 | 0,085 / 0,808 | 275 | ne tient pas |
 | 5. Régime commun or / indices / dollar / taux (VIX, taux réel, pente, ACP glissante) | `banc_regime_p5.py` (26) | 100 / 448 | **30** / 376 | 0,038 / **0,540** | 368 | ne tient pas (faux positif à exposition égale) |
+| 6. Infos de début de journée (VIX, volatilité implicite de l'or, annonces, écart d'ouverture, COT) | `banc_regime_p6.py` (21) | 72 / 464 | 69 / 329 | 0,012 / **0,625** | 315 | ne tient pas (perd en 2022-24) |
 | 7. Sortie qui s'adapte (stop resserré quand l'efficacité chute…) | `banc_regime_p7.py` (24) | 126 / 298 | — (perd déjà en 2024-26) | 0,476 / — | 252 (expo) | ne tient pas |
+
+Piste 6 (informations de début de journée) :
+1. Règles à seuil ou poids appris par case : VIX au-dessus de 20 ou en forte hausse, volatilité implicite de l'or (GVZ) contre sa médiane, jour d'annonce (emploi, inflation, Fed), grand écart d'ouverture la veille, COT extrême.
+2. Le réglage le plus choisi est « VIX > 20 → indices en rachat ×2, tendance S&P coupée » ; il perd déjà en 2022-24 (+72 u contre +87).
+3. À risque égal : +69 / +329 u contre +87 / +324 ; t −0,32 ; p corrigé 0,63.
+4. Annonces, GVZ, écart d'ouverture et COT ne donnent aucun réglage stable ; le grand écart d'ouverture n'arrive que 3 % des jours.
+5. Limite : le socle décide le poids à minuit, donc l'écart d'ouverture du jour même n'est pas testé (seulement celui de la veille).
 
 Piste 5 (régime commun des marchés) :
 1. L'état commun connu le matin (S&P en hausse et VIX bas ou non, tendance de l'or 20/60 jours, dollar et taux réel, volatilité, ACP glissante sur 16 grandeurs) donne les poids, fixés à la main ou appris par état sur le passé.
@@ -500,6 +508,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 
 | Piste | Verdict | Chiffres clés | Suite |
 |---|---|---|---|
+| Lot B : deviner le type de marché en direct (7 pistes : HMM, mesures tendance/bruit, méta-étiquetage, bandit, régime commun or/indices/dollar/taux, VIX/annonces/COT du matin, sortie adaptative ; 181 réglages, `regime_socle.py`, `banc_regime_p1..p7.py`) | ne tient pas | À risque égal, aucune ne bat « tout en marche » (+87 / +324 u en 2022-24 / 2024-26) ; meilleur p corrigé 0,26 ; 3 faux positifs à exposition égale (pistes 3, 5, 6) | — |
 | Panier acheté seulement, risque égal (comptant) | **tient** (placement) | +7,6 % par an, pire baisse −12 %, 2016-2026 | registre papier |
 | Repli d'indices américains (RSI 2 j < 10) | **tient** (petit) | +20 bp par trade, t = 2,3 ; +1,6 % par an à 20 % du compte | en direct (`repli_ind`) |
 | `bt_or` (mécanique BlockTrend sur l'or) | presque | +102 R au banc, mais 8 mois négatifs sur 16 | en direct |
