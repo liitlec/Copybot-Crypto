@@ -866,3 +866,6 @@ retraits cumulés − dépôts cumulés (y compris les recharges après une ruin
 4. Si une combinaison est positive en net dans le scénario prudent sur les deux blocs : variante démo `_opt` hors
    totaux (le compte démo garde ses règles ; aucun réel sans accord de Baptiste sur son PC).
 Résultats en tête d'AVIS.md, tableaux simples en français.
+**FAIT le 23/11 après-midi** : `banc_lotc.py` (contrat figé avant) ; retraits sans effet sur l'espérance, martingale = mise
+plus grosse ; 44 combinaisons passent en prudent (cassure calme, rebonds), aucune `bt_or` ; robot v26 =
+`encaisse_calme_opt` (poche virtuelle 500 €, 6 % ×1,5 après perte, retrait au-dessus de 750 €, 2 recharges, aucun ordre).

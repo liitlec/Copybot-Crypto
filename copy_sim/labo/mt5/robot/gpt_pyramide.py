@@ -49,6 +49,7 @@ class GptPyramide:
     def __init__(self, pont, fichier=FICHIER):
         self.pont, self.fichier = pont, fichier
         self.panier, self.cumul_r, self.n, self.fait, self.vu, self.muet = None, 0.0, 0, None, None, False
+        self.poche = None                 # v26 : poche virtuelle encaisse_calme_opt (encaisse.py), aucun ordre
         try:
             with open(fichier, encoding="utf-8") as f:
                 d = json.load(f)
@@ -116,6 +117,11 @@ class GptPyramide:
                         essai="non prouve")
         self.panier = None
         self.sauver()
+        if self.poche is not None:
+            try:
+                self.poche.panier(r, time.time())
+            except Exception:
+                pass
 
     def tour(self, ps, m15, d1, permis):
         """ps : positions ; m15, d1 : bougies FERMEES. Appele a chaque tour du robot (travail a chaque nouvelle M15)."""
@@ -131,6 +137,11 @@ class GptPyramide:
             return
         self.vu = m15[-1][0]
         b = m15[-1]
+        if self.poche is not None:
+            try:
+                self.poche.horloge(b[0])
+            except Exception:
+                pass
         p = self.panier
         if p:
             s, R = p["s"], p["R"]

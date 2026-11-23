@@ -18,8 +18,9 @@ import fomc_dax
 import pari_court
 import pari_tendance
 import gpt_pyramide
+import encaisse
 
-VERSION = 25
+VERSION = 26
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -212,6 +213,7 @@ class Robot:
         self.btt = pari_tendance.PanierPari(pont)       # v23 : pari_tendance_opt, compte virtuel separe, hors totaux
         self.bta = bt_or.PanierBT(pont, fichier="etat_bt_achat.json", nom="achat_or_pyr_opt", sens_force=1)   # v25
         self.gpt = gpt_pyramide.GptPyramide(pont)       # v24 : gpt_pyramide_opt, donnees seulement, hors totaux
+        self.gpt.poche = encaisse.Poche(pont)           # v26 : encaisse_calme_opt, poche virtuelle, aucun ordre
         self.gpt_muet = False
         self.crypto = [bt_or.PanierBT(pont, fichier="etat_%s.json" % n, symbole=sym, nom=n, lots=None, taille=None)
                        for sym, n in CRYPTO]           # v13 : bt_crypto, hors test (donnees)

@@ -1,3 +1,42 @@
+# Avis pour Baptiste — 23/11/2026, après-midi (Lot C : « encaisser plus qu'on ne dépose », PRIORITES 23/11 11 h)
+
+**Réponse courte : oui, on peut finir positif en argent encaissé, mais seulement avec une règle qui gagne déjà (la cassure calme d'Astra ou les rebonds d'indices). Les retraits et la martingale ne créent aucun gain : sur un jeu sans avantage, tout finit à zéro ou en perte. Ils changent seulement la forme : plus de chances d'avoir déjà sorti de l'argent, mais plus de ruines. Robot v26 publié : poche virtuelle `encaisse_calme_opt` (aucun ordre).**
+
+Critère : argent net encaissé = retraits − dépôts (recharges comprises), en fois le dépôt (1 = 500 €). Prudent = avantage ÷ 2. B1 = 08/2022-09/2024, B2 = 10/2024-11/2026. Banc `banc_lotc.py`, contrat figé avant les résultats.
+
+**1. Cassure après séance très calme (Astra), rejeu réel, sans retrait**
+
+| Bloc | 1 % par panier | 12 % (chiffre d'Astra) | ×2 après perte, 1 % | ×2 après perte, 12 % |
+|---|---|---|---|---|
+| 2022-2024 | +0,25 %/sem., pire baisse −25 % | ×0,71, pire baisse −98 % | −0,34 %/sem., −88 % | ruine |
+| 2024-2026 | +0,41 %/sem., −12 % | ruine | +0,67 %/sem., −58 % | ruine |
+
+Les +0,64 et +0,81 %/sem. d'Astra à 12 % ne se retrouvent pas : à 12 %, le compte est ruiné.
+
+**2. `bt_or` en % du compte (rejeu réel)** — Astra, pyramide or à 1 % : +0,39 %/sem.
+
+| Risque par panier | 0,5 % | 1 % | 2 % | 3 % |
+|---|---|---|---|---|
+| 2022-2024 | −0,03 %/sem. (−18 %) | −0,09 % (−34 %) | −0,34 % (−59 %) | −0,73 % (−75 %) |
+| 2024-2026 | +0,66 %/sem. (−9 %) | +1,26 % (−17 %) | +2,29 % (−32 %) | +3,11 % (−45 %) |
+
+**3. Martingale + retraits, 24 mois** (Monte-Carlo par semaines, 2 000 parcours ; net en dépôts)
+
+| Montage | Prudent B1 / B2 : net moyen | P(net > 0) | 1 fois sur 10, pire que | Ruines moyennes | Sans avantage : net moyen |
+|---|---|---|---|---|---|
+| **Calme, 6 %, ×1,5 après perte, retrait au-dessus de 1,5 dépôt, 2 recharges (retenu)** | +1,6 / +1,5 | 59 / 64 % | −2,4 / −2,1 | 2,5 / 2,0 | +0,2 |
+| Calme, même chose à mise fixe 6 % (témoin) | +0,2 / +0,4 | 44 / 52 % | −1,8 / −1,4 | 0,5 / 0,2 | −0,7 |
+| Calme, mise fixe 12 % | +1,2 / +1,3 | 58 / 63 % | −2,4 / −1,9 | 2,1 / 1,4 | −0,2 |
+| Rebonds d'indices, mise fixe 12 %, même retrait (le plus sûr) | +0,3 / +3,2 | 56 / 87 % | −1,0 / −0,2 | 0 / 0,2 | −0,6 |
+| `bt_or`, 1 %, même retrait | −0,9 / −0,5 | 0 / 19 % | −1,0 | 0 | −0,9 |
+| `bt_or`, 3 %, ×2 après perte | +0,3 / +2,4 | 44 / 64 % | −2,5 / −2,2 | 3,0 | 0,0 |
+
+1. **Les retraits ne changent pas l'espérance.** Sans avantage, le résultat reste nul ou négatif pour toutes les règles. Quand la règle gagne, ils baissent même le total : `bt_or` à 3 % vaut 6,0 dépôts sans retrait, contre 1,2 à 3,7 avec. Ce qu'ils changent, c'est la part déjà en poche si le compte saute.
+2. **La martingale n'exploite rien.** Après une perte, le panier suivant n'est pas meilleur (écarts sous 1 écart-type, de signe changeant). Elle joue juste plus gros : le montage retenu fait comme une mise fixe de 12 %.
+3. **`bt_or` échoue** : il n'a rien gagné en 2022-2024, et aucune règle de retrait ne rattrape ça.
+4. **Point 4 rempli** : 44 combinaisons sont positives en prudent sur les deux blocs, toutes sur la cassure calme ou les rebonds. Mais même la retenue perd de l'argent 4 fois sur 10 en 2 ans, et 1 fois sur 10 elle perd les 3 dépôts (≈ −1 200 €). Sur 6 mois, elle n'est positive que 1 fois sur 3.
+5. **Robot v26** : `encaisse_calme_opt` est une poche virtuelle de 500 € qui rejoue chaque panier fermé de `gpt_pyramide_opt` avec ces règles (mise, retraits, recharges) et note l'argent net encaissé. Aucun ordre en plus, hors totaux, arrêt après 3 ruines ou 24 mois. Aucun argent réel sans ton accord sur ton PC.
+
 # Avis pour Baptiste — 23/11/2026, fin de matinée (réponse d'Astra sur la détection de régime, PRIORITES 23/11 10 h 20)
 
 **Réponse courte : aucune des 3 règles d'Astra ne bat le mélange fixe 50/50 selon le contrat. On arrête la recherche du détecteur de régime sur cet historique. Pas de variante `_opt`, robot inchangé (v25).** Le contrat a été figé et poussé avant tout calcul (commit 11f55ce, docstring de `banc_astra.py`).

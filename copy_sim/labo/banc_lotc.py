@@ -41,7 +41,21 @@ VERDICT FIXE D'AVANCE (point 4) : une combinaison « PASSE » si, en PRUDENT, su
   net encaisse moyen > 0, median > 0 et P(net > 0) >= 50 %. Une combinaison avec m > 1 ne compte que si elle bat aussi
   son temoin m = 1 (net moyen prudent) sur B1 ET B2 ; sinon c'est la mise fixe qui est retenue. Variante demo `_opt`
   seulement si une combinaison passe ET differe de ce qui tourne deja (bt_or a mise fixe sans retrait).
-RESULTAT : (rempli apres execution)
+RESULTAT (execution du 23/11/2026, 374 s) : controles exacts (bt_or 956 / +153,4 R ; calme 220 / +82,45 R).
+  R moyen par panier B1 / B2 : bt_or -0,002 / +0,325 ; calme +0,269 / +0,509 ; rebonds +0,136 / +0,286.
+  Point 1 (calme, rejeu, sans retrait) : 1 % -> +0,25 / +0,41 %/sem. (pire baisse -25 / -12 %) ; 12 % -> x0,71 avec -98 %
+    (B1) et ruine (B2) ; mise x2 apres perte : 1 % -> -0,34 / +0,67 %/sem. (-88 / -58 %), 12 % -> ruine sur les deux.
+  Point 2 (bt_or, rejeu) : B1 -0,03 / -0,09 / -0,34 / -0,73 %/sem. a 0,5 / 1 / 2 / 3 % ; B2 +0,66 / +1,26 / +2,29 / +3,11.
+  Point 3 : les retraits ne creent pas d'esperance (scenario nul : net + compte ~0 partout ; en mesure ils baissent le
+    total, ex. bt_or 3 % : 6,0 depots sans retrait contre 1,2 a 3,7) ; ils changent la forme (argent deja sorti).
+    Pas d'effet « apres une perte » dans les donnees (R du panier suivant : calme -0,42 puis +0,28, t < 1 ; rebonds
+    -0,09 / -0,20) : la mise augmentee = mise plus grosse, rien de plus.
+  Point 4 : 44 combinaisons PASSENT (calme et rebonds ; une seule bt_or : m 2 / 1 % / b / 1 recharge, rejeu reel B1
+    -0,72 depot, ecartee de fait). Retenue pour la demo (poche virtuelle
+    encaisse_calme_opt, v26) : calme, m 1,5, 6 %, retrait c, 2 recharges : prudent B1 / B2 net moyen +1,58 / +1,52
+    depot, median +0,88 / +1,10, P(net > 0) 59 / 64 %, 10e centile -2,43 / -2,12, ruines moyennes 2,5 / 2,0 ; rejeu
+    reel 24 mois +2,77 / +6,74 (mesure). Plus sure mais a mise fixe : rebonds 12 % / c / 2 recharges (P 56 / 87 %,
+    10e centile -1,00 / -0,24, ~0 ruine).
 Ecrit donnees/lotc.csv. Usage : python3 banc_lotc.py
 """
 import os, time, contextlib, io, warnings, itertools

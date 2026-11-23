@@ -1059,4 +1059,47 @@ assert list(fb.pos.values())[0]["sens"] == "vente", "bt_or inchange (vend sous l
 for f in ("etat_ba_essai.json", "x_essai.json"):
     if os.path.exists(f):
         os.remove(f)
+# v26 : encaisse_calme_opt (poche virtuelle sur les paniers de gpt_pyramide_opt, aucun ordre)
+import encaisse
+class FauxPontE:
+    def __init__(self):
+        self.notes = []
+    def noter(self, **kw):
+        self.notes.append(kw)
+    def ouvrir(self, *a, **k):
+        raise AssertionError("la poche ne passe aucun ordre")
+for f in ("etat_enc_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+fe = FauxPontE()
+pe = encaisse.Poche(fe, fichier="etat_enc_essai.json")
+L0 = 4 * 86400 + 2000 * 7 * 86400                                   # un lundi
+pe.horloge(L0)
+pe.panier(-1.0, L0 + 3600)                                         # perte : 6 % de 500 = 30
+assert abs(pe.e["capital"] - 470.0) < 1e-9 and pe.e["k"] == 1
+pe.panier(-1.0, L0 + 7200)                                         # 6 % x 1,5 = 9 % de 470
+assert abs(pe.e["capital"] - 470.0 * 0.91) < 1e-9 and pe.e["k"] == 2
+pe.panier(20.0, L0 + 9000)                                         # gain : palier remis a 0
+assert pe.e["k"] == 0 and pe.e["capital"] > 750
+c = pe.e["capital"]
+pe.horloge(L0 + 86400)
+assert pe.e["retraits"] == 0, "pas de retrait en cours de semaine"
+pe.horloge(L0 + 7 * 86400)
+assert abs(pe.e["retraits"] - (c - 750)) < 1e-9 and abs(pe.e["capital"] - 750) < 1e-9, "retrait au-dessus de 750"
+pe2 = encaisse.Poche(fe, fichier="etat_enc_essai.json")
+assert pe2.e == pe.e, "etat relu"
+for i in range(40):
+    pe2.panier(-1.42, L0 + 8 * 86400 + i)
+assert pe2.e["fini"] and pe2.e["recharges"] == 2 and pe2.e["depots"] == 1500 and pe2.e["ruines"] == 3
+assert any(n.get("ruine") for n in fe.notes) and all(n["hypothese"] == "encaisse_calme_opt" for n in fe.notes)
+gq = gpt_pyramide.GptPyramide(fg, fichier="etat_gpt_essai.json")
+gq.poche = encaisse.Poche(fe, fichier="etat_enc_essai2.json")
+gq.panier = {"s": 1, "tickets": [], "e0": 4000.0, "R": 10.0, "stop": 3990.0, "meilleur": 4000.0, "renforts": 0,
+             "be": False, "profits": {"1": -20.0}, "attente": None}
+gq.panier["tickets"] = [1]
+gq._fin({}, "essai")
+assert gq.poche.e["n"] == 1 and abs(gq.poche.e["capital"] - 470.0) < 1e-6, gq.poche.e
+for f in ("etat_enc_essai.json", "etat_enc_essai2.json", "etat_gpt_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 print("ESSAIS OK")
