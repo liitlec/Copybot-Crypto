@@ -869,3 +869,24 @@ Résultats en tête d'AVIS.md, tableaux simples en français.
 **FAIT le 23/11 après-midi** : `banc_lotc.py` (contrat figé avant) ; retraits sans effet sur l'espérance, martingale = mise
 plus grosse ; 44 combinaisons passent en prudent (cassure calme, rebonds), aucune `bt_or` ; robot v26 =
 `encaisse_calme_opt` (poche virtuelle 500 €, 6 % ×1,5 après perte, retrait au-dessus de 750 €, 2 recharges, aucun ordre).
+
+## 23/11 11 h 15 — Lot D : détecter le marché, nouvel angle (demande écrite de Baptiste)
+Baptiste : « il faut trouver comment détecter le marché, c'est le seul truc à savoir… une fois qu'on a ça on a une
+stratégie gagnante ». Les 20 essais précédents (heure / jour, 15 mois à 4 ans d'intraday) ont échoué. Hypothèse de ce
+lot : on cherchait à la mauvaise échelle et sur trop peu de régimes. bt_or gagne en 2024-26 et perd en 2022-24 : la
+question utile est **« les prochains MOIS de l'or seront-ils en tendance ? »**, jugée sur le plus long historique possible.
+1. **Historique long** : or journalier sur 20 ans ou plus (sources publiques sans clé, par ex. FRED, Stooq ou
+   MetalCharts), plus un mime journalier de bt_or (direction EMA, renforts, sortie au recul) validé contre le vrai
+   bt_or sur 2022-2026 (corrélation des résultats mensuels). Sans ce mime validé, rien d'autre ne compte.
+2. **Filtres lents, décidés en fin de mois, pour le mois suivant** : momentum 3/6/12 mois de l'or (time-series
+   momentum, documenté) ; prix au-dessus/au-dessous de la moyenne 200 jours ; pente et efficacité (Kaufman) sur
+   60-120 jours ; volatilité implicite de l'or (GVZ, FRED) et sa tendance ; taux réels 10 ans et dollar (variations
+   sur 3 mois) ; résultat de bt_or lui-même sur les 1-3 derniers mois (courbe de gains au-dessus de sa moyenne).
+3. **Sortie** : mise 0 / 1 / 2 selon le filtre. Comparer à « toujours 1 » à risque égal, coûts réels, walk-forward,
+   correction pour tests multiples (White / SPA), placebo (filtre décalé au hasard de 6-18 mois), stabilité par
+   décennie. Contrat figé et poussé AVANT les résultats.
+4. **Échelle de temps** : mesurer combien de régimes distincts « tendance / pas tendance » contient chaque historique.
+   Dire franchement si 4 ans d'intraday ne pouvaient de toute façon rien prouver.
+5. Si un filtre tient sur 20 ans ET sur 2022-2026 : variante démo `bt_or_filtre_opt` hors totaux (robot suivant, essais
+   OK). Sinon le dire clairement, avec la meilleure piste restante.
+Résultats en tête d'AVIS.md, tableaux simples en français.
