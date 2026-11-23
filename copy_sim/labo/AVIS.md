@@ -1,12 +1,20 @@
 # Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
 
-**En cours : 1 piste finie sur 7. Robot inchangé pour l'instant.**
+**En cours : 2 pistes finies sur 7, aucune ne tient. Robot inchangé pour l'instant.**
 
 Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P), chaque jour un poids de 0 à 2 par famille décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois, même exposition que « tout en marche », spread réel puis doublé, reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. Références hors échantillon (spread réel) : **tout en marche +87 u (2023-mi-2024) / +324 u (mi-2024-2026)** ; suivre ce qui marche sur 5 jours −96 / +34 u.
 
 | Piste | Banc (réglages) | 2022-24 : choisi / tout / suivre 5 j | 2024-26 : choisi / tout / suivre 5 j | Spread doublé (2024-26 : choisi / tout) | p corrigé | Verdict |
 |---|---|---|---|---|---|---|
 | 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | +90 / +87 / −96 | +316 / **+324** / +34 | +282 / +296 | 0,085 | ne tient pas |
+| 2. Mesures tendance/bruit (Kaufman, Hurst, ratio de variance, autocorrélation, ADX, VWAP) | `banc_regime_p2.py` (30) | +37 / **+87** / −96 | +271 / **+324** / +34 | +246 / +296 | 0,985 | ne tient pas |
+
+Piste 2 (mesures tendance / bruit) :
+1. Six mesures sur l'or H1 et quatre sur les indices, lissées et combinées, donnent les poids (tendance forte : familles de tendance ×2 ; bruit : familles de retour ×2).
+2. Hors échantillon, c'est nettement moins bien que tout laisser en marche : +37 u contre +87 en 2022-24, +271 contre +324 en 2024-26 (t −1,5).
+3. Les mesures ne s'accordent pas entre elles et le « régime » d'hier ne se prolonge pas assez le lendemain ; le réglage choisi change presque chaque trimestre.
+4. Au spread doublé, même écart (+246 contre +296 u en 2024-26) ; p corrigé 0,985 contre « tout en marche ».
+5. Elle bat « suivre 5 jours » (p 0,017), mais seulement parce que « suivre 5 jours » est mauvais ici.
 
 Piste 4 (bandit) :
 1. Le meilleur réglage choisi chaque mois est presque toujours Exp3 avec un apprentissage lent : ses poids restent proches de « tout en marche », d'où +90 u contre +87 u en 2022-24, mais +316 contre +324 en 2024-26.
