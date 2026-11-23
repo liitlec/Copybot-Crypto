@@ -776,6 +776,8 @@ Ajout du 23/11 (Baptiste) : tester la même règle « renforts gagnants » de GP
 Pour chaque marché : résultat à risque égal, 2022-2024 et 2024-2026 séparés, et surtout **corrélation avec bt_or**
 (un panier sur un marché qui ne bouge pas comme l'or est ce qui peut vraiment ajouter du gain). Donner le portefeuille
 « paniers multi-marchés » à risque égal (parité de risque) contre bt_or seul.
+**FAIT le 23/11** : banc_gpt_pyramide (PRESQUE : positif 2 moitiés, perd contre bt_or en 2024-2026 ; fenêtre GPT −3,25 %/sem.),
+banc_multi_marches (portefeuille ne tient pas) ; `gpt_pyramide_opt` sur la démo (v24, données).
 
 ## 23/11 (Paris) : deux lots en parallèle
 **Lot A — la pyramide sur nos autres stratégies.** Ajouter des renforts uniquement sur position gagnante (moitié du

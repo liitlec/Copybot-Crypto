@@ -1,3 +1,24 @@
+# Avis pour Baptiste — 23/11/2026 (règle « renforts gagnants » de GPT Astra, sur l'or et sur les autres marchés)
+
+**Réponse courte : la règle de GPT gagne un peu sur l'or, mais moins que `bt_or` sur les 2 dernières années, et ses +3,21 %/semaine ne se retrouvent pas avec les vrais prix du courtier (−3,25 %/semaine sur la même fenêtre). À 12 % de risque par panier, elle ruine le compte une fois sur deux à trois. Elle tourne sur la démo pour les données : `gpt_pyramide_opt`, robot v24 (hors totaux, 0,02 lot, arrêt à −15 R).**
+
+| Test (version A : laisser courir) | Paniers | R par panier | Total | Contre `bt_or` au même risque | Ce qu'il faut retenir |
+|---|---|---|---|---|---|
+| Or 2022-2024 (H1) | 122 | +0,28 | +34 R | **+49 contre +1 R** | meilleure que `bt_or` quand l'or ne monte pas franchement |
+| Or 2024-2026 (H1) | 97 | +0,51 | +49 R | +68 contre **+154 R** | nettement moins bien pendant la hausse |
+| Or M15 10/2024-11/2026 | 97 | +0,50 | +49 R | +72 contre **+148 R** | même chose ; 2026 T3 et T4 négatifs |
+| Fenêtre de GPT 08/06-25/09/2026 | 9 (2 gagnants) | — | −3,9 R | GPT : 7 paniers, +3,21 %/sem. | **−3,25 %/semaine**, pire baisse −46 % à 12 % de risque |
+| Ruine 24 mois, 100 €, 12 % par panier (4 ans) | | | | | mesuré 43 % ; prudent 70 % |
+| Ruine 24 mois, 100 €, 3 % / 2 % par panier (4 ans) | | | | | prudent 2 % / 0 % ; compte médian ×1,3 / ×1,25 |
+| Autres marchés (12 essayés) | 59-135 par marché | | | corrélation mensuelle avec `bt_or` : −0,3 à +0,3 | Nasdaq, S&P, EUR/USD, pétrole « ajoutent » mais sur trop peu de paniers (p 0,33) |
+| Portefeuille multi-marchés (parité de risque) | | | | bat `bt_or` dans 1 cas sur 4 | **ne tient pas** |
+
+1. Sur l'or, la règle de GPT est positive dans les deux périodes (+0,28 et +0,51 R par panier, test de White p 0,03), et sans lien avec `bt_or` (corrélation mensuelle 0,04) : c'est une vraie pièce différente, pas une copie.
+2. Mais elle fait 2 fois moins que `bt_or` sur 2024-2026 à risque égal, et la fenêtre que GPT montrait (+3,21 %/semaine) donne −3,25 %/semaine avec les vrais prix : 9 paniers et non 7, dont 2 gagnants.
+3. À 12 % du compte par panier, c'est un pari : pire baisse de −83 à −99 %, ruine en 2 ans 43 % si l'avantage est vrai, 70 % s'il est moitié moindre. À 2-3 % par panier la ruine disparaît presque, pour un compte médian ×1,3 en 2 ans (prudent).
+4. Ailleurs que sur l'or, la mécanique `bt_or` perd presque partout (S&P, Dow, EUR/USD, ETH, DAX, pétrole) ; la règle de GPT est positive sur 4 marchés peu liés à l'or, mais sur 60 paniers environ chacun et sans preuve (p 0,33). Le portefeuille multi-marchés ne bat pas `bt_or` seul.
+5. Mon avis : la garder en données sur la démo (v24) à côté de `bt_or`, car elle gagne quand l'or fait du surplace ; ne jamais la jouer à 12 % ; la regarder à nouveau après 30 paniers réels (règle d'arrêt : −15 R ou moyenne < −0,3 R).
+
 # Avis pour Baptiste — 22/11/2026, soir (« bt_or doit mieux entrer en position », PRIORITES 22/11)
 
 **Pont revenu lundi 23/11 vers 7 h (Paris) ; robot v23 (`pari_tendance_opt`) installé à 7 h 01**, positions reprises, aucune fermée ; une erreur isolée à 7 h 02 (Windows refuse l'accès à un fichier, déjà vue), sans suite.

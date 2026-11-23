@@ -1738,3 +1738,12 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
 - White H1 : 0,28 (moment), 0,010 (filtres, meilleure A50 = acheteur au-dessus de la MM50), 0,001 (stop serré) ; aucune
   variante au sens EMA 2 j ne bat le hasard sur 2022-2024 ; MAE médiane 0,42-0,56 R contre 0,51.
 - Attention : « % de stops initiaux » n'a pas la même définition dans les bancs (48 % moment, 1,9 % filtres et stop).
+
+## 23/11/2026 — règle « renforts gagnants » (GPT Astra), or et autres marchés
+- Règle figée (R = 0,25 × amplitude 14 j, tendance MM50 D1, veille calme ou inside day, entrée 08:00 M15, renforts ½ V à
+  +1 / +1,5 R, point mort à +1 R, suiveur 1,5 R). `banc_gpt_pyramide.py` : A H1 1re moitié +0,28 R/panier (122), 2e +0,51
+  (97), M15 +0,50 (97) ; à risque égal vs bt_or +49/+0,6, +68/+154, +72/+148 ; White p 0,029 ; fenêtre GPT −3,25 %/sem.
+- Ruine 24 mois 100 € (H1) : 12 % mesuré 43 % / prudent 70 % ; 3 % : 0 / 2 % ; 2 % : 0 / 0 %.
+- `banc_multi_marches.py` : bt_or négatif sur S&P, Dow, EUR, ETH, DAX, pétrole ; GPT « ajoute » Nasdaq, S&P, EUR, pétrole
+  (59-176 paniers, p White 0,33) ; portefeuille parité de risque ne tient pas.
+- Robot v24 : `gpt_pyramide_opt` (gpt_pyramide.py, marque 37, 0,02 lot, arrêt −15 R ou moy. < −0,3 R après 30), essais OK.
