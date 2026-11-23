@@ -755,3 +755,19 @@ Comparer chaque entrée au sens tiré au sort à risque égal (≥ 1 000 tirages
 Ce qui tient : variante `bt_or_entree_opt` sur la démo (hors totaux, règle d'arrêt écrite avant).
 **FAIT le 22/11 au soir** : 5 pistes, rien ne tient (banc_entree_moment, banc_entree_filtres, banc_entree_stop) ;
 pas de `bt_or_entree_opt`, robot v23 inchangé.
+
+## 23/11 (Paris) : tester la règle « renforts gagnants » proposée par GPT Astra
+Règle (or, bougies M15) : R = ¼ de l'amplitude quotidienne moyenne des 14 dernières séances. Entrée dans le sens de la
+tendance à 50 séances, seulement après une séance très calme ou entièrement contenue dans la précédente (« inside
+day »). Renforts de la moitié du volume initial à +1 R puis +1,5 R (et variante 3e renfort à +2 R), confirmés en clôture
+de bougie et seuil encore franchi à l'ouverture suivante. Stop : au prix d'entrée moyen dès la première clôture à +1 R,
+puis suit la meilleure clôture à 1,5 R, ne recule jamais. Variantes : laisser courir ; fermer 50 % à +2 R (plus
+d'ajout) ; 3e renfort puis 25 % à +3 R ; sortie en fin de séance. Résultats de GPT : 16 semaines (08/06-25/09/2026),
+7 paniers, 12 % du capital risqué par panier : +3,21 %/semaine ; sur 26 semaines +1,57 à +1,61 % ; les 10 semaines
+ajoutées −0,99 %/semaine ; pire baisse −27,8 % ; sur 2 ans avec une entrée de cassure journalière : +0,21 %/semaine
+(+0,63 % avec retrait partiel). Il manquait les cotations bid/ask du courtier : on les a.
+À faire : rejouer EXACTEMENT cette règle sur l'or du courtier (M15/M5 18 mois, H1 4 ans, spread réel, swaps estimés),
+2022-2024 et 2024-2026 séparés, walk-forward, à risque égal contre bt_or, bt_or_plus et « toujours acheteur +
+pyramide » ; nombre de paniers, pire baisse, Monte-Carlo de ruine au risque de 12 % et à 2-3 % par panier. Mettre la
+règle sur la démo en variante `gpt_pyramide_opt` POUR LES DONNÉES (hors totaux, règle d'arrêt écrite avant), même si
+le banc est mitigé, pour la juger en direct à côté de bt_or. Tableau en tête d'AVIS.md.
