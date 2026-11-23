@@ -905,3 +905,22 @@ puis mis à jour à 11 h et 14 h.
    à risque égal. Dire combien vaut, en argent, une bonne prévision par jour (et à partir de quelle précision elle paie).
 8. Bilan : quelle échelle (jour ou mois) détecte quelque chose, chiffres, et ce qui part en démo.
 **Points 6-8 FAITS le 23/11 soir** : `banc_lotd_jour.py` ; intrajour long bloqué par le réseau (Dukascopy, HistData) → or H1 du courtier 4 ans ; AUC 0,47-0,52, SPA p 0,83, aucune règle retenue ; il faudrait 56 % de bons jours pour payer. Aucune échelle ne détecte rien. Pas de variante démo.
+
+## 23/11 12 h — Lot E : vérifier l'étude d'Astra « type de séance sur l'or » (envoyée par Baptiste)
+Dossier complet (code, données, résultats) : `copy_sim/labo/astra_seances/` — lire `Resultats_pour_Claude.md`.
+Ce qu'Astra trouve sur 2017-2026 (H4, 2 407 séances hors apprentissage) : tendance et aller-retour à peine au-dessus du
+hasard (26,4 % contre 24,7 % ; 17,2 % contre 15,9 %) ; « calme » détecté à 9 h avec 31 % de précision contre 18-19 % de
+base, mais 26-29 % une fois corrigé du jour de la semaine et du mois ; jours de décision FOMC jamais calmes l'après-midi
+(0/76, amplitude ×1,62) ; cassure de 9 h non significative.
+À faire (sa section « Vérification utile pour Claude ») :
+1. Aligner ses bougies H4 sur l'heure de STARTRADER (été/hiver) ; reproduire ses chiffres avec son code.
+2. Sur nos robots réels en simulation continue à risque égal (bt_or, familles tendance et retour du labo, 50/50) :
+   écrire à 9 h le drapeau FOMC, le score calme, le signal de cassure, « indéterminé » sinon ; comparer bt_or seul,
+   retour seul, 50/50, suspension d'une famille à la fois, avec spread et glissement réels, paniers ouverts avant suivis
+   à part, jours sans intervention inclus.
+3. Témoin obligatoire : coupure aléatoire de même fréquence, même calendrier, même risque. Rapporter nombre de
+   signaux, pire baisse, semaines perdantes, espérance et incertitude.
+4. Sa source H4 longue (GitHub tohaitrieu/market-history, GOLD-H4, depuis 2005, accessible depuis le cloud) permet de
+   refaire le point « jour » du lot D sur ~20 ans à la résolution 4 h : le faire.
+5. Si quelque chose tient contre le témoin aléatoire : variante démo `_opt` hors totaux. Contrat figé avant.
+Résultats en tête d'AVIS.md.
