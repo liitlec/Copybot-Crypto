@@ -1,3 +1,50 @@
+# Avis pour Baptiste — 23/11/2026, soir (Lot D : détecter le marché à l'échelle du mois, PRIORITES 23/11 11 h 15)
+
+**Réponse courte : non, pas de détecteur. Le mime journalier de `bt_or` ne passe pas la validation (corrélation 0,48 pour un seuil de 0,6, et il gagne en 2022-24 quand le vrai perd). Le reste est donc seulement indicatif. Mais là aussi, aucun des 18 filtres lents ne bat « toujours 1 » sur 20 ans (SPA p = 1,00). Pas de variante `bt_or_filtre_opt`, robot inchangé.** Banc `banc_lotd.py`, contrat figé et poussé avant les résultats (commit 066e561).
+
+Données : GLD journalier 11/2004 → 11/2026 (vrais haut/bas). GC=F ne sert qu'en contrôle : 45 % de bougies plates avant 2008. FRED : GVZ, taux réel 10 ans, dollar. Jugement sur 01/2007 → 11/2026 (239 mois), à risque égal.
+
+**1. Mime journalier contre vrai `bt_or` H1 (08/2022 → 11/2026, R par mois)**
+
+| Mesure | Mime GLD | Vrai `bt_or` | Seuil |
+|---|---|---|---|
+| Corrélation mensuelle | 0,48 | — | ≥ 0,6 → **raté** |
+| 2022-2024 (B1) | +37 R | −1 R | même signe → **raté** |
+| 2024-2026 (B2) | +87 R | +154 R | même signe → ok |
+| Paniers par mois | 11 | 18 | — |
+| Contrôle GC=F | corr. 0,54 avec le vrai, 0,53 avec le mime GLD | | |
+
+Avec une seule bougie par jour, on ne retrouve pas `bt_or`. Son résultat dépend de ce qui se passe à l'intérieur de la journée (5 entrées par jour, stop de 0,67 ATR). Le mime change même beaucoup selon la source (GLD ou GC=F).
+
+**2-3. Filtres lents (indicatif)** — décidés en fin de mois, mise 0/1/2 par tercile du passé. Référence « toujours 1 » : +563 R. Gains et pertes donnés à risque égal contre la référence.
+
+| Filtre | 2007-2016 | 2017-2026 | Placebo p | Vrai `bt_or` 2022-24 / 2024-26 |
+|---|---|---|---|---|
+| \|momentum\| 12 mois (le meilleur sur 2022-26) | −14 R | −26 R | 0,08 | **+20 / +34 R** |
+| \|momentum\| 3 mois | −10 | −27 | 0,24 | −25 / +15 |
+| Kaufman 60 j | −28 | −15 | 0,20 | −41 / 0 |
+| Momentum 12 mois (avec le sens) | −114 | +39 | 0,15 | −2 / +23 |
+| Dollar sur 3 mois | −86 | +5 | 0,07 | −24 / −38 |
+| GVZ (niveau / variation) | −119 / 0 | −182 / −253 | 0,93 / 1,00 | — |
+| Taux réel sur 3 mois | −228 | −55 | 1,00 | −26 / −1 |
+| Résultat récent de `bt_or` (1 mois, 3 mois, courbe) | −206 / −51 / −161 | −57 / −271 / −177 | 0,76-0,92 | toujours négatif |
+| Choix en walk-forward | −117 | −103 | 0,79 | −18 / +10 |
+| **Test SPA, 19 règles** | | | **p = 1,00** (White 1,00) | |
+
+Les 19 règles font toutes moins bien que « toujours 1 » sur 20 ans, et aussi avec le coût doublé. Le seul filtre qui aidait `bt_or` sur 2022-26 (|momentum| 12 mois) perd dans les deux décennies : c'est le piège d'un historique court.
+
+**4. Échelle de temps**
+
+| Historique | Mois | Régimes de 3 mois ou plus | Écart détectable (rapport gain/risque annuel) |
+|---|---|---|---|
+| 2007-2026 | 239 | 27 | 0,45 |
+| 2022-2026 (4 ans) | 52 | 6 | 0,96 |
+| 15 derniers mois | 15 | 2 | 1,79 |
+
+1. **4 ans ne pouvaient rien prouver.** Il y a seulement 6 régimes, et l'écart détectable (0,96) dépasse tout l'avantage de la stratégie (0,71 par an). 15 mois de M5, c'est 2 régimes.
+2. **Le mois d'avant ne dit rien du mois suivant.** Sur 20 ans, l'autocorrélation des résultats mensuels est de −0,05, −0,03 et −0,09 (retards 1 à 3), sous le seuil de 0,13. C'est pour ça que tous les filtres « suivre ce qui marche » échouent, à l'heure, au jour et au mois.
+3. **Meilleure piste restante** (hors contrat, sur un mime non validé) : sur 20 ans, la tendance de l'or sans filtre gagne dans les deux décennies (+248 / +316 R). Elle perd 5 années sur 20, et seulement 3 % des fenêtres de 2 ans sont négatives. Une période plate comme 2022-24 fait donc partie du jeu normal. Elle ne se prévoit pas, elle se tient : petite mise (1 % par panier au plus, Lot C) et patience. Pour aller plus loin, il faudrait des bougies intrajour longues (or M5/H1 sur 10 ans ou plus), qu'aucune source publique gratuite n'a fournies ici.
+
 # Avis pour Baptiste — 23/11/2026, après-midi (Lot C : « encaisser plus qu'on ne dépose », PRIORITES 23/11 11 h)
 
 **Réponse courte : oui, on peut finir positif en argent encaissé, mais seulement avec une règle qui gagne déjà (la cassure calme d'Astra ou les rebonds d'indices). Les retraits et la martingale ne créent aucun gain : sur un jeu sans avantage, tout finit à zéro ou en perte. Ils changent seulement la forme : plus de chances d'avoir déjà sorti de l'argent, mais plus de ruines. Robot v26 publié : poche virtuelle `encaisse_calme_opt` (aucun ordre).**

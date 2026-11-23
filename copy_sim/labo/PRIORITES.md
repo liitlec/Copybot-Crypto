@@ -890,3 +890,4 @@ question utile est **« les prochains MOIS de l'or seront-ils en tendance ? »**
 5. Si un filtre tient sur 20 ans ET sur 2022-2026 : variante démo `bt_or_filtre_opt` hors totaux (robot suivant, essais
    OK). Sinon le dire clairement, avec la meilleure piste restante.
 Résultats en tête d'AVIS.md, tableaux simples en français.
+**FAIT le 23/11 soir** : `banc_lotd.py` (contrat 066e561) ; mime journalier non validé (corr. 0,48, signe 2022-24 faux) ; 18 filtres + WF tous sous « toujours 1 » sur 20 ans (SPA p 1,00) ; autocorrélation mensuelle nulle ; 4 ans = 6 régimes, rien de prouvable. Pas de variante démo.
