@@ -890,3 +890,16 @@ question utile est **« les prochains MOIS de l'or seront-ils en tendance ? »**
 5. Si un filtre tient sur 20 ans ET sur 2022-2026 : variante démo `bt_or_filtre_opt` hors totaux (robot suivant, essais
    OK). Sinon le dire clairement, avec la meilleure piste restante.
 Résultats en tête d'AVIS.md, tableaux simples en français.
+**Ajout 23/11 11 h 25 (Baptiste, par écrit) : « oui mais de manière journalière, comme aujourd'hui par exemple ou jeudi
+dernier ».** Le lot D doit donc AUSSI répondre à l'échelle du JOUR : « la journée qui commence sera-t-elle une journée
+de tendance (comme vendredi 20/11) ou d'aller-retour (comme jeudi 19/11 et lundi 23/11) ? », décidé avant 9 h Paris
+puis mis à jour à 11 h et 14 h.
+6. **Historique intraday long** : or M5/M15 sur 15-20 ans depuis une source publique sans clé (ex. flux historique
+   Dukascopy) ; étiquette du jour = efficacité (|clôture − ouverture| / amplitude) et résultat du jour de bt_or mimé.
+   Vérifier que les étiquettes collent sur 2025-26 avec nos données STARTRADER.
+7. **Indices connus au moment de décider** : amplitude et sens de la séance d'Asie, écart d'ouverture, type des 1-5
+   jours précédents, compression de volatilité (amplitude d'hier / ATR 20), jour de la semaine, calendrier d'annonces
+   (FOMC, CPI, emploi), position dans la tendance du mois (lien avec les points 2-3), VIX / GVZ de la veille.
+   Modèle simple (logistique, arbre peu profond) contre le taux de base ; walk-forward sur 15-20 ans ; placebo ;
+   à risque égal. Dire combien vaut, en argent, une bonne prévision par jour (et à partir de quelle précision elle paie).
+8. Bilan : quelle échelle (jour ou mois) détecte quelque chose, chiffres, et ce qui part en démo.
