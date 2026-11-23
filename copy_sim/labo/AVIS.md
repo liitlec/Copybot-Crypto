@@ -1,6 +1,6 @@
 # Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
 
-**En cours : 5 pistes finies sur 7, aucune ne tient. Robot inchangé (v25, celle du Lot A).**
+**En cours : 6 pistes finies sur 7, aucune ne tient. Robot inchangé (v25, celle du Lot A).**
 
 Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P). Chaque jour, un poids de 0 à 2 par famille, décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois ; spread réel puis doublé ; reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. **Correction en cours de route** : comparer « à exposition égale » (somme des poids) grossissait à tort les familles souvent sans position (un témoin fixe « indices seuls » passait le critère avec +761 u). Chaque piste est donc aussi jugée **à risque égal** (volatilité mesurée sur les 6 mois d'avant), et doit passer les deux mesures.
 
@@ -12,7 +12,15 @@ Hors échantillon, spread réel. Références : tout en marche **+87 u (2022-24)
 | 2. Mesures tendance/bruit (Kaufman, Hurst, ratio de variance, ADX, VWAP…) | `banc_regime_p2.py` (30) | 37 / 271 | 51 / 253 | 0,985 / 0,999 | 229 | ne tient pas |
 | 3. Méta-étiquetage (prendre ou non chaque signal, purge + embargo) | `banc_regime_p3.py` (16) | 167 / 549 | 93 / 348 | 0,004 / **0,261** | 336 | ne tient pas (faux positif à exposition égale) |
 | 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | 90 / 316 | 75 / 297 | 0,085 / 0,808 | 275 | ne tient pas |
+| 5. Régime commun or / indices / dollar / taux (VIX, taux réel, pente, ACP glissante) | `banc_regime_p5.py` (26) | 100 / 448 | **30** / 376 | 0,038 / **0,540** | 368 | ne tient pas (faux positif à exposition égale) |
 | 7. Sortie qui s'adapte (stop resserré quand l'efficacité chute…) | `banc_regime_p7.py` (24) | 126 / 298 | — (perd déjà en 2024-26) | 0,476 / — | 252 (expo) | ne tient pas |
+
+Piste 5 (régime commun des marchés) :
+1. L'état commun connu le matin (S&P en hausse et VIX bas ou non, tendance de l'or 20/60 jours, dollar et taux réel, volatilité, ACP glissante sur 16 grandeurs) donne les poids, fixés à la main ou appris par état sur le passé.
+2. À exposition égale, il semblait passer (+100 / +448 u contre +87 / +324, p 0,038), mais pour la même raison que la piste 3 : les règles « 2 ou 0 » grossissent des familles souvent sans position.
+3. À risque égal, il fait +30 u contre +87 en 2022-24 et +376 contre +324 en 2024-26 ; p corrigé 0,54 : pas de différence réelle.
+4. Le réglage choisi change presque chaque trimestre : l'état des marchés ne dit pas de façon stable quelle famille gagnera le mois suivant.
+5. Contrôle : retarder toutes les données d'un ou quatre jours de plus ne change rien (pas de fuite) ; le dollar FRED, publié chaque semaine, est pris avec 10 jours de retard.
 
 Piste 3 (méta-étiquetage) — la seule qui passait d'abord :
 1. Un classifieur par famille, réentraîné chaque mois sur le passé purgé, dit chaque jour s'il faut prendre les signaux (volatilité de l'or, efficacité, VIX, S&P, gain récent de la famille).

@@ -393,7 +393,7 @@ def ligne_csv(nom, res, chemin=None):
 def _get(url, essais=4):
     for k in range(essais):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 labo"})
+            req = urllib.request.Request(url, headers={"User-Agent": "curl/8.5.0"})
             return urllib.request.urlopen(req, timeout=60).read().decode()
         except Exception:
             time.sleep(2 * (k + 1))
@@ -418,10 +418,13 @@ def fred(ids=("VIXCLS", "DGS10", "DFII10", "DTWEXBGS", "T10YIE", "DGS2")):
 
 
 def fred_connu(ids=("VIXCLS", "DGS10", "DFII10", "DTWEXBGS", "T10YIE", "DGS2")):
-    """FRED aligne sur JOURS : valeur connue au debut du jour serveur J (derniere observation datee <= J-2)."""
+    """FRED aligne sur JOURS : valeur connue au debut du jour serveur J (observation datee <= J-2 ; dollar <= J-10)."""
     F = fred(ids)
-    F.index = F.index + pd.Timedelta(days=2)
-    return F.reindex(F.index.union(JOURS)).ffill().reindex(JOURS)
+    out = {}
+    for i in F:                                    # DTWEXBGS (dollar) est publie une fois par semaine : +10 j
+        x = F[i].dropna(); x.index = x.index + pd.Timedelta(days=10 if i == "DTWEXBGS" else 2)
+        out[i] = x.reindex(x.index.union(JOURS)).ffill().reindex(JOURS)
+    return pd.DataFrame(out)
 
 
 def cot_or():
