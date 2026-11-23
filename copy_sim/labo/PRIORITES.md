@@ -904,3 +904,4 @@ puis mis à jour à 11 h et 14 h.
    Modèle simple (logistique, arbre peu profond) contre le taux de base ; walk-forward sur 15-20 ans ; placebo ;
    à risque égal. Dire combien vaut, en argent, une bonne prévision par jour (et à partir de quelle précision elle paie).
 8. Bilan : quelle échelle (jour ou mois) détecte quelque chose, chiffres, et ce qui part en démo.
+**Points 6-8 FAITS le 23/11 soir** : `banc_lotd_jour.py` ; intrajour long bloqué par le réseau (Dukascopy, HistData) → or H1 du courtier 4 ans ; AUC 0,47-0,52, SPA p 0,83, aucune règle retenue ; il faudrait 56 % de bons jours pour payer. Aucune échelle ne détecte rien. Pas de variante démo.

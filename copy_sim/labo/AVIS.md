@@ -1,3 +1,41 @@
+# Avis pour Baptiste — 23/11/2026, soir (Lot D, points 6-8 : deviner la JOURNÉE de tendance à 9 h, 11 h, 14 h)
+
+**Réponse courte : non. À 9 h, 11 h ou 14 h, rien de ce qu'on connaît ne dit si la suite de la journée sera en tendance ou en aller-retour (AUC 0,47 à 0,52, alors que 0,50 = pile ou face). Aucune des 6 règles ne bat « toujours 1 » sur les deux périodes. Pas de variante démo.** Banc `banc_lotd_jour.py`, contrat figé et poussé avant les résultats.
+
+**Limite importante** : l'historique intrajour long (Dukascopy, HistData) est **bloqué par le réseau de l'environnement cloud** (connexions refusées). Il faudrait ajouter `datafeed.dukascopy.com` aux domaines autorisés de l'environnement. Le test est donc fait sur l'or H1 du courtier, 08/2022 → 11/2026 (1 106 jours, dont 825 prévus hors échantillon à partir de 09/2023). Pas sur 15-20 ans.
+
+**Ce qu'on connaît à l'heure de décider** : amplitude, sens et efficacité de la séance depuis minuit (Asie et début d'Europe), écart d'ouverture, type des 1 et 5 jours d'avant, compression d'hier, jour de la semaine, annonces (emploi, inflation, Fed), position dans le mois, VIX et GVZ. Deux modèles simples (logistique, arbre à 2 niveaux), recalculés chaque mois. Mise 0/1/2 sur les paniers `bt_or` ouverts après l'heure de décision.
+
+| Décision | Modèle | AUC (IC 95 %) | Gain/risque par an (toujours 1 : 1,58) | Gain contre « toujours 1 » 2023-24 / 2024-26 | Placebo p |
+|---|---|---|---|---|---|
+| 9 h | logistique | 0,51 (0,47-0,54) | 1,06 | −16 / −44 R | 0,95 |
+| 9 h | arbre | 0,52 (0,48-0,56) | 1,49 | −2 / −8 R | 0,54 |
+| 11 h | logistique | 0,47 (0,42-0,51) | 1,62 | −4 / +9 R | 0,28 |
+| 11 h | arbre | 0,48 (0,44-0,52) | 1,65 | +14 / −6 R | 0,20 |
+| 14 h | logistique | 0,52 (0,48-0,56) | 1,52 | −20 / +13 R | 0,75 |
+| 14 h | arbre | 0,52 (0,48-0,56) | 1,54 | +4 / −9 R | 0,66 |
+| **SPA, 6 règles** | | | | | **p = 0,83** |
+
+**Ce que vaudrait une bonne prévision** (9 h ; mise 2 si « bon jour » annoncé, 0 sinon ; 263 jours avec un panier après 9 h ; « toujours 1 » = +184 R)
+
+| Précision | 50 % | 52 % | 55 % | 60 % | 65 % | 70 % |
+|---|---|---|---|---|---|---|
+| Gain contre « toujours 1 » | −34 R | −24 R | −1 R | +27 R | +56 R | +86 R |
+
+1. **Il faut au moins 56 % de jours bien devinés pour gagner quelque chose.** Nos modèles font 40 à 55 % sur les jours où ils osent miser 0 ou 2 : c'est pile ou face, voire moins.
+2. **Le type de journée ne se prolonge pas.** Corrélation de l'efficacité du jour avec celle de la veille : −0,08 ; avec la moyenne des 5 jours d'avant : −0,06. « Aujourd'hui ressemble à jeudi dernier » n'apporte donc rien. Exemples : 05/11 efficacité 0,27 (aller-retour), 06/11 0,22, 10/11 0,79 (tendance), 11/11 0,50. Les jours que tu cites (19, 20 et 23/11) sont après la fin de nos bougies H1 (11/11).
+3. Les étiquettes H1 et M5 sont identiques sur 2025-26, mais c'est la même source chez le courtier : ce contrôle ne prouve rien de plus.
+
+**Point 8, bilan des deux échelles**
+
+| Échelle | Données | Meilleur résultat | Verdict |
+|---|---|---|---|
+| Heure (Lot B, Astra) | 15 mois M5, 4 ans H1 | « prolongement » +89 R, p 0,13 | rien |
+| **Jour (ce lot)** | 4 ans H1 | AUC 0,52, SPA p 0,83 | rien |
+| **Mois (ce lot)** | 22 ans journalier | 19 règles sous « toujours 1 », SPA p 1,00 | rien |
+
+**Conclusion franche** : à aucune échelle on ne devine à l'avance si l'or va tendre. Ce qui marche, c'est d'être **toujours en place** avec une règle de tendance qui coupe vite ses pertes et laisse courir ses gains (c'est ce que fait `bt_or`). Le « détecteur » est en fait déjà dans la sortie au recul. Seule piste qui reste : refaire le test du jour sur 15-20 ans d'or M5. Il faut pour ça autoriser `datafeed.dukascopy.com` dans les réglages réseau de l'environnement cloud. Vu les chiffres de 4 ans (AUC 0,5 partout), je n'en attends pas grand-chose.
+
 # Avis pour Baptiste — 23/11/2026, soir (Lot D : détecter le marché à l'échelle du mois, PRIORITES 23/11 11 h 15)
 
 **Réponse courte : non, pas de détecteur. Le mime journalier de `bt_or` ne passe pas la validation (corrélation 0,48 pour un seuil de 0,6, et il gagne en 2022-24 quand le vrai perd). Le reste est donc seulement indicatif. Mais là aussi, aucun des 18 filtres lents ne bat « toujours 1 » sur 20 ans (SPA p = 1,00). Pas de variante `bt_or_filtre_opt`, robot inchangé.** Banc `banc_lotd.py`, contrat figé et poussé avant les résultats (commit 066e561).
