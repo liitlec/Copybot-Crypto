@@ -1,3 +1,58 @@
+# Avis pour Baptiste — 23/11/2026 (réponse de GPT Astra, tour 2 : ses 6 points testés)
+
+**Réponse courte : GPT a raison sur la taille (1 % par panier au plus, pas 12 %), et le compte cent est faisable. Mais aucune de ses 3 améliorations ne tient : le filtre « séance calme » n'est pas assez net, la diversification n'aide pas, l'interrupteur de pyramide non plus. Robot inchangé (v25).**
+
+**1. Risque par panier — chance de passer à −30 % sous le sommet en 24 mois** (mesuré / prudent / nul ; Monte-Carlo par semaines entières, risque compté avec les 2 renforts, le glissement et les swaps)
+
+| Risque par panier | Or, 4 ans | Or, M15 | Or + Nasdaq + S&P + EUR/USD |
+|---|---|---|---|
+| 0,5 % | 0 / 0 / 0 % | 0 / 0 / 0 % | 0,4 / 6 / 27 % |
+| **1 %** | 0,1 / **2** / 12 % | 0 / **0,7** / 9 % | 24 / 60 / 87 % |
+| 2 % | 13 / 41 / 72 % | 4 / 27 / 65 % | 93 / 99 / 100 % |
+| 3 % | 49 / 81 / 95 % | 25 / 67 / 92 % | 100 % |
+| 12 % (version GPT) | 100 % ; ruine 18 / 50 / 80 % | 100 % ; ruine 6 / 37 / 77 % | ruine 92 / 98 / 100 % |
+
+**2. Compte cent** (rejeu historique, or 4 ans ; signal ignoré si le lot minimum dépasse le budget)
+
+| Départ | 0,5 % | 1 % | 2 % | 3 % |
+|---|---|---|---|---|
+| 100 € | 12 % ignorés, ×1,29, pire baisse −12 % | 1,4 % ignorés, ×1,65, −24 % | 0 ignoré, ×2,90, −44 % | 0, ×4,59, −59 % |
+| 500 € | 0 ignoré | 0 | 0 | 0 |
+
+**3. Filtre placebo « séance calme / inside day »** (1 000 tirages au hasard, même nombre de séances par mois, même sens, même volatilité)
+
+| Jeu | R total réel | Placebo (médiane) | p | Vaut ? |
+|---|---|---|---|---|
+| Or 4 ans | +82,5 | +25,4 | 0,042 | oui |
+| Or M15 | +48,5 | +20,7 | 0,119 | non |
+| Chaque moitié de 2 ans | +33 / +49 | +3 / +22 | 0,10 / 0,12 | non |
+
+**4. Diversification à risque global constant** (période commune 08/2025-11/2026 ; jours où au moins 2 marchés perdent ensemble)
+
+| Mécanique | Portefeuille | Total | Temps sous le sommet | Perte des jours communs (or seul ces jours-là) | Aide ? |
+|---|---|---|---|---|---|
+| Règle GPT | or seul | +29,5 R | 73 % | — | — |
+| Règle GPT | + S&P + EUR/USD | +24,8 R | 79 % | −11,7 (−8,3) | non |
+| `bt_or` | or seul | +122 R | 88 % | — | — |
+| `bt_or` | + Nasdaq + EUR/USD | +42 R | 89 % | −81 (−46) | non |
+
+**5. Interrupteur de pyramide** (renforts coupés si les 20 derniers paniers montrent qu'ils ont coûté)
+
+| Jeu | Renforts − sans renforts | Toujours sans | Toujours avec | Interrupteur |
+|---|---|---|---|---|
+| Règle GPT, or 2022-2024 | −1,7 R | +34,8 | +33,1 | **+42,4** |
+| Règle GPT, or 2024-2026 | +11,8 R | +37,6 | **+49,4** | +48,0 |
+| Règle GPT, or M15 | +12,3 R | +36,3 | **+48,5** | +41,6 |
+| `bt_or`, or 2024-2026 | +107,6 R | +46,6 | **+154,2** | +122,2 |
+
+**6. Sens tiré au sort pour `bt_or`** (2 000 tirages, 3 positions) : 4 ans moyenne +108 R (5 % des tirages sous +63, 5 % au-dessus de +151) ; `bt_or` réel +153 R (mieux que 96 % des tirages) mais −1 R en 2022-2024 (mieux que 12 % seulement) ; « toujours acheteur » +244 R, mieux que tous les tirages.
+
+1. Taille : à 12 % par panier, la baisse de −30 % est certaine et la ruine en 2 ans va de 18 à 50 % ; **1 % par panier** est le maximum qui garde moins de 10 % de chances de −30 % en 2 ans (prudent), et seulement 0,5 % par marché si on joue 4 marchés en même temps.
+2. Compte cent : 500 € suffisent toujours ; avec 100 €, à 1 % par panier, 1,4 % des signaux sont ignorés (lot minimum trop gros) et le résultat passe de ×1,83 à ×1,65 sur 4 ans.
+3. Le filtre « séance calme » fait 3 fois mieux qu'un tirage au hasard en moyenne, mais il ne bat clairement le hasard que sur 4 ans (p 0,04), pas sur 2 ans ni en M15 : pas assez net pour être sûr.
+4. Diversifier ne protège pas les jours où tout perd ensemble : avec les autres marchés, ces jours-là coûtent plus que l'or seul, et `bt_or` perd les deux tiers de sa croissance.
+5. L'interrupteur de pyramide aide seulement quand l'or fait du surplace (2022-2024) ; pendant la hausse il coûte, donc « toujours renforcer » reste meilleur. Conseil : règle de GPT à 1 % par panier au plus si un jour elle passe en réel, or seul, renforts toujours actifs.
+
 # Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
 
 **En cours : 6 pistes finies sur 7, aucune ne tient. Robot inchangé (v25, celle du Lot A).**

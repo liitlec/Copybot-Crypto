@@ -819,3 +819,5 @@ p corrigé < 0,05, robuste à un spread doublé.
    renforcés il manque. Mesurer d'abord le résultat apparié B − A sur 2022-2024 (si positif, couper la pyramide aurait
    aggravé). Témoin à battre : deux renforts fixes à risque réduit.
 6. Le +108 R du sens aléatoire : donner la distribution sur ≥ 1 000 graines (déjà fait en partie, la republier).
+**FAIT le 23/11** : banc_gpt_tour2a (1-3) et banc_gpt_tour2b (4-6) ; taille max 1 %/panier (0,5 % par marché à 4),
+compte cent faisable (500 € toujours), placebo / diversification / interrupteur ne tiennent pas. Robot v25 inchangé.

@@ -1753,3 +1753,11 @@ bt_or, reprise après perte de mémoire. Publiée en v21.
   stratégie améliorée sauf « toujours acheteur » or + pyramide (10 940 contre 5 840 bp hors échantillon, p 0,001) ;
   contrôles : repli_ind = banc_blockrange_ohlc ; achat or origine +76,17 R, pyramide +243,67 R (= banc_decompose_bt e1/e3).
 - Robot v25 : `achat_or_pyr_opt` (PanierBT sens_force=1, marque 17, arrêt bt_or), hors totaux ; essais OK.
+
+## 23/11/2026 — GPT Astra tour 2 (6 points)
+- `banc_gpt_tour2a.py` : risque compté 1,35 R par panier ; P(−30 % en 24 mois) prudent or H1 : 0,5 % → 0, 1 % → 1,9 %,
+  2 % → 41 %, 3 % → 81 %, 12 % → 100 % (ruine 50 %) ; 4 marchés : 0,5 % → 6 %, 1 % → 60 %. Compte cent : 100 € à 1 %
+  1,4 % de signaux ignorés (×1,65 contre ×1,83) ; 500 € : 0. Placebo : p 0,042 (H1 4 ans), 0,119 (M15) → ne vaut pas.
+- `banc_gpt_tour2b.py` : diversification à risque constant n'aide pas (GPT +29,5 → +24,8 R ; bt_or +122 → +42 R) ;
+  interrupteur ne tient pas (bat B seulement en 2022-2024) ; sens au hasard bt_or H1 moyenne +108,1 R (σ 26,4), bt_or
+  rang 96 %, 2022-2024 rang 12 %.
