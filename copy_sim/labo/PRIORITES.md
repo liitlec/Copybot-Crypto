@@ -821,3 +821,26 @@ p corrigé < 0,05, robuste à un spread doublé.
 6. Le +108 R du sens aléatoire : donner la distribution sur ≥ 1 000 graines (déjà fait en partie, la republier).
 **FAIT le 23/11** : banc_gpt_tour2a (1-3) et banc_gpt_tour2b (4-6) ; taille max 1 %/panier (0,5 % par marché à 4),
 compte cent faisable (500 € toujours), placebo / diversification / interrupteur ne tiennent pas. Robot v25 inchangé.
+
+## 23/11 10 h 20 — Réponse d'Astra sur la détection de régime en direct (demande de Baptiste)
+Texte complet : `copy_sim/labo/astra_regimes_2311.md`. À faire, dans cet ordre, avec le socle de Lot B :
+0. Terminer la piste 7 du Lot B si ce n'est pas fait.
+1. **Oracle horaire** : à chaque heure pleine, comparer pour les NOUVELLES entrées 50/50 fixe / tendance seule / retour
+   seul (paniers ouverts inchangés, plafond de risque commun). Gain du meilleur choix connu après coup = borne haute.
+   Si trop faible → arrêter la recherche du détecteur. Sinon lister les quelques décisions qui font le gain.
+2. **Veto de coût (à tester en premier)** : A = médiane, sur les 60 séances antérieures à la même heure de New York,
+   de l'amplitude haut–bas de l'heure suivante ; c = coût aller-retour exécutable (spread réel). Si A/c < 4, pas de
+   nouvelle entrée pendant 1 h. Placebo : autant d'heures suspendues dans les mêmes tranches/mois + réduction
+   permanente du risque à même exposition moyenne.
+3. **Prolongement après retournement** : δ = max(4c, 0,15 × ATR journalier 14) ; jambes sur clôtures M5 ; médiane des
+   3 derniers prolongements (distance après confirmation / δ) ; ≥ 1 → tendance, ≤ 0,25 → retour, sinon 50/50.
+   Placebo : permuter les prolongements entre séances à heure et volatilité comparables. Publier l'heure du 1er signal
+   (si après 18 h = même échec qu'avant).
+4. **Tenue du prix après annonce** (CPI, emploi US) : J = P5 − P0 (ignoré si |J| < 2 × médiane M5 du créneau) ;
+   F = (P15 − P0)/J ; F ≥ 0,75 → tendance sens du choc, F ≤ 0,25 → retour vers P0 si non traversé ; expire à +60 min.
+   Placebo : faux événements même heure/jour/amplitude. Exploratoire (peu d'événements).
+Contrat fixé AVANT les résultats : +0,05 R net par décision qui change l'allocation vs 50/50, gain net positif avec
+coûts doublés, recul max pas pire, borne basse IC 95 % > 0 (bootstrap stationnaire par blocs, correction pour 3 essais,
+test SPA de Hansen). Mesurer le retard en argent (gain déjà passé / encore accessible à chaque alerte).
+Seuils gelés maintenant ; si une règle tient sur l'historique, elle part en démo `_opt` hors totaux (6 mois prospectifs).
+Si rien ne bat le mélange fixe : arrêter le détecteur sur cet historique et le dire clairement. Résultats en tête d'AVIS.md.
