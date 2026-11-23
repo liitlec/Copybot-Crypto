@@ -33,6 +33,9 @@ Familles journalières, jours sans position : poids 1 (sans effet sur le P&L, ne
 GRILLE FIXÉE D'AVANCE (16 réglages) : pénalité L2 lambda in {1, 10} x fenêtre L in {6, 12} mois
 x prise in {seuil 0,50 ; seuil 0,55 ; seuil 0,60 ; doux}. Nom : l<lambda>_L<mois>_<prise>.
 Rien n'est réglé sur la période réservée (>= 05/2026) : la grille ci-dessus est fixée avant tout calcul.
+Contrôles AJOUTÉS APRÈS le premier lancement (non préenregistrés, hors CSV, n'entrent pas dans le verdict) :
+« neutre 2 » (jours sans position / sans modèle à 2, pour que « tout prendre » = TOUT après exposition égale) et
+« taux de base » (classifieur sans caractéristique). Voir la fin du fichier.
 Usage : python3 banc_regime_p3.py
 """
 import contextlib, io, time
@@ -286,4 +289,11 @@ if __name__ == "__main__":
     # complément, sans modèle) et doux = 2 x clip(10 (p - 0,45), 0, 1) ; « tout prendre » redevient alors TOUT.
     S.evalue("p3 meta controle neutre2 (hors CSV)", grille(2.0))
     evalue_trade("p3 meta controle neutre2 (trade par trade)", 2.0)
+    # CONTRÔLE « taux de base » (ajouté après coup, hors CSV) : même chaîne, neutre = 2, mais le classifieur ne voit
+    # aucune caractéristique (proba = part de gagnants de l'apprentissage purgé) : les caractéristiques servent-elles ?
+    def _taux_base(Xa, ya, Xt, lam):
+        ya = ya[np.isfinite(Xa).all(1)]
+        return None if len(ya) < 40 or ya.sum() < 8 or (1 - ya).sum() < 8 else np.full(len(Xt), ya.mean())
+    _ajuste_predit = _taux_base; _CP.clear()
+    S.evalue("p3 controle taux de base (hors CSV)", grille(2.0))
     print("%.0f s" % (time.time() - t0))

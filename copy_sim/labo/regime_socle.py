@@ -33,7 +33,10 @@ seulement, jamais le P&L). Memes regles pour SUIVRE5. Periodes : P1 = 02/2023-07
 P2 = 08/2024-11/2026 (« 2024-2026 »), dont la periode reservee RES = 05/2026-11/2026 (montree a part).
 Correction pour essais multiples : reality check de White (bootstrap stationnaire, blocs moyens 5 j, 2000 tirages)
 sur les N reglages de la piste ET la serie walk-forward, difference contre TOUT et contre SUIVRE5 sur tout le hors
-echantillon ; p corrige = le plus grand des deux. Critere (fixe d'avance, PRIORITES 23/11) : retenu si, au spread
+echantillon ; p corrige = le plus grand des deux.
+AJOUT 23/11 (apres le temoin « indices seuls ») : tout est refait a RISQUE EGAL (risque_egal : chaque mois, x ecart-type
+de TOUT / ecart-type du candidat sur les 6 mois d'avant, ex ante) ; une piste n'est retenue que si elle passe le
+critere dans les DEUX mesures (exposition egale ET risque egal). Critere (fixe d'avance, PRIORITES 23/11) : retenu si, au spread
 reel, le walk-forward gagne en P1 ET en P2, bat TOUT et SUIVRE5 en P1 ET en P2, p corrige < 0,05, et bat encore
 les deux references en P1 et P2 au spread double. Correction finale entre les 7 pistes : Holm (dans AVIS).
 """
@@ -267,6 +270,18 @@ def egal(S, W):
     return out
 
 
+def risque_egal(Sc, ref):
+    """Met la serie Sc au RISQUE de ref, mois par mois, ex ante : x ecart-type(ref) / ecart-type(Sc) mesures sur les
+    6 mois precedant le mois (P&L passe seulement ; facteur 1 s'il y a moins de 60 jours)."""
+    out = Sc.copy() * 0.0
+    for m0 in pd.date_range(DEBUT, JOURS[-1] + pd.offsets.MonthBegin(1), freq="MS"):
+        a = (Sc.index >= m0 - pd.DateOffset(months=6)) & (Sc.index < m0)
+        k = (Sc.index >= m0) & (Sc.index < m0 + pd.offsets.MonthBegin(1))
+        sa = Sc[a].std()
+        out[k] = Sc[k] * (ref[a].std() / sa if a.sum() > 60 and sa > 0 else 1.0)
+    return out
+
+
 def walk(series):
     """series : dict cfg -> serie journaliere (deja a exposition egale). Rend (serie hors echantillon, choix par mois)."""
     oos, choix = [], []
@@ -307,9 +322,30 @@ def evalue(nom, grille, cout_double=True, verbose=True):
         r["t_tout"], r["t_s5"] = tst(wf - tout_o), tst(wf - s5_o)
         r["bat"] = (r["wf_P1"] > 0 and r["wf_P2"] > 0 and p1w.sum() > 0 and p2w.sum() > 0
                     and p15.sum() > 0 and p25.sum() > 0)
+        # ---- meme chose a RISQUE EGAL (ajout 23/11 : l'exposition egale par somme des poids grossit les familles
+        # souvent sans position ; temoin « indices seuls » fixe = retenu a tort). Verdict = les deux mesures.
+        toutb, s5b = pnl(Wt, cout), pnl(Ws5, cout)
+        Sr = {c: risque_egal(pnl(W, cout), toutb) for c, W in Ws.items()}
+        s5r = risque_egal(s5b, toutb)
+        wr, choix_r = walk(Sr)
+        tr_, s5r_ = toutb.reindex(wr.index), s5r.reindex(wr.index)
+        r["re_p_tout"] = white(np.column_stack([wr - tr_] + [Sr[c].reindex(wr.index) - tr_ for c in Sr]))
+        r["re_p_s5"] = white(np.column_stack([wr - s5r_] + [Sr[c].reindex(wr.index) - s5r_ for c in Sr]))
+        r["re_p_corr"] = max(r["re_p_tout"], r["re_p_s5"])
+        for lab, s in (("re_wf", wr), ("re_tout", tr_), ("re_suivre5", s5r_)):
+            p1, p2, rr = _per(s)
+            r[lab + "_P1"], r[lab + "_P2"], r[lab + "_RES"] = p1.sum(), p2.sum(), rr.sum()
+        q1, q2, _ = _per(wr - tr_); q15, q25, _ = _per(wr - s5r_)
+        r["re_t_tout"], r["re_t_s5"] = tst(wr - tr_), tst(wr - s5r_)
+        r["re_bat"] = (r["re_wf_P1"] > 0 and r["re_wf_P2"] > 0 and q1.sum() > 0 and q2.sum() > 0
+                       and q15.sum() > 0 and q25.sum() > 0)
+        r["re_wf"] = wr
         res[cout] = r
     r1 = res[1.0]
-    ok = r1["bat"] and r1["p_corr"] < 0.05 and (2.0 not in res or res[2.0]["bat"])
+    ok_e = r1["bat"] and r1["p_corr"] < 0.05 and (2.0 not in res or res[2.0]["bat"])
+    ok_r = r1["re_bat"] and r1["re_p_corr"] < 0.05 and (2.0 not in res or res[2.0]["re_bat"])
+    ok = ok_e and ok_r
+    res["retenu_expo"], res["retenu_risque"] = bool(ok_e), bool(ok_r)
     res["retenu"] = bool(ok)
     res["N"] = len(grille)
     if verbose:
@@ -323,9 +359,15 @@ def evalue(nom, grille, cout_double=True, verbose=True):
                 print("%-8s %-10s %+9.1f %+9.1f %+9.1f %8s %8s" % ("x%.0f" % cout, lab, r[lab + "_P1"], r[lab + "_P2"],
                       r[lab + "_RES"], "%+.2f" % r["t_tout"] if lab == "wf" else "", "%+.2f" % r["t_s5"] if lab == "wf" else ""))
             print("         p corrige (White, %d reglages + wf) : contre TOUT %.3f, contre SUIVRE5 %.3f" % (len(grille), r["p_tout"], r["p_s5"]))
+            for lab in ("re_wf", "re_tout", "re_suivre5"):
+                print("%-8s %-10s %+9.1f %+9.1f %+9.1f %8s %8s" % ("x%.0f" % cout, lab, r[lab + "_P1"], r[lab + "_P2"],
+                      r[lab + "_RES"], "%+.2f" % r["re_t_tout"] if lab == "re_wf" else "",
+                      "%+.2f" % r["re_t_s5"] if lab == "re_wf" else ""))
+            print("         RISQUE EGAL : p corrige contre TOUT %.3f, contre SUIVRE5 %.3f" % (r["re_p_tout"], r["re_p_s5"]))
         cs = pd.Series([c for _, c in r1["choix"]]).value_counts()
         print("  Reglages choisis (spread reel) : " + ", ".join("%s x%d" % (k, v) for k, v in cs.head(6).items()))
-        print("  VERDICT %s : %s" % (nom, "RETENU" if ok else "ne tient pas"))
+        print("  VERDICT %s : %s (exposition egale : %s ; risque egal : %s)" % (nom, "RETENU" if ok else "ne tient pas",
+              "passe" if ok_e else "non", "passe" if ok_r else "non"))
     return res
 
 
@@ -338,6 +380,9 @@ def ligne_csv(nom, res, chemin=None):
            "p_tout": r1["p_tout"], "p_s5": r1["p_s5"], "p_corr": r1["p_corr"],
            "x2_wf_P1": r2.get("wf_P1"), "x2_wf_P2": r2.get("wf_P2"), "x2_tout_P1": r2.get("tout_P1"),
            "x2_tout_P2": r2.get("tout_P2"), "x2_s5_P1": r2.get("suivre5_P1"), "x2_s5_P2": r2.get("suivre5_P2"),
+           "re_wf_P1": r1.get("re_wf_P1"), "re_wf_P2": r1.get("re_wf_P2"), "re_tout_P1": r1.get("re_tout_P1"),
+           "re_tout_P2": r1.get("re_tout_P2"), "re_s5_P1": r1.get("re_suivre5_P1"), "re_s5_P2": r1.get("re_suivre5_P2"),
+           "re_p_corr": r1.get("re_p_corr"), "x2_re_wf_P2": r2.get("re_wf_P2"), "x2_re_tout_P2": r2.get("re_tout_P2"),
            "retenu": res["retenu"]}
     df = pd.read_csv(chemin) if os.path.exists(chemin) else pd.DataFrame()
     df = df[df.get("piste", pd.Series(dtype=str)) != nom] if len(df) else df

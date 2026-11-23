@@ -1,43 +1,53 @@
 # Avis pour Baptiste — 23/11/2026 (Lot B : deviner le type de marché en direct, 7 pistes, PRIORITES 23/11)
 
-**En cours : 4 pistes finies sur 7, aucune ne tient (la piste 1 est « presque »). Robot inchangé pour l'instant.**
+**En cours : 5 pistes finies sur 7, aucune ne tient. Robot inchangé (v25, celle du Lot A).**
 
-Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P), chaque jour un poids de 0 à 2 par famille décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois, même exposition que « tout en marche », spread réel puis doublé, reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. Références hors échantillon (spread réel) : **tout en marche +87 u (2023-mi-2024) / +324 u (mi-2024-2026)** ; suivre ce qui marche sur 5 jours −96 / +34 u.
+Socle commun `regime_socle.py` : 6 familles qui tournent depuis 08/2022 (`bt_or` en H1, cassure et retour de fourchette or H1, `repli_ind`, `rebond_nas`, tendance 50/200 S&P). Chaque jour, un poids de 0 à 2 par famille, décidé avec ce qui est connu avant le jour ; walk-forward 6 mois / 1 mois ; spread réel puis doublé ; reality check de White sur toute la grille. Unité u = 1 écart-type journalier d'une famille. **Correction en cours de route** : comparer « à exposition égale » (somme des poids) grossissait à tort les familles souvent sans position (un témoin fixe « indices seuls » passait le critère avec +761 u). Chaque piste est donc aussi jugée **à risque égal** (volatilité mesurée sur les 6 mois d'avant), et doit passer les deux mesures.
 
-| Piste | Banc (réglages) | 2022-24 : choisi / tout / suivre 5 j | 2024-26 : choisi / tout / suivre 5 j | Spread doublé (2024-26 : choisi / tout) | p corrigé | Verdict |
+Hors échantillon, spread réel. Références : tout en marche **+87 u (2022-24) / +324 u (2024-26)** ; suivre ce qui marche sur 5 jours −96 / +34 (exposition égale), −53 / +121 (risque égal).
+
+| Piste | Banc (réglages) | Exposition égale : 2022-24 / 2024-26 (tout : 87 / 324) | Risque égal : 2022-24 / 2024-26 (tout : 87 / 324) | p corrigé contre « tout » : expo / risque | Spread doublé, 2024-26 risque égal (tout 296) | Verdict |
 |---|---|---|---|---|---|---|
-| 1. Modèle de régime caché (HMM 2-3 états, en ligne, hystérésis) | `banc_regime_p1.py` (36) | **+128** / +87 / −96 | **+348** / +324 / +34 | +349 / +296 | 0,091 | presque |
-| 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | +90 / +87 / −96 | +316 / **+324** / +34 | +282 / +296 | 0,085 | ne tient pas |
-| 7. Sortie qui s'adapte (stop resserré quand l'efficacité chute, sortie au temps, objectif partiel) | `banc_regime_p7.py` (24) | **+126** / +87 / −96 | +298 / **+324** / +34 | +252 / +296 | 0,476 | ne tient pas |
-| 2. Mesures tendance/bruit (Kaufman, Hurst, ratio de variance, autocorrélation, ADX, VWAP) | `banc_regime_p2.py` (30) | +37 / **+87** / −96 | +271 / **+324** / +34 | +246 / +296 | 0,985 | ne tient pas |
+| 1. Modèle de régime caché (HMM 2-3 états, hystérésis) | `banc_regime_p1.py` (36) | 128 / 348 | 77 / 250 | 0,091 / 0,887 | 227 | ne tient pas |
+| 2. Mesures tendance/bruit (Kaufman, Hurst, ratio de variance, ADX, VWAP…) | `banc_regime_p2.py` (30) | 37 / 271 | 51 / 253 | 0,985 / 0,999 | 229 | ne tient pas |
+| 3. Méta-étiquetage (prendre ou non chaque signal, purge + embargo) | `banc_regime_p3.py` (16) | 167 / 549 | 93 / 348 | 0,004 / **0,261** | 336 | ne tient pas (faux positif à exposition égale) |
+| 4. Bandit (Hedge, Exp3, Thompson, plancher) | `banc_regime_p4.py` (28) | 90 / 316 | 75 / 297 | 0,085 / 0,808 | 275 | ne tient pas |
+| 7. Sortie qui s'adapte (stop resserré quand l'efficacité chute…) | `banc_regime_p7.py` (24) | 126 / 298 | — (perd déjà en 2024-26) | 0,476 / — | 252 (expo) | ne tient pas |
+
+Piste 3 (méta-étiquetage) — la seule qui passait d'abord :
+1. Un classifieur par famille, réentraîné chaque mois sur le passé purgé, dit chaque jour s'il faut prendre les signaux (volatilité de l'or, efficacité, VIX, S&P, gain récent de la famille).
+2. À exposition égale, il semblait gagner beaucoup (+167 / +549 u contre +87 / +324, p 0,004) ; mais il coupe surtout l'or (`bt_or` presque toujours à 0) et garde `repli_ind` et `rebond_nas`, qui sont souvent sans position et donc grossis par la mise à exposition égale.
+3. À risque égal, il reste à peine devant : +93 / +348 u contre +87 / +324, t 0,27, p corrigé 0,26 ; son rapport gain/risque est même un peu moins bon (1,40 contre 1,47 par an).
+4. À l'intérieur d'une famille, le tri ne sert presque à rien : les signaux pris gagnent aussi souvent que ceux écartés (cassure or 50 % contre 48 %).
+5. Il coupe `bt_or` parce que l'étiquette « trade gagnant » punit une stratégie qui gagne rarement mais gros ; c'est le piège connu du méta-étiquetage.
 
 Piste 1 (modèle de régime caché) :
-1. Un modèle à 2 ou 3 états, réestimé chaque mois sur le passé seulement, décide chaque jour : régime « agité » → familles de tendance de l'or ×2 et retour ×0, l'inverse au calme.
-2. C'est la seule piste qui bat « tout en marche » sur les deux périodes : +128 u contre +87 en 2022-24, +348 contre +324 en 2024-26 ; et encore au spread doublé (+349 contre +296).
-3. Mais la preuve est mince : t = 0,8 contre « tout en marche », p corrigé 0,091 au spread réel (il faut < 0,05) ; sur la période réservée (depuis mai 2026) il fait pareil (+97 contre +99 u).
-4. Le modèle sépare surtout les journées agitées des calmes, pas la tendance du va-et-vient, et le walk-forward a pris la carte inverse pendant presque un an (06/2023-04/2024) : le sens de l'effet n'est pas stable.
-5. Verdict : « presque », pas de variante sur la démo ; à revoir avec quelques mois de plus.
+1. Un modèle à 2 ou 3 états, réestimé chaque mois sur le passé, met les familles de tendance de l'or ×2 en régime « agité », et les familles de retour ×2 au calme.
+2. À exposition égale, il battait « tout en marche » sur les deux périodes (+128 / +348 u contre +87 / +324), mais avec p 0,091.
+3. À risque égal, il perd : +77 / +250 u ; p corrigé 0,89.
+4. Il sépare surtout les journées agitées des calmes, pas la tendance du va-et-vient, et le sens de l'effet s'est inversé pendant presque un an (06/2023-04/2024).
+5. Verdict : ne tient pas.
 
 Piste 7 (sortie qui s'adapte toute seule) :
-1. Au lieu de deviner le régime, on change la sortie de `bt_or` et de la cassure or : stop resserré de moitié quand l'efficacité de Kaufman passe sous 0,25, sortie après 12 h sans progrès, moitié encaissée à +1 ATR.
-2. En 2022-24 (or heurté), le stop resserré aide : +126 u contre +87 pour « tout en marche » ; mais en 2024-26 (forte tendance) il fait moins bien : +298 contre +324, et +87 contre +99 sur la période réservée.
-3. La sortie au temps et l'objectif partiel coupent les grands paniers gagnants, qui font l'essentiel du gain de `bt_or` : ils dégradent partout.
+1. On change la sortie de `bt_or` et de la cassure or : stop resserré de moitié quand l'efficacité de Kaufman passe sous 0,25, sortie après 12 h sans progrès, moitié encaissée à +1 ATR.
+2. En 2022-24 (or heurté), le stop resserré aide (+126 u contre +87), mais en 2024-26 (forte tendance) il fait moins bien (+298 contre +324 ; +87 contre +99 sur la période réservée).
+3. La sortie au temps et l'objectif partiel coupent les grands paniers gagnants, qui font l'essentiel du gain de `bt_or`.
 4. Contrôle sur l'or M5 (06/2025-11/2026) : `bt_or` d'origine +114 R ; avec stop resserré +43 R (2,6 fois plus de paniers) ; les 12 variantes font toutes moins bien.
-5. p corrigé 0,476 ; au spread doublé, elle perd contre « tout en marche » en 2024-26 (+252 contre +296 u).
+5. p corrigé 0,476 ; au spread doublé, elle perd aussi en 2024-26 (+252 contre +296 u).
 
 Piste 2 (mesures tendance / bruit) :
-1. Six mesures sur l'or H1 et quatre sur les indices, lissées et combinées, donnent les poids (tendance forte : familles de tendance ×2 ; bruit : familles de retour ×2).
-2. Hors échantillon, c'est nettement moins bien que tout laisser en marche : +37 u contre +87 en 2022-24, +271 contre +324 en 2024-26 (t −1,5).
-3. Les mesures ne s'accordent pas entre elles et le « régime » d'hier ne se prolonge pas assez le lendemain ; le réglage choisi change presque chaque trimestre.
-4. Au spread doublé, même écart (+246 contre +296 u en 2024-26) ; p corrigé 0,985 contre « tout en marche ».
-5. Elle bat « suivre 5 jours » (p 0,017), mais seulement parce que « suivre 5 jours » est mauvais ici.
+1. Six mesures sur l'or H1 et quatre sur les indices, lissées et combinées, donnent les poids.
+2. Hors échantillon, c'est nettement moins bien que tout laisser en marche, dans les deux mesures (risque égal : +51 / +253 u contre +87 / +324).
+3. Les mesures ne s'accordent pas entre elles, et le « régime » d'hier ne se prolonge pas assez le lendemain ; le réglage choisi change presque chaque trimestre.
+4. Au spread doublé, même écart ; p corrigé 0,985 à 0,999.
+5. Ne tient pas.
 
 Piste 4 (bandit) :
-1. Le meilleur réglage choisi chaque mois est presque toujours Exp3 avec un apprentissage lent : ses poids restent proches de « tout en marche », d'où +90 u contre +87 u en 2022-24, mais +316 contre +324 en 2024-26.
-2. Les versions qui réagissent vite (Hedge fort, Thompson avec oubli) se concentrent sur les familles qui viennent de gagner et retombent dans le défaut de « suivre 5 jours », qui perd −96 u en 2022-24.
-3. Contre « suivre 5 jours », le bandit gagne nettement (p 0,004), mais contre « tout en marche » il ne fait pas mieux (p 0,085 au spread réel).
-4. Au spread doublé, même constat : +282 u contre +296 pour « tout en marche » en 2024-26.
-5. Conclusion : sur ces familles, le gain récent ne prédit pas le gain suivant ; garder tout en marche reste le meilleur choix simple.
+1. Le réglage choisi est presque toujours Exp3 lent, avec des poids proches de « tout en marche » : +90 / +316 u à exposition égale, +75 / +297 à risque égal.
+2. Les versions qui réagissent vite retombent dans le défaut de « suivre 5 jours ».
+3. p corrigé 0,085 (exposition égale) et 0,81 (risque égal) contre « tout en marche ».
+4. Au spread doublé, même constat.
+5. Sur ces familles, le gain récent ne prédit pas le gain suivant.
 
 # Avis pour Baptiste — 23/11/2026 (Lot A : la pyramide sur nos autres stratégies)
 
