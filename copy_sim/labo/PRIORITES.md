@@ -771,3 +771,8 @@ ajoutées −0,99 %/semaine ; pire baisse −27,8 % ; sur 2 ans avec une entrée
 pyramide » ; nombre de paniers, pire baisse, Monte-Carlo de ruine au risque de 12 % et à 2-3 % par panier. Mettre la
 règle sur la démo en variante `gpt_pyramide_opt` POUR LES DONNÉES (hors totaux, règle d'arrêt écrite avant), même si
 le banc est mitigé, pour la juger en direct à côté de bt_or. Tableau en tête d'AVIS.md.
+Ajout du 23/11 (Baptiste) : tester la même règle « renforts gagnants » de GPT, et la mécanique bt_or (pyramide), sur
+**d'autres marchés** : argent, Nasdaq, S&P, Dow, DAX, Russell, BTC, ETH, EUR/USD, GBP/USD, USD/JPY, pétrole si disponible.
+Pour chaque marché : résultat à risque égal, 2022-2024 et 2024-2026 séparés, et surtout **corrélation avec bt_or**
+(un panier sur un marché qui ne bouge pas comme l'or est ce qui peut vraiment ajouter du gain). Donner le portefeuille
+« paniers multi-marchés » à risque égal (parité de risque) contre bt_or seul.
