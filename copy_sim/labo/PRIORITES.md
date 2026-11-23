@@ -844,3 +844,25 @@ coûts doublés, recul max pas pire, borne basse IC 95 % > 0 (bootstrap stationn
 test SPA de Hansen). Mesurer le retard en argent (gain déjà passé / encore accessible à chaque alerte).
 Seuils gelés maintenant ; si une règle tient sur l'historique, elle part en démo `_opt` hors totaux (6 mois prospectifs).
 Si rien ne bat le mélange fixe : arrêter le détecteur sur cet historique et le dire clairement. Résultats en tête d'AVIS.md.
+
+## 23/11 11 h — Lot C : objectif « encaisser plus qu'on ne dépose » (demande écrite de Baptiste)
+Baptiste : « même s'il y a du recul avec de la martingale ce n'est pas grave car je retire les gains au fur et à mesure,
+donc même si des fois il y a des pertes on sera en gains… il y a forcément une solution ».
+Le critère change pour ce lot : on ne juge plus le capital du compte, on juge **l'argent net encaissé** =
+retraits cumulés − dépôts cumulés (y compris les recharges après une ruine), sur 6, 12 et 24 mois.
+1. **Cassure après séance très calme (Astra)** sur nos données STARTRADER, spread réel, walk-forward, deux blocs de
+   2 ans (Astra : +0,64 % puis +0,81 %/sem à 12 % de risque, reculs 20 % / 28 %). Variante « mise augmentée après
+   perte » aussi (Astra : +3,71 %/sem récent mais −0,11 %/sem et −76 % sur 2022-24).
+2. **bt_or converti de R en % du compte** (journal des positions et des tailles), à 0,5 / 1 / 2 / 3 % par panier,
+   pour comparaison directe avec Astra (sa pyramide or à 1 % : +0,39 %/sem, 26 semaines, 16 paniers seulement).
+3. **Mise agressive / martingale + retraits** sur bt_or, la cassure calme et les rebonds d'indices :
+   multiplicateurs après perte 1,0 / 1,5 / 2 / 3 avec plafond de paliers, risque de base 1 à 12 % ;
+   règles de retrait : (a) retirer le dépôt initial au doublement puis jouer avec les gains, (b) retirer X % des
+   gains chaque semaine, (c) retirer tout au-dessus d'un plafond ; recharge après ruine : 0, 1 ou 2 fois.
+   Mesures : argent net encaissé (médiane, 10e centile), probabilité d'être positif en net à 6/12/24 mois,
+   nombre de ruines, pire perte nette ; Monte-Carlo par blocs de semaines + rejeu historique réel ;
+   scénario prudent (edge ÷ 2) obligatoire ; témoin = même règle de retrait avec mise fixe.
+   Dire franchement si les retraits changent l'espérance ou seulement la forme des gains.
+4. Si une combinaison est positive en net dans le scénario prudent sur les deux blocs : variante démo `_opt` hors
+   totaux (le compte démo garde ses règles ; aucun réel sans accord de Baptiste sur son PC).
+Résultats en tête d'AVIS.md, tableaux simples en français.
