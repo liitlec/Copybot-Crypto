@@ -1,3 +1,23 @@
+# Avis pour Baptiste — 23/11/2026, fin de matinée (réponse d'Astra sur la détection de régime, PRIORITES 23/11 10 h 20)
+
+**Réponse courte : aucune des 3 règles d'Astra ne bat le mélange fixe 50/50 selon le contrat. On arrête la recherche du détecteur de régime sur cet historique. Pas de variante `_opt`, robot inchangé (v25).** Le contrat a été figé et poussé avant tout calcul (commit 11f55ce, docstring de `banc_astra.py`).
+
+Or du courtier M5/M15, 08/2025 → 11/2026 (328 jours), spread réel. Familles du labo : tendance (`elan_m15` + `cassure_m15`) et retour (`fcassure_m5` + `contre_exces_m5`), sans la pause au calme. 1 R = budget de risque d'une entrée. 50/50 = moitié du budget à chaque famille. Témoins : 50/50 **−175 R** ; tendance seule **−5 R** ; retour seul −345 R.
+
+| Essai | Ce qui se passe | Gain contre le 50/50 (spread réel / doublé) | Par décision changée | Placebo | Verdict |
+|---|---|---|---|---|---|
+| 1. Oracle horaire (meilleur choix connu après coup) | Borne haute +4 632 R (+0,71 R par heure) ; les 10 meilleures heures = 4 % | — | — | Heures mélangées au hasard : +4 622 R (même chose) | la borne ne mesure que le bruit |
+| 2. Veto de coût (A/c < 4) | Ne se déclenche jamais : l'heure d'or fait en médiane 51 fois le coût (10 % des heures : 32 fois) | 0 / 0 | — | — | ne tient pas (sans objet sur l'or) |
+| 3. Prolongement après retournement | Tendance 1 055 h, retour 892 h ; 1er signal vers 12 h (Paris), 13 % des séances après 18 h | **+89 R** / +92 R | +0,054 R (seuil 0,05) | p 0,13 | **indéterminé** (IC 95 % corrigé : borne basse −0,15 R/jour) |
+| 4. Tenue du prix après annonce (CPI, emploi) | 24 annonces : 14 « tendance », 0 « retour », 10 sans signal | −9 R | −0,66 R | 34 faux événements : p 0,51 | ne tient pas |
+| Test SPA de Hansen (3 règles contre 50/50) | | | | | p = 0,53 |
+
+1. **Oracle horaire** : choisir après coup, chaque heure, la bonne famille rapporterait +4 632 R sur 15 mois. Mais en mélangeant les heures au hasard, on trouve exactement la même chose (+4 622 R). Cette borne ne dit donc rien d'une structure exploitable. Ce contrôle a été ajouté après le premier lancement ; le seuil du contrat (+0,05 R par heure) était trop facile à dépasser. Contrôle sur 4 ans d'or H1 : même tableau (+2 345 R de borne haute, dont +507 en 2022-24 et +1 838 en 2024-26).
+2. **Veto de coût** : sur l'or, une heure parcourt toujours bien plus que le coût d'un aller-retour (médiane ×51 ; jamais sous ×4, ni en M5 sur 15 mois, ni en H1 sur 4 ans). Le filtre ne suspend aucune heure ; il serait utile seulement sur un marché beaucoup plus cher à trader.
+3. **Prolongement** : c'est le seul qui gagne (+89 R contre le 50/50, +92 R avec un spread doublé, pire baisse −137 R contre −189). Mais il ne bat pas son placebo (p 0,13), l'intervalle de confiance contient 0, et surtout **« tendance seule » fait mieux sans aucun détecteur** (+170 R contre le 50/50). Son gain vient surtout de couper souvent la famille retour, qui perd. Retard en argent : 441 alertes ; +64 R déjà passés au moment de l'alerte contre +58 R encore accessibles. Il arrive donc en moyenne à mi-parcours.
+4. **Annonces** : 14 signaux « le prix tient → tendance » ; le trade direct de 15 h 45 à 16 h 30 fait en moyenne −0,005 ATR (7 gagnants sur 14), pas mieux que de faux événements (−0,016 ATR, p 0,51). Il n'y a jamais eu de signal « retour ». Essai exploratoire : trop peu d'événements.
+5. **Décision** (règle d'Astra appliquée) : aucun mécanisme ne bat le mélange fixe selon le contrat, donc on arrête la recherche du détecteur sur cet historique. Le résultat utile est ailleurs : sur ces 15 mois, la famille retour (sans la pause au calme) perd −345 R, et c'est elle qu'il faudrait revoir, pas l'aiguillage.
+
 # Avis pour Baptiste — 23/11/2026 (réponse de GPT Astra, tour 2 : ses 6 points testés)
 
 **Réponse courte : GPT a raison sur la taille (1 % par panier au plus, pas 12 %), et le compte cent est faisable. Mais aucune de ses 3 améliorations ne tient : le filtre « séance calme » n'est pas assez net, la diversification n'aide pas, l'interrupteur de pyramide non plus. Robot inchangé (v25).**
@@ -508,6 +528,7 @@ Règle du verdict, fixée avant : « tient » = gagne hors échantillon (walk-fo
 
 | Piste | Verdict | Chiffres clés | Suite |
 |---|---|---|---|
+| Astra 23/11 : détecteur de régime horaire (oracle, veto de coût A/c < 4, prolongement après retournement, tenue du prix après CPI/emploi ; contrat figé avant, `banc_astra.py`) | ne tient pas | Oracle = bruit (mélangé +4 622 R contre +4 632) ; veto jamais actif (A/c médian 51) ; prolongement +89 R contre le 50/50 mais placebo p 0,13, et « tendance seule » fait +170 R ; annonces −9 R (p 0,51) ; SPA p 0,53 | recherche du détecteur arrêtée |
 | Lot B : deviner le type de marché en direct (7 pistes : HMM, mesures tendance/bruit, méta-étiquetage, bandit, régime commun or/indices/dollar/taux, VIX/annonces/COT du matin, sortie adaptative ; 181 réglages, `regime_socle.py`, `banc_regime_p1..p7.py`) | ne tient pas | À risque égal, aucune ne bat « tout en marche » (+87 / +324 u en 2022-24 / 2024-26) ; meilleur p corrigé 0,26 ; 3 faux positifs à exposition égale (pistes 3, 5, 6) | — |
 | Panier acheté seulement, risque égal (comptant) | **tient** (placement) | +7,6 % par an, pire baisse −12 %, 2016-2026 | registre papier |
 | Repli d'indices américains (RSI 2 j < 10) | **tient** (petit) | +20 bp par trade, t = 2,3 ; +1,6 % par an à 20 % du compte | en direct (`repli_ind`) |
