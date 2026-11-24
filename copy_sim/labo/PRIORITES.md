@@ -936,3 +936,4 @@ Garder : bt_or et ses variantes `_opt` (plus, serre, achat_or_pyr), elan_m15, ca
 retour_court_ar (gagne les jours d'aller-retour), rebonds d'indices, repli_ind, fomc_dax, hasard_m1 (témoin),
 variantes `_calme` (données, demande de Baptiste du 16/11), encaisse_calme_opt.
 Mettre à jour `essais_robot.py` (les assertions sur fcassure_m1), VERSION = 27, essais OK, pousser.
+**FAIT le 24/11** : robot v27. `fcassure_m1` et `ecart_midi_m5` (notes midi_*) dans ETEINTES ; `pari_tendance_opt`, `bt_crypto_btc` et `bt_crypto_eth` dans RETIRES (plus de nouveau panier, paniers en cours suivis avec ajouts et sortie normale) ; codes de stop inchangés ; essais OK (contrôles v27 ajoutés).

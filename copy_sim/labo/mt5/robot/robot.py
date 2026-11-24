@@ -20,7 +20,9 @@ import pari_tendance
 import gpt_pyramide
 import encaisse
 
-VERSION = 26
+NOM_PARI_T = pari_tendance.NOM
+
+VERSION = 27
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -29,7 +31,12 @@ PAUSE = 1.0
 PERIODES = ("M1", "M5", "M15")
 #  nom : (periode, tenue en secondes, regle, reglage, sens : +1 on suit le signal, -1 on le contre)
 # 12/11 (demande de Baptiste) : hypotheses arretees, plus aucune ouverture ; les positions en cours sortent normalement
-ETEINTES = {"retour_m1", "elan_m1"}
+ETEINTES = {"retour_m1", "elan_m1", "fcassure_m1", "ecart_midi_m5"}
+# v27 (PRIORITES 24/11 18 h, accord ecrit de Baptiste « Oui et les autres qui servent a rien ») : arretes, plus aucune
+# ouverture (variantes _calme et notes midi_* comprises) ; positions en cours sorties normalement ; codes inchanges.
+# fcassure_m1 : -94 $ sur 495 trades ; ecart_midi_m5 (midi_agite*, midi_calme*) : quelques $ au total, aucun interet.
+# Aussi arretes en v27 : pari_tendance_opt (-443 $ en 3 trades) et bt_crypto_btc / bt_crypto_eth (-70 $) : voir RETIRES.
+RETIRES = {"pari_tendance_opt", "bt_crypto_btc", "bt_crypto_eth"}   # paniers : plus de nouveau panier, suivi conserve
 # retour_m1 : -0,55 $ par trade sur 277 trades, nettement pire que le temoin (v7)
 # elan_m1 : -0,03 $ (+/- 0,18) sur 319 trades, dans la marge du temoin (-0,31 +/- 0,18) et egal au banc
 #           (-0,19 $ sur 18 000 trades) : regle fixee d'avance "coupe a 300 trades" appliquee (v8)
@@ -211,12 +218,15 @@ class Robot:
         self.btp = bt_or.PanierBT(pont, fichier="etat_bt_plus.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
         self.bts = bt_or.PanierBT(pont, fichier="etat_bt_serre.json", nom="bt_or_serre_opt", serre=(3.0, 0.5))
         self.btt = pari_tendance.PanierPari(pont)       # v23 : pari_tendance_opt, compte virtuel separe, hors totaux
+        self.btt.retire = NOM_PARI_T in RETIRES        # v27 : arrete (paniers ouverts suivis jusqu'a leur sortie)
         self.bta = bt_or.PanierBT(pont, fichier="etat_bt_achat.json", nom="achat_or_pyr_opt", sens_force=1)   # v25
         self.gpt = gpt_pyramide.GptPyramide(pont)       # v24 : gpt_pyramide_opt, donnees seulement, hors totaux
         self.gpt.poche = encaisse.Poche(pont)           # v26 : encaisse_calme_opt, poche virtuelle, aucun ordre
         self.gpt_muet = False
         self.crypto = [bt_or.PanierBT(pont, fichier="etat_%s.json" % n, symbole=sym, nom=n, lots=None, taille=None)
                        for sym, n in CRYPTO]           # v13 : bt_crypto, hors test (donnees)
+        for c in self.crypto:
+            c.retire = c.nom in RETIRES                  # v27 : arretes (paniers ouverts suivis jusqu'a leur sortie)
         self.crypto_vu, self.crypto_muet = 0, set()
         self.repli = repli_ind.Repli(pont)
         self.rebond = rebond_nas.Rebond(pont)           # v15 : rebond_nas_opt, hors test (voir rebond_nas.py)

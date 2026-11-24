@@ -50,7 +50,7 @@ class PanierPari(bt_or.PanierBT):
             pass
 
     def arrete(self):
-        return self.arret is not None
+        return self.arret is not None or getattr(self, "retire", False)   # v27 : retire du robot
 
     def _ouvre(self, p, s, niveau, chiffres):
         if "lots0" not in p:                       # nouveau panier : taille sur le compte virtuel

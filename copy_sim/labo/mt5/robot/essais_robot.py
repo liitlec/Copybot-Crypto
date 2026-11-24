@@ -1102,4 +1102,43 @@ assert gq.poche.e["n"] == 1 and abs(gq.poche.e["capital"] - 470.0) < 1e-6, gq.po
 for f in ("etat_enc_essai.json", "etat_enc_essai2.json", "etat_gpt_essai.json"):
     if os.path.exists(f):
         os.remove(f)
+# v27 (PRIORITES 24/11 18 h) : fcassure_m1, ecart_midi_m5 (midi_*), pari_tendance_opt et bt_crypto arretes ;
+# plus aucune ouverture, positions et paniers en cours suivis jusqu'a leur sortie normale.
+assert {"fcassure_m1", "ecart_midi_m5", "retour_m1", "elan_m1"} <= ETEINTES_V7
+assert robot.RETIRES == {"pari_tendance_opt", "bt_crypto_btc", "bt_crypto_eth"} and robot.VERSION == 27
+assert all(n in robot.HYPOTHESES for n in ("fcassure_m1", "ecart_midi_m5")), "hypotheses gardees : sorties au temps"
+assert robot.CODE["fcassure_m1"] == robot.CODE["fcassure_m1"] and len(robot.CODE) == len(robot._NOTES), "codes inchanges"
+for f in ("etat_v27_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+r27 = robot.Robot(pont, fichier="etat_v27_essai.json")
+assert r27.btt.arrete() and all(c.arrete() for c in r27.crypto) and not getattr(r27.bt, "retire", False)
+assert not getattr(r27.btp, "retire", False) and not getattr(r27.bta, "retire", False)
+ft27 = FauxPontT()
+p27 = pari_tendance.PanierPari(ft27, fichier="etat_pt27_essai.json")
+p27.retire = True
+p27.bougie(m5_jusqua(8, 0, 4000.0), d1t, True)
+assert not ft27.pos and not p27.paniers, "v27 : pari_tendance_opt n'ouvre plus de panier"
+p27.retire = False
+p27.vu = None
+p27.bougie(m5_jusqua(8, 0, 4000.0), d1t, True)
+assert len(ft27.pos) == 1, "temoin : sans retrait il ouvrirait"
+p27.retire = True                                                   # panier deja ouvert : ajouts et sortie normaux
+ft27.bid = 4016.0
+p27.surveiller({x["ticket"]: x for x in ft27.positions()}, ft27.prix("XAUUSD"))
+p27.bougie(m5_jusqua(8, 35, 4016.0), d1t, True)
+assert len(ft27.pos) == 2, "v27 : le panier en cours garde ses ajouts"
+ft27.bid = p27.paniers["1"]["meilleur"] - p27.paniers["1"]["stop"] - 1
+p27.surveiller({x["ticket"]: x for x in ft27.positions()}, ft27.prix("XAUUSD"))
+assert not ft27.pos and not p27.paniers, "v27 : sortie normale au stop suiveur"
+fc27 = FauxPontC(); fc27.bid = 90000.0
+bc27 = bt_or.PanierBT(fc27, fichier="etat_c27_essai.json", symbole="BTCUSD", nom="bt_crypto_btc", lots=None, taille=None)
+bc27.retire = True
+bc27.bougie(m5_jusqua(8, 0, 90000.0, base=88000.0), d1c, True)
+assert not fc27.pos, "v27 : bt_crypto n'ouvre plus de panier"
+robot.ETEINTES = ETEINTES_V7                                        # vraies regles : fcassure_m1 / midi n'ouvrent plus
+assert all(n in robot.ETEINTES for n in ("fcassure_m1", "ecart_midi_m5"))
+for f in ("etat_v27_essai.json", "etat_pt27_essai.json", "etat_c27_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
 print("ESSAIS OK")

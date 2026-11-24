@@ -123,6 +123,8 @@ class PanierBT:
         return {t for p in self.paniers.values() for t in p["tickets"]}
 
     def arrete(self):
+        if getattr(self, "retire", False):     # v27 : regle retiree du robot, plus de nouveau panier (ajouts et sorties normaux)
+            return True
         return self.cumul_r <= ARRET_R or (self.n_paniers >= 40 and self.cumul_r / self.n_paniers < -0.3)
 
     # ------------------------------------------------------------------ reprise (changement de version)
