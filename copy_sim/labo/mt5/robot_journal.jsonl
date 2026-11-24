@@ -15035,3 +15035,27 @@
 {"heure": "2026-11-24T16:42:01Z", "type": "note", "evenement": "ouverture", "hypothese": "hasard_m1", "sens": 1, "ok": true, "refus": null, "bid": 3568.43, "ask": 3568.63, "spread": 0.2, "stop": 3554.13, "h_serveur": 18, "prix_obtenu": 3568.7, "essai": "non prouve"}
 {"heure": "2026-11-24T16:45:00Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "stop": 3589.11, "id": "fcassure_m1", "prix_demande": 3574.59, "spread_points": 20.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": 3574.78, "ticket": 512043597}
 {"heure": "2026-11-24T16:45:00Z", "type": "note", "evenement": "ouverture", "hypothese": "fcassure_m1", "sens": -1, "ok": true, "refus": null, "bid": 3574.59, "ask": 3574.79, "spread": 0.2, "stop": 3589.11, "h_serveur": 18, "prix_obtenu": 3574.78, "essai": "non prouve"}
+{"heure": "2026-11-24T16:46:58Z", "type": "ordre", "ticket": 512031306, "action": "fermeture", "id": "robot", "symbole": "XAUUSD", "sens": "achat", "lots": 0.01, "prix_demande": 3573.57, "spread_points": 21.0, "prix_entree": 3568.7, "ok": true, "retcode": 10009, "prix_obtenu": 3573.58}
+{"heure": "2026-11-24T16:46:58Z", "type": "note", "evenement": "sortie", "hypothese": "hasard_m1", "raison": "temps", "ticket": 512031306, "sens": 1, "entree": 3568.7, "h_serveur": 18, "prix_sortie": 3573.58, "profit": 4.87, "essai": "non prouve"}
+{"heure": "2026-11-24T16:47:00Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "stop": 3587.13, "id": "hasard_m1", "prix_demande": 3572.59, "spread_points": 20.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": 3572.57, "ticket": 512049363}
+{"heure": "2026-11-24T16:47:00Z", "type": "note", "evenement": "ouverture", "hypothese": "hasard_m1", "sens": -1, "ok": true, "refus": null, "bid": 3572.59, "ask": 3572.79, "spread": 0.2, "stop": 3587.13, "h_serveur": 18, "prix_obtenu": 3572.57, "essai": "non prouve"}
+{"heure": "2026-11-24T16:47:58Z", "type": "ordre", "ticket": 512043597, "action": "fermeture", "id": "robot", "symbole": "XAUUSD", "sens": "vente", "lots": 0.01, "prix_demande": 3574.18, "spread_points": 20.0, "prix_entree": 3574.78, "ok": true, "retcode": 10009, "prix_obtenu": 3574.18}
+{"heure": "2026-11-24T16:47:58Z", "type": "note", "evenement": "sortie", "hypothese": "fcassure_m1", "raison": "temps", "ticket": 512043597, "sens": -1, "entree": 3574.78, "h_serveur": 18, "prix_sortie": 3574.18, "profit": 0.6, "essai": "non prouve"}
+{"heure": "2026-11-24T16:50:04Z", "type": "lanceur", "evenement": "arrete", "version": 26, "raison": "nouvelle version"}
+{"heure": "2026-11-24T16:50:04Z", "type": "lanceur", "evenement": "installee", "version": 27}
+{"heure": "2026-11-24T16:50:04Z", "type": "lanceur", "evenement": "demarre", "version": 27}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "demarrage", "version": 27, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_court_ar", "retour_m1", "retour_strict_ar"], "lots": 0.01, "repris": []}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "reprise", "hypothese": "repli_ind", "symbole": "GER40+", "ticket": 504547802}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "reprise", "hypothese": "repli_ind", "symbole": "NAS100+", "ticket": 509339903}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "reprise", "hypothese": "repli_ind", "symbole": "SP500+", "ticket": 509339904}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "reprise", "hypothese": "cassure_m15", "ticket": 511680420, "stop": 3642.0}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "reprise", "hypothese": "elan_m15", "ticket": 511753541, "stop": 3632.04}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "reprise", "hypothese": "retour_court_ar", "ticket": 511994162, "stop": 3558.22}
+{"heure": "2026-11-24T16:50:04Z", "type": "note", "evenement": "reprise", "hypothese": "hasard_m1", "ticket": 512049363, "stop": 3587.13}
+{"heure": "2026-11-24T16:50:05Z", "type": "note", "evenement": "reprise", "hypothese": "pari_tendance_opt", "sens": -1, "positions": 3, "tickets": [510021321, 511711156, 511873888], "meilleur": 3559.08, "distance_stop": 68.13}
+{"heure": "2026-11-24T16:50:05Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or_plus_opt", "sens": -1, "positions": 3, "tickets": [510021308, 511711126, 511873865], "meilleur": 3559.08, "distance_stop": 68.13}
+{"heure": "2026-11-24T16:50:05Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or_serre_opt", "sens": -1, "positions": 3, "tickets": [510021316, 511711133, 511873883], "meilleur": 3559.08, "distance_stop": 68.13}
+{"heure": "2026-11-24T16:50:05Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or", "sens": -1, "positions": 3, "tickets": [510021303, 511711113, 511873847], "meilleur": 3559.08, "distance_stop": 68.13}
+{"heure": "2026-11-24T16:50:05Z", "type": "note", "evenement": "reprise", "hypothese": "bt_crypto_btc", "sens": -1, "positions": 2, "tickets": [510023208, 510854890], "meilleur": 59316.12, "distance_stop": 2179.64}
+{"heure": "2026-11-24T16:50:05Z", "type": "note", "evenement": "reprise", "hypothese": "bt_crypto_eth", "sens": -1, "positions": 2, "tickets": [509543339, 509763232], "meilleur": 1662.9, "distance_stop": 82.43}
+{"heure": "2026-11-24T16:50:05Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
