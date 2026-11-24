@@ -925,3 +925,14 @@ base, mais 26-29 % une fois corrigé du jour de la semaine et du mois ; jours de
 5. Si quelque chose tient contre le témoin aléatoire : variante démo `_opt` hors totaux. Contrat figé avant.
 Résultats en tête d'AVIS.md.
 **FAIT le 23/11 soir** : `banc_lote.py` (contrat efcbbf1) ; reproduction exacte ; son « 9 h » = 11 h Paris (source = serveur − 3 h) ; H4 réelles seulement depuis 06/2013 ; 12 règles sur nos robots : aucune ne bat la coupure au hasard (p Holm 1,00) ; jour sur 12,7 ans : AUC 0,55-0,56 significative mais SPA p 0,61, rien d'exploitable. Pas de variante démo.
+
+## 24/11 18 h — Robot v27 : arrêter ce qui ne sert à rien (accord écrit de Baptiste : « Oui et les autres qui servent à rien »)
+Arrêter (retirer du robot, positions ouvertes gérées jusqu'à leur sortie normale, comme d'habitude) :
+- `fcassure_m1` (−94 $ sur 495 trades, perd même les jours d'aller-retour) ;
+- `pari_tendance_opt` (−443 $ en 3 trades, hors totaux) ;
+- `bt_crypto_btc` et `bt_crypto_eth` (−70 $ cumulés, rien qui tient en recherche) ;
+- `midi_agite*`, `midi_calme*` s'ils tournent encore (quelques $ au total, aucun intérêt).
+Garder : bt_or et ses variantes `_opt` (plus, serre, achat_or_pyr), elan_m15, cassure_m15, exces_m1, exces_m5,
+retour_court_ar (gagne les jours d'aller-retour), rebonds d'indices, repli_ind, fomc_dax, hasard_m1 (témoin),
+variantes `_calme` (données, demande de Baptiste du 16/11), encaisse_calme_opt.
+Mettre à jour `essais_robot.py` (les assertions sur fcassure_m1), VERSION = 27, essais OK, pousser.
