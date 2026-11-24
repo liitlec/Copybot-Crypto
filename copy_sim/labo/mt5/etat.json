@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-24T22:06:29Z",
+ "ecrit": "2026-11-24T22:11:34Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -10,33 +10,33 @@
   "lots_par_position": 0.5
  },
  "solde": 64660.58,
- "valeur": 80806.49,
- "marge_libre": 77180.38,
+ "valeur": 80845.12,
+ "marge_libre": 77219.01,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "BTCUSD": {
-   "bid": 59991.83,
-   "ask": 60008.83,
-   "spread_points": 1700.0,
+   "bid": 59957.14,
+   "ask": 59974.15,
+   "spread_points": 1701.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795565185
+   "heure_serveur": 1795565494
   },
   "ETHUSD": {
-   "bid": 1682.78,
-   "ask": 1685.31,
-   "spread_points": 253.0,
+   "bid": 1681.98,
+   "ask": 1684.53,
+   "spread_points": 255.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795565188
+   "heure_serveur": 1795565494
   },
   "GER40+": {
    "bid": 25187.57,
@@ -122,7 +122,7 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 1717.0,
-   "prix_actuel": 1685.31,
+   "prix_actuel": 1684.53,
    "stop": 1771.27,
    "objectif": null,
    "profit": 0.32,
@@ -133,7 +133,7 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 1673.72,
-   "prix_actuel": 1685.31,
+   "prix_actuel": 1684.53,
    "stop": 1771.27,
    "objectif": null,
    "profit": -0.11,
@@ -188,10 +188,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 60425.5,
-   "prix_actuel": 60008.83,
+   "prix_actuel": 59974.15,
    "stop": 62108.07,
    "objectif": null,
-   "profit": 4.17,
+   "profit": 4.52,
    "ouverte_heure_serveur": 1795507513
   },
   {
@@ -199,10 +199,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 59548.54,
-   "prix_actuel": 60008.83,
+   "prix_actuel": 59974.15,
    "stop": 62108.07,
    "objectif": null,
-   "profit": -4.6,
+   "profit": -4.25,
    "ouverte_heure_serveur": 1795524602
   },
   {
@@ -318,7 +318,7 @@
  ],
  "garde_fou": {
   "jour_paris": "2026-11-24",
-  "perte_du_jour": 487.98,
+  "perte_du_jour": 488.68,
   "seuil": -3858.13,
   "ouvertures_bloquees": false
  },
