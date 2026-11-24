@@ -937,3 +937,24 @@ retour_court_ar (gagne les jours d'aller-retour), rebonds d'indices, repli_ind, 
 variantes `_calme` (données, demande de Baptiste du 16/11), encaisse_calme_opt.
 Mettre à jour `essais_robot.py` (les assertions sur fcassure_m1), VERSION = 27, essais OK, pousser.
 **FAIT le 24/11** : robot v27. `fcassure_m1` et `ecart_midi_m5` (notes midi_*) dans ETEINTES ; `pari_tendance_opt`, `bt_crypto_btc` et `bt_crypto_eth` dans RETIRES (plus de nouveau panier, paniers en cours suivis avec ajouts et sortie normale) ; codes de stop inchangés ; essais OK (contrôles v27 ajoutés).
+
+## 24/11 19 h — Lot F : deux tests précis d'Astra (envoyés par Baptiste) — `astra_protocole/Protocole_MT5_2411.pdf`
+**Test 2 (prioritaire) : bt_or « verrouille » la famille retour.** Dès qu'un panier bt_or a ses 3 positions (2e renfort
+exécuté), bloquer les NOUVEAUX paniers XAUUSD de exces_m1, exces_m5, retour_court_ar opposés au sens de ce bt_or
+(les paniers déjà ouverts continuent). Blocage levé à la fermeture du panier bt_or ; deux bt_or pleins opposés →
+les deux sens autorisés. Départs bt_or en heure de Paris : 2 h 05, 7 h, 7 h 30, 11 h, 14 h 45, 15 h, 15 h 30.
+Garder une copie simulée de chaque panier bloqué : nombre, résultat moyen et cumulé, contribution du meilleur jour,
+verdict aussi SANS le 20/11. Placebo : même nombre de blocages tirés parmi les entrées opposées à un bt_or ouvert,
+appariés famille / mois / créneau / âge du panier (< 30 min, 30-60, ≥ 60). Comparer aussi à « retour toujours coupé ».
+**Test 1 : compensation des ordres opposés sur le même tick** (achat 0,02 + vente 0,01 = achat net 0,01), par
+symbole, entrées / renforts / sorties ; panier virtuel par robot. Publier ticks concernés, volume apparié, économie
+de spread brute et nette en euros ; témoin coupure aléatoire. Si les rencontres sont rares ou le lot minimal bloque,
+le dire et s'arrêter.
+Contrat figé avant ; blocs 2022-23 et 2024-26 ; spread réel et doublé ; même signe sur les deux blocs exigé ; borne
+basse IC 95 % > 0 contre le placebo (rééchantillonnage par semaines).
+**Compte cent** : référence démo 50 % du risque sur bt_or, 50 % sur les deux indices, 0 sur le retour ; 0,5 % puis
+1 % de risque par panier entier, renforts compris ; sauter l'entrée si le lot minimal dépasse le budget ; pire baisse
+sur la valeur du compte, positions ouvertes comprises.
+**Attention levier réel** : en France, l'AMF limite les CFD or à 20:1 pour les particuliers (le 1:500 n'est que la
+démo). Refaire les calculs de marge du plan cent (PLAN_REEL.md) à 20:1.
+Si le test 2 tient : variante démo `bt_or_verrou_opt` (ou blocage appliqué sur des copies `_opt` des règles retour).
