@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-24T22:52:22Z",
+ "ecrit": "2026-11-24T22:57:28Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -10,33 +10,33 @@
   "lots_par_position": 0.5
  },
  "solde": 64660.58,
- "valeur": 80819.49,
- "marge_libre": 77193.38,
+ "valeur": 80834.63,
+ "marge_libre": 77208.52,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "BTCUSD": {
-   "bid": 60015.52,
-   "ask": 60032.52,
+   "bid": 60008.54,
+   "ask": 60025.54,
    "spread_points": 1700.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795567939
+   "heure_serveur": 1795568245
   },
   "ETHUSD": {
-   "bid": 1685.15,
-   "ask": 1687.67,
-   "spread_points": 252.0,
+   "bid": 1684.78,
+   "ask": 1687.33,
+   "spread_points": 255.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795567941
+   "heure_serveur": 1795568246
   },
   "GER40+": {
    "bid": 25187.57,
@@ -122,10 +122,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 1717.0,
-   "prix_actuel": 1687.67,
+   "prix_actuel": 1687.33,
    "stop": 1771.27,
    "objectif": null,
-   "profit": 0.29,
+   "profit": 0.3,
    "ouverte_heure_serveur": 1795489801
   },
   {
@@ -133,10 +133,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 1673.72,
-   "prix_actuel": 1687.67,
+   "prix_actuel": 1687.33,
    "stop": 1771.27,
    "objectif": null,
-   "profit": -0.14,
+   "profit": -0.13,
    "ouverte_heure_serveur": 1795497009
   },
   {
@@ -188,10 +188,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 60425.5,
-   "prix_actuel": 60032.52,
+   "prix_actuel": 60025.54,
    "stop": 62108.07,
    "objectif": null,
-   "profit": 3.93,
+   "profit": 4.0,
    "ouverte_heure_serveur": 1795507513
   },
   {
@@ -199,10 +199,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 59548.54,
-   "prix_actuel": 60032.52,
+   "prix_actuel": 60025.54,
    "stop": 62108.07,
    "objectif": null,
-   "profit": -4.84,
+   "profit": -4.77,
    "ouverte_heure_serveur": 1795524602
   },
   {
@@ -318,7 +318,7 @@
  ],
  "garde_fou": {
   "jour_paris": "2026-11-24",
-  "perte_du_jour": 487.44,
+  "perte_du_jour": 487.6,
   "seuil": -3858.13,
   "ouvertures_bloquees": false
  },
