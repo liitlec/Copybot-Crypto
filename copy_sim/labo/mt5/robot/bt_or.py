@@ -207,6 +207,11 @@ class PanierBT:
                         paniers=self.n_paniers, essai="non prouve")
         del self.paniers[cle]
         self.sauver()
+        if getattr(self, "poche", None) is not None:    # v29 : encaisse_calme_opt rejoue les paniers de bt_or_plus_opt
+            try:
+                self.poche.panier(r, time.time())
+            except Exception:
+                pass
 
     def surveiller(self, ps, px):
         """A chaque tour : stop suiveur sur le prix courant, paniers fermes chez le courtier."""

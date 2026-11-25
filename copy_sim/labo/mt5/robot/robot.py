@@ -22,7 +22,7 @@ import encaisse
 
 NOM_PARI_T = pari_tendance.NOM
 
-VERSION = 28
+VERSION = 29
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -44,6 +44,9 @@ RETIRES = {"pari_tendance_opt", "bt_crypto_btc", "bt_crypto_eth"}   # paniers : 
 # Note : encaisse_calme_opt rejoue les paniers de gpt_pyramide_opt ; sans nouveau panier gpt, la poche ne bouge plus.
 RETIRES |= {"repli_ind", "rebond_nas_opt", "rebond_sp_opt", "fomc_dax_opt", "bt_or_serre_opt", "achat_or_pyr_opt",
             "gpt_pyramide_opt"}
+# v29 (PRIORITES 25/11 22 h 15, « Oui » de Baptiste) : poches pari retirees (pari_opt, pari_court_opt : sorties seulement)
+# et encaisse_calme_opt rebranchee sur les paniers FERMES de bt_or_plus_opt (meme regle de mise, retraits, recharges).
+RETIRES |= {"pari_opt", "pari_court_opt"}
 # retour_m1 : -0,55 $ par trade sur 277 trades, nettement pire que le temoin (v7)
 # elan_m1 : -0,03 $ (+/- 0,18) sur 319 trades, dans la marge du temoin (-0,31 +/- 0,18) et egal au banc
 #           (-0,19 $ sur 18 000 trades) : regle fixee d'avance "coupe a 300 trades" appliquee (v8)
@@ -228,7 +231,8 @@ class Robot:
         self.btt.retire = NOM_PARI_T in RETIRES        # v27 : arrete (paniers ouverts suivis jusqu'a leur sortie)
         self.bta = bt_or.PanierBT(pont, fichier="etat_bt_achat.json", nom="achat_or_pyr_opt", sens_force=1)   # v25
         self.gpt = gpt_pyramide.GptPyramide(pont)       # v24 : gpt_pyramide_opt, donnees seulement, hors totaux
-        self.gpt.poche = encaisse.Poche(pont)           # v26 : encaisse_calme_opt, poche virtuelle, aucun ordre
+        self.btp.poche = encaisse.Poche(pont)           # v26 : encaisse_calme_opt, poche virtuelle, aucun ordre ;
+        self.gpt.poche = None                           # v29 : nourrie par bt_or_plus_opt (avant : gpt_pyramide_opt)
         for p_ in (self.bts, self.bta):                 # v28 : variantes retirees, paniers en cours suivis
             p_.retire = p_.nom in RETIRES
         self.gpt.retire = gpt_pyramide.NOM in RETIRES
@@ -538,8 +542,12 @@ class Robot:
         self.rebond.tour(ps, maintenant, ok(self.rebond.nom))   # v15 : Nasdaq, contre-pied d'une grande journee
         self.rebond_sp.tour(ps, maintenant, ok(self.rebond_sp.nom))   # v19 : S&P (banc_grande_journee.py)
         self.fomc.tour(ps, maintenant, ok(fomc_dax.NOM))    # v19 : DAX avant les annonces de la Fed (banc_calendrier.py)
-        self.pari_court.tour(ps, maintenant, permis)    # v20 : pari court (repli 4 indices, levier 100, 1 mois)
-        self.pari.tour(ps, maintenant, permis)          # v16 : poche pari (repli SP500+ / US2000+, compte virtuel)
+        self.pari_court.tour(ps, maintenant, ok(self.pari_court.NOM))   # v20 ; v29 : retire, sorties seulement
+        self.pari.tour(ps, maintenant, ok(self.pari.NOM))   # v16 : poche pari ; v29 : retiree, sorties seulement
+        try:
+            self.btp.poche.horloge(maintenant)          # v29 : retraits de fin de semaine de encaisse_calme_opt
+        except Exception:
+            pass
         if bougies is None or "crypto" in bougies:
             self.tour_crypto(ps, maintenant, permis, (bougies or {}).get("crypto"))
         if not permis:

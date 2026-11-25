@@ -1143,7 +1143,7 @@ for f in ("etat_v27_essai.json", "etat_pt27_essai.json", "etat_c27_essai.json"):
         os.remove(f)
 # v28 (PRIORITES 25/11 22 h) : bt_or_plus_opt moteur ; indices, bt_or_serre_opt, achat_or_pyr_opt, gpt_pyramide_opt
 # retires (plus d'entree ; positions en cours suivies). Les modules d'indices tournent sans droit d'ouvrir.
-assert robot.VERSION == 28
+assert robot.VERSION >= 28
 assert {"repli_ind", "rebond_nas_opt", "rebond_sp_opt", "fomc_dax_opt", "bt_or_serre_opt", "achat_or_pyr_opt",
         "gpt_pyramide_opt"} <= robot.RETIRES
 for garde in ("bt_or", "bt_or_plus_opt", "elan_m15", "cassure_m15", "exces_m1", "exces_m5", "retour_court_ar", "hasard_m1"):
@@ -1166,6 +1166,25 @@ g28 = gpt_pyramide.GptPyramide(fg, fichier="etat_gpt28_essai.json")
 g28.retire = True
 assert g28.arrete()
 for f in ("etat_v28_essai.json", "etat_gpt28_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
+# v29 (PRIORITES 25/11 22 h 15) : pari_opt et pari_court_opt retires (sorties seulement) ; encaisse_calme_opt nourrie par
+# les paniers fermes de bt_or_plus_opt.
+assert robot.VERSION == 29 and {"pari_opt", "pari_court_opt"} <= robot.RETIRES
+assert vu28["pari"] is False and vu28["pari_court"] is False, vu28
+assert isinstance(r28.btp.poche, encaisse.Poche) and r28.gpt.poche is None
+for f in ("etat_enc29_essai.json", "etat_bp29_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
+fp29 = FauxPont()
+bp29 = bt_or.PanierBT(fp29, fichier="etat_bp29_essai.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
+bp29.poche = encaisse.Poche(fe, fichier="etat_enc29_essai.json")
+bp29.paniers = {"1": {"tickets": [], "profits": {"1": -40.0}, "meilleur": 4000.0, "stop": 40.0, "pas": 15.0,
+                      "prochain": 4015.0, "debut": 0, "secours": 3950.07, "c0": 4000.0}}
+bp29.paniers["1"]["tickets"] = [1]
+bp29._cloture("1", "essai", {})
+assert bp29.poche.e["n"] == 1 and abs(bp29.poche.e["capital"] - 470.0) < 1e-6, bp29.poche.e   # -1 R : 6 % de 500
+for f in ("etat_enc29_essai.json", "etat_bp29_essai.json"):
     if os.path.exists(f):
         os.remove(f)
 print("ESSAIS OK")

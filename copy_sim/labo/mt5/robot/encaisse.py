@@ -1,7 +1,7 @@
 """Variante encaisse_calme_opt (v26, PRIORITES 23/11 11 h « Lot C : encaisser plus qu'on ne depose ») : POCHE VIRTUELLE,
 HORS totaux, AUCUN ordre. Banc : labo/banc_lotc.py (combinaison qui passe le critere prudent sur les deux blocs, et la
 plus sure en P(net > 0) parmi celles a mise augmentee ; rejeu reel positif sur les deux blocs).
-Elle rejoue chaque panier FERME de gpt_pyramide_opt (regle « cassure apres seance tres calme », memes prix, R du panier
+v29 : elle rejoue chaque panier FERME de bt_or_plus_opt (avant v29 : de gpt_pyramide_opt) (regle « cassure apres seance tres calme », memes prix, R du panier
 renforts compris) sur un compte virtuel :
   depot 500 EUR ; mise d'un panier = 6 % du capital x 1,5^k (k = pertes d'affilee, plafond 3 paliers, remis a 0 apres
   un panier >= 0 ; plafond 100 % du capital) ; gain = mise x R du panier ;

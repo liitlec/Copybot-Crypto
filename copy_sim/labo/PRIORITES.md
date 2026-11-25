@@ -987,3 +987,4 @@ Retirer : repli_ind, rebond_nas_opt, rebond_sp_opt, fomc_dax_opt, bt_or_serre_op
 les poches pari restantes (« triple ou rien » `pari_opt`, `pari_court`) : plus de nouvelle entrée, positions en cours
 sorties normalement. Rebrancher `encaisse_calme_opt` sur les paniers fermés de `bt_or_plus_opt` (même règle de mise,
 retraits et recharges), hors totaux. Essais OK, puis reprendre le lot G.
+**v29 FAITE le 25/11** : pari_opt et pari_court_opt dans RETIRES (sorties seulement) ; encaisse_calme_opt nourrie par les paniers fermés de bt_or_plus_opt (R compté sur la position de base : un panier plein de 5 positions peut valoir ±10 à 20 R, donc la poche bougera beaucoup plus qu'avec gpt) ; essais OK. Lot G déjà fait (voir AVIS).
