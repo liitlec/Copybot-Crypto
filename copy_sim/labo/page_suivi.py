@@ -392,7 +392,7 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
 
 # ------------------------------------------------------------------ compte RÉEL (cent), 25/11 : `page_suivi.py --reel`
 SORTIE_REEL = ICI.parent / "reports" / "reel_suivi.html"
-DEPOT_REEL_EUR = 200.0          # dépôt de départ de Baptiste (compte cent : 1 € = 100 cents)
+DEPOT_REEL_USC = 20000.0         # dépôt de départ : 20 000 USC = 200 $ (environ 185 €)
 ARRET_REEL = -0.34
 
 
@@ -403,66 +403,111 @@ def page_reel():
         etat = json.loads((dossier / "etat.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         etat = {}
-    par_hyp, jour = defaultdict(list), defaultdict(float)
+    par_hyp, jour, derniers = defaultdict(list), defaultdict(float), []
     f = dossier / "robot_journal.jsonl"
     for ln in f.read_text(encoding="utf-8").splitlines() if f.exists() else []:
         try:
             d = json.loads(ln)
         except ValueError:
             continue
-        ev = d.get("evenement")
-        if ev in ("sortie", "sortie panier"):
+        if d.get("evenement") in ("sortie", "sortie panier"):
             p = d.get("profit")
             if p is None:
                 p = d.get("dernier_profit")
             if isinstance(p, (int, float)):
                 par_hyp[d.get("hypothese") or "?"].append(p)
                 jour[paris(d["heure"]).date()] += p
+                derniers.append((d, p))
     dev = etat.get("devise") or "USC"
-    cents = lambda x: f"{x:+,.0f}".replace(",", " ").replace("-", "−") + f" {dev} ({x / 100:+,.2f} €)".replace(",", " ").replace(".", ",").replace("-", "−")
+
+    def fr(x, dec=2):
+        return f"{x:+,.{dec}f}".replace(",", " ").replace(".", ",").replace("-", "−")
+
+    def cents(x):
+        return f"{fr(x / 100)} $ <span class='doux'>({fr(x, 0)} {e(dev)})</span>"
+
+    def cls(x):
+        return "pos" if x > 0 else "neg" if x < 0 else ""
+
     solde, valeur = etat.get("solde"), etat.get("valeur")
     s = etat.get("sommet") or {}
     recul = s.get("recul")
-    lignes = "".join(f"<tr><td>{e(h)}</td><td class='n'>{len(x)}</td><td class='n'>{cents(sum(x))}</td></tr>"
+    g = etat.get("garde_fou") or {}
+    lignes = "".join(f"<tr><td>{e(h)}</td><td class='n'>{len(x)}</td><td class='n'>{sum(1 for v in x if v > 0)}</td>"
+                     f"<td class='n {cls(sum(x))}'>{cents(sum(x))}</td></tr>"
                      for h, x in sorted(par_hyp.items(), key=lambda kv: -sum(kv[1])))
-    jours = "".join(f"<tr><td>{j:%d/%m}</td><td class='n'>{cents(v)}</td></tr>" for j, v in sorted(jour.items())[-14:])
+    jours = "".join(f"<tr><td>{j:%a %d/%m}</td><td class='n {cls(v)}'>{cents(v)}</td></tr>"
+                    for j, v in sorted(jour.items(), reverse=True)[:14])
+    pos = etat.get("positions_robot") or []
+    lpos = "".join(f"<tr><td>{e(p.get('symbole'))}</td><td>{e(p.get('sens'))}</td><td class='n'>{p.get('lots')}</td>"
+                   f"<td class='n'>{p.get('prix_entree')}</td><td class='n'>{p.get('stop')}</td>"
+                   f"<td class='n {cls(p.get('profit') or 0)}'>{cents(p.get('profit') or 0)}</td></tr>" for p in pos)
+    lder = "".join(f"<tr><td>{paris(d['heure']):%d/%m %H:%M}</td><td>{e(d.get('hypothese'))}</td>"
+                   f"<td class='n {cls(p)}'>{cents(p)}</td></tr>" for d, p in reversed(derniers[-15:]))
     if valeur is None:
-        etat_txt = "Pas de compte réel autorisé et connecté : " + e(etat.get("arret") or "pont réel pas encore lancé")
+        etat_txt, bon = "Pas de compte réel autorisé et connecté : " + e(etat.get("arret") or "pont réel pas encore lancé"), False
     else:
-        etat_txt = ("Ordres autorisés" if etat.get("ordres_autorises") else "AUCUN ORDRE : " + e(etat.get("arret")))
+        bon = bool(etat.get("ordres_autorises"))
+        etat_txt = "Robot actif : ordres autorisés" if bon else "AUCUN ORDRE : " + e(etat.get("arret"))
     ad = etat.get("arret_distant")
     if ad:
+        bon = False
         etat_txt = (f"ARRÊT À DISTANCE depuis {e(ad.get('depuis'))}" + (" (fermer tout demandé, "
                     + ("fait" if ad.get("fermeture_faite") else "en cours") + ")" if ad.get("fermer_tout") else "")
                     + " — " + etat_txt)
+    gain = None if valeur is None else valeur - DEPOT_REEL_USC
     retrait = ""
     if valeur is not None:
-        cible = 2 * DEPOT_REEL_EUR * 100
-        retrait = (f"<p class='alerte'>Le compte a doublé : <b>retirer {DEPOT_REEL_EUR:.0f} €</b> (règle du plan réel), "
-                   "puis laisser tourner.</p>" if valeur >= cible else
-                   f"<p>Retrait prévu : {DEPOT_REEL_EUR:.0f} € quand la valeur atteint {cible:,.0f} {dev} "
-                   f"(encore {cible - valeur:,.0f}).</p>".replace(",", " "))
-    dist = "" if recul is None else (f"Recul depuis le plus haut : {recul:+.1%} ; arrêt automatique à {ARRET_REEL:.0%} "
-                                     f"(marge restante {recul - ARRET_REEL:.1%})").replace(".", ",") + "."
-    g = etat.get("garde_fou") or {}
+        cible = 2 * DEPOT_REEL_USC
+        retrait = ("<p class='alerte'>Le compte a doublé : <b>retire tes 200 $</b> (règle du plan réel), puis laisse tourner.</p>"
+                   if valeur >= cible else
+                   f"<p class='doux'>Retrait prévu : tes 200 $ quand la valeur atteint 400 $ (encore {fr((cible - valeur) / 100)} $).</p>")
+    dist = "—" if recul is None else f"{fr(recul * 100, 1)} %"
+    marge = "—" if recul is None else f"{fr((recul - ARRET_REEL) * 100, 1)} %"
+    maj = e(etat.get("ecrit") or "—")
+    try:
+        maj = f"{paris(etat['ecrit']):%d/%m à %H:%M} (Paris)"
+    except Exception:
+        pass
+    robot = etat.get("robot") or {}
+    tuile = lambda t, v, c="": f"<div class='tuile'><span>{t}</span><b class='{c}'>{v}</b></div>"
     return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compte réel cent</title><style>body{{font-family:system-ui,sans-serif;margin:16px;max-width:900px}}
-table{{border-collapse:collapse;width:100%}}td,th{{border-bottom:1px solid #ddd;padding:4px 6px;text-align:left}}
-.n{{text-align:right;font-variant-numeric:tabular-nums}}.alerte{{background:#fde2e1;padding:8px;border-radius:6px}}
-@media (prefers-color-scheme: dark){{body{{background:#111;color:#eee}}td,th{{border-color:#333}}.alerte{{background:#5a1d1d}}}}</style></head>
-<body><h1>Compte réel (cent)</h1>
-<p><b>{etat_txt}</b><br>Mis à jour : {e(etat.get("ecrit") or "—")}</p>
-<table><tr><td>Solde</td><td class="n">{cents(solde) if solde is not None else "—"}</td></tr>
-<tr><td>Valeur (positions comprises)</td><td class="n">{cents(valeur) if valeur is not None else "—"}</td></tr>
-<tr><td>Résultat du jour (garde-fou −5 %)</td><td class="n">{cents(g["perte_du_jour"]) if "perte_du_jour" in g else "—"}</td></tr>
-<tr><td>Plus haut de la valeur</td><td class="n">{cents(s["plus_haut"]) if s.get("plus_haut") is not None else "—"}</td></tr></table>
-<p>{dist}</p>{"<p class='alerte'>ARRÊT AUTOMATIQUE à −34 % déclenché : plus aucun ordre. Décision de Baptiste.</p>" if s.get("arret") else ""}
+<title>Compte réel cent</title><style>
+:root{{--fond:#f5f6f3;--carte:#fff;--texte:#1c211d;--doux:#5d665f;--trait:#dfe3dc;--pos:#1d7a4a;--neg:#b3372c;--ok:#e2f2e8;--ko:#f8e4e1}}
+@media (prefers-color-scheme: dark){{:root:not([data-theme="light"]){{--fond:#141714;--carte:#1c211d;--texte:#e8ebe6;--doux:#9aa39b;--trait:#2e352f;--pos:#5fc48d;--neg:#ef8377;--ok:#19372a;--ko:#42211d;color-scheme:dark}}}}
+:root[data-theme="dark"]{{--fond:#141714;--carte:#1c211d;--texte:#e8ebe6;--doux:#9aa39b;--trait:#2e352f;--pos:#5fc48d;--neg:#ef8377;--ok:#19372a;--ko:#42211d;color-scheme:dark}}
+body{{background:var(--fond);color:var(--texte);font:15px/1.5 system-ui,sans-serif;margin:0;padding:20px 16px 40px}}
+main{{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:22px}}h1{{margin:0;font-size:1.6rem}}h2{{font-size:1.05rem;margin:0 0 8px}}
+.statut{{padding:10px 14px;border-radius:10px;font-weight:600;background:var(--{'ok' if bon else 'ko'});color:var(--{'pos' if bon else 'neg'})}}
+.tuiles{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}}
+.tuile{{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:10px 12px;min-width:0}}
+.tuile span{{display:block;color:var(--doux);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}}.tuile b{{font-size:1.2rem}}
+.boite{{background:var(--carte);border:1px solid var(--trait);border-radius:10px;overflow-x:auto}}
+table{{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}}td,th{{padding:7px 10px;border-bottom:1px solid var(--trait);text-align:left;white-space:nowrap}}
+th{{font-size:.72rem;text-transform:uppercase;color:var(--doux);font-weight:500}}tr:last-child td{{border-bottom:0}}
+.n{{text-align:right}}.pos{{color:var(--pos)}}.neg{{color:var(--neg)}}.doux{{color:var(--doux);font-size:.85em}}
+.alerte{{background:var(--ko);color:var(--neg);padding:10px 14px;border-radius:10px;margin:0}}p{{margin:0}}
+</style></head><body><main>
+<header><h1>Compte réel (cent)</h1><p class="doux">Mis à jour : {maj} · robot réel version {e(robot.get("version_installee"))} · bt_or_plus + règles courtes</p></header>
+<div class="statut">{etat_txt}</div>
+{"<p class='alerte'>ARRÊT AUTOMATIQUE à −34 % déclenché : plus aucun ordre. Décision de Baptiste.</p>" if s.get("arret") else ""}
+<section class="tuiles">
+{tuile("Valeur du compte", cents(valeur) if valeur is not None else "—")}
+{tuile("Gain depuis le dépôt", cents(gain) if gain is not None else "—", cls(gain or 0))}
+{tuile("Résultat du jour", cents(g["perte_du_jour"]) if "perte_du_jour" in g else "—", cls(g.get("perte_du_jour") or 0))}
+{tuile("Recul depuis le plus haut", dist)}
+{tuile("Marge avant l'arrêt −34 %", marge)}
+{tuile("Positions ouvertes", str(len(pos)))}
+</section>
 {retrait}
-<h2>Par stratégie (trades fermés)</h2><table><tr><th>Stratégie</th><th class="n">Trades</th><th class="n">Résultat</th></tr>
-{lignes or "<tr><td colspan='3'>Pas encore de trade fermé.</td></tr>"}</table>
-<h2>Par jour (14 derniers)</h2><table>{jours or "<tr><td>—</td></tr>"}</table>
-<p>Positions ouvertes du robot : {len(etat.get("positions_robot") or [])}. Robot : version {e((etat.get("robot") or {}).get("version_installee"))}.</p>
-</body></html>
+<section><h2>Positions ouvertes</h2><div class="boite"><table><tr><th>Marché</th><th>Sens</th><th class="n">Lots</th><th class="n">Entrée</th><th class="n">Stop</th><th class="n">Résultat</th></tr>
+{lpos or "<tr><td colspan='6'>Aucune position ouverte.</td></tr>"}</table></div></section>
+<section><h2>Par stratégie (trades fermés)</h2><div class="boite"><table><tr><th>Stratégie</th><th class="n">Trades</th><th class="n">Gagnants</th><th class="n">Résultat</th></tr>
+{lignes or "<tr><td colspan='4'>Pas encore de trade fermé.</td></tr>"}</table></div></section>
+<section><h2>Par jour (Paris)</h2><div class="boite"><table>{jours or "<tr><td>Pas encore de trade fermé.</td></tr>"}</table></div></section>
+<section><h2>Derniers trades fermés</h2><div class="boite"><table>{lder or "<tr><td>—</td></tr>"}</table></div></section>
+<p class="doux">Dépôt de départ : 20 000 USC = 200 $. Arrêt d'urgence sur le PC : fichier STOP_PONT ; à distance : demander à Claude « arrête le robot réel ».</p>
+</main></body></html>
 """
 
 
