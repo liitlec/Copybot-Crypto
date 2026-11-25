@@ -430,6 +430,11 @@ def page_reel():
         etat_txt = "Pas de compte réel autorisé et connecté : " + e(etat.get("arret") or "pont réel pas encore lancé")
     else:
         etat_txt = ("Ordres autorisés" if etat.get("ordres_autorises") else "AUCUN ORDRE : " + e(etat.get("arret")))
+    ad = etat.get("arret_distant")
+    if ad:
+        etat_txt = (f"ARRÊT À DISTANCE depuis {e(ad.get('depuis'))}" + (" (fermer tout demandé, "
+                    + ("fait" if ad.get("fermeture_faite") else "en cours") + ")" if ad.get("fermer_tout") else "")
+                    + " — " + etat_txt)
     retrait = ""
     if valeur is not None:
         cible = 2 * DEPOT_REEL_EUR * 100

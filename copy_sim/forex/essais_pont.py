@@ -276,6 +276,43 @@ if args.faux:
     verdict(f"sans champ : {v0} ; autorisee 2 : {v2} ; autorisee 3 : {v3} ; dossier robot : {lanceur_robot.REL_ROBOT}",
             v0 is None and v2 is None and v3 == 3 and lanceur_robot.REL_ROBOT == "copy_sim/labo/mt5_reel/robot"
             and "pont_reel.py" in lanceur_robot.COMMUNS)
+    print("16. (reel) arret a distance : arret, fermer_tout limite aux magiques reels, une seule fois ; absent / false /"
+          " illisible = normal ; ne peut jamais autoriser")
+    for p in list(mt5.positions):
+        mt5.positions.remove(p)
+    mt5.valeur = 20000.0
+    (AUT / pont_reel.FICHIER_SOMMET).unlink(missing_ok=True)
+    aut(mt5.FAUX_LOGIN)
+    ouvre_robot(); ouvre_robot()
+    etr = mt5.Position(91, 0, 0, 20261112, 0.01, 2650.0, 2640.0, 0.0, 2650.0, 0.0, 1.0, ORX, "demo")
+    mt5.positions.append(etr)
+    acc = acces_robot.AccesRobot(mt5, None)
+    n0 = pont_reel.appliquer_arret_distant(mt5, None, SR)
+    e0 = pont.passage(mt5, SR, None, None, LR)
+    m1 = pont_reel.appliquer_arret_distant(mt5, json.dumps({"arret": True, "fermer_tout": True}), SR)
+    reste = [p.magic for p in mt5.positions]
+    e1 = pont.passage(mt5, SR, None, None, LR)
+    r1 = ouvre_robot()
+    stop_robot = acc.arret_demande()
+    ouvre_ok = None
+    pont_reel._ETAT["distant"] = None                      # une position rouverte a la main pendant l'arret...
+    ouvre_ok = ouvre_robot()["ok"]
+    pont_reel.appliquer_arret_distant(mt5, json.dumps({"arret": True, "fermer_tout": True}), SR)
+    une_fois = sum(p.magic == pont_reel.MAGIQUE_ROBOT_REEL for p in mt5.positions) == 1   # ...n'est pas refermee
+    pont_reel.appliquer_arret_distant(mt5, json.dumps({"arret": False}), SR)
+    e2 = pont.passage(mt5, SR, None, None, LR)
+    pont_reel.appliquer_arret_distant(mt5, "{pas du json", SR)
+    e3 = pont.passage(mt5, SR, None, None, LR)
+    (AUT / pont_reel.FICHIER_AUTORISATION).unlink()
+    pont_reel.appliquer_arret_distant(mt5, json.dumps({"arret": False, "autoriser": True, "compte": mt5.FAUX_LOGIN,
+                                                       "phrase": pont_reel.PHRASE, "robot": 1}), SR)
+    e4 = pont.passage(mt5, SR, None, None, LR)
+    verdict("arret : " + str(e1["arret"])[:45] + "... ; restent : " + str(reste),
+            n0 is None and e0["ordres_autorises"] and m1["fermeture_faite"] and reste == [20261112]
+            and not e1["ordres_autorises"] and "ARRET A DISTANCE" in e1["arret"] and e1["arret_distant"]["actif"]
+            and not r1["ok"] and stop_robot and ouvre_ok and une_fois
+            and e2["ordres_autorises"] and e2["arret_distant"] is None and e3["ordres_autorises"]
+            and not e4["ordres_autorises"] and "autorisation" in e4["arret"] and not acc.arret_demande())
     shutil.rmtree(AUT, ignore_errors=True); shutil.rmtree(SR, ignore_errors=True)
 
 print(f"BILAN : {sum(bilan)} essais reussis sur {len(bilan)}")

@@ -1034,3 +1034,4 @@ Essais ajoutés dans `essais_pont.py` (arrêt, fermer_tout limité aux magiques 
 normal). Mettre à jour `LANCER_REEL.md` (section Arrêter) : comment demander l'arrêt depuis le téléphone (message à
 Claude dans l'app, qui écrit le fichier) et rappel : le pont réel tourne depuis une copie figée, donc il faut relancer
 `installer_tache_reel.ps1` une fois rentré pour activer cette fonction. Pousser, résumé à @parent.
+**FAIT le 25/11** : `pont_reel.py` lit ARRET_DISTANT.json (branche distante) à chaque tour ; arrêt = plus aucun ordre + robot arrêté et non relancé ; fermer_tout = fermeture des seuls magiques réels, refaite au tour suivant seulement si une a échoué ; absent / false / illisible = normal ; jamais d'autorisation par ce fichier (essai 16). État publié `arret_distant` ; page réelle et tableau de bord affichent l'arrêt. LANCER_REEL.md : section « Arrêt à distance ». Rappel : relancer installer_tache_reel.ps1 pour l'activer.

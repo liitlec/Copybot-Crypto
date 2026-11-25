@@ -78,6 +78,26 @@ dossier `%USERPROFILE%\pont_mt5_reel`, clone du dépôt `%USERPROFILE%\depot_ree
 | Retirer l'autorisation | Supprimer `AUTORISATION_REEL.json` : plus aucun ordre dans la minute |
 | Désinstaller | PowerShell : `Unregister-ScheduledTask -TaskName PontMT5Reel -Confirm:$false` |
 | Repartir après l'arrêt −34 % | Seulement après réflexion : supprimer `sommet_reel.json` (le plus haut repart de la valeur actuelle) |
+| **Arrêter à distance** (pas chez toi) | Voir ci-dessous : un message à Claude depuis ton téléphone suffit |
+
+### Arrêt à distance (depuis ton téléphone)
+
+Écris à Claude dans l'app, par exemple : **« Arrête le robot réel »** ou **« Arrête le robot réel et ferme tout »**.
+Claude écrit alors dans le dépôt le fichier `copy_sim/labo/mt5_reel/ARRET_DISTANT.json` :
+
+| Contenu | Effet (dans la minute qui suit) |
+|---|---|
+| `{"arret": true}` | Plus aucune ouverture ni renfort, robot réel arrêté ; les positions restent sur leurs stops |
+| `{"arret": true, "fermer_tout": true}` | En plus, ferme toutes les positions du robot réel (seulement les siennes, une fois) |
+| `{"arret": false}` ou fichier supprimé | Fonctionnement normal |
+
+Le tableau de bord réel et la page de suivi affichent « ARRÊT À DISTANCE » avec l'heure. **Ce fichier ne peut
+qu'arrêter** : il ne peut jamais autoriser ni relancer quoi que ce soit, car l'autorisation reste ton fichier local
+`AUTORISATION_REEL.json`. Pour reprendre, demande à Claude de remettre `{"arret": false}`, ou fais-le toi-même.
+
+**Important** : le pont réel tourne depuis une copie figée. Cette fonction ne marche qu'après avoir **relancé
+`installer_tache_reel.ps1` une fois**, rentré chez toi (même commande qu'à l'étape 5). Avant ça, à distance, il ne
+reste que la fermeture à la main depuis l'application MetaTrader 5 du téléphone, connectée au compte cent.
 
 Une nouvelle version du robot réel (`copy_sim/labo/mt5_reel/robot/VERSION`) ne s'installe que si **tu** mets son
 numéro dans le champ `"robot"` de ton fichier d'autorisation, et seulement si ses essais passent.

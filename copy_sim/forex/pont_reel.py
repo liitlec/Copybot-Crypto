@@ -21,6 +21,11 @@ Il reprend les fonctions du pont démo et remplace, dans CE processus seulement,
   (`copy_sim/labo/mt5_reel/robot/`) trade ; sorties publiées dans `copy_sim/labo/mt5_reel/` seulement.
 - une version du robot réel ne s'installe que si elle est égale au champ "robot" de ce fichier (aucune nouvelle
   version sans le geste de Baptiste sur son PC, PLAN_REEL point 7) ;
+- ARRÊT À DISTANCE (25/11 23 h 30) : `copy_sim/labo/mt5_reel/ARRET_DISTANT.json` lu dans la branche DISTANTE à
+  chaque tour. {"arret": true} = plus aucun ordre, robot réel arrêté (comme STOP_PONT), positions laissées à leurs
+  stops ; {"arret": true, "fermer_tout": true} = en plus, fermeture des positions portant les numéros magiques du pont
+  réel (et d'elles seules). Absent, illisible ou {"arret": false} = fonctionnement normal. Ce fichier ne peut JAMAIS
+  autoriser quoi que ce soit : l'autorisation reste le fichier local de Baptiste ;
 - le terminal utilisé est celui donné par `--terminal` (le 2e MT5) : `initialize(path=...)` à chaque connexion.
 """
 from __future__ import annotations
@@ -40,7 +45,63 @@ ARRET_SOMMET = 0.34                 # arrêt automatique à −34 % du plus haut
 SPREAD_MAX_REL = 0.0003             # 3 pb du prix : au-delà, ouverture refusée (or ≈ 1,2 $ à 4 000 $)
 PORTS_REEL = range(8766, 8772)      # tableau de bord réel (la démo est sur 8765)
 
-_ETAT = {"pont": None, "dossier": None, "envoyer": None, "construire": None}
+FICHIER_DISTANT = "ARRET_DISTANT.json"           # dans copy_sim/labo/mt5_reel/ de la branche distante
+FICHIER_DISTANT_LOCAL = "arret_distant_local.json"   # mémoire locale : depuis quand, fermeture déjà faite
+_ETAT = {"pont": None, "dossier": None, "envoyer": None, "construire": None, "distant": None, "fermeture": False}
+
+
+def lire_arret_distant(texte):
+    """Renvoie {"fermer_tout": bool} si l'arrêt à distance est demandé, sinon None (absent, illisible, false).
+    Ne lit QUE ces deux champs : rien d'autre dans ce fichier n'a d'effet."""
+    if not isinstance(texte, str) or len(texte) > 10_000:
+        return None
+    try:
+        d = json.loads(texte)
+    except ValueError:
+        return None
+    if not isinstance(d, dict) or d.get("arret") is not True:
+        return None
+    return {"fermer_tout": d.get("fermer_tout") is True}
+
+
+def appliquer_arret_distant(mt5, texte, sortie=None):
+    """Met à jour l'arrêt à distance ; si demandé, ferme les positions du pont réel (magiques réels seulement)."""
+    pont = _ETAT["pont"]
+    f = Path(_ETAT["dossier"]) / FICHIER_DISTANT_LOCAL
+    a = lire_arret_distant(texte)
+    if a is None:
+        if _ETAT["distant"] is not None:
+            pont.log.warning("arret a distance leve")
+            if sortie is not None:
+                pont.noter(sortie, action="arret_distant", etat="leve")
+        _ETAT["distant"] = None
+        if f.exists():
+            f.unlink()
+        return None
+    m = pont.lire_json(f, {})
+    if not isinstance(m, dict) or not m.get("depuis"):
+        m = {"depuis": pont.maintenant(), "fermeture_faite": False}
+        pont.log.error("ARRET A DISTANCE demande")
+        if sortie is not None:
+            pont.noter(sortie, action="arret_distant", etat="actif", fermer_tout=a["fermer_tout"])
+    m["fermer_tout"] = a["fermer_tout"]
+    if a["fermer_tout"] and not m.get("fermeture_faite"):
+        restantes = 0
+        _ETAT["fermeture"] = True
+        try:
+            for pos in [p for p in (mt5.positions_get() or []) if p.magic in (MAGIQUE_REEL, MAGIQUE_ROBOT_REEL)]:
+                r = pont.fermer(mt5, pos, "arret_distant", False, magique=pos.magic)
+                if not r.get("ok"):
+                    restantes += 1
+                if sortie is not None:
+                    r.pop("_ticket", None)
+                    pont.noter(sortie, raison="arret a distance, fermer_tout", **r)
+        finally:
+            _ETAT["fermeture"] = False
+        m["fermeture_faite"] = restantes == 0          # sinon : nouvel essai au tour suivant (marché fermé...)
+    _ETAT["distant"] = dict(m)
+    pont.ecrire_json(f, m)
+    return m
 
 
 def lire_autorisation(dossier: Path):
@@ -110,7 +171,11 @@ def compte_reel(mt5, simuler_reel: bool = False):
         return None, "compte autorise mais pas en mode reel : aucun ordre"
     if str(info.currency).upper() not in DEVISES_CENT:
         return None, "compte autorise mais pas un compte cent (devise attendue USC ou EUC) : aucun ordre"
+    if _ETAT["fermeture"]:                       # fermeture demandée à distance : seules les sorties passent
+        return info, None
     s = sommet(dossier, float(info.equity))
+    if _ETAT["distant"] is not None:
+        return info, f"ARRET A DISTANCE depuis {_ETAT['distant']['depuis']} : plus aucun ordre (ARRET_DISTANT.json)"
     if s.get("arret"):
         return info, (f"ARRET AUTOMATIQUE : valeur a -{ARRET_SOMMET:.0%} du plus haut : plus aucun ordre "
                       "(positions laissees a leurs stops) ; decision de Baptiste")
@@ -120,6 +185,9 @@ def compte_reel(mt5, simuler_reel: bool = False):
 def envoyer_reel(mt5, demande: dict, simuler_reel: bool = False):
     """Avant l'envoyer du pont : stop obligatoire et spread maximal sur toute ouverture."""
     pont = _ETAT["pont"]
+    if _ETAT["fermeture"] and ("position" not in demande or demande.get("action") != mt5.TRADE_ACTION_DEAL
+                               or demande.get("magic") not in (MAGIQUE_REEL, MAGIQUE_ROBOT_REEL)):
+        raise pont.Refus("arret a distance : seules les fermetures des positions du pont reel")
     if "position" not in demande and demande.get("action") == mt5.TRADE_ACTION_DEAL:
         if not (pont.nombre(demande.get("sl")) and demande["sl"] > 0):
             raise pont.Refus("ouverture sans stop refusee")
@@ -154,6 +222,10 @@ def construire_etat_reel(mt5, info, arret, statut, local, symboles):
         s = pont.lire_json(Path(_ETAT["dossier"]) / FICHIER_SOMMET, {})
         e["sommet"] = {k: s.get(k) for k in ("plus_haut", "recul", "arret", "heure_arret")}
         e["symbole_or"] = sym
+    d = _ETAT["distant"]
+    e["arret_distant"] = None if d is None else {"actif": True, "depuis": d.get("depuis"),
+                                                 "fermer_tout": d.get("fermer_tout"),
+                                                 "fermeture_faite": d.get("fermeture_faite")}
     return e
 
 
@@ -182,6 +254,10 @@ def activer(pont, dossier: Path | None = None, acces_robot=None, lanceur_robot=N
             c["mode"] = "reel"
             return c
         acces_robot.AccesRobot.compte = compte
+        if not hasattr(acces_robot.AccesRobot, "_arret_demande_demo"):
+            acces_robot.AccesRobot._arret_demande_demo = acces_robot.AccesRobot.arret_demande
+            acces_robot.AccesRobot.arret_demande = lambda self: (_ETAT["distant"] is not None
+                                                                 or acces_robot.AccesRobot._arret_demande_demo(self))
     if lanceur_robot is not None:
         lanceur_robot.REL_ROBOT = REL_MT5_REEL + "/robot"
         L = lanceur_robot.Lanceur
@@ -200,6 +276,18 @@ def activer(pont, dossier: Path | None = None, acces_robot=None, lanceur_robot=N
                     return None
                 return v
             L.version_distante = version_distante
+            L._demarrer_demo, L._surveiller_demo = L.demarrer, L.surveiller
+
+            def demarrer(self):
+                if _ETAT["distant"] is None:            # arrêt à distance : le robot ne redémarre pas
+                    L._demarrer_demo(self)
+
+            def surveiller(self):
+                if _ETAT["distant"] is not None:
+                    self.arreter("arret a distance")
+                    return
+                L._surveiller_demo(self)
+            L.demarrer, L.surveiller = demarrer, surveiller
         if "pont_reel.py" not in lanceur_robot.COMMUNS:
             lanceur_robot.COMMUNS = tuple(lanceur_robot.COMMUNS) + ("pont_reel.py",)
 
@@ -266,8 +354,14 @@ def main(args) -> None:
             with pont.VERROU:
                 if mt5.terminal_info() is None:
                     mt5.initialize()
+                try:                    # arrêt à distance (ne peut qu'arrêter ; erreur = fonctionnement normal)
+                    appliquer_arret_distant(mt5, pont.lire_distant(FICHIER_DISTANT), sortie)
+                except Exception:
+                    pont.log.exception("arret a distance (lecture)")
+            if _ETAT["distant"] is not None:
+                lanceur.arreter("arret a distance")
             try:
-                if not args.une_fois:
+                if not args.une_fois and _ETAT["distant"] is None:
                     lanceur.tour()
             except Exception:
                 pont.log.exception("lanceur du robot (le pont continue)")
