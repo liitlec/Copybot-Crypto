@@ -988,3 +988,33 @@ les poches pari restantes (« triple ou rien » `pari_opt`, `pari_court`) : plus
 sorties normalement. Rebrancher `encaisse_calme_opt` sur les paniers fermés de `bt_or_plus_opt` (même règle de mise,
 retraits et recharges), hors totaux. Essais OK, puis reprendre le lot G.
 **v29 FAITE le 25/11** : pari_opt et pari_court_opt dans RETIRES (sorties seulement) ; encaisse_calme_opt nourrie par les paniers fermés de bt_or_plus_opt (R compté sur la position de base : un panier plein de 5 positions peut valoir ±10 à 20 R, donc la poche bougera beaucoup plus qu'avec gpt) ; essais OK. Lot G déjà fait (voir AVIS).
+
+## 25/11 23 h — Préparer le passage en RÉEL sur compte cent (demande écrite de Baptiste)
+Baptiste : « Il te faut quoi pour lancer en direct ? » puis « prépare tout pour que j'aie juste à rentrer les
+identifiants en attendant que je dépose l'argent ». Compte STARTRADER **cent**, 200 €, ouvert dans un 2e terminal MT5
+sur son PC (identifiants saisis par lui dans MT5, jamais lus ni écrits par le pont ni le dépôt).
+Préparer (code + essais), RIEN d'actif sans son geste sur le PC :
+1. **Pont réel séparé** : `pont_mt5.py --reel --terminal "<chemin terminal64.exe du 2e MT5>"` (ou copie dédiée).
+   Par défaut le pont reste DÉMO SEULEMENT, inchangé. En `--reel` : n'envoie d'ordre que si le fichier local
+   `AUTORISATION_REEL.json` (à côté du script, sur le PC, ignoré par git, jamais dans le dépôt) existe, contient
+   `{"compte": <numéro du compte cent>, "phrase": "J'autorise le robot a trader en reel sur ce compte cent"}` et que le
+   compte connecté a ce numéro, est en mode réel et en devise cent (USC/EUC). Sinon aucun ordre, statut affiché.
+   Dossier de sortie séparé `copy_sim/labo/mt5_reel/` ; rien d'identifiant publié (pas de numéro, serveur, nom).
+   Numéros magiques distincts. Sécurités : plafonds 10 positions et 0,10 lot cent par position ; stop obligatoire ;
+   garde-fou −5 %/jour ; **arrêt automatique à −34 % du plus haut de la valeur du compte** (plus aucune ouverture,
+   positions laissées à leurs stops, alerte dans l'état) ; fichier `STOP_PONT` ; spread maximal par ordre.
+2. **Robot réel séparé** `copy_sim/labo/mt5_reel/robot/` avec sa propre VERSION, installé seulement par le lanceur
+   du pont réel. Contenu : bt_or_plus (0,02 lot cent de base, renforts 1-2-3-4-5 × base → arrondis au pas de lot),
+   elan_m15, cassure_m15, exces_m1, exces_m5, retour_court_ar à 0,01 lot cent. Rien d'autre. Lots, nom du
+   symbole or (suffixe éventuel), lot minimum / pas / taille de contrat lus dans `symboles` de l'état, jamais supposés.
+   Essais hors ligne (`essais_robot.py` adapté, faux terminal en compte réel cent) : « ESSAIS OK » obligatoire.
+3. **Installation** : `installer_tache_reel.ps1` (tâche `PontMT5Reel`, copie figée dans `%USERPROFILE%\pont_mt5_reel`,
+   tableau de bord sur un autre port, ex. 8766). Ne crée PAS `AUTORISATION_REEL.json` : c'est Baptiste qui l'écrit.
+4. **Page de suivi réelle** : `page_suivi.py --reel` → `copy_sim/reports/reel_suivi.html` (solde, valeur, résultat du
+   jour, par stratégie, recul depuis le plus haut, distance à l'arrêt −34 %, retraits à faire : retirer 200 € quand
+   le compte double).
+5. **Guide** `copy_sim/labo/LANCER_REEL.md` : pas à pas en français simple pour Baptiste (2e terminal MT5, connexion,
+   vérification levier / symbole / lot minimum, lancer le script d'installation, écrire le fichier d'autorisation,
+   arrêt d'urgence). Mettre à jour `PLAN_REEL.md`.
+Essais : `essais_pont.py` étendu (refus sans autorisation, refus si numéro différent, refus si non-cent, arrêt −34 %).
+Pousser, puis résumé à @parent. Aucune installation : elle se fait depuis le PC de Baptiste, sur son accord écrit là-bas.
