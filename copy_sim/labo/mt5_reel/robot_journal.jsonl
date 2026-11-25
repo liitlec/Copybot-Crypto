@@ -1,0 +1,6 @@
+{"heure": "2026-11-25T21:45:33Z", "type": "lanceur", "evenement": "attente", "version": 1, "raison": "version non autorisee dans AUTORISATION_REEL.json (champ robot)"}
+{"heure": "2026-11-25T21:49:42Z", "type": "lanceur", "evenement": "installee", "version": 1}
+{"heure": "2026-11-25T21:49:42Z", "type": "lanceur", "evenement": "demarre", "version": 1}
+{"heure": "2026-11-25T21:49:42Z", "type": "note", "evenement": "demarrage", "version": 1, "mode": "reel", "hypotheses": ["cassure_m15", "elan_m15", "exces_m1", "exces_m5", "retour_court_ar", "bt_or_plus"], "repris": []}
+{"heure": "2026-11-25T21:49:42Z", "type": "note", "evenement": "tailles", "symbole": "XAUUSD.c", "lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 1.0, "base_bt_or_plus": 0.02, "lots_regles_courtes": 0.01}
+{"heure": "2026-11-25T21:49:42Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}

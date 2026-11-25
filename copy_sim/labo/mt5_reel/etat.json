@@ -1,0 +1,61 @@
+{
+ "ecrit": "2026-11-25T21:50:44Z",
+ "pont": 1,
+ "ordres_autorises": true,
+ "arret": null,
+ "consigne": "consigne absente : rien ne change",
+ "version_appliquee": 0,
+ "plafonds": {
+  "positions": 10,
+  "lots_par_position": 0.1
+ },
+ "solde": 20000.11,
+ "valeur": 20000.11,
+ "marge_libre": 20000.11,
+ "devise": "USC",
+ "levier": 500,
+ "positions": [],
+ "symboles": {
+  "XAUUSD.c": {
+   "bid": 3580.67,
+   "ask": 3581.12,
+   "spread_points": 45.0,
+   "point": 0.01,
+   "chiffres": 2,
+   "lot_min": 0.01,
+   "pas_lot": 0.01,
+   "taille_contrat": 1.0,
+   "heure_serveur": 1795650643
+  }
+ },
+ "positions_robot": [],
+ "garde_fou": {
+  "jour_paris": "2026-11-25",
+  "perte_du_jour": 0,
+  "seuil": -1000.01,
+  "ouvertures_bloquees": false
+ },
+ "mode": "reel",
+ "securites": {
+  "arret_depuis_plus_haut": -0.34,
+  "perte_max_jour": -0.05,
+  "spread_max_pb": 2.9999999999999996,
+  "stop_obligatoire": true
+ },
+ "sommet": {
+  "plus_haut": 20000.11,
+  "recul": 0.0,
+  "arret": false,
+  "heure_arret": null
+ },
+ "symbole_or": "XAUUSD.c",
+ "robot": {
+  "version_installee": 1,
+  "version_precedente": null,
+  "en_marche": true,
+  "dernier_refus": null,
+  "derniere_erreur": null,
+  "plantages_10_min": 0,
+  "interface": "copy_sim/forex/ROBOT_INTERFACE.md"
+ }
+}
