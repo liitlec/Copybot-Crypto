@@ -982,3 +982,7 @@ Retirer : repli_ind, rebond_nas_opt, rebond_sp_opt, fomc_dax_opt, bt_or_serre_op
    du panier bt_or ouvert ; contre-tendance seulement opposée au panier (en direct +73 $ sur 74 trades).
 3. Ensemble : bt_or_plus + règles optimisées à risque égal, pire baisse, semaines perdantes, sur les deux blocs.
 4. Ce qui tient sur les deux blocs et bat son placebo → variante démo `_opt` (v29). Résultats en tête d'AVIS.md.
+**Ajout 25/11 22 h 15 (Baptiste : « Oui ») :** dans la v28 (ou v28.1 → VERSION 29 si déjà publiée), retirer aussi
+les poches pari restantes (« triple ou rien » `pari_opt`, `pari_court`) : plus de nouvelle entrée, positions en cours
+sorties normalement. Rebrancher `encaisse_calme_opt` sur les paniers fermés de `bt_or_plus_opt` (même règle de mise,
+retraits et recharges), hors totaux. Essais OK, puis reprendre le lot G.
