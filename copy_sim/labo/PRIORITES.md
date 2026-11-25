@@ -1019,3 +1019,18 @@ Préparer (code + essais), RIEN d'actif sans son geste sur le PC :
 Essais : `essais_pont.py` étendu (refus sans autorisation, refus si numéro différent, refus si non-cent, arrêt −34 %).
 Pousser, puis résumé à @parent. Aucune installation : elle se fait depuis le PC de Baptiste, sur son accord écrit là-bas.
 **FAIT le 25/11** : `copy_sim/forex/pont_reel.py` (chargé seulement par `pont_mt5.py --reel --terminal ...`), `installer_tache_reel.ps1` (tâche PontMT5Reel, copie `%USERPROFILE%\pont_mt5_reel`, clone à part `%USERPROFILE%\depot_reel`, port 8766), robot réel `labo/mt5_reel/robot/` v1 (essais OK en bac à sable), `page_suivi.py --reel`, guide `LANCER_REEL.md`, PLAN_REEL à jour ; `essais_pont.py --faux` 15/15. Ajout de sécurité : le robot réel ne s'installe que dans la version inscrite par Baptiste (champ "robot" de AUTORISATION_REEL.json). Option `-Terminal` facultative pour le pont démo (deux MT5 ouverts). Rien installé.
+
+## 25/11 23 h 30 — Arrêt À DISTANCE du pont réel (demande de Baptiste : « on peut arrêter à tout moment à distance
+## quand je ne suis pas chez moi ? »)
+Ajouter au pont réel (`pont_reel.py`) un interrupteur lu dans le dépôt distant à chaque tour (`git show
+origin/<branche>:copy_sim/labo/mt5_reel/ARRET_DISTANT.json`) :
+- `{"arret": true}` → plus aucune ouverture ni renfort, robot réel arrêté (comme `STOP_PONT`), positions laissées sur
+  leurs stops ; `{"arret": true, "fermer_tout": true}` → en plus, ferme toutes les positions du robot réel (seulement
+  les numéros magiques du pont réel), une fois, et le note ;
+- fichier absent, illisible ou `{"arret": false}` → fonctionnement normal (l'autorisation locale reste obligatoire :
+  le dépôt ne peut JAMAIS autoriser ni lancer quoi que ce soit, seulement arrêter) ;
+- l'état publié affiche « ARRÊT À DISTANCE » et l'heure ; le tableau de bord aussi.
+Essais ajoutés dans `essais_pont.py` (arrêt, fermer_tout limité aux magiques réels, absence = normal, illisible =
+normal). Mettre à jour `LANCER_REEL.md` (section Arrêter) : comment demander l'arrêt depuis le téléphone (message à
+Claude dans l'app, qui écrit le fichier) et rappel : le pont réel tourne depuis une copie figée, donc il faut relancer
+`installer_tache_reel.ps1` une fois rentré pour activer cette fonction. Pousser, résumé à @parent.
