@@ -397,117 +397,111 @@ ARRET_REEL = -0.34
 
 
 def page_reel():
-    """Page du compte réel : lit labo/mt5_reel/etat.json et robot_journal.jsonl (rien d'identifiant n'y est écrit)."""
+    """Page du compte réel, rendue dans le navigateur à partir de etat.json et robot_journal.jsonl (labo/mt5_reel).
+    Les données du moment sont incluses ; la page les relit ensuite toutes les minutes dans le dépôt public
+    (raw.githubusercontent.com). Rien d'identifiant n'y figure."""
     dossier = ICI / "mt5_reel"
     try:
         etat = json.loads((dossier / "etat.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         etat = {}
-    par_hyp, jour, derniers = defaultdict(list), defaultdict(float), []
     f = dossier / "robot_journal.jsonl"
-    for ln in f.read_text(encoding="utf-8").splitlines() if f.exists() else []:
-        try:
-            d = json.loads(ln)
-        except ValueError:
-            continue
-        if d.get("evenement") in ("sortie", "sortie panier"):
-            p = d.get("profit")
-            if p is None:
-                p = d.get("dernier_profit")
-            if isinstance(p, (int, float)):
-                par_hyp[d.get("hypothese") or "?"].append(p)
-                jour[paris(d["heure"]).date()] += p
-                derniers.append((d, p))
-    dev = etat.get("devise") or "USC"
+    journal = f.read_text(encoding="utf-8") if f.exists() else ""
+    donnees = json.dumps({"etat": etat, "journal": journal}, ensure_ascii=False).replace("<", "\\u003c")
+    return (PAGE_REEL.replace("__DONNEES__", donnees).replace("__DEPOT__", str(DEPOT_REEL_USC))
+            .replace("__ARRET__", str(ARRET_REEL)))
 
-    def fr(x, dec=2):
-        return f"{x:+,.{dec}f}".replace(",", " ").replace(".", ",").replace("-", "−")
 
-    def cents(x):
-        return f"{fr(x / 100)} $ <span class='doux'>({fr(x, 0)} {e(dev)})</span>"
-
-    def cls(x):
-        return "pos" if x > 0 else "neg" if x < 0 else ""
-
-    solde, valeur = etat.get("solde"), etat.get("valeur")
-    s = etat.get("sommet") or {}
-    recul = s.get("recul")
-    g = etat.get("garde_fou") or {}
-    lignes = "".join(f"<tr><td>{e(h)}</td><td class='n'>{len(x)}</td><td class='n'>{sum(1 for v in x if v > 0)}</td>"
-                     f"<td class='n {cls(sum(x))}'>{cents(sum(x))}</td></tr>"
-                     for h, x in sorted(par_hyp.items(), key=lambda kv: -sum(kv[1])))
-    jours = "".join(f"<tr><td>{j:%a %d/%m}</td><td class='n {cls(v)}'>{cents(v)}</td></tr>"
-                    for j, v in sorted(jour.items(), reverse=True)[:14])
-    pos = etat.get("positions_robot") or []
-    lpos = "".join(f"<tr><td>{e(p.get('symbole'))}</td><td>{e(p.get('sens'))}</td><td class='n'>{p.get('lots')}</td>"
-                   f"<td class='n'>{p.get('prix_entree')}</td><td class='n'>{p.get('stop')}</td>"
-                   f"<td class='n {cls(p.get('profit') or 0)}'>{cents(p.get('profit') or 0)}</td></tr>" for p in pos)
-    lder = "".join(f"<tr><td>{paris(d['heure']):%d/%m %H:%M}</td><td>{e(d.get('hypothese'))}</td>"
-                   f"<td class='n {cls(p)}'>{cents(p)}</td></tr>" for d, p in reversed(derniers[-15:]))
-    if valeur is None:
-        etat_txt, bon = "Pas de compte réel autorisé et connecté : " + e(etat.get("arret") or "pont réel pas encore lancé"), False
-    else:
-        bon = bool(etat.get("ordres_autorises"))
-        etat_txt = "Robot actif : ordres autorisés" if bon else "AUCUN ORDRE : " + e(etat.get("arret"))
-    ad = etat.get("arret_distant")
-    if ad:
-        bon = False
-        etat_txt = (f"ARRÊT À DISTANCE depuis {e(ad.get('depuis'))}" + (" (fermer tout demandé, "
-                    + ("fait" if ad.get("fermeture_faite") else "en cours") + ")" if ad.get("fermer_tout") else "")
-                    + " — " + etat_txt)
-    gain = None if valeur is None else valeur - DEPOT_REEL_USC
-    retrait = ""
-    if valeur is not None:
-        cible = 2 * DEPOT_REEL_USC
-        retrait = ("<p class='alerte'>Le compte a doublé : <b>retire tes 200 $</b> (règle du plan réel), puis laisse tourner.</p>"
-                   if valeur >= cible else
-                   f"<p class='doux'>Retrait prévu : tes 200 $ quand la valeur atteint 400 $ (encore {fr((cible - valeur) / 100)} $).</p>")
-    dist = "—" if recul is None else f"{fr(recul * 100, 1)} %"
-    marge = "—" if recul is None else f"{fr((recul - ARRET_REEL) * 100, 1)} %"
-    maj = e(etat.get("ecrit") or "—")
-    try:
-        maj = f"{paris(etat['ecrit']):%d/%m à %H:%M} (Paris)"
-    except Exception:
-        pass
-    robot = etat.get("robot") or {}
-    tuile = lambda t, v, c="": f"<div class='tuile'><span>{t}</span><b class='{c}'>{v}</b></div>"
-    return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+PAGE_REEL = r"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Compte réel cent</title><style>
-:root{{--fond:#f5f6f3;--carte:#fff;--texte:#1c211d;--doux:#5d665f;--trait:#dfe3dc;--pos:#1d7a4a;--neg:#b3372c;--ok:#e2f2e8;--ko:#f8e4e1}}
-@media (prefers-color-scheme: dark){{:root:not([data-theme="light"]){{--fond:#141714;--carte:#1c211d;--texte:#e8ebe6;--doux:#9aa39b;--trait:#2e352f;--pos:#5fc48d;--neg:#ef8377;--ok:#19372a;--ko:#42211d;color-scheme:dark}}}}
-:root[data-theme="dark"]{{--fond:#141714;--carte:#1c211d;--texte:#e8ebe6;--doux:#9aa39b;--trait:#2e352f;--pos:#5fc48d;--neg:#ef8377;--ok:#19372a;--ko:#42211d;color-scheme:dark}}
-body{{background:var(--fond);color:var(--texte);font:15px/1.5 system-ui,sans-serif;margin:0;padding:20px 16px 40px}}
-main{{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:22px}}h1{{margin:0;font-size:1.6rem}}h2{{font-size:1.05rem;margin:0 0 8px}}
-.statut{{padding:10px 14px;border-radius:10px;font-weight:600;background:var(--{'ok' if bon else 'ko'});color:var(--{'pos' if bon else 'neg'})}}
-.tuiles{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}}
-.tuile{{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:10px 12px;min-width:0}}
-.tuile span{{display:block;color:var(--doux);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}}.tuile b{{font-size:1.2rem}}
-.boite{{background:var(--carte);border:1px solid var(--trait);border-radius:10px;overflow-x:auto}}
-table{{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}}td,th{{padding:7px 10px;border-bottom:1px solid var(--trait);text-align:left;white-space:nowrap}}
-th{{font-size:.72rem;text-transform:uppercase;color:var(--doux);font-weight:500}}tr:last-child td{{border-bottom:0}}
-.n{{text-align:right}}.pos{{color:var(--pos)}}.neg{{color:var(--neg)}}.doux{{color:var(--doux);font-size:.85em}}
-.alerte{{background:var(--ko);color:var(--neg);padding:10px 14px;border-radius:10px;margin:0}}p{{margin:0}}
-</style></head><body><main>
-<header><h1>Compte réel (cent)</h1><p class="doux">Mis à jour : {maj} · robot réel version {e(robot.get("version_installee"))} · bt_or_plus + règles courtes</p></header>
-<div class="statut">{etat_txt}</div>
-{"<p class='alerte'>ARRÊT AUTOMATIQUE à −34 % déclenché : plus aucun ordre. Décision de Baptiste.</p>" if s.get("arret") else ""}
-<section class="tuiles">
-{tuile("Valeur du compte", cents(valeur) if valeur is not None else "—")}
-{tuile("Gain depuis le dépôt", cents(gain) if gain is not None else "—", cls(gain or 0))}
-{tuile("Résultat du jour", cents(g["perte_du_jour"]) if "perte_du_jour" in g else "—", cls(g.get("perte_du_jour") or 0))}
-{tuile("Recul depuis le plus haut", dist)}
-{tuile("Marge avant l'arrêt −34 %", marge)}
-{tuile("Positions ouvertes", str(len(pos)))}
-</section>
-{retrait}
-<section><h2>Positions ouvertes</h2><div class="boite"><table><tr><th>Marché</th><th>Sens</th><th class="n">Lots</th><th class="n">Entrée</th><th class="n">Stop</th><th class="n">Résultat</th></tr>
-{lpos or "<tr><td colspan='6'>Aucune position ouverte.</td></tr>"}</table></div></section>
-<section><h2>Par stratégie (trades fermés)</h2><div class="boite"><table><tr><th>Stratégie</th><th class="n">Trades</th><th class="n">Gagnants</th><th class="n">Résultat</th></tr>
-{lignes or "<tr><td colspan='4'>Pas encore de trade fermé.</td></tr>"}</table></div></section>
-<section><h2>Par jour (Paris)</h2><div class="boite"><table>{jours or "<tr><td>Pas encore de trade fermé.</td></tr>"}</table></div></section>
-<section><h2>Derniers trades fermés</h2><div class="boite"><table>{lder or "<tr><td>—</td></tr>"}</table></div></section>
-<p class="doux">Dépôt de départ : 20 000 USC = 200 $. Arrêt d'urgence sur le PC : fichier STOP_PONT ; à distance : demander à Claude « arrête le robot réel ».</p>
-</main></body></html>
+:root{--fond:#f5f6f3;--carte:#fff;--texte:#1c211d;--doux:#5d665f;--trait:#dfe3dc;--pos:#1d7a4a;--neg:#b3372c;--ok:#e2f2e8;--ko:#f8e4e1}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fond:#141714;--carte:#1c211d;--texte:#e8ebe6;--doux:#9aa39b;--trait:#2e352f;--pos:#5fc48d;--neg:#ef8377;--ok:#19372a;--ko:#42211d;color-scheme:dark}}
+:root[data-theme="dark"]{--fond:#141714;--carte:#1c211d;--texte:#e8ebe6;--doux:#9aa39b;--trait:#2e352f;--pos:#5fc48d;--neg:#ef8377;--ok:#19372a;--ko:#42211d;color-scheme:dark}
+body{background:var(--fond);color:var(--texte);font:15px/1.5 system-ui,sans-serif;margin:0;padding:20px 16px 40px}
+main{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:22px}h1{margin:0;font-size:1.6rem}h2{font-size:1.05rem;margin:0 0 8px}
+.statut{padding:10px 14px;border-radius:10px;font-weight:600}.statut.bon{background:var(--ok);color:var(--pos)}.statut.mal{background:var(--ko);color:var(--neg)}
+.tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tuile{background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:10px 12px;min-width:0}
+.tuile span{display:block;color:var(--doux);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}.tuile b{font-size:1.2rem}
+.boite{background:var(--carte);border:1px solid var(--trait);border-radius:10px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}td,th{padding:7px 10px;border-bottom:1px solid var(--trait);text-align:left;white-space:nowrap}
+th{font-size:.72rem;text-transform:uppercase;color:var(--doux);font-weight:500}tr:last-child td{border-bottom:0}
+.n{text-align:right}.pos{color:var(--pos)}.neg{color:var(--neg)}.doux{color:var(--doux);font-size:.85em}
+.alerte{background:var(--ko);color:var(--neg);padding:10px 14px;border-radius:10px;margin:0}p{margin:0}
+.direct{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--doux);margin-right:6px;vertical-align:middle}.direct.on{background:var(--pos)}
+</style></head><body><main id="page"><p>Chargement…</p></main>
+<script id="donnees" type="application/json">__DONNEES__</script>
+<script>
+(function(){
+var DEPOT=__DEPOT__, ARRET=__ARRET__;
+var URL_BASE="https://raw.githubusercontent.com/liitlec/Copybot-Crypto/claude/polymarket-weather-sigma-resolution-olv0bs/copy_sim/labo/mt5_reel/";
+var direct=false, derniereLecture=null;
+function el(t,a,enf){var x=document.createElement(t);if(a)for(var k in a){if(k==="txt")x.textContent=a[k];else x.setAttribute(k,a[k]);}
+ (enf||[]).forEach(function(c){if(c!=null)x.appendChild(typeof c==="string"?document.createTextNode(c):c);});return x;}
+function fr(x,d){d=d==null?2:d;var s=Math.abs(x).toLocaleString("fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d});return (x>0?"+":x<0?"−":"")+s;}
+function cl(x){return x>0?"pos":x<0?"neg":"";}
+function cents(x){var dev=" USC";return el("span",{},[fr(x/100)+" $ ",el("span",{"class":"doux",txt:"("+fr(x,0)+dev+")"})]);}
+function paris(iso){var d=new Date(iso);return d;}
+function fmt(d,o){return d.toLocaleString("fr-FR",Object.assign({timeZone:"Europe/Paris"},o));}
+function lireJournal(txt){var r=[];(txt||"").split("\n").forEach(function(l){if(!l.trim())return;try{var d=JSON.parse(l);}catch(e){return;}
+ if(d.evenement==="sortie"||d.evenement==="sortie panier"){var p=(typeof d.profit==="number")?d.profit:d.dernier_profit;if(typeof p==="number")r.push({d:d,p:p});}});return r;}
+function rendre(etat,journal){
+ var sorties=lireJournal(journal), parH={}, parJ={};
+ sorties.forEach(function(s){var h=s.d.hypothese||"?";(parH[h]=parH[h]||[]).push(s.p);
+  var j=fmt(paris(s.d.heure),{year:"numeric",month:"2-digit",day:"2-digit"});var k=new Date(s.d.heure).toLocaleDateString("sv-SE",{timeZone:"Europe/Paris"});
+  parJ[k]=(parJ[k]||0)+s.p;});
+ var valeur=etat.valeur, s=etat.sommet||{}, g=etat.garde_fou||{}, ad=etat.arret_distant, robot=etat.robot||{};
+ var bon=valeur!=null&&!!etat.ordres_autorises&&!ad, txt;
+ if(valeur==null)txt="Pas de compte réel autorisé et connecté : "+(etat.arret||"pont réel pas encore lancé");
+ else txt=etat.ordres_autorises?"Robot actif : ordres autorisés":"AUCUN ORDRE : "+(etat.arret||"");
+ if(ad)txt="ARRÊT À DISTANCE depuis "+(ad.depuis||"?")+(ad.fermer_tout?" (fermer tout demandé, "+(ad.fermeture_faite?"fait":"en cours")+")":"")+" — "+txt;
+ var maj=etat.ecrit?fmt(new Date(etat.ecrit),{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";
+ var age=etat.ecrit?Math.round((Date.now()-new Date(etat.ecrit))/60000):null;
+ var page=document.getElementById("page");page.textContent="";
+ var lect=derniereLecture?fmt(derniereLecture,{hour:"2-digit",minute:"2-digit",second:"2-digit"}):null;
+ page.appendChild(el("header",{},[el("h1",{txt:"Compte réel (cent)"}),
+  el("p",{"class":"doux"},[el("span",{"class":"direct"+(direct?" on":"")}),
+   (direct?"En direct (relu à "+lect+")":"Données de la publication")+" · dernier envoi du PC : "+maj+" (Paris)"+(age!=null?", il y a "+age+" min":"")+" · robot réel version "+(robot.version_installee==null?"—":robot.version_installee)])]));
+ page.appendChild(el("div",{"class":"statut "+(bon?"bon":"mal"),txt:txt}));
+ if(age!=null&&age>15)page.appendChild(el("p",{"class":"alerte",txt:"Le PC n'a rien envoyé depuis "+age+" minutes : PC éteint, en veille ou MT5 fermé ? (le robot ne gère plus les paniers ; les stops restent chez le courtier)"}));
+ if(s.arret)page.appendChild(el("p",{"class":"alerte",txt:"ARRÊT AUTOMATIQUE à −34 % déclenché : plus aucun ordre. Décision de Baptiste."}));
+ var gain=valeur==null?null:valeur-DEPOT, pos=etat.positions_robot||[];
+ function tuile(t,v,c){return el("div",{"class":"tuile"},[el("span",{txt:t}),el("b",{"class":c||""},[v])]);}
+ page.appendChild(el("section",{"class":"tuiles"},[
+  tuile("Valeur du compte",valeur==null?"—":cents(valeur)),
+  tuile("Gain depuis le dépôt",gain==null?"—":cents(gain),cl(gain||0)),
+  tuile("Résultat du jour",g.perte_du_jour==null?"—":cents(g.perte_du_jour),cl(g.perte_du_jour||0)),
+  tuile("Recul depuis le plus haut",s.recul==null?"—":fr(s.recul*100,1)+" %"),
+  tuile("Marge avant l'arrêt −34 %",s.recul==null?"—":fr((s.recul-ARRET)*100,1)+" %"),
+  tuile("Positions ouvertes",String(pos.length))]));
+ if(valeur!=null)page.appendChild(valeur>=2*DEPOT?el("p",{"class":"alerte",txt:"Le compte a doublé : retire tes 200 $ (règle du plan réel), puis laisse tourner."}):
+  el("p",{"class":"doux",txt:"Retrait prévu : tes 200 $ quand la valeur atteint 400 $ (encore "+fr((2*DEPOT-valeur)/100)+" $)."}));
+ function tableau(titre,tetes,lignes,vide){var t=el("table");t.appendChild(el("tr",{},tetes.map(function(h){return el("th",{"class":h[1]||"",txt:h[0]});})));
+  if(!lignes.length)t.appendChild(el("tr",{},[el("td",{colspan:String(tetes.length),txt:vide})]));
+  lignes.forEach(function(l){t.appendChild(el("tr",{},l.map(function(c){return el("td",{"class":c[1]||""},[c[0]]);})));});
+  return el("section",{},[el("h2",{txt:titre}),el("div",{"class":"boite"},[t])]);}
+ page.appendChild(tableau("Positions ouvertes",[["Marché"],["Sens"],["Lots","n"],["Entrée","n"],["Stop","n"],["Résultat","n"]],
+  pos.map(function(p){return [[String(p.symbole)],[String(p.sens)],[String(p.lots),"n"],[String(p.prix_entree),"n"],[String(p.stop),"n"],[cents(p.profit||0),"n "+cl(p.profit||0)]];}),"Aucune position ouverte."));
+ var hs=Object.keys(parH).sort(function(a,b){return parH[b].reduce(function(x,y){return x+y;},0)-parH[a].reduce(function(x,y){return x+y;},0);});
+ page.appendChild(tableau("Par stratégie (trades fermés)",[["Stratégie"],["Trades","n"],["Gagnants","n"],["Résultat","n"]],
+  hs.map(function(h){var x=parH[h],t=x.reduce(function(a,b){return a+b;},0);return [[h],[String(x.length),"n"],[String(x.filter(function(v){return v>0;}).length),"n"],[cents(t),"n "+cl(t)]];}),"Pas encore de trade fermé."));
+ var js=Object.keys(parJ).sort().reverse().slice(0,14);
+ page.appendChild(tableau("Par jour (Paris)",[["Jour"],["Résultat","n"]],js.map(function(k){var d=new Date(k+"T12:00:00Z");
+  return [[d.toLocaleDateString("fr-FR",{weekday:"short",day:"2-digit",month:"2-digit"})],[cents(parJ[k]),"n "+cl(parJ[k])]];}),"Pas encore de trade fermé."));
+ page.appendChild(tableau("Derniers trades fermés",[["Heure (Paris)"],["Stratégie"],["Résultat","n"]],sorties.slice(-15).reverse().map(function(s){
+  return [[fmt(new Date(s.d.heure),{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})],[String(s.d.hypothese||"?")],[cents(s.p),"n "+cl(s.p)]];}),"—"));
+ page.appendChild(el("p",{"class":"doux",txt:"Dépôt de départ : 20 000 USC = 200 $. Arrêt d'urgence sur le PC : fichier STOP_PONT ; à distance : demander à Claude « arrête le robot réel »."}));
+}
+var D=JSON.parse(document.getElementById("donnees").textContent);
+rendre(D.etat||{},D.journal||"");
+function relire(){var t="?t="+Date.now();
+ Promise.all([fetch(URL_BASE+"etat.json"+t,{cache:"no-store"}).then(function(r){if(!r.ok)throw r.status;return r.json();}),
+  fetch(URL_BASE+"robot_journal.jsonl"+t,{cache:"no-store"}).then(function(r){return r.ok?r.text():"";})])
+ .then(function(v){D={etat:v[0],journal:v[1]};direct=true;derniereLecture=new Date();rendre(D.etat,D.journal);})
+ .catch(function(){direct=false;rendre(D.etat||{},D.journal||"");});}
+relire();setInterval(relire,60000);
+})();
+</script></body></html>
 """
 
 
