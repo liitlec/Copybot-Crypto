@@ -68,6 +68,8 @@ class GptPyramide:
         return list(self.panier["tickets"]) if self.panier else []
 
     def arrete(self):
+        if getattr(self, "retire", False):          # v28 : retire du robot (le panier en cours est suivi jusqu'a sa sortie)
+            return True
         return self.cumul_r <= ARRET_R or (self.n >= ARRET_N and self.cumul_r / self.n < ARRET_MOY)
 
     @staticmethod

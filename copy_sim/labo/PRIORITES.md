@@ -969,6 +969,7 @@ exces_m1 +9, elan −14, exces_m5 −28, indices −593 (repli −218, rebond_sp
 elan_m15, cassure_m15, exces_m1, exces_m5, retour_court_ar, hasard_m1 (témoin), variantes `_calme`, encaisse_calme_opt.
 Retirer : repli_ind, rebond_nas_opt, rebond_sp_opt, fomc_dax_opt, bt_or_serre_opt, achat_or_pyr_opt, gpt_pyramide_opt
 (positions en cours sorties normalement). Essais OK, VERSION 28, page de suivi à jour (hors_total).
+**v28 FAITE le 25/11** : RETIRES += repli_ind, rebond_nas_opt, rebond_sp_opt, fomc_dax_opt (tour() sans droit d'ouvrir : sorties actives), bt_or_serre_opt, achat_or_pyr_opt, gpt_pyramide_opt (plus de panier, en cours suivis). Page : bt_or_plus_opt DANS les totaux, bt_or en données, règles retirées hors totaux. Essais OK. Attention : encaisse_calme_opt rejoue les paniers de gpt_pyramide_opt et ne recevra plus rien.
 **Lot G (contrat figé avant, or M5 15-18 mois + H1 4 ans, spread réel puis doublé, walk-forward, placebo, à risque égal)**
 1. Sorties de bt_or_plus : (a) stop suiveur resserré seulement sur les 2 derniers renforts (les plus gros) ;
    (b) resserrement par paliers de R gagnés (0,6667 → 0,5 → 0,35 ATR après +3 / +6 R) ; (c) encaissement partiel

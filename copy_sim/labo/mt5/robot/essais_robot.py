@@ -1105,7 +1105,7 @@ for f in ("etat_enc_essai.json", "etat_enc_essai2.json", "etat_gpt_essai.json"):
 # v27 (PRIORITES 24/11 18 h) : fcassure_m1, ecart_midi_m5 (midi_*), pari_tendance_opt et bt_crypto arretes ;
 # plus aucune ouverture, positions et paniers en cours suivis jusqu'a leur sortie normale.
 assert {"fcassure_m1", "ecart_midi_m5", "retour_m1", "elan_m1"} <= ETEINTES_V7
-assert robot.RETIRES == {"pari_tendance_opt", "bt_crypto_btc", "bt_crypto_eth"} and robot.VERSION == 27
+assert {"pari_tendance_opt", "bt_crypto_btc", "bt_crypto_eth"} <= robot.RETIRES and robot.VERSION >= 27
 assert all(n in robot.HYPOTHESES for n in ("fcassure_m1", "ecart_midi_m5")), "hypotheses gardees : sorties au temps"
 assert robot.CODE["fcassure_m1"] == robot.CODE["fcassure_m1"] and len(robot.CODE) == len(robot._NOTES), "codes inchanges"
 for f in ("etat_v27_essai.json",):
@@ -1113,7 +1113,7 @@ for f in ("etat_v27_essai.json",):
         os.remove(f)
 r27 = robot.Robot(pont, fichier="etat_v27_essai.json")
 assert r27.btt.arrete() and all(c.arrete() for c in r27.crypto) and not getattr(r27.bt, "retire", False)
-assert not getattr(r27.btp, "retire", False) and not getattr(r27.bta, "retire", False)
+assert not getattr(r27.btp, "retire", False)          # v28 : bta retire ensuite
 ft27 = FauxPontT()
 p27 = pari_tendance.PanierPari(ft27, fichier="etat_pt27_essai.json")
 p27.retire = True
@@ -1139,6 +1139,33 @@ assert not fc27.pos, "v27 : bt_crypto n'ouvre plus de panier"
 robot.ETEINTES = ETEINTES_V7                                        # vraies regles : fcassure_m1 / midi n'ouvrent plus
 assert all(n in robot.ETEINTES for n in ("fcassure_m1", "ecart_midi_m5"))
 for f in ("etat_v27_essai.json", "etat_pt27_essai.json", "etat_c27_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
+# v28 (PRIORITES 25/11 22 h) : bt_or_plus_opt moteur ; indices, bt_or_serre_opt, achat_or_pyr_opt, gpt_pyramide_opt
+# retires (plus d'entree ; positions en cours suivies). Les modules d'indices tournent sans droit d'ouvrir.
+assert robot.VERSION == 28
+assert {"repli_ind", "rebond_nas_opt", "rebond_sp_opt", "fomc_dax_opt", "bt_or_serre_opt", "achat_or_pyr_opt",
+        "gpt_pyramide_opt"} <= robot.RETIRES
+for garde in ("bt_or", "bt_or_plus_opt", "elan_m15", "cassure_m15", "exces_m1", "exces_m5", "retour_court_ar", "hasard_m1"):
+    assert garde not in robot.RETIRES and garde not in robot.ETEINTES, garde
+for f in ("etat_v28_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+r28 = robot.Robot(pont, fichier="etat_v28_essai.json")
+assert r28.bts.arrete() and r28.bta.arrete() and r28.gpt.arrete(), "variantes or retirees : plus de panier"
+assert not getattr(r28.btp, "retire", False) and not getattr(r28.bt, "retire", False), "moteur et bt_or gardes"
+vu28 = {}
+for nom_, m_ in (("repli", r28.repli), ("rebond", r28.rebond), ("rebond_sp", r28.rebond_sp), ("fomc", r28.fomc),
+                 ("pari", r28.pari), ("pari_court", r28.pari_court)):
+    m_.tour = (lambda n: lambda ps, t, ok: vu28.__setitem__(n, ok))(nom_)
+r28.heure = lambda: t0[0]
+r28.tour({"M1": m1b, "M5": m5b, "M15": m15b})
+assert vu28["repli"] is False and vu28["rebond"] is False and vu28["rebond_sp"] is False and vu28["fomc"] is False, vu28
+assert vu28["pari"] == vu28["pari_court"], "les poches non retirees gardent le droit normal"
+g28 = gpt_pyramide.GptPyramide(fg, fichier="etat_gpt28_essai.json")
+g28.retire = True
+assert g28.arrete()
+for f in ("etat_v28_essai.json", "etat_gpt28_essai.json"):
     if os.path.exists(f):
         os.remove(f)
 print("ESSAIS OK")

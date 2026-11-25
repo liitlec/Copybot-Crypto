@@ -22,7 +22,7 @@ import encaisse
 
 NOM_PARI_T = pari_tendance.NOM
 
-VERSION = 27
+VERSION = 28
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -37,6 +37,13 @@ ETEINTES = {"retour_m1", "elan_m1", "fcassure_m1", "ecart_midi_m5"}
 # fcassure_m1 : -94 $ sur 495 trades ; ecart_midi_m5 (midi_agite*, midi_calme*) : quelques $ au total, aucun interet.
 # Aussi arretes en v27 : pari_tendance_opt (-443 $ en 3 trades) et bt_crypto_btc / bt_crypto_eth (-70 $) : voir RETIRES.
 RETIRES = {"pari_tendance_opt", "bt_crypto_btc", "bt_crypto_eth"}   # paniers : plus de nouveau panier, suivi conserve
+# v28 (PRIORITES 25/11 22 h, demande ecrite de Baptiste) : bt_or_plus_opt devient le moteur (compte dans les totaux de la
+# page) ; retires aussi : indices (repli_ind, rebond_nas_opt, rebond_sp_opt, fomc_dax_opt) et variantes or inutiles
+# (bt_or_serre_opt, achat_or_pyr_opt, gpt_pyramide_opt). Plus aucune entree ; positions et paniers en cours suivis
+# jusqu'a leur sortie normale (indices : tour() appele sans droit d'ouvrir, la sortie reste active).
+# Note : encaisse_calme_opt rejoue les paniers de gpt_pyramide_opt ; sans nouveau panier gpt, la poche ne bouge plus.
+RETIRES |= {"repli_ind", "rebond_nas_opt", "rebond_sp_opt", "fomc_dax_opt", "bt_or_serre_opt", "achat_or_pyr_opt",
+            "gpt_pyramide_opt"}
 # retour_m1 : -0,55 $ par trade sur 277 trades, nettement pire que le temoin (v7)
 # elan_m1 : -0,03 $ (+/- 0,18) sur 319 trades, dans la marge du temoin (-0,31 +/- 0,18) et egal au banc
 #           (-0,19 $ sur 18 000 trades) : regle fixee d'avance "coupe a 300 trades" appliquee (v8)
@@ -222,6 +229,9 @@ class Robot:
         self.bta = bt_or.PanierBT(pont, fichier="etat_bt_achat.json", nom="achat_or_pyr_opt", sens_force=1)   # v25
         self.gpt = gpt_pyramide.GptPyramide(pont)       # v24 : gpt_pyramide_opt, donnees seulement, hors totaux
         self.gpt.poche = encaisse.Poche(pont)           # v26 : encaisse_calme_opt, poche virtuelle, aucun ordre
+        for p_ in (self.bts, self.bta):                 # v28 : variantes retirees, paniers en cours suivis
+            p_.retire = p_.nom in RETIRES
+        self.gpt.retire = gpt_pyramide.NOM in RETIRES
         self.gpt_muet = False
         self.crypto = [bt_or.PanierBT(pont, fichier="etat_%s.json" % n, symbole=sym, nom=n, lots=None, taille=None)
                        for sym, n in CRYPTO]           # v13 : bt_crypto, hors test (donnees)
@@ -523,10 +533,11 @@ class Robot:
         self.bta.surveiller(ps, px)
         self.tour_gpt(ps, bougies, bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees"))
         permis = bool(self.pont.compte().get("ordres_autorises")) and not self.pont.garde_fou().get("ouvertures_bloquees")
-        self.repli.tour(ps, maintenant, permis)         # indices, une fois par minute ; ses erreurs restent chez lui
-        self.rebond.tour(ps, maintenant, permis)        # v15 : Nasdaq, contre-pied d'une journee de grande amplitude
-        self.rebond_sp.tour(ps, maintenant, permis)     # v19 : S&P, contre-pied d'une grande journee (banc_grande_journee.py)
-        self.fomc.tour(ps, maintenant, permis)          # v19 : DAX avant les annonces de la Fed (banc_calendrier.py)
+        ok = lambda nom: permis and nom not in RETIRES  # v28 : module retire -> sorties seulement
+        self.repli.tour(ps, maintenant, ok("repli_ind"))    # indices, une fois par minute ; ses erreurs restent chez lui
+        self.rebond.tour(ps, maintenant, ok(self.rebond.nom))   # v15 : Nasdaq, contre-pied d'une grande journee
+        self.rebond_sp.tour(ps, maintenant, ok(self.rebond_sp.nom))   # v19 : S&P (banc_grande_journee.py)
+        self.fomc.tour(ps, maintenant, ok(fomc_dax.NOM))    # v19 : DAX avant les annonces de la Fed (banc_calendrier.py)
         self.pari_court.tour(ps, maintenant, permis)    # v20 : pari court (repli 4 indices, levier 100, 1 mois)
         self.pari.tour(ps, maintenant, permis)          # v16 : poche pari (repli SP500+ / US2000+, compte virtuel)
         if bougies is None or "crypto" in bougies:

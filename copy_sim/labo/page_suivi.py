@@ -19,11 +19,21 @@ TEMOIN = "hasard_m1"
 def hors_total(nom):
     """Témoins à pile ou face et variantes « calme » : affichés, mais hors des totaux et du tableau par jour."""
     nom = str(nom)
+    if nom in MOTEUR:
+        return False
+    if nom in DONNEES:
+        return True
     return nom.startswith("hasard") or nom in VARIANTES_CALME or nom in ARRETEES or nom.endswith("_opt") or nom.startswith("bt_crypto") or nom.endswith("_ar") or nom.endswith("_mise") or nom.startswith("pari") or nom.startswith("grille")
 
 
 # 16/11 (Baptiste) : les stratégies arrêtées ne comptent plus dans les totaux et disparaissent du tableau
 ARRETEES = {"retour_m1", "elan_m1"}
+# v27 / v28 (24-25/11, Baptiste) : règles retirées du robot, hors totaux
+ARRETEES |= {"fcassure_m1", "fcassure_m1_calme", "ecart_midi_m5", "repli_ind"} | {
+    b + x for b in ("midi_agite", "midi_calme") for x in ("", "_f", "_c")}
+# v28 : bt_or_plus_opt est le moteur, compté DANS les totaux ; bt_or reste affiché pour les données, hors totaux
+MOTEUR = {"bt_or_plus_opt"}
+DONNEES = {"bt_or"}
 
 
 VARIANTES_CALME = {f"{b}_calme" for b in ("elan_m15", "cassure_m15", "exces_m5", "exces_m1", "fcassure_m1")}
