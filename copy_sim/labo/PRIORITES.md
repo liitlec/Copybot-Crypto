@@ -982,6 +982,7 @@ Retirer : repli_ind, rebond_nas_opt, rebond_sp_opt, fomc_dax_opt, bt_or_serre_op
    du panier bt_or ouvert ; contre-tendance seulement opposée au panier (en direct +73 $ sur 74 trades).
 3. Ensemble : bt_or_plus + règles optimisées à risque égal, pire baisse, semaines perdantes, sur les deux blocs.
 4. Ce qui tient sur les deux blocs et bat son placebo → variante démo `_opt` (v29). Résultats en tête d'AVIS.md.
+**Lot G FAIT le 25/11** : `banc_lotg.py` ; aucune sortie serrée retenue (paliers +3/+6 R mieux sur M5 et 2024-26, moins bien en 2022-24, White p 0,77/0,94) ; règles courtes optimisées pires que telles quelles (placebo 0,30-1,00) ; ensemble : bt_or_plus seul le meilleur à risque égal. Pas de v29.
 **Ajout 25/11 22 h 15 (Baptiste : « Oui ») :** dans la v28 (ou v28.1 → VERSION 29 si déjà publiée), retirer aussi
 les poches pari restantes (« triple ou rien » `pari_opt`, `pari_court`) : plus de nouvelle entrée, positions en cours
 sorties normalement. Rebrancher `encaisse_calme_opt` sur les paniers fermés de `bt_or_plus_opt` (même règle de mise,

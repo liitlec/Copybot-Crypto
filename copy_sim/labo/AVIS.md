@@ -1,3 +1,51 @@
+# Avis pour Baptiste — 25/11/2026, soir (Robot v28 et Lot G : sorties serrées de bt_or_plus, règles courtes optimisées)
+
+**Réponse courte : v28 publiée (bt_or_plus en moteur ; indices et variantes inutiles retirés). Lot G : aucune sortie serrée ne fait mieux que la sortie actuelle de bt_or_plus sur les deux périodes, et aucune optimisation des règles courtes ne tient hors échantillon. Le meilleur ensemble mesuré est bt_or_plus seul ; ajouter les règles courtes baisse le résultat à risque égal. Pas de variante v29.** Banc `banc_lotg.py`, contrat figé et poussé avant les résultats.
+
+**1. Sorties de bt_or_plus** (positions 1-2-3-4-5, gain en R de la position de base ; M5 08/2025-11/2026, H1 08/2022-11/2026)
+
+| Variante | M5 : total R / gain÷pire baisse / Sharpe | H1 : gain÷pire baisse 2022-24 / 2024-26 | Gain rendu par panier (M5) | Grands paniers coupés (M5) | Placebo p (M5) |
+|---|---|---|---|---|---|
+| **Actuelle** | **+415 / 7,4 / 2,9** | **−0,27 / 9,2** | 5,4 R | — | — |
+| Paliers +3 / +6 R (0,5 puis 0,35 ATR) | +456 / 8,2 / 3,1 | −0,39 / 10,1 | 5,0 | 0 sur 37 | 0,04 |
+| Paliers +2 / +4 R | +429 / 8,1 / 3,0 | −0,21 / 9,1 | 4,6 | 4 sur 37 | 0,54 |
+| Témoin `bt_or_serre` (+3 R → 0,5 R) | +457 / 8,1 / 3,2 | −0,41 / 9,6 | 4,7 | 1 sur 37 | 0,37 |
+| 2 derniers renforts à 0,35 ATR | +305 / 8,4 / 3,0 | −0,42 / 7,8 | 3,9 | 8 sur 38 | 0,94 |
+| Renforts encaissés à +1 ATR | +356 / 6,8 / 3,1 | −0,47 / 9,3 | 3,9 | 1 sur 38 | 0,79 |
+| Renforts encaissés à +0,5 ATR | +177 / 4,5 / 2,3 | −0,52 / 7,0 | 3,0 | 12 sur 38 | 1,00 |
+| Point mort après le 3e renfort | +336 / 8,8 / 2,8 | −0,44 / 10,5 | 4,4 | 11 sur 36 | 0,94 |
+| Sortie sous la moyenne 4 h / 8 h | +19 / +108 | −0,03 / −0,87 (4 h) | 0,4 / 0,6 | 36 / 34 sur 38 | 1,00 |
+| **Reality check, 10 variantes** | p = 0,77 (M5) ; 0,94 (H1) | | | | |
+
+1. **Serrer rend moins de gain, mais en gagne aussi moins.** Le « gain rendu » baisse partout (5,4 R → 3 à 5 R par panier), mais le total baisse aussi : on coupe des paniers qui seraient allés plus loin.
+2. **Les paliers (+3 / +6 R) et le témoin `serre`** sont les seuls meilleurs sur M5 et en 2024-26 (+41 R), mais **moins bons en 2022-24** et non significatifs (reality check p 0,77 / 0,94). Choisie mois par mois (walk-forward), la meilleure sortie fait +32 R contre +141 R pour la sortie actuelle sur M5, et +395 contre +568 R sur H1.
+3. La sortie « moyenne 4-8 h » détruit tout : elle coupe 34 à 36 grands paniers sur 38.
+
+**2. Règles courtes** (walk-forward 6 → 1 mois sur 72 réglages par règle : seuil, tenue, stop 0,5 ATR, heures, lien avec bt_or ; $ pour 0,01 lot ; 9 mois de test, 2 pour exces_m1)
+
+| Règle | Telle quelle | Optimisée (walk-forward) | Placebo p | Contrôle H1 2022-24 / 2024-26 | Verdict |
+|---|---|---|---|---|---|
+| elan_m15 | +551 $ | −88 $ | 0,64 | −544 / +1 036 $ | ne tient pas |
+| cassure_m15 | +42 $ | −412 $ | 0,96 | +210 / −152 $ | ne tient pas |
+| exces_m5 | +47 $ | −401 $ | 0,95 | — | ne tient pas |
+| exces_m1 (3 mois seulement) | −225 $ | −57 $ | 0,30 | — | ne tient pas |
+| retour_court_ar | −822 $ | −1 200 $ | 1,00 | −107 / +139 $ | ne tient pas |
+
+1. **Optimiser fait pire que ne rien toucher** pour 4 règles sur 5 : le réglage gagnant change tous les mois (le plus choisi ne l'est que 22 à 50 % du temps). C'est du bruit.
+2. **Tranches 9 h, 15-16 h, 21 h (Paris)** : sur l'historique, elles ne perdent que pour elan (−97 $) et cassure (−126 $) ; pour exces_m1, exces_m5 et retour_court_ar elles **gagnent** (+81, +24, +322 $). Les couper sur la seule foi du direct serait une erreur.
+3. **Lien avec bt_or** : il aide cassure_m15 (+223 $ dans le sens du panier, −182 $ à contre-sens). Mais il ne passe pas le placebo, et il nuit aux autres. Pour retour_court_ar, jouer à l'opposé du panier fait −617 $ sur l'historique (le +73 $ en direct ne se confirme pas).
+4. retour_court_ar perd sur tout l'historique de 15 mois (−822 $ en 2 189 trades) malgré son bon départ en direct.
+
+**3. Ensemble sur les 9 mois de test** (0,01 lot de base ; à risque égal = même écart-type journalier)
+
+| Montage | Total | À risque égal | 1re / 2e moitié | Pire baisse | Semaines perdantes |
+|---|---|---|---|---|---|
+| **bt_or_plus seul** | +10 954 $ | **+11 495 $** | +10 325 / +1 170 | −4 122 $ | 59 % |
+| bt_or_plus + règles telles quelles | +10 548 $ | +10 548 $ | +10 121 / +427 | −4 851 $ | 59 % |
+| bt_or_plus + règles optimisées | +8 795 $ | +8 953 $ | +8 805 / +149 | −5 526 $ | 59 % |
+
+**Conclusion** : bt_or_plus tel quel reste le meilleur. Les règles courtes n'ajoutent rien à risque égal et augmentent la pire baisse. Il n'y a rien à mettre en v29. Si l'on veut simplifier encore le robot, la piste chiffrée est de garder bt_or_plus seul, avec les règles courtes à 0,01 lot pour les données seulement. Ce choix revient à Baptiste.
+
 # Avis pour Baptiste — 23/11/2026, soir (Lot E : vérification de l'étude d'Astra « type de séance sur l'or », PRIORITES 23/11 12 h)
 
 **Réponse courte : les chiffres d'Astra sont exacts, mais aucun de ses signaux ne rapporte quand on les branche sur nos robots. Chaque gain est dans la marge d'une coupure tirée au hasard (meilleur p 0,22, 1,00 après correction). Sur 12,7 ans de H4, le type de journée se devine un tout petit peu mieux que le hasard (AUC 0,55), mais ça ne se transforme pas en argent. Pas de variante `_opt`, robot inchangé.** Banc `banc_lote.py`, contrat figé et poussé avant les résultats (efcbbf1).
