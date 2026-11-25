@@ -958,3 +958,26 @@ sur la valeur du compte, positions ouvertes comprises.
 **Attention levier réel** : en France, l'AMF limite les CFD or à 20:1 pour les particuliers (le 1:500 n'est que la
 démo). Refaire les calculs de marge du plan cent (PLAN_REEL.md) à 20:1.
 Si le test 2 tient : variante démo `bt_or_verrou_opt` (ou blocage appliqué sur des copies `_opt` des règles retour).
+
+## 25/11 22 h — Robot v28 et lot G : améliorer ce qu'on garde (demande écrite de Baptiste)
+Baptiste : « V28 avec bt or plus, les tendances courtes et les contre-tendances, mais il faut encore les améliorer,
+donc teste les sorties serrées et comment on pourrait encore les optimiser ».
+Note : mes bilans du 23 au 25/11 comptaient 0 $ pour les sorties au stop (champ `dernier_profit` ignoré) ; les bons
+chiffres sont ceux de la page de suivi : du 11 au 25/11, bt_or_plus +3 085 $, cassure +92, retour_court_ar +68,
+exces_m1 +9, elan −14, exces_m5 −28, indices −593 (repli −218, rebond_sp −240, rebond_nas −135).
+**v28 (démo)** : garder bt_or_plus_opt (moteur, compté désormais DANS les totaux, renommé si utile), bt_or (données),
+elan_m15, cassure_m15, exces_m1, exces_m5, retour_court_ar, hasard_m1 (témoin), variantes `_calme`, encaisse_calme_opt.
+Retirer : repli_ind, rebond_nas_opt, rebond_sp_opt, fomc_dax_opt, bt_or_serre_opt, achat_or_pyr_opt, gpt_pyramide_opt
+(positions en cours sorties normalement). Essais OK, VERSION 28, page de suivi à jour (hors_total).
+**Lot G (contrat figé avant, or M5 15-18 mois + H1 4 ans, spread réel puis doublé, walk-forward, placebo, à risque égal)**
+1. Sorties de bt_or_plus : (a) stop suiveur resserré seulement sur les 2 derniers renforts (les plus gros) ;
+   (b) resserrement par paliers de R gagnés (0,6667 → 0,5 → 0,35 ATR après +3 / +6 R) ; (c) encaissement partiel
+   du dernier renfort à +x ATR ; (d) stop au point mort du panier après le 3e renfort ; (e) sortie sur cassure
+   inverse de la moyenne M5. Mesurer le gain rendu par panier (latent max → fermé : 25/11 +1 559 → +861 $),
+   le nombre de grands paniers coupés trop tôt, et comparer à bt_or_plus tel quel. Témoin bt_or_serre (déjà perdant).
+2. Règles courtes : optimiser elan_m15, cassure_m15, exces_m1, exces_m5, retour_court_ar en walk-forward :
+   seuils, durée de tenue, stop/objectif en ATR, heures (les tranches 9-10 h, 15-17 h, 21-22 h perdent en direct, à
+   vérifier sur l'historique avant toute coupure), et **lien avec bt_or** : tendance courte seulement dans le sens
+   du panier bt_or ouvert ; contre-tendance seulement opposée au panier (en direct +73 $ sur 74 trades).
+3. Ensemble : bt_or_plus + règles optimisées à risque égal, pire baisse, semaines perdantes, sur les deux blocs.
+4. Ce qui tient sur les deux blocs et bat son placebo → variante démo `_opt` (v29). Résultats en tête d'AVIS.md.
