@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-25T22:57:16Z",
+ "ecrit": "2026-11-25T23:02:21Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -17,20 +17,20 @@
  "positions": [],
  "symboles": {
   "XAUUSD.c": {
-   "bid": 3588.43,
-   "ask": 3588.89,
-   "spread_points": 46.0,
+   "bid": 3586.11,
+   "ask": 3586.6,
+   "spread_points": 49.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795651079
+   "heure_serveur": 1795654940
   }
  },
  "positions_robot": [],
  "garde_fou": {
-  "jour_paris": "2026-11-25",
+  "jour_paris": "2026-11-26",
   "perte_du_jour": 0,
   "seuil": -1000.01,
   "ouvertures_bloquees": false
