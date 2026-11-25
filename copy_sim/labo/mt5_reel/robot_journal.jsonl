@@ -8,3 +8,5 @@
 {"heure": "2026-11-25T22:16:31Z", "type": "note", "evenement": "demarrage", "version": 1, "mode": "reel", "hypotheses": ["cassure_m15", "elan_m15", "exces_m1", "exces_m5", "retour_court_ar", "bt_or_plus"], "repris": []}
 {"heure": "2026-11-25T22:16:31Z", "type": "note", "evenement": "tailles", "symbole": "XAUUSD.c", "lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 1.0, "base_bt_or_plus": 0.02, "lots_regles_courtes": 0.01}
 {"heure": "2026-11-25T23:10:01Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
+{"heure": "2026-11-25T23:15:01Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.01, "stop": 3502.22, "id": "elan_m15", "prix_demande": 3571.56, "spread_points": 46.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 323809726}
+{"heure": "2026-11-25T23:15:01Z", "type": "note", "evenement": "ouverture", "hypothese": "elan_m15", "sens": 1, "ok": true, "refus": null, "bid": 3571.1, "ask": 3571.56, "stop": 3502.22, "lots": 0.01, "prix_obtenu": null}
