@@ -4,6 +4,9 @@
 #
 # Le pont tourne depuis une COPIE FIGEE hors du depot (%USERPROFILE%\pont_mt5) : le git pull qu'il fait chaque minute
 # ne peut donc pas changer son code. Nouvelle version relue = relancer ce script.
+# Facultatif (25/11, deux MT5 ouverts : demo + compte cent) : -Terminal "<chemin du terminal64.exe de la DEMO>"
+# attache le pont demo a SON terminal. Sans -Terminal, rien ne change.
+param([string]$Terminal = "")
 $depot   = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $dossier = Join-Path $env:USERPROFILE "pont_mt5"
 New-Item -ItemType Directory -Force $dossier | Out-Null
@@ -17,7 +20,9 @@ $script  = Join-Path $dossier "pont_mt5.py"
 $python  = (& python -c "import sys; print(sys.executable)").Trim()
 $pythonw = Join-Path (Split-Path $python) "pythonw.exe"
 if (-not (Test-Path $pythonw)) { throw "pythonw.exe introuvable a cote de $python" }
-$action  = New-ScheduledTaskAction -Execute $pythonw -Argument "`"$script`" --depot `"$depot`"" -WorkingDirectory $dossier
+$arguments = "`"$script`" --depot `"$depot`""
+if ($Terminal) { $arguments += " --terminal `"$Terminal`"" }
+$action  = New-ScheduledTaskAction -Execute $pythonw -Argument $arguments -WorkingDirectory $dossier
 $declen  = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $regles  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
            -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) `

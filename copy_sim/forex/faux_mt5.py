@@ -24,6 +24,8 @@ Resultat = namedtuple("Resultat", "retcode price order comment")
 Deal = namedtuple("Deal", "position profit swap commission fee")
 
 mode_compte = ACCOUNT_TRADE_MODE_DEMO
+devise = "USD"                   # essais du mode réel : "USC" (compte cent)
+solde, valeur = 10000.0, 10000.0
 positions: list = []
 ordres_recus: list = []          # toutes les demandes passées à order_send
 transactions: list = []          # Deal(...) : historique des positions fermées (garde-fou)
@@ -44,14 +46,18 @@ def terminal_info():
 
 
 def account_info():
-    return Compte(FAUX_LOGIN, FAUX_SERVEUR, FAUX_NOM, mode_compte, 10000.0, 10000.0, 9900.0, "USD", 500)
+    return Compte(FAUX_LOGIN, FAUX_SERVEUR, FAUX_NOM, mode_compte, solde, valeur, valeur - 100.0, devise, 500)
 
 
 def symbol_info(sym):
     if sym not in _prix:
         return None
-    or_ = sym == "XAUUSD"
+    or_ = sym.startswith("XAUUSD")
     return Symbole(sym, True, 0.01 if or_ else 0.00001, 2 if or_ else 5, 0.01, 0.01, 2, 100.0 if or_ else 100000.0)
+
+
+def symbols_get(groupe=None):
+    return tuple(Symbole(n, True, 0, 0, 0, 0, 0, 0) for n in _prix)
 
 
 def symbol_select(sym, actif=True):

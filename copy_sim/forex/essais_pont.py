@@ -157,5 +157,126 @@ if args.faux:
     verdict("ajustement, changement de taille, historique, aucun ordre hors regles",
             ajuste and change and histo and not du_pont() and not trop)
 
+if args.faux:
+    # ---------------------------------------------------------------- mode REEL (compte cent), sur le faux terminal
+    # (en dernier : ce processus passe en mode reel ; le pont demo d'un autre processus n'est pas touche)
+    import subprocess
+    demo = subprocess.run([sys.executable, "-c", "import pont_mt5 as p; print(p.MAGIQUE, p.MAX_POSITIONS, p.MAX_LOTS, "
+                           "p.REL_MT5, p.compte_demo.__name__)"], capture_output=True, text=True, cwd=str(pont.ICI)).stdout
+    import pont_reel
+    import acces_robot
+    AUT = pont.ICI / "essai_reel_aut"          # tient lieu du dossier de la copie reelle (ou Baptiste ecrit le fichier)
+    SR = pont.ICI / "essai_mt5_reel"
+    shutil.rmtree(AUT, ignore_errors=True); shutil.rmtree(SR, ignore_errors=True); AUT.mkdir()
+    LR = SR / "local.json"
+    pont_reel.activer(pont, AUT, acces_robot)
+    for p in list(mt5.positions):
+        mt5.positions.remove(p)
+    mt5.mode_compte, mt5.devise, mt5.valeur = mt5.ACCOUNT_TRADE_MODE_REAL, "USC", 20000.0
+    ORX = "XAUUSD"
+
+    def ouvre_robot(lots=0.02, stop=2640.0):
+        try:
+            v = pont.valider_position(mt5, {"id": "r", "symbole": ORX, "sens": "achat", "lots": lots, "stop": stop})
+        except pont.Refus as x:
+            return {"ok": False, "refus": str(x)}
+        return pont.ouvrir(mt5, v, False, magique=pont.MAGIQUE_ROBOT, prefixe="robot:")
+
+    def aut(compte, phrase=pont_reel.PHRASE):
+        (AUT / pont_reel.FICHIER_AUTORISATION).write_text(json.dumps({"compte": compte, "phrase": phrase}),
+                                                          encoding="utf-8")
+
+    print("9. (reel) sans fichier d'autorisation : aucun ordre, rien du compte publie")
+    e = pont.passage(mt5, SR, None, None, LR)
+    r = ouvre_robot()
+    verdict("refus : " + str(e["arret"]), not e["ordres_autorises"] and "solde" not in e and "autorisation" in e["arret"]
+            and not r["ok"] and not mt5.positions)
+
+    print("10. (reel) autorisation d'un autre compte, puis phrase fausse")
+    aut(mt5.FAUX_LOGIN + 1)
+    e1 = pont.passage(mt5, SR, None, None, LR)
+    aut(mt5.FAUX_LOGIN, "oui")
+    e2 = pont.passage(mt5, SR, None, None, LR)
+    verdict("refus : " + str(e1["arret"]) + " / " + str(e2["arret"]),
+            "different" in e1["arret"] and "phrase" in e2["arret"] and not ouvre_robot()["ok"] and not mt5.positions)
+
+    print("11. (reel) bon numero mais compte demo, puis compte reel non cent (USD)")
+    aut(mt5.FAUX_LOGIN)
+    mt5.mode_compte = mt5.ACCOUNT_TRADE_MODE_DEMO
+    e1 = pont.passage(mt5, SR, None, None, LR)
+    mt5.mode_compte, mt5.devise = mt5.ACCOUNT_TRADE_MODE_REAL, "USD"
+    e2 = pont.passage(mt5, SR, None, None, LR)
+    mt5.devise = "USC"
+    verdict("refus : " + str(e1["arret"]) + " / " + str(e2["arret"]),
+            "pas en mode reel" in e1["arret"] and "cent" in e2["arret"] and not mt5.positions)
+
+    print("12. (reel) tout bon : ouverture permise, plafonds 0,10 lot et stop obligatoire, spread maximal")
+    e = pont.passage(mt5, SR, None, None, LR)
+    ok1 = ouvre_robot()["ok"]
+    trop = ouvre_robot(lots=0.20)
+    sans = None
+    try:
+        pont.envoyer(mt5, {"action": mt5.TRADE_ACTION_DEAL, "symbol": ORX, "volume": 0.01, "magic": pont.MAGIQUE_ROBOT,
+                           "sl": 0.0})
+    except pont.Refus as x:
+        sans = str(x)
+    ancien = mt5._prix[ORX]
+    mt5._prix[ORX] = (2650.10, 2652.10)
+    large = ouvre_robot()
+    mt5._prix[ORX] = ancien
+    verdict(f"ouverture ok ; refus : {trop.get('refus')} / {sans} / {large.get('refus')}",
+            e["ordres_autorises"] and e.get("mode") == "reel" and ok1 and not trop["ok"] and "plafond" in trop["refus"]
+            and sans and "stop" in sans and not large["ok"] and "spread" in large["refus"] and len(mt5.positions) == 1
+            and mt5.positions[0].magic == pont_reel.MAGIQUE_ROBOT_REEL and e.get("symbole_or") == ORX)
+
+    print("13. (reel) arret automatique a -34 % du plus haut, qui ne se leve pas tout seul")
+    mt5.valeur = 30000.0
+    pont.passage(mt5, SR, None, None, LR)                     # nouveau plus haut
+    mt5.valeur = 30000.0 * 0.67
+    e1 = pont.passage(mt5, SR, None, None, LR)
+    mt5.valeur = 30000.0 * 0.65
+    e2 = pont.passage(mt5, SR, None, None, LR)
+    r = ouvre_robot()
+    mt5.valeur = 31000.0
+    e3 = pont.passage(mt5, SR, None, None, LR)
+    pos_gardee = len(mt5.positions) == 1                      # positions laissees a leurs stops
+    verdict("a -33 % : " + str(e1["arret"]) + " ; a -35 % : " + str(e2["arret"])[:40] + "...",
+            e1["ordres_autorises"] and not e2["ordres_autorises"] and "ARRET AUTOMATIQUE" in e2["arret"]
+            and e2["sommet"]["arret"] and "solde" in e2 and not r["ok"] and not e3["ordres_autorises"] and pos_gardee)
+
+    print("14. (reel) STOP_PONT, rien d'identifiant publie, pont demo d'un autre processus inchange")
+    pont.FICHIER_STOP.write_text("essai\n")
+    try:
+        (AUT / pont_reel.FICHIER_SOMMET).unlink()
+        e = pont.passage(mt5, SR, None, None, LR)
+    finally:
+        pont.FICHIER_STOP.unlink()
+    ecrit = "".join(f.read_text(encoding="utf-8", errors="replace") for f in SR.rglob("*") if f.suffix in (".json", ".jsonl"))
+    secrets = [str(mt5.FAUX_LOGIN), mt5.FAUX_SERVEUR, mt5.FAUX_NOM]
+    verdict("STOP_PONT : " + str(e["arret"]) + " ; demo : " + demo.strip(),
+            not e["ordres_autorises"] and "STOP_PONT" in e["arret"] and not any(x in ecrit for x in secrets)
+            and demo.split() == ["20261111", "30", "0.5", "copy_sim/labo/mt5", "compte_demo"])
+    print("15. (reel) une version du robot ne s'installe que si Baptiste l'a autorisee (champ robot)")
+    import lanceur_robot
+    pont_reel.activer(pont, AUT, acces_robot, lanceur_robot)
+    lire = pont.lire_distant
+    pont.lire_distant = lambda nom: "3\n" if nom == "robot/VERSION" else None
+    try:
+        la = lanceur_robot.Lanceur(mt5, SR, racine=SR / "rob")
+        aut(mt5.FAUX_LOGIN)
+        v0 = la.version_distante()
+        (AUT / pont_reel.FICHIER_AUTORISATION).write_text(json.dumps(
+            {"compte": mt5.FAUX_LOGIN, "phrase": pont_reel.PHRASE, "robot": 2}), encoding="utf-8")
+        v2 = la.version_distante()
+        (AUT / pont_reel.FICHIER_AUTORISATION).write_text(json.dumps(
+            {"compte": mt5.FAUX_LOGIN, "phrase": pont_reel.PHRASE, "robot": 3}), encoding="utf-8")
+        v3 = la.version_distante()
+    finally:
+        pont.lire_distant = lire
+    verdict(f"sans champ : {v0} ; autorisee 2 : {v2} ; autorisee 3 : {v3} ; dossier robot : {lanceur_robot.REL_ROBOT}",
+            v0 is None and v2 is None and v3 == 3 and lanceur_robot.REL_ROBOT == "copy_sim/labo/mt5_reel/robot"
+            and "pont_reel.py" in lanceur_robot.COMMUNS)
+    shutil.rmtree(AUT, ignore_errors=True); shutil.rmtree(SR, ignore_errors=True)
+
 print(f"BILAN : {sum(bilan)} essais reussis sur {len(bilan)}")
 sys.exit(0 if all(bilan) else 1)

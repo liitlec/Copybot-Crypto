@@ -27,6 +27,9 @@ Réponse : `donnees/<id>.csv.gz` (heure = secondes, horloge du serveur du courti
 `donnees/index.json`. Périodes : M1 M5 M15 M30 H1 H4 D1. 200 000 bougies au plus par demande.
 
 Usage : `python pont_mt5.py` (boucle) ; `--une-fois` ; essais : voir `essais_pont.py`.
+`--terminal <chemin de terminal64.exe>` (facultatif) : s'attacher à CE terminal (utile quand deux MT5 sont ouverts).
+`--reel` : mode RÉEL compte cent, dans un processus et une copie à part (voir `pont_reel.py`) ; sans `--reel`, rien
+ne change : démo seulement.
 """
 from __future__ import annotations
 
@@ -668,12 +671,34 @@ def verrou():
     return f
 
 
+class TerminalChemin:
+    """Le module MetaTrader5 attaché à un terminal précis : initialize(path=chemin) à chaque connexion."""
+
+    def __init__(self, mt5, chemin):
+        self._mt5, self._chemin = mt5, chemin
+
+    def initialize(self, *a, **k):
+        if self._chemin:
+            k["path"] = self._chemin
+        return self._mt5.initialize(*a, **k)
+
+    def __getattr__(self, nom):
+        return getattr(self._mt5, nom)
+
+
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Pont MT5 (demo uniquement)")
+    ap = argparse.ArgumentParser(description="Pont MT5 (demo uniquement ; --reel : compte cent, voir pont_reel.py)")
     ap.add_argument("--une-fois", action="store_true", help="un seul tour puis arret")
     ap.add_argument("--sans-push", action="store_true", help="ne pousse rien (essais)")
     ap.add_argument("--depot", help="chemin du depot (quand le pont tourne depuis une copie figee hors du depot)")
+    ap.add_argument("--terminal", help="chemin de terminal64.exe du MT5 a utiliser (facultatif en demo)")
+    ap.add_argument("--reel", action="store_true", help="mode REEL compte cent (copie et processus a part)")
     args = ap.parse_args()
+    if args.reel:
+        sys.modules.setdefault("pont_mt5", sys.modules[__name__])
+        import pont_reel
+        pont_reel.main(args)
+        return
     global DEPOT
     if args.depot:
         DEPOT = Path(args.depot).resolve()
@@ -690,6 +715,8 @@ def main() -> None:
     if branche != BRANCHE:
         sys.exit(f"Le depot doit etre sur la branche {BRANCHE} (actuellement : {branche or 'inconnue'}).")
     import MetaTrader5 as mt5   # terminal déjà connecté : aucun identifiant, aucun mot de passe ici
+    if args.terminal:
+        mt5 = TerminalChemin(mt5, args.terminal)
 
     sortie, fichier_local = DEPOT / REL_MT5, ICI / "pont_local.json"
     sys.modules.setdefault("pont_mt5", sys.modules[__name__])   # une seule copie du module (même VERROU, DEPOT)

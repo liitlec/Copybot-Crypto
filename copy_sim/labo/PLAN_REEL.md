@@ -1,5 +1,14 @@
 # Plan pour le compte réel (compte cent) — décidé avec Baptiste le 18/11/2026
 
+**Mise à jour du 25/11/2026 (PRIORITES « 25/11 23 h ») : tout est prêt, voir `LANCER_REEL.md`.** Compte cent de 200 €
+dans un 2e MT5. En réel : **bt_or_plus** (0,02 lot cent de base, renforts 1-2-3-4-5) + elan_m15, cassure_m15, exces_m1,
+exces_m5, retour_court_ar à 0,01 lot cent (le point 2 ci-dessous, « bt_or + indices », est remplacé : les indices ont
+été retirés en v28). Pont réel séparé (`copy_sim/forex/pont_reel.py`, `installer_tache_reel.ps1`), verrouillé par
+`AUTORISATION_REEL.json` écrit par Baptiste sur son PC (numéro du compte, phrase, version du robot autorisée) ;
+arrêt automatique à −34 % du plus haut, garde-fou −5 %/jour, 10 positions et 0,10 lot au plus, stop obligatoire,
+spread maximal. Robot réel `copy_sim/labo/mt5_reel/robot/` (VERSION 1). Page `page_suivi.py --reel`.
+Retrait : 200 € quand le compte double (point 5).
+
 Démarrage seulement si le verdict du test (vendredi 20/11 soir) est bon, et sur décision de Baptiste sur son PC
 (le pont est verrouillé sur la démo ; aucun ordre réel n'est passé par le labo sans son geste explicite).
 

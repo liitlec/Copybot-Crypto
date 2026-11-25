@@ -390,7 +390,84 @@ code {{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8
 """
 
 
+# ------------------------------------------------------------------ compte RÉEL (cent), 25/11 : `page_suivi.py --reel`
+SORTIE_REEL = ICI.parent / "reports" / "reel_suivi.html"
+DEPOT_REEL_EUR = 200.0          # dépôt de départ de Baptiste (compte cent : 1 € = 100 cents)
+ARRET_REEL = -0.34
+
+
+def page_reel():
+    """Page du compte réel : lit labo/mt5_reel/etat.json et robot_journal.jsonl (rien d'identifiant n'y est écrit)."""
+    dossier = ICI / "mt5_reel"
+    try:
+        etat = json.loads((dossier / "etat.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        etat = {}
+    par_hyp, jour = defaultdict(list), defaultdict(float)
+    f = dossier / "robot_journal.jsonl"
+    for ln in f.read_text(encoding="utf-8").splitlines() if f.exists() else []:
+        try:
+            d = json.loads(ln)
+        except ValueError:
+            continue
+        ev = d.get("evenement")
+        if ev in ("sortie", "sortie panier"):
+            p = d.get("profit")
+            if p is None:
+                p = d.get("dernier_profit")
+            if isinstance(p, (int, float)):
+                par_hyp[d.get("hypothese") or "?"].append(p)
+                jour[paris(d["heure"]).date()] += p
+    dev = etat.get("devise") or "USC"
+    cents = lambda x: f"{x:+,.0f}".replace(",", " ").replace("-", "−") + f" {dev} ({x / 100:+,.2f} €)".replace(",", " ").replace(".", ",").replace("-", "−")
+    solde, valeur = etat.get("solde"), etat.get("valeur")
+    s = etat.get("sommet") or {}
+    recul = s.get("recul")
+    lignes = "".join(f"<tr><td>{e(h)}</td><td class='n'>{len(x)}</td><td class='n'>{cents(sum(x))}</td></tr>"
+                     for h, x in sorted(par_hyp.items(), key=lambda kv: -sum(kv[1])))
+    jours = "".join(f"<tr><td>{j:%d/%m}</td><td class='n'>{cents(v)}</td></tr>" for j, v in sorted(jour.items())[-14:])
+    if valeur is None:
+        etat_txt = "Pas de compte réel autorisé et connecté : " + e(etat.get("arret") or "pont réel pas encore lancé")
+    else:
+        etat_txt = ("Ordres autorisés" if etat.get("ordres_autorises") else "AUCUN ORDRE : " + e(etat.get("arret")))
+    retrait = ""
+    if valeur is not None:
+        cible = 2 * DEPOT_REEL_EUR * 100
+        retrait = (f"<p class='alerte'>Le compte a doublé : <b>retirer {DEPOT_REEL_EUR:.0f} €</b> (règle du plan réel), "
+                   "puis laisser tourner.</p>" if valeur >= cible else
+                   f"<p>Retrait prévu : {DEPOT_REEL_EUR:.0f} € quand la valeur atteint {cible:,.0f} {dev} "
+                   f"(encore {cible - valeur:,.0f}).</p>".replace(",", " "))
+    dist = "" if recul is None else (f"Recul depuis le plus haut : {recul:+.1%} ; arrêt automatique à {ARRET_REEL:.0%} "
+                                     f"(marge restante {recul - ARRET_REEL:.1%})").replace(".", ",") + "."
+    g = etat.get("garde_fou") or {}
+    return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compte réel cent</title><style>body{{font-family:system-ui,sans-serif;margin:16px;max-width:900px}}
+table{{border-collapse:collapse;width:100%}}td,th{{border-bottom:1px solid #ddd;padding:4px 6px;text-align:left}}
+.n{{text-align:right;font-variant-numeric:tabular-nums}}.alerte{{background:#fde2e1;padding:8px;border-radius:6px}}
+@media (prefers-color-scheme: dark){{body{{background:#111;color:#eee}}td,th{{border-color:#333}}.alerte{{background:#5a1d1d}}}}</style></head>
+<body><h1>Compte réel (cent)</h1>
+<p><b>{etat_txt}</b><br>Mis à jour : {e(etat.get("ecrit") or "—")}</p>
+<table><tr><td>Solde</td><td class="n">{cents(solde) if solde is not None else "—"}</td></tr>
+<tr><td>Valeur (positions comprises)</td><td class="n">{cents(valeur) if valeur is not None else "—"}</td></tr>
+<tr><td>Résultat du jour (garde-fou −5 %)</td><td class="n">{cents(g["perte_du_jour"]) if "perte_du_jour" in g else "—"}</td></tr>
+<tr><td>Plus haut de la valeur</td><td class="n">{cents(s["plus_haut"]) if s.get("plus_haut") is not None else "—"}</td></tr></table>
+<p>{dist}</p>{"<p class='alerte'>ARRÊT AUTOMATIQUE à −34 % déclenché : plus aucun ordre. Décision de Baptiste.</p>" if s.get("arret") else ""}
+{retrait}
+<h2>Par stratégie (trades fermés)</h2><table><tr><th>Stratégie</th><th class="n">Trades</th><th class="n">Résultat</th></tr>
+{lignes or "<tr><td colspan='3'>Pas encore de trade fermé.</td></tr>"}</table>
+<h2>Par jour (14 derniers)</h2><table>{jours or "<tr><td>—</td></tr>"}</table>
+<p>Positions ouvertes du robot : {len(etat.get("positions_robot") or [])}. Robot : version {e((etat.get("robot") or {}).get("version_installee"))}.</p>
+</body></html>
+"""
+
+
 if __name__ == "__main__":
+    import sys
+    if "--reel" in sys.argv[1:]:
+        SORTIE_REEL.parent.mkdir(parents=True, exist_ok=True)
+        SORTIE_REEL.write_text(page_reel(), encoding="utf-8")
+        print(SORTIE_REEL)
+        sys.exit(0)
     SORTIE.parent.mkdir(parents=True, exist_ok=True)
     SORTIE.write_text(page(), encoding="utf-8")
     print(SORTIE)
