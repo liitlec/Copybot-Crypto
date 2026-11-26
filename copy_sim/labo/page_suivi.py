@@ -468,7 +468,8 @@ function rendre(etat,journal){
  var gain=valeur==null?null:valeur-DEPOT, pos=etat.positions_robot||[];
  function tuile(t,v,c){return el("div",{"class":"tuile"},[el("span",{txt:t}),el("b",{"class":c||""},[v])]);}
  page.appendChild(el("section",{"class":"tuiles"},[
-  tuile("Valeur du compte",valeur==null?"—":cents(valeur)),
+  tuile("Solde (sans positions ouvertes)",etat.solde==null?"—":cents(etat.solde),cl((etat.solde||DEPOT)-DEPOT)),
+  tuile("Valeur du compte (positions comprises)",valeur==null?"—":cents(valeur)),
   tuile("Gain depuis le dépôt",gain==null?"—":cents(gain),cl(gain||0)),
   tuile("Résultat du jour",g.perte_du_jour==null?"—":cents(g.perte_du_jour),cl(g.perte_du_jour||0)),
   tuile("Recul depuis le plus haut",s.recul==null?"—":fr(s.recul*100,1)+" %"),
