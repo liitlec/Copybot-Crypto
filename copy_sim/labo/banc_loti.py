@@ -103,3 +103,26 @@ if __name__ == "__main__":
     T.to_csv(os.path.join(ICI, "donnees", "loti_bases.csv"), index=False)
     pd.set_option("display.width", 250)
     print(T.round(3).to_string(index=False)); print(R.round(3).to_string(index=False))
+
+
+CONTRAT_POINT2 = """POINT 2 — RENFORT QUAND LE PANIER REVIENT AU POINT MORT. CONTRAT FIGÉ ET POUSSÉ AVANT SES RÉSULTATS.
+Mécanique bt_or_plus du lot H (banc_loth.simule, tailles 1-2-3-4-5..., recul 0,6667 ATR, renforts de la grille tous
+les 0,25 ATR depuis la 1re entrée). Variantes (8) :
+  (a) be      : en plus de la grille, un renfort (taille suivante) à la clôture qui repasse au-dessus du POINT MORT du
+                panier (prix moyen pondéré + spread de sortie) quand le panier a >= 2 positions et a été en perte à une
+                clôture depuis le dernier renfort ; un seul par passage (il faut repasser en perte pour le suivant) ;
+  (b) be+0,10 / be+0,25 : idem, seuil = point mort + 0,10 / 0,25 ATR ;
+  (c) moyen   : la grille est comptée depuis le prix moyen du panier : renfort quand la clôture dépasse
+                prix moyen + 0,25 ATR (recalculé après chaque renfort), au lieu de la grille fixe ;
+  chacune avec 5 positions au plus et avec 6 positions au plus. Même sortie (le stop suiveur ne dépend pas des renforts).
+Données : M5 08/2025-11/2026 ; H1 08/2022-11/2026 (B1 = 08/2022-09/2024, B2 = 10/2024-11/2026) ; spread réel puis doublé.
+Mesures : total R, gain÷pire baisse et Sharpe journalier (risque égal), sur M5, H1 B1, H1 B2 ; nombre de renforts
+« point mort » et leur gain moyen ; en argent : P(arrêt -34 %) en 12 mois, base 0,02 (et 0,05), mise v3, même
+Monte-Carlo que le point 1 (bt_or_plus seul), 20 000 USC.
+Placebo (a)/(b) : les mêmes renforts supplémentaires (même nombre, mêmes tailles, même panier) placés à une clôture
+tirée au hasard dans la vie du panier (2 000 tirages) ; p = part des tirages au gain supplémentaire >= réel.
+Placebo (c) : signes des différences appariées par panier tirés au hasard (2 000). Correction : Holm sur les 8.
+RETENUE si : gain÷pire baisse ET Sharpe > référence sur M5, H1 B1 ET H1 B2 ; p Holm < 0,05 sur H1 et p < 0,05 sur
+M5 ; encore > référence au spread doublé ; P(arrêt -34 %) à base 0,02 pas plus de 2 points au-dessus de la référence.
+Si retenue : proposée pour la version réelle suivante, SANS installation (feu vert de Baptiste dans la conversation).
+"""
