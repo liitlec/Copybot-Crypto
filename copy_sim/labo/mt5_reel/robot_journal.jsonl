@@ -10,3 +10,5 @@
 {"heure": "2026-11-25T23:10:01Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
 {"heure": "2026-11-25T23:15:01Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.01, "stop": 3502.22, "id": "elan_m15", "prix_demande": 3571.56, "spread_points": 46.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 323809726}
 {"heure": "2026-11-25T23:15:01Z", "type": "note", "evenement": "ouverture", "hypothese": "elan_m15", "sens": 1, "ok": true, "refus": null, "bid": 3571.1, "ask": 3571.56, "stop": 3502.22, "lots": 0.01, "prix_obtenu": null}
+{"heure": "2026-11-26T01:01:01Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.01, "stop": 3539.33, "id": "exces_m1", "prix_demande": 3552.53, "spread_points": 42.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 323825714}
+{"heure": "2026-11-26T01:01:01Z", "type": "note", "evenement": "ouverture", "hypothese": "exces_m1", "sens": 1, "ok": true, "refus": null, "bid": 3552.11, "ask": 3552.53, "stop": 3539.33, "lots": 0.01, "prix_obtenu": null}
