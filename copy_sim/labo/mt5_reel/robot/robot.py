@@ -1,11 +1,11 @@
-"""Robot RÉEL du labo (compte STARTRADER cent), version 1. Préparé le 25/11/2026 (PRIORITES « 25/11 23 h »).
+"""Robot RÉEL du labo (compte STARTRADER cent), version 2 (26/11 : base bt_or_plus 0,05, demande de Baptiste). Préparé le 25/11/2026 (PRIORITES « 25/11 23 h »).
 
 Installé SEULEMENT par le lanceur du pont réel (`pont_mt5.py --reel`), qui refuse tout ordre sans le fichier
 d'autorisation écrit par Baptiste sur son PC (voir copy_sim/forex/pont_reel.py et copy_sim/labo/LANCER_REEL.md).
 Contenu (rien d'autre, ni témoin, ni variante) :
   bt_or_plus      : la mécanique bt_or (sens EMA 2 jours M5, entrées aux heures fixes, renforts tous les 0,25 ATR,
                     sortie au recul de 0,6667 ATR depuis le meilleur prix), renforts de taille croissante 1-2-3-4-5 x la
-                    base, 5 positions au plus ; base 0,02 lot cent (arrondie au pas de lot du courtier, 5 x base <= 0,10) ;
+                    base, 5 positions au plus ; base 0,05 lot cent (arrondie au pas de lot du courtier, 5 x base <= plafond local du pont, 0,25 au plus) ;
   elan_m15, cassure_m15, exces_m1, exces_m5, retour_court_ar : les règles courtes de la démo, à 0,01 lot cent, mêmes
                     signaux, tenues et stops ; pause au calme comme en démo (sans variante _calme).
 Le nom du symbole or (suffixe éventuel), le lot minimum, le pas de lot et la taille de contrat sont lus chez le
@@ -17,11 +17,11 @@ import time
 
 import bt_or
 
-VERSION = 1
+VERSION = 2
 FICHIER_ETAT = "etat_robot.json"
 PAUSE = 1.0
 PERIODES = ("M1", "M5", "M15")
-BASE_BT, LOTS_COURTES, LOTS_MAX = 0.02, 0.01, 0.10
+BASE_BT, LOTS_COURTES, LOTS_MAX = 0.05, 0.01, 0.25
 SPREAD_MAX = 0.60                # en dollars (prix de l'or) : pas d'ouverture au-delà
 PLAFOND_COURTES = 8
 HYPOTHESES = {
@@ -160,9 +160,15 @@ class Robot:
                            arret=c.get("arret"))
             return False
         info = self.pont.symbole(sym)
+        plafond = LOTS_MAX
+        lm = c.get("lots_max")
+        if isinstance(lm, (int, float)) and not isinstance(lm, bool) and 0 < lm < plafond:
+            plafond = lm                                   # plafond local du pont (fichier d'autorisation)
+        if not isinstance(lm, (int, float)) or isinstance(lm, bool):
+            plafond = min(plafond, 0.10)                   # pont sans plafond annoncé : prudence
         base = sur_grille(BASE_BT, info["lot_min"], info["pas_lot"])
-        if base is not None and 5 * base > LOTS_MAX + 1e-9:
-            base = sur_grille(LOTS_MAX / 5, info["lot_min"], info["pas_lot"])
+        if base is not None and 5 * base > plafond + 1e-9:
+            base = sur_grille(plafond / 5, info["lot_min"], info["pas_lot"])
         self.lots_c = sur_grille(LOTS_COURTES, info["lot_min"], info["pas_lot"])
         self.sym, self.info = sym, info
         bt_or.SYMBOLE = sym

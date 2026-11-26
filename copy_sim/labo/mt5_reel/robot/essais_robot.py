@@ -8,6 +8,7 @@ import acces_robot
 import pont_reel
 
 pmod = pont_reel.activer_essais(".", faux_mt5)
+
 for f in ("etat_robot.json", "etat_bt_plus.json", "sommet_reel.json", "garde_essai.json"):
     if os.path.exists(f):
         os.remove(f)
@@ -156,6 +157,24 @@ faux_mt5._prix["XAUUSD.c"] = ancien
 assert pont_reel.symbole_or(faux_mt5) == "XAUUSD.c" and pont.compte()["symbole_or"] == "XAUUSD.c"
 faux_mt5._prix["XAUUSD"] = faux_mt5._prix.pop("XAUUSD.c")
 
+# 9) v2 : base 0,05 si le plafond local du pont le permet (lots_max 0,25), sinon ramenée sous le plafond
+class _PontPlafond:
+    def __init__(self, base, lm):
+        self._b, self._lm = base, lm
+    def compte(self):
+        c = self._b.compte()
+        if self._lm is not None:
+            c = dict(c, lots_max=self._lm)
+        return c
+    def __getattr__(self, n):
+        return getattr(self._b, n)
+for lm, attendu in ((0.25, 0.05), (0.10, 0.02), (None, 0.02), (0.15, 0.03)):
+    rp = robot.Robot(_PontPlafond(pont, lm), fichier="etat_robot_plafond.json")
+    assert rp.preparer() and rp.btp is not None and abs(rp.btp.lots - attendu) < 1e-9, (lm, rp.btp.lots)
+    assert 5 * rp.btp.lots <= (lm or 0.10) + 1e-9
+for f in ("etat_robot_plafond.json",):
+    if os.path.exists(f):
+        os.remove(f)
 for f in ("etat_robot.json", "etat_bt_plus.json", "sommet_reel.json", "garde_essai.json", "journal_essai.jsonl",
           pont_reel.FICHIER_AUTORISATION):
     if os.path.exists(f):

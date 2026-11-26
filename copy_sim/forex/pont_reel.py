@@ -272,6 +272,7 @@ def activer(pont, dossier: Path | None = None, acces_robot=None, lanceur_robot=N
                 with pont.VERROU:
                     c["symbole_or"] = symbole_or(self.mt5)
             c["mode"] = "reel"
+            c["lots_max"] = _ETAT["pont"].MAX_LOTS          # plafond local (lecture seule pour le robot)
             return c
         acces_robot.AccesRobot.compte = compte
         if not hasattr(acces_robot.AccesRobot, "_arret_demande_demo"):
