@@ -103,3 +103,11 @@
 {"heure": "2026-11-26T17:55:55Z", "type": "note", "evenement": "reprise", "hypothese": "elan_m15", "ticket": 323997860}
 {"heure": "2026-11-26T17:55:55Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or_plus", "sens": 1, "positions": 2, "tickets": [323828668, 323847271], "meilleur": 3607.21, "distance_stop": 73.46}
 {"heure": "2026-11-26T17:55:56Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
+{"heure": "2026-11-26T19:44:08Z", "type": "lanceur", "evenement": "arrete", "version": 2, "raison": "nouvelle version"}
+{"heure": "2026-11-26T19:44:08Z", "type": "lanceur", "evenement": "installee", "version": 3}
+{"heure": "2026-11-26T19:44:08Z", "type": "lanceur", "evenement": "demarre", "version": 3}
+{"heure": "2026-11-26T19:44:08Z", "type": "note", "evenement": "demarrage", "version": 3, "mode": "reel", "hypotheses": ["cassure_m15", "elan_m15", "exces_m1", "exces_m5", "retour_court_ar", "bt_or_plus"], "repris": []}
+{"heure": "2026-11-26T19:44:08Z", "type": "note", "evenement": "tailles", "symbole": "XAUUSD.c", "lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 1.0, "solde": 20003.26, "plafond": 0.25, "base_bt_or_plus": 0.05, "lots_regles_courtes": 0.01, "regle": "base = 0,05 x solde / 20 000, recalculee a chaque panier"}
+{"heure": "2026-11-26T19:44:08Z", "type": "note", "evenement": "reprise", "hypothese": "elan_m15", "ticket": 323997860}
+{"heure": "2026-11-26T19:44:08Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or_plus", "sens": 1, "positions": 2, "tickets": [323828668, 323847271], "meilleur": 3607.21, "distance_stop": 73.46}
+{"heure": "2026-11-26T19:44:08Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
