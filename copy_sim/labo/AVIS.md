@@ -1,3 +1,36 @@
+# Avis pour Baptiste — 26/11/2026, nuit (Lot I : risque par base, renfort au retour du panier au point mort)
+
+**Réponse courte : (1) seule la base de 0,02 garde le risque d'arrêt −34 % rare. (2) Renforcer quand le panier revient au point mort gagne bien plus que des renforts placés au hasard : le moment est donc bon. Mais cela revient surtout à miser plus gros. À risque égal, ce n'est pas mieux partout, et le risque d'arrêt grimpe. Rien n'est retenu ; on reste en v3.** Banc `banc_loti.py`, contrat du point 2 figé et poussé avant ses résultats (7ee1f05).
+
+**1. Risque par base** (20 000 USC, 12 mois, Monte-Carlo de 2 000 parcours, mise v3 qui baisse avec le solde)
+
+| Base | H1 4 ans : P(arrêt −34 %) mesuré / prudent | Pire baisse médiane | Valeur médiane | M5 15 mois + règles courtes : P(arrêt) mesuré / prudent | Valeur médiane |
+|---|---|---|---|---|---|
+| **0,02** | **0,4 % / 3 %** | −14 % | 25 700 | **16 % / 56 %** | 50 000 |
+| 0,03 | 12 % / 33 % | −21 % | 29 900 | 41 % / 78 % | 57 700 |
+| 0,04 | 28 % / 59 % | −27 % | 32 100 | 53 % / 86 % | 38 200 |
+| 0,05 | 43 % / 74 % | −31 % | 30 800 | 63 % / 91 % | 30 900 |
+
+Rejeux réels de 12 mois (pire baisse) : départ 08/2022 : −13 % (0,02), −25 % (0,03), −34 % (0,04, de justesse), arrêt touché (0,05). Départ 10/2024 : −16 à −27 %, et le compte fait ×1,6 à ×2,6.
+
+**2. Renfort quand le panier revient au point mort** (renforts en plus de la grille habituelle)
+
+| Variante | Renforts « point mort » (H1) | Gain de ces renforts : réel / au hasard (médiane) | H1 2022-24 : gain÷pire baisse | H1 2024-26 : gain÷pire baisse | M5 : gain÷pire baisse / Sharpe | P(arrêt) à 0,02 : H1 / M5 |
+|---|---|---|---|---|---|---|
+| **Actuelle** | — | — | −0,27 | **9,2** | **7,4 / 2,9** | **0,4 % / 12 %** |
+| Point mort, 5 positions | 390 | +292 R / +123 R (p < 0,001) | 0,00 | 7,4 | 5,3 / 2,6 | 7 % / 37 % |
+| Point mort + 0,10 ATR, 5 pos. | 259 | +320 / +255 (p 0,09) | 0,22 | 8,2 | 5,4 / 2,6 | 3 % / 29 % |
+| Point mort + 0,25 ATR, 5 pos. | 124 | +140 / +184 (p 0,90) | 0,05 | 7,9 | 6,0 / 2,9 | 2 % / 20 % |
+| Point mort, 6 positions | 446 | +440 / +241 (p < 0,001) | 0,23 | 7,5 | 4,8 / 2,6 | 13 % / 53 % |
+| Grille depuis le prix moyen, 5 / 6 pos. | — | (signes au hasard : p 0,03 / 0,01) | −0,17 / −0,18 | 10,7 / 9,7 | 6,8 / 7,1 | 8-15 % / 29-41 % |
+
+1. **Ton intuition est juste sur le moment** : renforcer juste quand le panier repasse au point mort rapporte 2,4 fois plus que les mêmes renforts placés au hasard dans le panier (+292 R contre +123 R sur 4 ans, p < 0,001).
+2. **Mais ça charge le panier.** Le compte gagne plus en R (+617 contre +455), mais la pire baisse grandit plus vite que le gain (−206 contre −173 R ; sur M5, −93 contre −56 R). À risque égal, c'est **moins bien sur M5 et en 2024-26**. Seule la période plate 2022-24 en profite.
+3. **En argent, le risque d'arrêt monte** : à 0,02, de 0,4 % à 7 % (H1) et de 12 % à 37 % (M5). Si tu veux cette règle, il faudrait baisser la base pour garder le même risque.
+4. La grille comptée depuis le prix moyen renforce plus tôt. Elle gagne plus en 2024-26, mais sa pire baisse augmente (−260 à −351 R) et elle perd en 2022-24.
+
+**Conclusion** : rien n'est retenu selon le contrat, donc pas de nouvelle version. La variante la plus intéressante à surveiller est « point mort + 0,10 ATR, 5 positions » : meilleure sur 4 ans en gain÷pire baisse (3,8 contre 2,6), positive en 2022-24, mais moins bonne en 2024-26 et sur M5, et son placebo n'est qu'à 0,09.
+
 # Avis pour Baptiste — 26/11/2026, soir (Lot H : mise proportionnelle au solde, pyramide, retraits, adaptation en direct)
 
 **Réponse courte : la v3 (mise proportionnelle au solde) est publiée, mais aucun des tests B ne fait gagner plus à risque égal. Les intérêts composés, une autre forme de pyramide et l'adaptation automatique aux trades passés font tous moins bien, ou pas mieux, que bt_or_plus tel quel. Le chiffre important est ailleurs : avec la base actuelle de 0,05 lot sur 200 $, le compte a environ une chance sur deux d'atteindre l'arrêt −34 % dans l'année.** Banc `banc_loth.py`, contrat figé et poussé avant les résultats (5782128).

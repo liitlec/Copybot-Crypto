@@ -1098,3 +1098,4 @@ Résultats en tête d'AVIS.md, tableaux simples ; résumé chiffré à @parent a
    Si une variante tient sur les deux blocs : la proposer pour la version réelle suivante (pas d'installation sans
    le feu vert de Baptiste dans la conversation).
 Résultats en tête d'AVIS.md ; résumé chiffré à @parent (point 1 d'abord, il attend pour décider de sa base).
+**FAIT le 26/11** : `banc_loti.py`. Point 1 : P(arrêt −34 %) 12 mois H1/M5 mesuré : 0,02 → 0,4 % / 16 % ; 0,03 → 12 / 41 % ; 0,04 → 28 / 53 % ; 0,05 → 43 / 63 %. Point 2 (contrat 7ee1f05) : renfort au point mort bien placé (+292 R contre +123 au hasard, p < 0,001), mais à risque égal moins bon sur M5 et 2024-26, et P(arrêt) à 0,02 de 0,4 → 7 % (H1), 12 → 37 % (M5) ; rien de retenu, on reste en v3.
