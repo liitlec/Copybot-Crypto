@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-26T13:12:15Z",
+ "ecrit": "2026-11-26T13:17:23Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,34 +9,34 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67558.77,
- "valeur": 81460.63,
- "marge_libre": 78028.3,
+ "solde": 67555.51,
+ "valeur": 81488.45,
+ "marge_libre": 78063.25,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "NAS100+": {
-   "bid": 26285.44,
-   "ask": 26286.51,
-   "spread_points": 107.0,
+   "bid": 26294.83,
+   "ask": 26295.63,
+   "spread_points": 80.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.1,
    "pas_lot": 0.1,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795705934
+   "heure_serveur": 1795706242
   },
   "XAUUSD": {
-   "bid": 3564.78,
-   "ask": 3564.98,
-   "spread_points": 20.0,
+   "bid": 3566.4,
+   "ask": 3566.61,
+   "spread_points": 21.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1795705934
+   "heure_serveur": 1795706242
   }
  },
  "positions_robot": [
@@ -45,10 +45,10 @@
    "sens": "vente",
    "lots": 0.1,
    "prix_entree": 26823.14,
-   "prix_actuel": 26286.51,
+   "prix_actuel": 26295.63,
    "stop": 29858.42,
    "objectif": null,
-   "profit": 53.66,
+   "profit": 52.75,
    "ouverte_heure_serveur": 1795482001
   },
   {
@@ -56,10 +56,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3481.58,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 83.2,
+   "profit": 84.82,
    "ouverte_heure_serveur": 1795621800
   },
   {
@@ -67,10 +67,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3520.01,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 44.77,
+   "profit": 46.39,
    "ouverte_heure_serveur": 1795636500
   },
   {
@@ -78,10 +78,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3540.71,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 24.07,
+   "profit": 25.69,
    "ouverte_heure_serveur": 1795638600
   },
   {
@@ -89,10 +89,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3563.38,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3515.27,
    "objectif": null,
-   "profit": 1.4,
+   "profit": 3.02,
    "ouverte_heure_serveur": 1795662600
   },
   {
@@ -100,10 +100,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3563.35,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3515.97,
    "objectif": null,
-   "profit": 1.43,
+   "profit": 3.05,
    "ouverte_heure_serveur": 1795662600
   },
   {
@@ -111,10 +111,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3598.39,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3515.27,
    "objectif": null,
-   "profit": -33.61,
+   "profit": -31.99,
    "ouverte_heure_serveur": 1795667700
   },
   {
@@ -122,10 +122,10 @@
    "sens": "achat",
    "lots": 0.02,
    "prix_entree": 3598.43,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3515.97,
    "objectif": null,
-   "profit": -67.3,
+   "profit": -64.06,
    "ouverte_heure_serveur": 1795667700
   },
   {
@@ -133,10 +133,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3555.2,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3551.22,
    "objectif": 3579.24,
-   "profit": 9.58,
+   "profit": 11.2,
    "ouverte_heure_serveur": 1795697100
   },
   {
@@ -144,38 +144,27 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3567.16,
-   "prix_actuel": 3564.78,
+   "prix_actuel": 3566.4,
    "stop": 3523.04,
    "objectif": null,
-   "profit": -2.38,
+   "profit": -0.76,
    "ouverte_heure_serveur": 1795698900
   },
   {
    "symbole": "XAUUSD",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3567.41,
-   "prix_actuel": 3564.78,
-   "stop": 3559.06,
-   "objectif": null,
-   "profit": -2.63,
-   "ouverte_heure_serveur": 1795705380
-  },
-  {
-   "symbole": "XAUUSD",
-   "sens": "achat",
-   "lots": 0.01,
-   "prix_entree": 3564.65,
-   "prix_actuel": 3564.78,
+   "prix_entree": 3565.01,
+   "prix_actuel": 3566.4,
    "stop": 3556.13,
    "objectif": null,
-   "profit": 0.13,
-   "ouverte_heure_serveur": 1795705860
+   "profit": 1.3900000000000001,
+   "ouverte_heure_serveur": 1795706160
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-26",
-  "perte_du_jour": 71.94,
+  "perte_du_jour": 87.86,
   "seuil": -4123.32,
   "ouvertures_bloquees": false
  },
