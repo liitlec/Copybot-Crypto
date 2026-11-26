@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-26T11:26:20Z",
+ "ecrit": "2026-11-26T11:31:28Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,34 +9,34 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67559.71,
- "valeur": 81696.93,
- "marge_libre": 78285.97,
+ "solde": 67556.03,
+ "valeur": 81733.97,
+ "marge_libre": 78323.01,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "NAS100+": {
-   "bid": 26189.94,
-   "ask": 26191.01,
+   "bid": 26202.94,
+   "ask": 26204.01,
    "spread_points": 107.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.1,
    "pas_lot": 0.1,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795699579
+   "heure_serveur": 1795699887
   },
   "XAUUSD": {
-   "bid": 3564.37,
-   "ask": 3564.57,
+   "bid": 3568.76,
+   "ask": 3568.96,
    "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1795699579
+   "heure_serveur": 1795699887
   }
  },
  "positions_robot": [
@@ -45,10 +45,10 @@
    "sens": "vente",
    "lots": 0.1,
    "prix_entree": 26823.14,
-   "prix_actuel": 26191.01,
+   "prix_actuel": 26204.01,
    "stop": 29858.42,
    "objectif": null,
-   "profit": 63.21,
+   "profit": 61.91,
    "ouverte_heure_serveur": 1795482001
   },
   {
@@ -56,10 +56,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3481.58,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 82.79,
+   "profit": 87.18,
    "ouverte_heure_serveur": 1795621800
   },
   {
@@ -67,10 +67,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3520.01,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 44.36,
+   "profit": 48.75,
    "ouverte_heure_serveur": 1795636500
   },
   {
@@ -78,10 +78,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3540.71,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 23.66,
+   "profit": 28.05,
    "ouverte_heure_serveur": 1795638600
   },
   {
@@ -89,10 +89,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3563.38,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3515.27,
    "objectif": null,
-   "profit": 0.99,
+   "profit": 5.38,
    "ouverte_heure_serveur": 1795662600
   },
   {
@@ -100,10 +100,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3563.35,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3515.97,
    "objectif": null,
-   "profit": 1.02,
+   "profit": 5.41,
    "ouverte_heure_serveur": 1795662600
   },
   {
@@ -111,10 +111,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3598.39,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3515.27,
    "objectif": null,
-   "profit": -34.02,
+   "profit": -29.63,
    "ouverte_heure_serveur": 1795667700
   },
   {
@@ -122,10 +122,10 @@
    "sens": "achat",
    "lots": 0.02,
    "prix_entree": 3598.43,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3515.97,
    "objectif": null,
-   "profit": -68.12,
+   "profit": -59.34,
    "ouverte_heure_serveur": 1795667700
   },
   {
@@ -133,10 +133,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3555.2,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3551.22,
    "objectif": 3579.24,
-   "profit": 9.17,
+   "profit": 13.56,
    "ouverte_heure_serveur": 1795697100
   },
   {
@@ -144,27 +144,27 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3567.16,
-   "prix_actuel": 3564.37,
+   "prix_actuel": 3568.76,
    "stop": 3523.04,
    "objectif": null,
-   "profit": -2.79,
+   "profit": 1.6,
    "ouverte_heure_serveur": 1795698900
   },
   {
    "symbole": "XAUUSD",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3564.84,
-   "prix_actuel": 3564.57,
-   "stop": 3573.13,
+   "prix_entree": 3568.18,
+   "prix_actuel": 3568.96,
+   "stop": 3576.13,
    "objectif": null,
-   "profit": 0.27,
-   "ouverte_heure_serveur": 1795699560
+   "profit": -0.78,
+   "ouverte_heure_serveur": 1795699860
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-26",
-  "perte_du_jour": 81.1,
+  "perte_du_jour": 118.97,
   "seuil": -4123.32,
   "ouvertures_bloquees": false
  },
