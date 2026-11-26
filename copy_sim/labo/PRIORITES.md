@@ -1035,3 +1035,20 @@ normal). Mettre à jour `LANCER_REEL.md` (section Arrêter) : comment demander l
 Claude dans l'app, qui écrit le fichier) et rappel : le pont réel tourne depuis une copie figée, donc il faut relancer
 `installer_tache_reel.ps1` une fois rentré pour activer cette fonction. Pousser, résumé à @parent.
 **FAIT le 25/11** : `pont_reel.py` lit ARRET_DISTANT.json (branche distante) à chaque tour ; arrêt = plus aucun ordre + robot arrêté et non relancé ; fermer_tout = fermeture des seuls magiques réels, refaite au tour suivant seulement si une a échoué ; absent / false / illisible = normal ; jamais d'autorisation par ce fichier (essai 16). État publié `arret_distant` ; page réelle et tableau de bord affichent l'arrêt. LANCER_REEL.md : section « Arrêt à distance ». Rappel : relancer installer_tache_reel.ps1 pour l'activer.
+
+## 26/11 14 h 40 — Pont réel : versions du robot installées sans geste local (demande écrite de Baptiste)
+Baptiste : « il faut qu'on enlève cette sécurité qu'on a mise en place pour que tu puisses modifier directement les
+versions ». Il garde la main sur les limites dures, qui restent locales et impossibles à changer à distance.
+1. `pont_reel.py` : dans `AUTORISATION_REEL.json`, accepter `"robot": "auto"` → toute nouvelle VERSION publiée dans
+   `copy_sim/labo/mt5_reel/robot/` s'installe dès que ses essais passent (« ESSAIS OK »), comme en démo. Un nombre
+   garde le comportement actuel (version figée). Le compte, la phrase et le mode réel/cent restent obligatoires.
+2. Plafond de lot par position lu dans ce même fichier local : `"lots_max": 0.25` (défaut 0.10 si absent, borne dure
+   0.50) ; le robot ne peut jamais le dépasser. Garder intacts : arrêt −34 %, garde-fou −5 %/jour, 10 positions,
+   stop obligatoire, spread maximal, STOP_PONT, arrêt à distance.
+3. Écritures patientes (WinError 5 « Accès refusé », antivirus/OneDrive) : `ecrire_json` du pont réel et du pont démo
+   réessaie jusqu'à 40 fois (50 ms), comme essais_robot v17. Ne change rien d'autre au pont démo.
+4. Essais (`essais_pont.py --faux`) : « auto » installe une version qui passe ses essais et refuse une qui échoue ;
+   plafond local respecté (ordre de 0,30 refusé si lots_max 0,25) ; écriture patiente.
+5. `LANCER_REEL.md` : nouvelle ligne d'autorisation conseillée, à écrire par Baptiste en rentrant, puis relancer
+   `installer_tache_reel.ps1` (et `installer_tache.ps1` pour la démo si l'écriture patiente y est ajoutée).
+Le robot réel reste en v1 (base 0,02) tant que Baptiste n'a pas choisi la nouvelle base (0,04 ou 0,05).
