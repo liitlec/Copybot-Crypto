@@ -1053,3 +1053,30 @@ versions ». Il garde la main sur les limites dures, qui restent locales et impo
    `installer_tache_reel.ps1` (et `installer_tache.ps1` pour la démo si l'écriture patiente y est ajoutée).
 Le robot réel reste en v1 (base 0,02) tant que Baptiste n'a pas choisi la nouvelle base (0,04 ou 0,05).
 **FAIT le 26/11** : `pont_reel.py` accepte "robot": "auto" (installation dès ESSAIS OK, un nombre fige toujours) et "lots_max" local (défaut 0,10, borne 0,50, relu à chaque vérification) ; `ecrire_json` du pont (démo et réel) patient : 40 essais × 50 ms contre PermissionError ; autres sécurités inchangées ; robot réel v1 non touché ; essais_pont --faux 17/17, robots réel et démo ESSAIS OK ; LANCER_REEL.md mis à jour (« Mise à jour du 26/11 »).
+
+## 26/11 19 h 30 — Lot H : pousser la stratégie au maximum (demande écrite de Baptiste)
+Baptiste : « teste les 3 pistes, et dans tous les cas je veux adapter en direct le montant de la mise par rapport au
+solde actuel ; on a testé des réglages fixes écrits dans le robot, il faut s'adapter en live aux trades passés ».
+**A. À FAIRE DANS TOUS LES CAS — robot réel v3 (mode auto déjà actif chez Baptiste) :** mise proportionnelle au
+SOLDE (balance, sans les positions ouvertes) : base bt_or_plus = 0,05 lot cent × (solde / 20 000 USC), arrondie vers
+le bas au pas de lot, recalculée au DÉBUT de chaque nouveau panier (jamais en cours de panier), bornée par
+5 × base ≤ plafond local `lots_max` (aujourd'hui 0,25 : la base ne monte donc pas au-dessus de 0,05 tant que Baptiste
+n'a pas relevé son plafond ; elle descend dès que le solde baisse). Règles courtes : 0,01 lot cent × (solde/20 000),
+minimum 0,01. Noter la base choisie à chaque panier dans le journal ; page réelle : afficher la base actuelle.
+Essais OK, publier VERSION 3 (installation automatique).
+**B. Tests (contrat figé avant ; or M5 15-18 mois + H1 4 ans ; spread réel puis doublé ; walk-forward ; placebo ;
+deux blocs 2022-24 / 2024-26 ; à risque égal et en argent sur 20 000 USC) :**
+1. Intérêts composés (mise ∝ solde, recalcul par panier) contre mise fixe : croissance, pire baisse, temps pour ×2,
+   probabilité d'arrêt −34 %, sur 6 / 12 / 24 mois (Monte-Carlo par blocs de semaines + rejeu réel).
+2. Forme de la pyramide de bt_or_plus : nombre max de positions 4 / 5 / 6 / 7 ; écart entre renforts 0,20 / 0,25 /
+   0,35 ATR ; progression des tailles (1-2-3-4-5, 1-1-2-2-3, 1-1,5-2-2,5-3, constante). Peu de réglages, walk-forward.
+3. Retraits automatiques (calcul et rappel, aucun retrait réel par le robot) : au doublement, X % des gains chaque
+   semaine, au-dessus d'un plafond — effet sur l'argent encaissé et sur la croissance.
+4. **Adaptation en direct aux trades passés** (ce que demande Baptiste) : paramètres de bt_or_plus et des règles
+   courtes ré-choisis automatiquement, en continu, sur les N derniers paniers/trades (fenêtre glissante 1 à 6 mois,
+   ré-estimation chaque semaine / chaque panier) : écart des renforts, recul de sortie, nombre de renforts ; mise de
+   chaque règle courte ∝ son résultat récent (0 si négative sur la fenêtre). Comparer à « réglage fixe » hors
+   échantillon. Rappel honnête : les lots B (bandits, « suivre ce qui marche ») et G (walk-forward des règles courtes)
+   ont échoué ; dire franchement si l'adaptation tient ou non, avec chiffres.
+5. Ce qui tient sur les deux blocs et bat son placebo → version réelle suivante (mode auto) ; sinon rester en v3.
+Résultats en tête d'AVIS.md, tableaux simples ; résumé chiffré à @parent après A puis après B.
