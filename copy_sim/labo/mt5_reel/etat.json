@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-26T17:51:09Z",
+ "ecrit": "2026-11-26T17:55:55Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -7,25 +7,25 @@
  "version_appliquee": 0,
  "plafonds": {
   "positions": 10,
-  "lots_par_position": 0.1
+  "lots_par_position": 0.25
  },
  "solde": 20003.26,
- "valeur": 19888.08,
- "marge_libre": 19852.21,
+ "valeur": 19886.73,
+ "marge_libre": 19850.86,
  "devise": "USC",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD.c": {
-   "bid": 3567.25,
-   "ask": 3567.65,
+   "bid": 3566.98,
+   "ask": 3567.38,
    "spread_points": 40.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795722668
+   "heure_serveur": 1795722954
   }
  },
  "positions_robot": [
@@ -34,10 +34,10 @@
    "sens": "achat",
    "lots": 0.02,
    "prix_entree": 3563.54,
-   "prix_actuel": 3567.25,
+   "prix_actuel": 3566.98,
    "stop": 3515.97,
    "objectif": null,
-   "profit": 7.42,
+   "profit": 6.88,
    "ouverte_heure_serveur": 1795662601
   },
   {
@@ -45,10 +45,10 @@
    "sens": "achat",
    "lots": 0.04,
    "prix_entree": 3598.58,
-   "prix_actuel": 3567.25,
+   "prix_actuel": 3566.98,
    "stop": 3515.97,
    "objectif": null,
-   "profit": -125.32,
+   "profit": -126.4,
    "ouverte_heure_serveur": 1795667701
   },
   {
@@ -56,16 +56,16 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3570.37,
-   "prix_actuel": 3567.65,
+   "prix_actuel": 3567.38,
    "stop": 3601.22,
    "objectif": null,
-   "profit": 2.7199999999999998,
+   "profit": 2.99,
    "ouverte_heure_serveur": 1795720501
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-26",
-  "perte_du_jour": -127.03,
+  "perte_du_jour": -128.38,
   "seuil": -1000.01,
   "ouvertures_bloquees": false
  },
@@ -78,15 +78,15 @@
  },
  "sommet": {
   "plus_haut": 20191.75,
-  "recul": -0.015,
+  "recul": -0.0151,
   "arret": false,
   "heure_arret": null
  },
  "symbole_or": "XAUUSD.c",
  "arret_distant": null,
  "robot": {
-  "version_installee": 1,
-  "version_precedente": null,
+  "version_installee": 2,
+  "version_precedente": 1,
   "en_marche": true,
   "dernier_refus": null,
   "derniere_erreur": null,

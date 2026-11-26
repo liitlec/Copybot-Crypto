@@ -95,3 +95,11 @@
 {"heure": "2026-11-26T17:14:59Z", "type": "note", "evenement": "sortie", "hypothese": "elan_m15", "raison": "temps", "ticket": 323967200, "sens": 1, "entree": 3574.88, "prix_sortie": null, "profit": -4.5}
 {"heure": "2026-11-26T17:15:02Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "vente", "lots": 0.01, "stop": 3601.22, "id": "elan_m15", "prix_demande": 3570.35, "spread_points": 39.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 323997860}
 {"heure": "2026-11-26T17:15:02Z", "type": "note", "evenement": "ouverture", "hypothese": "elan_m15", "sens": -1, "ok": true, "refus": null, "bid": 3570.35, "ask": 3570.74, "stop": 3601.22, "lots": 0.01, "prix_obtenu": null}
+{"heure": "2026-11-26T17:53:13Z", "type": "lanceur", "evenement": "attente", "version": 2, "raison": "version non autorisee dans AUTORISATION_REEL.json (champ robot)"}
+{"heure": "2026-11-26T17:55:55Z", "type": "lanceur", "evenement": "installee", "version": 2}
+{"heure": "2026-11-26T17:55:55Z", "type": "lanceur", "evenement": "demarre", "version": 2}
+{"heure": "2026-11-26T17:55:55Z", "type": "note", "evenement": "demarrage", "version": 2, "mode": "reel", "hypotheses": ["cassure_m15", "elan_m15", "exces_m1", "exces_m5", "retour_court_ar", "bt_or_plus"], "repris": []}
+{"heure": "2026-11-26T17:55:55Z", "type": "note", "evenement": "tailles", "symbole": "XAUUSD.c", "lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 1.0, "base_bt_or_plus": 0.05, "lots_regles_courtes": 0.01}
+{"heure": "2026-11-26T17:55:55Z", "type": "note", "evenement": "reprise", "hypothese": "elan_m15", "ticket": 323997860}
+{"heure": "2026-11-26T17:55:55Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or_plus", "sens": 1, "positions": 2, "tickets": [323828668, 323847271], "meilleur": 3607.21, "distance_stop": 73.46}
+{"heure": "2026-11-26T17:55:56Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
