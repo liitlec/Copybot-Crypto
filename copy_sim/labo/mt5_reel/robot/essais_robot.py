@@ -58,7 +58,8 @@ for i, x in enumerate(m5):
 m5[-2][4] = m5[-2][1] + 9.0
 r.heure = lambda: t0[0]
 r.tour({"M1": m1, "M5": m5, "M15": m15})
-assert r.sym == "XAUUSD" and r.lots_c == 0.01 and r.btp is not None and r.btp.lots == 0.02 and r.btp.max_pos == 5
+assert r.sym == "XAUUSD" and r.lots_c == 0.01 and r.btp is not None and r.btp.max_pos == 5
+assert r.base_bt() == 0.02, "v3 : solde 10 000 -> 0,025 -> 0,02 (pas de lot), plafond 0,10 / 5 = 0,02"
 assert not faux_mt5.ordres_recus and not pont.positions(), "aucun ordre au premier tour"
 dec = lambda b, s: [[x[0] + s] + x[1:] for x in b]
 r.tour({"M1": dec(m1, 60), "M5": dec(m5, 300), "M15": dec(m15, 900)})
@@ -157,21 +158,98 @@ faux_mt5._prix["XAUUSD.c"] = ancien
 assert pont_reel.symbole_or(faux_mt5) == "XAUUSD.c" and pont.compte()["symbole_or"] == "XAUUSD.c"
 faux_mt5._prix["XAUUSD"] = faux_mt5._prix.pop("XAUUSD.c")
 
-# 9) v2 : base 0,05 si le plafond local du pont le permet (lots_max 0,25), sinon ramenée sous le plafond
+# 9) v3 : base = 0,05 x solde / 20 000 (pas de lot, vers le bas), 5 x base <= plafond local ; règles courtes 0,01 x solde
+#    / 20 000, au moins 0,01
 class _PontPlafond:
-    def __init__(self, base, lm):
-        self._b, self._lm = base, lm
+    def __init__(self, base, lm, solde):
+        self._b, self._lm, self._s = base, lm, solde
     def compte(self):
-        c = self._b.compte()
+        c = dict(self._b.compte(), solde=self._s)
+        c.pop("lots_max", None)
         if self._lm is not None:
-            c = dict(c, lots_max=self._lm)
+            c["lots_max"] = self._lm
         return c
     def __getattr__(self, n):
         return getattr(self._b, n)
-for lm, attendu in ((0.25, 0.05), (0.10, 0.02), (None, 0.02), (0.15, 0.03)):
-    rp = robot.Robot(_PontPlafond(pont, lm), fichier="etat_robot_plafond.json")
-    assert rp.preparer() and rp.btp is not None and abs(rp.btp.lots - attendu) < 1e-9, (lm, rp.btp.lots)
-    assert 5 * rp.btp.lots <= (lm or 0.10) + 1e-9
+for lm, solde, base_att, courte_att in ((0.25, 20000, 0.05, 0.01), (0.25, 40000, 0.05, 0.02), (0.50, 40000, 0.10, 0.02),
+                                        (0.25, 10000, 0.02, 0.01), (0.25, 4000, 0.01, 0.01), (0.25, 3000, None, 0.01),
+                                        (0.10, 20000, 0.02, 0.01), (None, 20000, 0.02, 0.01), (0.25, 61000, 0.05, 0.03),
+                                        (0.50, 1e7, 0.10, 0.50)):
+    rp = robot.Robot(_PontPlafond(pont, lm, solde), fichier="etat_robot_plafond.json")
+    assert rp.preparer() and rp.btp is not None
+    b, cl = rp.base_bt(), rp.lots_courtes()
+    assert b == base_att and cl == courte_att, (lm, solde, b, cl)
+    assert b is None or 5 * b <= (lm or 0.10) + 1e-9
+    assert cl <= (lm or 0.10) + 1e-9
+    if os.path.exists("etat_bt_plus.json"):
+        os.remove("etat_bt_plus.json")
+
+# 10) v3 : la base est choisie à l'ouverture du panier et gardée pour ses renforts ; notée dans le journal
+class FauxPontC(FauxPont):
+    def __init__(self):
+        super().__init__()
+        self.solde, self.lm = 20000.0, 0.25
+
+    def compte(self):
+        return {"ordres_autorises": True, "solde": self.solde, "valeur": self.solde, "lots_max": self.lm,
+                "symbole_or": "XAUUSD.c", "devise": "USC"}
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "XAUUSD.c" and stop > 0 and id.startswith("bt_or_plus_") and lots <= self.lm + 1e-9, (lots, self.lm)
+        self.n += 1
+        e = self.bid + 0.2 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "sens": sens, "prix_entree": e, "stop": stop, "profit": 0.0, "id": id,
+                            "lots": lots, "symbole": s, "heure_serveur": 1794009600}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+    def positions(self):
+        return list(self.pos.values())
+
+
+if os.path.exists("etat_bt_plus.json"):
+    os.remove("etat_bt_plus.json")
+fc = FauxPontC()
+rc = robot.Robot(fc, fichier="etat_robot_c.json")
+assert rc.preparer() and isinstance(rc.btp, robot.PanierProp)
+rc.btp.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+assert [x["lots"] for x in fc.pos.values()] == [0.05], "solde 20 000, plafond 0,25 : base 0,05"
+assert [n["base"] for n in fc.notes if n.get("evenement") == "base"] == [0.05]
+fc.solde, fc.lm = 40000.0, 0.50                                   # le solde double en cours de panier
+fc.bid = 4016.0
+rc.btp.surveiller({x["ticket"]: x for x in fc.pos.values()}, fc.prix("XAUUSD.c"))
+rc.btp.bougie(m5_jusqua(8, 35, 4016.0), d1, True)
+assert sorted(x["lots"] for x in fc.pos.values()) == [0.05, 0.10], "renfort a 2 x la base DU PANIER (pas 2 x 0,10)"
+assert rc.base_bt() == 0.10, "le panier suivant prendra la nouvelle base"
+# reprise après redémarrage : la base du panier est retrouvée par sa 1re position
+os.remove("etat_bt_plus.json")
+rc2 = robot.Robot(fc, fichier="etat_robot_c2.json")
+rc2.preparer()
+rc2.btp.adopter({t: dict(x, prix_actuel=fc.bid) for t, x in fc.pos.items()}, m5_jusqua(8, 35, 4016.0), d1)
+assert rc2.btp.paniers["1"]["lots0"] == 0.05 and rc2.btp.tickets() == set(fc.pos)
+# panier hérité de la v2 (mémoire sans lots0) : base retrouvée au premier tour
+rc2.btp.paniers["1"].pop("lots0")
+rc2.btp.completer({x["ticket"]: x for x in fc.pos.values()})
+assert rc2.btp.paniers["1"]["lots0"] == 0.05
+# clôture : R compté sur la base du panier (0,05), pas sur la base du moment
+for x in fc.pos.values():
+    x["profit"] = -0.05 * 100.0 * rc2.btp.paniers["1"]["stop"] * (x["lots"] / 0.05) / 3
+total = sum(x["profit"] for x in fc.pos.values())
+rc2.btp.lots = 0.10
+rc2.btp._cloture("1", "essai", {x["ticket"]: x for x in fc.pos.values()})
+assert abs(rc2.btp.cumul_r - (-1.0)) < 1e-6, rc2.btp.cumul_r
+# solde trop faible : base sous le lot minimum -> aucun nouveau panier, noté une fois
+fp3 = FauxPontC()
+fp3.solde = 3000.0
+for f in ("etat_bt_plus.json",):
+    if os.path.exists(f):
+        os.remove(f)
+r3 = robot.Robot(fp3, fichier="etat_robot_c3.json")
+r3.preparer()
+r3.btp.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+assert not fp3.pos and any(n.get("evenement") == "attente" and "base" in n.get("raison", "") for n in fp3.notes)
+for f in ("etat_robot_c.json", "etat_robot_c2.json", "etat_robot_c3.json"):
+    if os.path.exists(f):
+        os.remove(f)
 for f in ("etat_robot_plafond.json",):
     if os.path.exists(f):
         os.remove(f)

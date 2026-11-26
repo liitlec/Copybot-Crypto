@@ -1064,6 +1064,7 @@ le bas au pas de lot, recalculée au DÉBUT de chaque nouveau panier (jamais en 
 n'a pas relevé son plafond ; elle descend dès que le solde baisse). Règles courtes : 0,01 lot cent × (solde/20 000),
 minimum 0,01. Noter la base choisie à chaque panier dans le journal ; page réelle : afficher la base actuelle.
 Essais OK, publier VERSION 3 (installation automatique).
+**A FAIT le 26/11** : robot réel v3 publié. Base = 0,05 × solde/20 000 (vers le bas, pas de lot), fixée par panier (`lots0`, gardée pour les renforts et le R ; panier repris = base de sa 1re position ; panier hérité sans lots0 complété au premier tour), 5 × base ≤ lots_max local (LOTS_MAX robot = borne 0,50) ; règles courtes 0,01 × solde/20 000, au moins 0,01, recalculées à chaque trade ; évènement « base » au journal ; page réelle : tuile « Base bt_or_plus ». Essais OK (bac à sable), 10 cas de solde/plafond testés. Note : à 20 003 USC la base reste 0,05 ; sous 20 000 USC elle tombe à 0,04.
 **B. Tests (contrat figé avant ; or M5 15-18 mois + H1 4 ans ; spread réel puis doublé ; walk-forward ; placebo ;
 deux blocs 2022-24 / 2024-26 ; à risque égal et en argent sur 20 000 USC) :**
 1. Intérêts composés (mise ∝ solde, recalcul par panier) contre mise fixe : croissance, pire baisse, temps pour ×2,

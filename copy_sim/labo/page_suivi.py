@@ -445,8 +445,10 @@ function paris(iso){var d=new Date(iso);return d;}
 function fmt(d,o){return d.toLocaleString("fr-FR",Object.assign({timeZone:"Europe/Paris"},o));}
 function lireJournal(txt){var r=[];(txt||"").split("\n").forEach(function(l){if(!l.trim())return;try{var d=JSON.parse(l);}catch(e){return;}
  if(d.evenement==="sortie"||d.evenement==="sortie panier"){var p=(typeof d.profit==="number")?d.profit:d.dernier_profit;if(typeof p==="number")r.push({d:d,p:p});}});return r;}
+function derniereBase(txt){var b=null;(txt||"").split("\n").forEach(function(l){if(!l.trim())return;try{var d=JSON.parse(l);}catch(e){return;}
+ if(d.evenement==="base"&&typeof d.base==="number")b=d.base;else if(d.evenement==="tailles"&&typeof d.base_bt_or_plus==="number")b=d.base_bt_or_plus;});return b;}
 function rendre(etat,journal){
- var sorties=lireJournal(journal), parH={}, parJ={};
+ var sorties=lireJournal(journal), parH={}, parJ={}, base=derniereBase(journal);
  sorties.forEach(function(s){var h=s.d.hypothese||"?";(parH[h]=parH[h]||[]).push(s.p);
   var j=fmt(paris(s.d.heure),{year:"numeric",month:"2-digit",day:"2-digit"});var k=new Date(s.d.heure).toLocaleDateString("sv-SE",{timeZone:"Europe/Paris"});
   parJ[k]=(parJ[k]||0)+s.p;});
@@ -474,7 +476,9 @@ function rendre(etat,journal){
   tuile("Résultat du jour",g.perte_du_jour==null?"—":cents(g.perte_du_jour),cl(g.perte_du_jour||0)),
   tuile("Recul depuis le plus haut",s.recul==null?"—":fr(s.recul*100,1)+" %"),
   tuile("Marge avant l'arrêt −34 %",s.recul==null?"—":fr((s.recul-ARRET)*100,1)+" %"),
-  tuile("Positions ouvertes",String(pos.length))]));
+  tuile("Positions ouvertes",String(pos.length)),
+  tuile("Base bt_or_plus (dernier panier)",base==null?"—":base.toLocaleString("fr-FR",{minimumFractionDigits:2})+" lot")]));
+ page.appendChild(el("p",{"class":"doux",txt:"Mise (robot v3) : base = 0,05 lot × solde / 20 000 USC, choisie au début de chaque panier, renforts 1 à 5 × la base, 5 × base ≤ plafond local"+(etat.plafonds&&etat.plafonds.lots_par_position?" ("+String(etat.plafonds.lots_par_position).replace(".",",")+" lot)":"")+"."}));
  if(valeur!=null)page.appendChild(valeur>=2*DEPOT?el("p",{"class":"alerte",txt:"Le compte a doublé : retire tes 200 $ (règle du plan réel), puis laisse tourner."}):
   el("p",{"class":"doux",txt:"Retrait prévu : tes 200 $ quand la valeur atteint 400 $ (encore "+fr((2*DEPOT-valeur)/100)+" $)."}));
  function tableau(titre,tetes,lignes,vide){var t=el("table");t.appendChild(el("tr",{},tetes.map(function(h){return el("th",{"class":h[1]||"",txt:h[0]});})));

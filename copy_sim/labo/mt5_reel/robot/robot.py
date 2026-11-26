@@ -1,4 +1,9 @@
-"""Robot RÉEL du labo (compte STARTRADER cent), version 2 (26/11 : base bt_or_plus 0,05, demande de Baptiste). Préparé le 25/11/2026 (PRIORITES « 25/11 23 h »).
+"""Robot RÉEL du labo (compte STARTRADER cent), version 3 (26/11 soir, Lot H point A, demande écrite de Baptiste :
+MISE PROPORTIONNELLE AU SOLDE). v2 : base bt_or_plus 0,05.
+v3 : base bt_or_plus = 0,05 lot cent x (solde / 20 000 USC), arrondie vers le bas au pas de lot, choisie au DÉBUT de
+chaque nouveau panier et gardée pour tous ses renforts (jamais changée en cours de panier), bornée par 5 x base <=
+plafond local du pont (lots_max) ; règles courtes = 0,01 x (solde / 20 000), minimum 0,01, recalculées à chaque trade.
+Solde = balance (sans les positions ouvertes). Chaque base choisie est notée (évènement « base »). Préparé le 25/11/2026 (PRIORITES « 25/11 23 h »).
 
 Installé SEULEMENT par le lanceur du pont réel (`pont_mt5.py --reel`), qui refuse tout ordre sans le fichier
 d'autorisation écrit par Baptiste sur son PC (voir copy_sim/forex/pont_reel.py et copy_sim/labo/LANCER_REEL.md).
@@ -17,11 +22,12 @@ import time
 
 import bt_or
 
-VERSION = 2
+VERSION = 3
+SOLDE_REF = 20000.0                # USC : à ce solde, base 0,05 et règles courtes 0,01
 FICHIER_ETAT = "etat_robot.json"
 PAUSE = 1.0
 PERIODES = ("M1", "M5", "M15")
-BASE_BT, LOTS_COURTES, LOTS_MAX = 0.05, 0.01, 0.25
+BASE_BT, LOTS_COURTES, LOTS_MAX = 0.05, 0.01, 0.50   # v3 : LOTS_MAX = borne dure du pont ; le vrai plafond est lots_max local
 SPREAD_MAX = 0.60                # en dollars (prix de l'or) : pas d'ouverture au-delà
 PLAFOND_COURTES = 8
 HYPOTHESES = {
@@ -125,6 +131,51 @@ def sur_grille(lots, lot_min, pas):
     return v if v >= lot_min - 1e-9 else None
 
 
+class PanierProp(bt_or.PanierBT):
+    """bt_or_plus dont la base est choisie à l'ouverture de CHAQUE panier (lots0 du panier, gardé pour ses renforts et
+    pour le calcul du R à la clôture). Un panier repris après redémarrage retrouve sa base par sa 1re position."""
+
+    def __init__(self, pont, robot, **k):
+        super().__init__(pont, **k)
+        self.robot = robot
+
+    def _ouvre(self, p, s, niveau, chiffres):
+        if not p.get("lots0"):
+            c = self.pont.compte()
+            base = self.robot.base_bt(c)
+            if base is None:
+                self.robot._une_fois("base", evenement="attente", hypothese=self.nom,
+                                     raison="base sous le lot minimum ou solde inconnu : pas de nouveau panier")
+                return False
+            p["lots0"] = base
+            self.pont.noter(evenement="base", hypothese=self.nom, sens=s, base=base, solde=c.get("solde"),
+                            plafond=self.robot.plafond(c), lots_max_panier=round(5 * base, 2))
+        self.lots = p["lots0"]
+        return super()._ouvre(p, s, niveau, chiffres)
+
+    def _cloture(self, cle, raison, ps):
+        self.lots = self.paniers[cle].get("lots0") or self.lots
+        super()._cloture(cle, raison, ps)
+
+    def completer(self, ps):
+        """Paniers ouverts avant la v3 (sans lots0) : base retrouvée par la plus petite position du panier."""
+        for p in self.paniers.values():
+            if not p.get("lots0"):
+                tailles = [ps[t].get("lots") for t in p["tickets"] if t in ps and ps[t].get("lots")]
+                if tailles:
+                    p["lots0"] = min(tailles)
+                    self.sauver()
+
+    def adopter(self, ps, m5, d1):
+        super().adopter(ps, m5, d1)
+        for p in self.paniers.values():
+            if not p.get("lots0"):
+                tailles = [ps[t].get("lots") for t in p["tickets"] if t in ps and ps[t].get("lots")]
+                if tailles:
+                    p["lots0"] = min(tailles)              # la 1re position du panier = 1 x base
+        self.sauver()
+
+
 class Robot:
     def __init__(self, pont, fichier=FICHIER_ETAT):
         self.pont, self.fichier = pont, fichier
@@ -160,24 +211,53 @@ class Robot:
                            arret=c.get("arret"))
             return False
         info = self.pont.symbole(sym)
-        plafond = LOTS_MAX
-        lm = c.get("lots_max")
-        if isinstance(lm, (int, float)) and not isinstance(lm, bool) and 0 < lm < plafond:
-            plafond = lm                                   # plafond local du pont (fichier d'autorisation)
-        if not isinstance(lm, (int, float)) or isinstance(lm, bool):
-            plafond = min(plafond, 0.10)                   # pont sans plafond annoncé : prudence
-        base = sur_grille(BASE_BT, info["lot_min"], info["pas_lot"])
-        if base is not None and 5 * base > plafond + 1e-9:
-            base = sur_grille(plafond / 5, info["lot_min"], info["pas_lot"])
-        self.lots_c = sur_grille(LOTS_COURTES, info["lot_min"], info["pas_lot"])
         self.sym, self.info = sym, info
         bt_or.SYMBOLE = sym
-        if base is not None:
-            self.btp = bt_or.PanierBT(self.pont, fichier="etat_bt_plus.json", symbole=sym, nom="bt_or_plus",
-                                      lots=base, taille=info["taille_contrat"], max_pos=5, croissant=True)
+        self.btp = PanierProp(self.pont, self, fichier="etat_bt_plus.json", symbole=sym, nom="bt_or_plus",
+                              lots=None, taille=info["taille_contrat"], max_pos=5, croissant=True)
+        b, lc, plaf, solde = self.base_bt(c), self.lots_courtes(c), self.plafond(c), c.get("solde")
+        self.lots_c = lc
         self.pont.noter(evenement="tailles", symbole=sym, lot_min=info["lot_min"], pas_lot=info["pas_lot"],
-                        taille_contrat=info["taille_contrat"], base_bt_or_plus=base, lots_regles_courtes=self.lots_c)
+                        taille_contrat=info["taille_contrat"], solde=solde, plafond=plaf, base_bt_or_plus=b,
+                        lots_regles_courtes=lc, regle="base = 0,05 x solde / 20 000, recalculee a chaque panier")
         return True
+
+    # -------------------------------------------------- v3 : mise proportionnelle au solde
+    def plafond(self, c):
+        lm = c.get("lots_max")
+        if isinstance(lm, (int, float)) and not isinstance(lm, bool) and lm > 0:
+            return min(float(lm), LOTS_MAX)
+        return 0.10                                        # pont sans plafond annoncé : prudence
+
+    def _solde(self, c):
+        s = c.get("solde")
+        return float(s) if isinstance(s, (int, float)) and not isinstance(s, bool) and s > 0 else None
+
+    def base_bt(self, c=None):
+        """Base du prochain panier bt_or_plus, ou None (solde inconnu, ou base sous le lot minimum)."""
+        c = c or self.pont.compte()
+        solde = self._solde(c)
+        if solde is None or self.info is None:
+            return None
+        lm, pas = self.info["lot_min"], self.info["pas_lot"]
+        plaf = self.plafond(c)
+        base = sur_grille(BASE_BT * solde / SOLDE_REF, lm, pas)
+        if base is not None and 5 * base > plaf + 1e-9:
+            base = sur_grille(plaf / 5, lm, pas)
+        return base
+
+    def lots_courtes(self, c=None):
+        """Lot d'une règle courte : 0,01 x solde / 20 000, au moins 0,01 (ou le minimum du courtier), sous le plafond."""
+        c = c or self.pont.compte()
+        solde = self._solde(c)
+        if self.info is None:
+            return None
+        lm, pas = self.info["lot_min"], self.info["pas_lot"]
+        v = sur_grille(LOTS_COURTES * (solde or SOLDE_REF) / SOLDE_REF, lm, pas)
+        v = max(v or 0.0, sur_grille(LOTS_COURTES, lm, pas) or 0.0) or None
+        if v is not None and v > self.plafond(c) + 1e-9:
+            v = sur_grille(self.plafond(c), lm, pas)
+        return v
 
     def heure(self):
         return self.pont.prix(self.sym)["heure_serveur"]
@@ -185,6 +265,8 @@ class Robot:
     # -------------------------------------------------- positions
     def reconcilier(self):
         ps = {p["ticket"]: p for p in self.pont.positions()}
+        if self.btp:
+            self.btp.completer(ps)
         connus = set(self.btp.tickets()) if self.btp else set()
         for nom, o in list(self.ouvert.items()):
             p = ps.get(o["ticket"])
@@ -261,6 +343,9 @@ class Robot:
             ext = max(x[2] for x in b[-2:]) + 0.5 if sens < 0 else min(x[3] for x in b[-2:]) - 0.5
             stop = round(min(ext, px["bid"] - mini) if sens > 0 else max(ext, px["ask"] + mini), ch)
         stop = coder(stop, sens, nom, ch)
+        self.lots_c = self.lots_courtes()               # v3 : proportionnel au solde, à chaque trade
+        if self.lots_c is None:
+            return None
         r = self.pont.ouvrir(self.sym, "achat" if sens > 0 else "vente", self.lots_c, stop=stop, objectif=objectif, id=nom)
         if r.get("ok") and r.get("ticket"):
             self.ouvert[nom] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
