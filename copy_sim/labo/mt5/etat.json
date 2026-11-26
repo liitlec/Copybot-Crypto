@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-26T10:02:03Z",
+ "ecrit": "2026-11-26T10:07:11Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,34 +9,34 @@
   "positions": 30,
   "lots_par_position": 0.5
  },
- "solde": 67559.73,
- "valeur": 81549.32,
- "marge_libre": 78159.71,
+ "solde": 67559.02,
+ "valeur": 81545.88,
+ "marge_libre": 78142.03,
  "devise": "USD",
  "levier": 500,
  "positions": [],
  "symboles": {
   "NAS100+": {
-   "bid": 26204.44,
-   "ask": 26205.51,
+   "bid": 26211.69,
+   "ask": 26212.76,
    "spread_points": 107.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.1,
    "pas_lot": 0.1,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795694522
+   "heure_serveur": 1795694830
   },
   "XAUUSD": {
-   "bid": 3572.38,
-   "ask": 3572.58,
+   "bid": 3571.44,
+   "ask": 3571.64,
    "spread_points": 20.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 100.0,
-   "heure_serveur": 1795694522
+   "heure_serveur": 1795694830
   }
  },
  "positions_robot": [
@@ -45,10 +45,10 @@
    "sens": "vente",
    "lots": 0.1,
    "prix_entree": 26823.14,
-   "prix_actuel": 26205.51,
+   "prix_actuel": 26212.76,
    "stop": 29858.42,
    "objectif": null,
-   "profit": 61.76,
+   "profit": 61.04,
    "ouverte_heure_serveur": 1795482001
   },
   {
@@ -56,10 +56,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3481.58,
-   "prix_actuel": 3572.38,
+   "prix_actuel": 3571.44,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 90.8,
+   "profit": 89.86,
    "ouverte_heure_serveur": 1795621800
   },
   {
@@ -67,10 +67,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3520.01,
-   "prix_actuel": 3572.38,
+   "prix_actuel": 3571.44,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 52.37,
+   "profit": 51.43,
    "ouverte_heure_serveur": 1795636500
   },
   {
@@ -78,10 +78,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3540.71,
-   "prix_actuel": 3572.38,
+   "prix_actuel": 3571.44,
    "stop": 3519.17,
    "objectif": null,
-   "profit": 31.67,
+   "profit": 30.73,
    "ouverte_heure_serveur": 1795638600
   },
   {
@@ -89,10 +89,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3563.38,
-   "prix_actuel": 3572.38,
+   "prix_actuel": 3571.44,
    "stop": 3515.27,
    "objectif": null,
-   "profit": 9.0,
+   "profit": 8.06,
    "ouverte_heure_serveur": 1795662600
   },
   {
@@ -100,10 +100,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3563.35,
-   "prix_actuel": 3572.38,
+   "prix_actuel": 3571.44,
    "stop": 3515.97,
    "objectif": null,
-   "profit": 9.03,
+   "profit": 8.09,
    "ouverte_heure_serveur": 1795662600
   },
   {
@@ -111,10 +111,10 @@
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3598.39,
-   "prix_actuel": 3572.38,
+   "prix_actuel": 3571.44,
    "stop": 3515.27,
    "objectif": null,
-   "profit": -26.01,
+   "profit": -26.95,
    "ouverte_heure_serveur": 1795667700
   },
   {
@@ -122,10 +122,10 @@
    "sens": "achat",
    "lots": 0.02,
    "prix_entree": 3598.43,
-   "prix_actuel": 3572.38,
+   "prix_actuel": 3571.44,
    "stop": 3515.97,
    "objectif": null,
-   "profit": -52.1,
+   "profit": -53.98,
    "ouverte_heure_serveur": 1795667700
   },
   {
@@ -133,27 +133,27 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3564.64,
-   "prix_actuel": 3572.58,
+   "prix_actuel": 3571.64,
    "stop": 3617.04,
    "objectif": null,
-   "profit": -7.9399999999999995,
+   "profit": -7.0,
    "ouverte_heure_serveur": 1795688100
   },
   {
    "symbole": "XAUUSD",
-   "sens": "vente",
+   "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3573.22,
-   "prix_actuel": 3572.58,
-   "stop": 3580.13,
+   "prix_entree": 3573.85,
+   "prix_actuel": 3571.44,
+   "stop": 3567.13,
    "objectif": null,
-   "profit": 0.64,
-   "ouverte_heure_serveur": 1795694460
+   "profit": -2.41,
+   "ouverte_heure_serveur": 1795694760
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-26",
-  "perte_du_jour": 129.8,
+  "perte_du_jour": 118.74,
   "seuil": -4123.32,
   "ouvertures_bloquees": false
  },
