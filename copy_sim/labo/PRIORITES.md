@@ -1052,3 +1052,4 @@ versions ». Il garde la main sur les limites dures, qui restent locales et impo
 5. `LANCER_REEL.md` : nouvelle ligne d'autorisation conseillée, à écrire par Baptiste en rentrant, puis relancer
    `installer_tache_reel.ps1` (et `installer_tache.ps1` pour la démo si l'écriture patiente y est ajoutée).
 Le robot réel reste en v1 (base 0,02) tant que Baptiste n'a pas choisi la nouvelle base (0,04 ou 0,05).
+**FAIT le 26/11** : `pont_reel.py` accepte "robot": "auto" (installation dès ESSAIS OK, un nombre fige toujours) et "lots_max" local (défaut 0,10, borne 0,50, relu à chaque vérification) ; `ecrire_json` du pont (démo et réel) patient : 40 essais × 50 ms contre PermissionError ; autres sécurités inchangées ; robot réel v1 non touché ; essais_pont --faux 17/17, robots réel et démo ESSAIS OK ; LANCER_REEL.md mis à jour (« Mise à jour du 26/11 »).

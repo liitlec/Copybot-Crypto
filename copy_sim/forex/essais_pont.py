@@ -313,6 +313,56 @@ if args.faux:
             and not r1["ok"] and stop_robot and ouvre_ok and une_fois
             and e2["ordres_autorises"] and e2["arret_distant"] is None and e3["ordres_autorises"]
             and not e4["ordres_autorises"] and "autorisation" in e4["arret"] and not acc.arret_demande())
+    print("17. (reel) \"robot\": \"auto\" installe une version qui passe ses essais et refuse une qui echoue ;"
+          " plafond lots_max local (borne 0,50) ; ecriture patiente")
+    def autorise(**k):
+        (AUT / pont_reel.FICHIER_AUTORISATION).write_text(json.dumps(
+            {"compte": mt5.FAUX_LOGIN, "phrase": pont_reel.PHRASE, **k}), encoding="utf-8")
+    for p in list(mt5.positions):
+        mt5.positions.remove(p)
+    pont_reel._ETAT["distant"] = None
+    (AUT / pont_reel.FICHIER_SOMMET).unlink(missing_ok=True)
+    autorise(robot="auto", lots_max=0.25)
+    lire = pont.lire_distant
+    pont.lire_distant = lambda nom: "7\n" if nom == "robot/VERSION" else None
+    bon = {"robot.py": "def lancer(pont):\n    return None\n", "VERSION": "7\n",
+           "essais_robot.py": "print('ESSAIS OK')\n"}
+    mauvais = dict(bon, **{"essais_robot.py": "raise SystemExit('rate')\n"})
+    try:
+        la = lanceur_robot.Lanceur(mt5, SR, racine=SR / "rob_auto")
+        va = la.version_distante()
+        ok_bon = la.installer(8, mauvais) is False and la.installer(7, bon) is True and la.e["installee"] == 7
+        la.arreter("essai")
+        autorise(robot=6)
+        vf = la.version_distante()
+    finally:
+        pont.lire_distant = lire
+    autorise(robot="auto", lots_max=0.25)
+    pont.passage(mt5, SR, None, None, LR)
+    p30, p25 = ouvre_robot(lots=0.30), ouvre_robot(lots=0.25)
+    autorise(robot="auto", lots_max=0.9)
+    pont.compte_demo(mt5)
+    borne = pont.MAX_LOTS
+    autorise(robot="auto")
+    pont.compte_demo(mt5)
+    defaut = pont.MAX_LOTS
+    import os as _os
+    vrai, n = _os.replace, [0]
+    def capricieux(a, b):
+        n[0] += 1
+        if n[0] <= 3:
+            raise PermissionError(5, "Acces refuse")
+        return vrai(a, b)
+    _os.replace = capricieux
+    try:
+        pont.ecrire_json(SR / "patient.json", {"ok": 1})
+    finally:
+        _os.replace = vrai
+    patient = pont.lire_json(SR / "patient.json", {}) == {"ok": 1} and n[0] == 4
+    verdict(f"auto : {va} installee={la.e['installee']} ; figee 6 : {vf} ; 0,30 : {p30.get('refus')} ; 0,25 ok={p25['ok']} ;"
+            f" borne {borne} ; defaut {defaut} ; patient apres 3 refus : {patient}",
+            va == 7 and ok_bon and "8" in la.e["refusees"] and vf is None and not p30["ok"] and "plafond" in p30["refus"]
+            and p25["ok"] and borne == 0.5 and defaut == 0.1 and patient)
     shutil.rmtree(AUT, ignore_errors=True); shutil.rmtree(SR, ignore_errors=True)
 
 print(f"BILAN : {sum(bilan)} essais reussis sur {len(bilan)}")

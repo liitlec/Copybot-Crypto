@@ -9,7 +9,7 @@ Il reprend les fonctions du pont démo et remplace, dans CE processus seulement,
 - compte : aucun ordre tant que le fichier local `AUTORISATION_REEL.json` (à côté du script, écrit par Baptiste sur
   son PC, jamais dans le dépôt) n'existe pas, ne contient pas exactement
     {"compte": <numéro du compte cent>, "phrase": "J'autorise le robot a trader en reel sur ce compte cent",
-     "robot": <version du robot réel autorisée>}
+     "robot": <version du robot réel autorisée, ou "auto">, "lots_max": <plafond par position, défaut 0,10>}
   ou ne correspond pas au compte connecté ; le compte doit aussi être en mode RÉEL et en devise cent (USC / EUC).
   Sinon : aucun ordre, statut affiché, rien du compte publié. Le numéro n'est jamais écrit ailleurs que dans ce fichier.
 - numéros magiques distincts de la démo ; plafonds 10 positions et 0,10 lot par position ; stop obligatoire sur toute
@@ -19,8 +19,9 @@ Il reprend les fonctions du pont démo et remplace, dans CE processus seulement,
 - `STOP_PONT` (à côté du script réel) : plus aucun ordre, robot arrêté ;
 - pas de consigne écrite par une IA, pas de demandes d'historique, pas d'export des autres robots : seul le robot réel
   (`copy_sim/labo/mt5_reel/robot/`) trade ; sorties publiées dans `copy_sim/labo/mt5_reel/` seulement.
-- une version du robot réel ne s'installe que si elle est égale au champ "robot" de ce fichier (aucune nouvelle
-  version sans le geste de Baptiste sur son PC, PLAN_REEL point 7) ;
+- une version du robot réel ne s'installe que si elle est égale au champ "robot" de ce fichier ; 26/11 (demande écrite
+  de Baptiste) : "robot": "auto" = toute version publiée s'installe dès que ses essais passent, comme en démo ;
+- plafond de lot par position = "lots_max" de ce fichier local (défaut 0,10, borne dure 0,50), jamais du dépôt ;
 - ARRÊT À DISTANCE (25/11 23 h 30) : `copy_sim/labo/mt5_reel/ARRET_DISTANT.json` lu dans la branche DISTANTE à
   chaque tour. {"arret": true} = plus aucun ordre, robot réel arrêté (comme STOP_PONT), positions laissées à leurs
   stops ; {"arret": true, "fermer_tout": true} = en plus, fermeture des positions portant les numéros magiques du pont
@@ -133,7 +134,25 @@ def version_robot_autorisee(dossier: Path):
     except (OSError, ValueError):
         return None
     v = a.get("robot")
+    if v == "auto":                                  # 26/11 : toute version publiée s'installe si ses essais passent
+        return "auto"
     return v if isinstance(v, int) and not isinstance(v, bool) and v > 0 else None
+
+
+LOTS_MAX_DEFAUT, LOTS_MAX_BORNE = 0.10, 0.50
+
+
+def lots_max_local(dossier: Path) -> float:
+    """Plafond de lot par position lu dans le fichier LOCAL d'autorisation (« lots_max »), défaut 0,10, borne dure
+    0,50. Rien dans le dépôt ne peut le changer."""
+    try:
+        a = json.loads((Path(dossier) / FICHIER_AUTORISATION).read_text(encoding="utf-8-sig"))
+        v = a.get("lots_max") if isinstance(a, dict) else None
+    except (OSError, ValueError):
+        v = None
+    if not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v) or v <= 0:
+        return LOTS_MAX_DEFAUT
+    return round(min(float(v), LOTS_MAX_BORNE), 2)
 
 
 def sommet(dossier: Path, valeur: float) -> dict:
@@ -159,6 +178,7 @@ def sommet(dossier: Path, valeur: float) -> dict:
 def compte_reel(mt5, simuler_reel: bool = False):
     """Remplace compte_demo en mode réel. Renvoie (info publiable ou None, raison d'arrêt ou None)."""
     dossier = _ETAT["dossier"]
+    _ETAT["pont"].MAX_LOTS = lots_max_local(dossier)   # plafond local relu à chaque vérification
     info = mt5.account_info()
     if info is None:
         return None, "terminal MT5 non connecte a un compte : aucun ordre"
@@ -268,6 +288,8 @@ def activer(pont, dossier: Path | None = None, acces_robot=None, lanceur_robot=N
                 """En réel : une version ne s'installe que si Baptiste l'a autorisée (champ "robot" du fichier)."""
                 v = L._version_distante_demo(self)
                 ok = version_robot_autorisee(_ETAT["dossier"])
+                if ok == "auto":                         # comme en démo : essais obligatoires, puis installation
+                    return v
                 if v is not None and v != ok:
                     if self.e.get("attente_accord") != v:
                         self.e["attente_accord"] = v

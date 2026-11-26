@@ -18,7 +18,8 @@ Rien d'autre : ni témoin, ni variante, ni indices. Le nom exact de l'or chez le
 | Sécurité | Effet |
 |---|---|
 | Fichier d'autorisation | Sans `AUTORISATION_REEL.json` écrit par toi (étape 6) : **aucun ordre** |
-| Version du robot | Seule la version inscrite par toi dans ce fichier (`"robot"`) peut s'installer |
+| Version du robot | `"robot": "auto"` : chaque nouvelle version publiée s'installe seule si ses essais passent (« ESSAIS OK ») ; un nombre (ex. `"robot": 1`) fige cette version |
+| Plafond de lot | `"lots_max"` de ton fichier (défaut 0,10, jamais plus de 0,50 lot cent par position) : rien dans le dépôt ne peut le changer |
 | Bon compte | Le numéro du fichier doit être celui du compte connecté, en mode réel et en devise cent (USC ou EUC) |
 | Arrêt automatique à **−34 %** | Si la valeur du compte tombe à −34 % de son plus haut : plus aucun ordre, les positions restent sur leurs stops. Il ne repart que si tu supprimes `sommet_reel.json` |
 | Garde-fou du jour | Perte du jour au-delà de −5 % : plus d'ouverture jusqu'au lendemain |
@@ -57,11 +58,12 @@ dossier `%USERPROFILE%\pont_mt5_reel`, clone du dépôt `%USERPROFILE%\depot_ree
    `%USERPROFILE%\pont_mt5_reel\AUTORISATION_REEL.json` avec exactement :
 
    ```json
-   {"compte": 12345678, "phrase": "J'autorise le robot a trader en reel sur ce compte cent", "robot": 1}
+   {"compte": 12345678, "phrase": "J'autorise le robot a trader en reel sur ce compte cent", "robot": "auto", "lots_max": 0.25}
    ```
 
-   Remplace `12345678` par **ton numéro de compte cent** (sans guillemets). `"robot": 1` est la version du robot réel
-   que tu autorises : une nouvelle version ne s'installera que lorsque tu changeras ce nombre toi-même. Ce fichier reste sur ton PC : il n'est
+   Remplace `12345678` par **ton numéro de compte cent** (sans guillemets). `"robot": "auto"` laisse les nouvelles
+   versions s'installer seules (après leurs essais) ; mets un nombre (`"robot": 1`) pour figer une version.
+   `"lots_max": 0.25` est le plus gros lot permis par position (0,10 si tu l'enlèves, 0,50 au maximum). Ce fichier reste sur ton PC : il n'est
    jamais envoyé dans le dépôt. Dans la minute, le tableau de bord passe à « ordres autorisés » et le robot réel
    s'installe (« ESSAIS OK » obligatoire).
 7. **Suivre** : le tableau de bord réel (raccourci du bureau) en direct ; la page `copy_sim/reports/reel_suivi.html`
@@ -99,5 +101,13 @@ qu'arrêter** : il ne peut jamais autoriser ni relancer quoi que ce soit, car l'
 `installer_tache_reel.ps1` une fois**, rentré chez toi (même commande qu'à l'étape 5). Avant ça, à distance, il ne
 reste que la fermeture à la main depuis l'application MetaTrader 5 du téléphone, connectée au compte cent.
 
-Une nouvelle version du robot réel (`copy_sim/labo/mt5_reel/robot/VERSION`) ne s'installe que si **tu** mets son
-numéro dans le champ `"robot"` de ton fichier d'autorisation, et seulement si ses essais passent.
+Une nouvelle version du robot réel (`copy_sim/labo/mt5_reel/robot/VERSION`) s'installe seule si ton fichier dit
+`"robot": "auto"` et que ses essais passent ; avec un nombre, seulement la version que tu as inscrite.
+
+### Mise à jour du 26/11 (à faire en rentrant)
+
+1. Remplacer le contenu de `%USERPROFILE%\pont_mt5_reel\AUTORISATION_REEL.json` par la ligne de l'étape 6
+   (`"robot": "auto"`, `"lots_max"` à ton choix, 0,50 au plus).
+2. Relancer `.\installer_tache_reel.ps1 -Terminal "<chemin du terminal64.exe du compte cent>"` (le pont réel tourne
+   depuis une copie figée : c'est ce qui active « auto », le plafond local, l'arrêt à distance et l'écriture patiente).
+3. Relancer aussi `.\installer_tache.ps1` pour la démo (écriture patiente contre « Accès refusé », rien d'autre ne change).

@@ -93,11 +93,24 @@ def maintenant() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+ECRITURE_ESSAIS, ECRITURE_PAUSE = 40, 0.05
+
+
 def ecrire_json(chemin: Path, objet) -> None:
+    """Écriture atomique. 26/11 : patiente contre « Accès refusé » (WinError 5 : fichier tenu un instant par
+    l'antivirus ou OneDrive) : jusqu'à 40 essais espacés de 50 ms, puis l'erreur remonte comme avant."""
     chemin.parent.mkdir(parents=True, exist_ok=True)
     tmp = chemin.with_suffix(chemin.suffix + ".tmp")
-    tmp.write_text(json.dumps(objet, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    os.replace(tmp, chemin)
+    texte = json.dumps(objet, ensure_ascii=False, indent=1) + "\n"
+    for essai in range(ECRITURE_ESSAIS):
+        try:
+            tmp.write_text(texte, encoding="utf-8")
+            os.replace(tmp, chemin)
+            return
+        except PermissionError:
+            if essai == ECRITURE_ESSAIS - 1:
+                raise
+            time.sleep(ECRITURE_PAUSE)
 
 
 def lire_json(chemin: Path, defaut):
