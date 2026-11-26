@@ -1,0 +1,41 @@
+base  jeu  mois  scenario  P(arret -34%)  valeur mediane  10e centile
+0.01  H1    12  mesure        0%      24010      19343
+0.01  H1    12  prudent       1%      21498      17153
+0.01  H1    24  mesure        0%      29123      21877
+0.01  H1    24  prudent       8%      24000      15854
+0.02  H1    12  mesure        6%      27660      18185
+0.02  H1    12  prudent      24%      22446      13482
+0.02  H1    24  mesure       11%      38173      18682
+0.02  H1    24  prudent      37%      26892      13413
+0.03  H1    12  mesure       21%      30947      14345
+0.03  H1    12  prudent      49%      20251      13170
+0.03  H1    24  mesure       29%      41896      14306
+0.03  H1    24  prudent      66%      19803      13172
+0.05  H1    12  mesure       45%      30570      13128
+0.05  H1    12  prudent      75%      18291      13083
+0.05  H1    24  mesure       54%      31528      13175
+0.05  H1    24  prudent      85%      18105      13051
+  rejeu H1 B1 base 0.01: final 18391 pire -14.1% arret False
+  rejeu H1 B2 base 0.01: final 41880 pire -9.6% arret False
+  rejeu H1 B1 base 0.02: final 16781 pire -27.8% arret False
+  rejeu H1 B2 base 0.02: final 63760 pire -15.9% arret False
+  rejeu H1 B1 base 0.03: final 13888 pire -34.2% arret True
+  rejeu H1 B2 base 0.03: final 85640 pire -20.4% arret False
+  rejeu H1 B1 base 0.05: final 14268 pire -34.6% arret True
+  rejeu H1 B2 base 0.05: final 129400 pire -26.4% arret False
+0.01  M5    12  mesure        2%      37381      26469
+0.01  M5    12  prudent      17%      28285      15356
+0.01  M5    24  mesure        3%      55278      40257
+0.01  M5    24  prudent      24%      37360      15321
+0.02  M5    12  mesure       22%      52474      15338
+0.02  M5    12  prudent      62%      23173      13164
+0.02  M5    24  mesure       22%      86464      16382
+0.02  M5    24  prudent      67%      24280      13340
+0.03  M5    12  mesure       37%      63313      13836
+0.03  M5    12  prudent      78%      21199      12886
+0.03  M5    24  mesure       42%     103445      14519
+0.03  M5    24  prudent      83%      21221      12970
+0.05  M5    12  mesure       64%      29295      12701
+0.05  M5    12  prudent      92%      19297      12696
+0.05  M5    24  mesure       64%      30903      12651
+0.05  M5    24  prudent      94%      18112      12638

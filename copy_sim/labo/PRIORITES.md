@@ -1080,4 +1080,5 @@ deux blocs 2022-24 / 2024-26 ; à risque égal et en argent sur 20 000 USC) :**
    échantillon. Rappel honnête : les lots B (bandits, « suivre ce qui marche ») et G (walk-forward des règles courtes)
    ont échoué ; dire franchement si l'adaptation tient ou non, avec chiffres.
 5. Ce qui tient sur les deux blocs et bat son placebo → version réelle suivante (mode auto) ; sinon rester en v3.
+**B FAIT le 26/11** : `banc_loth.py` (contrat 5782128) ; aucun test B retenu → on reste en v3. Composés : pas mieux (plafond 0,50 = plus d'arrêts) ; pyramide : rien ne gagne partout (White 0,19 / 0,72) ; retraits : 25 % des gains/semaine = total +27 % ; adaptation en direct : ne tient pas (placebo 0,07 à 0,85). ⚠ Hors contrat : base 0,05 = P(arrêt −34 %) 45-64 % en 12 mois (mesuré), 0,02 = 6-22 % ; recommandation 0,02, décision de Baptiste. ⚠ Le sommet du pont réel compte un retrait comme une baisse (supprimer sommet_reel.json après retrait, ou corriger le pont).
 Résultats en tête d'AVIS.md, tableaux simples ; résumé chiffré à @parent après A puis après B.

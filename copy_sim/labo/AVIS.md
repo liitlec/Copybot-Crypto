@@ -1,3 +1,72 @@
+# Avis pour Baptiste — 26/11/2026, soir (Lot H : mise proportionnelle au solde, pyramide, retraits, adaptation en direct)
+
+**Réponse courte : la v3 (mise proportionnelle au solde) est publiée, mais aucun des tests B ne fait gagner plus à risque égal. Les intérêts composés, une autre forme de pyramide et l'adaptation automatique aux trades passés font tous moins bien, ou pas mieux, que bt_or_plus tel quel. Le chiffre important est ailleurs : avec la base actuelle de 0,05 lot sur 200 $, le compte a environ une chance sur deux d'atteindre l'arrêt −34 % dans l'année.** Banc `banc_loth.py`, contrat figé et poussé avant les résultats (5782128).
+
+**⚠ Risque de la mise actuelle (calcul hors contrat, même Monte-Carlo, bt_or_plus tel quel, 20 000 USC)**
+
+| Base fixe | P(arrêt −34 %) en 12 mois, H1 4 ans : mesuré / prudent | Idem, M5 15 mois | Rejeu réel 2022-24 (H1) |
+|---|---|---|---|
+| 0,01 | 0 % / 1 % | 2 % / 17 % | pire −14 %, pas d'arrêt |
+| 0,02 | 6 % / 24 % | 22 % / 62 % | pire −28 %, pas d'arrêt |
+| 0,03 | 21 % / 49 % | 37 % / 78 % | **arrêt −34 %** |
+| **0,05 (aujourd'hui)** | **45 % / 75 %** | **64 % / 92 %** | **arrêt −34 %** |
+
+1. Un panier bt_or_plus plein fait 1 + 2 + 3 + 4 + 5 = 15 fois la base. Le pire panier des 4 ans coûte −638 $ par lot, soit **−16 % du compte en une fois** à 0,05.
+2. Il faudrait **0,02 au plus** pour que l'arrêt −34 % reste rare (6 à 22 % en mesuré). À toi de décider.
+
+**B1. Intérêts composés** (H1 4 ans, Monte-Carlo, 12 mois, mesuré / prudent)
+
+| Mise | Valeur médiane | 10e centile | P(arrêt −34 %) | P(×2) |
+|---|---|---|---|---|
+| Fixe 0,05 | 28 564 / 17 961 | 13 226 / 13 065 | 48 % / 74 % | 36 % / 19 % |
+| Proportionnelle, plafond 0,25 (v3 aujourd'hui) | 29 675 / 19 023 | 13 552 / 13 137 | 43 % / 74 % | 38 % / 18 % |
+| Proportionnelle, plafond 0,50 | 24 836 / 18 561 | 13 669 / 13 143 | 62 % / 86 % | 32 % / 14 % |
+
+Avec ton plafond de 0,25, la v3 se comporte comme la mise fixe, mais elle baisse la mise après les pertes : un peu moins d'arrêts (43 % contre 48 %). Laisser la mise monter (plafond 0,50) donne **plus** d'arrêts et moins de croissance. Composer ne paie pas tant que la mise de départ est trop grosse. Rejeu réel 2024-26 : ×6,5 en mise fixe, mais seulement ×1,9 avec le plafond 0,50 (arrêt −34 % touché en route).
+
+**B2. Forme de la pyramide** (une chose changée à la fois)
+
+| Variante | M5 : gain÷pire baisse / Sharpe | H1 2022-24 : total R | H1 2024-26 : gain÷pire baisse | Placebo M5 | Verdict |
+|---|---|---|---|---|---|
+| **Actuelle (5 positions, 0,25 ATR, 1-2-3-4-5)** | 7,4 / 2,9 | −47 | 9,2 | — | référence |
+| 6 positions | 8,8 / 3,0 | −52 | 8,8 | 0,008 | mieux sur M5 seulement |
+| 7 positions | 8,3 / 2,7 | −18 | 8,1 | 0,08 | non |
+| Renforts tous les 0,20 ATR | 7,4 / 3,0 | −69 | 9,8 | 0,09 | non |
+| Renforts tous les 0,35 ATR | 8,4 / 2,9 | −19 | 5,5 | 0,95 | non |
+| Tailles 1-1-2-2-3 / 1-1,5-2-2,5-3 / constantes | 7,0 / 7,1 / 6,3 | −21 / −27 / −7 | 9,0 / 9,2 / 8,7 | ≥ 0,99 | non |
+
+Reality check : p = 0,19 (M5) et 0,72 (H1). Aucune forme ne gagne partout ; la pyramide actuelle reste un bon compromis. Les formes plus douces (tailles constantes) baissent la pire baisse, mais aussi le gain dans les mêmes proportions.
+
+**B3. Retraits** (proportionnelle plafond 0,50, H1, 24 mois, mesuré)
+
+| Règle | Retiré (médiane) | Total retiré + restant | P(arrêt −34 %) |
+|---|---|---|---|
+| Sans retrait | 0 | 26 455 | 72 % |
+| 20 000 au premier doublement | 0 (rarement atteint) | 26 361 | 82 % |
+| 25 % des gains chaque semaine | 13 436 | **33 725** | 62 % |
+| 50 % des gains chaque semaine | 20 434 | 32 854 | 64 % |
+| Tout au-dessus de 40 000 | 0 | 24 705 | 91 % |
+
+Retirer une part des gains chaque semaine met de l'argent à l'abri avant les grosses pertes : c'est le seul cas où le total monte (+27 %). Mais le risque d'arrêt reste énorme à cette mise. **Attention :** le pont réel compte un retrait comme une baisse de la valeur. Retirer la moitié du compte déclencherait l'arrêt −34 %. Après un retrait, il faut supprimer `sommet_reel.json` (ou je corrige le pont si tu veux).
+
+**B4. Adaptation en direct aux trades passés** (réglage re-choisi chaque lundi sur 4, 13 ou 26 semaines ; 27 réglages)
+
+| Règle d'adaptation | M5 : adapté / fixe (R) | H1 2022-24 | H1 2024-26 | Placebo (H1) | Verdict |
+|---|---|---|---|---|---|
+| 4 semaines, meilleur total | −30 / +127 | +17 / +17 | +243 / +512 | 0,71 | non |
+| 4 semaines, meilleur gain÷baisse | +23 / +127 | +72 / +17 | +245 / +512 | 0,56 | non |
+| 13 semaines (les deux critères) | +80 et +22 / +127 | −16 et −15 / +17 | +231 et +265 / +512 | 0,85 / 0,79 | non |
+| 26 semaines, meilleur total | +178 / +127 | −51 / +17 | +599 / +512 | 0,07 | non (perd en 2022-24) |
+| 26 semaines, meilleur gain÷baisse | +153 / +127 | +14 / +17 | +263 / +512 | 0,70 | non |
+| Règles courtes, poids 0/1 sur 4 semaines | +710 / +414 $ (1re moitié +1 427, 2e −717) | | | 0,42 | non |
+| Règles courtes, autres variantes (13-26 sem., proportionnel) | de −291 à +617 / +414 $ | | | 0,35-0,87 | non |
+
+1. **L'adaptation automatique ne tient pas**, comme les lots B et G : le réglage gagnant des dernières semaines ne prédit pas celui de la semaine suivante. Elle rate surtout les grandes tendances (2024-26 : +243 à +265 R au lieu de +512).
+2. La seule qui bat le fixe sur M5 et en 2024-26 (26 semaines, total) perd en 2022-24, et son placebo est à 0,07.
+3. Pour les règles courtes, suivre ce qui a gagné sur 4 semaines a bien marché la première moitié (+1 427 $), puis perdu la seconde (−717 $). Placebo p 0,42.
+
+**Conclusion** : on reste en **v3**, sans nouvelle version. La seule « adaptation » qui a un sens est celle de la v3 : la mise suit le solde. Elle ne protège qu'à condition que la base de départ soit petite. **Ma recommandation : base 0,02 lot pour 200 $** (risque d'arrêt −34 % ≈ 6 % mesuré en 12 mois au lieu de ≈ 45-64 %). C'est ta décision ; je ne change rien sans ton accord.
+
 # Avis pour Baptiste — 25/11/2026, soir (Robot v28 et Lot G : sorties serrées de bt_or_plus, règles courtes optimisées)
 
 **Réponse courte : v28 publiée (bt_or_plus en moteur ; indices et variantes inutiles retirés). Lot G : aucune sortie serrée ne fait mieux que la sortie actuelle de bt_or_plus sur les deux périodes, et aucune optimisation des règles courtes ne tient hors échantillon. Le meilleur ensemble mesuré est bt_or_plus seul ; ajouter les règles courtes baisse le résultat à risque égal. Pas de variante v29.** Banc `banc_lotg.py`, contrat figé et poussé avant les résultats.
