@@ -1082,3 +1082,19 @@ deux blocs 2022-24 / 2024-26 ; à risque égal et en argent sur 20 000 USC) :**
 5. Ce qui tient sur les deux blocs et bat son placebo → version réelle suivante (mode auto) ; sinon rester en v3.
 **B FAIT le 26/11** : `banc_loth.py` (contrat 5782128) ; aucun test B retenu → on reste en v3. Composés : pas mieux (plafond 0,50 = plus d'arrêts) ; pyramide : rien ne gagne partout (White 0,19 / 0,72) ; retraits : 25 % des gains/semaine = total +27 % ; adaptation en direct : ne tient pas (placebo 0,07 à 0,85). ⚠ Hors contrat : base 0,05 = P(arrêt −34 %) 45-64 % en 12 mois (mesuré), 0,02 = 6-22 % ; recommandation 0,02, décision de Baptiste. ⚠ Le sommet du pont réel compte un retrait comme une baisse (supprimer sommet_reel.json après retrait, ou corriger le pont).
 Résultats en tête d'AVIS.md, tableaux simples ; résumé chiffré à @parent après A puis après B.
+
+## 26/11 22 h 05 — Lot I (demande écrite de Baptiste)
+1. **Risque par base** (même Monte-Carlo et rejeu que le lot H, 20 000 USC, 12 mois, bt_or_plus v3, règles courtes
+   comprises) : probabilité de toucher l'arrêt −34 %, pire baisse, médiane finale, pour une base de 0,02 / 0,03 /
+   **0,04** / 0,05 ; mesuré et prudent ; H1 4 ans et M5 15 mois. Tableau simple.
+2. **Renfort au retour du panier** : Baptiste : « quand on a un panier bt_or relativement profond (au moins 2 positions)
+   et que l'or remonte jusqu'au point mort ou plus, on rate cette montée alors qu'on pourrait gagner en ouvrant
+   d'autres positions dans ce sens ». Aujourd'hui un renfort n'arrive qu'à +0,25 ATR au-delà de la DERNIÈRE entrée.
+   Variantes à tester : (a) renfort quand le panier (≥ 2 positions) repasse au point mort après avoir été en perte ;
+   (b) idem à +0,1 / +0,25 ATR au-dessus du point mort ; (c) renforts comptés depuis le prix moyen du panier et non
+   depuis la dernière entrée ; même plafond de 5 positions (et variante 6), même stop suiveur. Contrat figé avant ;
+   or M5 15-18 mois + H1 4 ans ; spread réel puis doublé ; deux blocs ; placebo (renfort au même moment mais à une
+   date tirée au hasard dans le panier) ; à risque égal ET en argent sur 20 000 USC avec le risque d'arrêt −34 %.
+   Si une variante tient sur les deux blocs : la proposer pour la version réelle suivante (pas d'installation sans
+   le feu vert de Baptiste dans la conversation).
+Résultats en tête d'AVIS.md ; résumé chiffré à @parent (point 1 d'abord, il attend pour décider de sa base).
