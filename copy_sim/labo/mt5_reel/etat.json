@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-26T17:14:19Z",
+ "ecrit": "2026-11-26T17:19:25Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 10,
   "lots_par_position": 0.1
  },
- "solde": 20007.75,
- "valeur": 19905.18,
- "marge_libre": 19854.99,
+ "solde": 20003.26,
+ "valeur": 19900.73,
+ "marge_libre": 19864.86,
  "devise": "USC",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD.c": {
-   "bid": 3570.53,
-   "ask": 3570.92,
-   "spread_points": 39.0,
+   "bid": 3569.78,
+   "ask": 3570.18,
+   "spread_points": 40.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795720458
+   "heure_serveur": 1795720765
   }
  },
  "positions_robot": [
@@ -34,10 +34,10 @@
    "sens": "achat",
    "lots": 0.02,
    "prix_entree": 3563.54,
-   "prix_actuel": 3570.53,
+   "prix_actuel": 3569.78,
    "stop": 3515.97,
    "objectif": null,
-   "profit": 13.98,
+   "profit": 12.48,
    "ouverte_heure_serveur": 1795662601
   },
   {
@@ -45,27 +45,27 @@
    "sens": "achat",
    "lots": 0.04,
    "prix_entree": 3598.58,
-   "prix_actuel": 3570.53,
+   "prix_actuel": 3569.78,
    "stop": 3515.97,
    "objectif": null,
-   "profit": -112.2,
+   "profit": -115.2,
    "ouverte_heure_serveur": 1795667701
   },
   {
    "symbole": "XAUUSD.c",
-   "sens": "achat",
+   "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3574.88,
-   "prix_actuel": 3570.53,
-   "stop": 3537.22,
+   "prix_entree": 3570.37,
+   "prix_actuel": 3570.18,
+   "stop": 3601.22,
    "objectif": null,
-   "profit": -4.35,
-   "ouverte_heure_serveur": 1795709701
+   "profit": 0.19,
+   "ouverte_heure_serveur": 1795720501
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-26",
-  "perte_du_jour": -109.93,
+  "perte_du_jour": -114.38,
   "seuil": -1000.01,
   "ouvertures_bloquees": false
  },
@@ -78,7 +78,7 @@
  },
  "sommet": {
   "plus_haut": 20191.75,
-  "recul": -0.0142,
+  "recul": -0.0144,
   "arret": false,
   "heure_arret": null
  },
