@@ -47,3 +47,4 @@
 {"heure": "2026-11-26T05:43:00Z", "type": "note", "evenement": "sortie", "hypothese": "exces_m1", "raison": "temps", "ticket": 323875436, "sens": 1, "entree": 3589.82, "prix_sortie": null, "profit": 2.91}
 {"heure": "2026-11-26T05:45:00Z", "type": "ordre", "ticket": 323849983, "action": "fermeture", "id": "robot", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.01, "prix_demande": 3586.93, "spread_points": 41.0, "prix_entree": 3605.01, "ok": true, "retcode": 10009, "prix_obtenu": null}
 {"heure": "2026-11-26T05:45:00Z", "type": "note", "evenement": "sortie", "hypothese": "cassure_m15", "raison": "temps", "ticket": 323849983, "sens": 1, "entree": 3605.01, "prix_sortie": null, "profit": -18.08}
+{"heure": "2026-11-26T06:39:30Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
