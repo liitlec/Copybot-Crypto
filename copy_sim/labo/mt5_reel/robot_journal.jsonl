@@ -243,3 +243,7 @@
 {"heure": "2026-11-27T08:20:03Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.08, "stop": 3585.97, "id": "bt_or_plus_4", "prix_demande": 3677.38, "spread_points": 41.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 324107880}
 {"heure": "2026-11-27T08:20:03Z", "type": "note", "evenement": "ouverture", "hypothese": "bt_or_plus", "niveau": 4, "sens": 1, "ok": true, "refus": null, "prix_obtenu": null, "stop_secours": 3585.97, "distance_stop": 73.46, "essai": "non prouve"}
 {"heure": "2026-11-27T08:20:04Z", "type": "note", "evenement": "protection", "hypothese": "bt_or_plus", "sens": 1, "palier_R": 0, "point_mort": true, "niveau_sortie": 3641.81, "positions": 4}
+{"heure": "2026-11-27T08:25:01Z", "type": "ordre", "ticket": 323828668, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3623.97, "objectif": null, "ok": true, "retcode": 10009}
+{"heure": "2026-11-27T08:25:01Z", "type": "ordre", "ticket": 323847271, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3623.97, "objectif": null, "ok": true, "retcode": 10009}
+{"heure": "2026-11-27T08:25:01Z", "type": "ordre", "ticket": 324072092, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3623.97, "objectif": null, "ok": true, "retcode": 10009}
+{"heure": "2026-11-27T08:25:01Z", "type": "ordre", "ticket": 324107880, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3623.97, "objectif": null, "ok": true, "retcode": 10009}
