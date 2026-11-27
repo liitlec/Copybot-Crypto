@@ -1,3 +1,41 @@
+# Avis pour Baptiste — 27/11/2026, après-midi (Lot M : les 3 règles d'Astra + ton plancher)
+
+**Réponse courte : aucune règle ne passe l'adoption, on reste en v4, pas de v5.** La seule vraie trouvaille est le **budget de risque à 1/2** (B50) : il divise par deux le risque d'arrêt en gardant presque tout le gain historique, et il fait nettement mieux que « baisser la mise à 0,03 ». Il échoue seulement parce qu'il est un peu moins bon que v4 sur l'historique (gain÷creux, Sharpe, spread doublé). C'est **à toi de décider** si tu veux qu'on le prépare quand même (en démo d'abord).
+Bancs `banc_lotm_astra.py` (contrat 4affbbf) et `banc_lotm_plancher.py` (contrat e2115bc), figés avant les résultats.
+
+**En argent** (20 000 USC, mise v3 0,05, règles courtes, garde-fou −5 %/jour, arrêt −34 % sur l'equity flottante, 2 000 parcours de 12 mois). Attention : ce risque d'arrêt est plus élevé qu'aux lots I-L (43 %), parce qu'on compte maintenant le flottant heure par heure.
+
+| Règle | Arrêt −34 % en 12 mois | Equity médiane | Historique 08/25-08/26 | Gain÷creux histo. | Réserve | Placebo (Holm) | Adoptée |
+|---|---|---|---|---|---|---|---|
+| **v4 actuelle (base 0,05)** | **68 %** | 22 500 | **+101 500** | **6,0** | +480 | — | — |
+| v4 base 0,03 (référence) | 35 % | 53 800 | +60 600 | 6,0 | +450 | — | — |
+| Zone 0,15 ATR | 65 % | 23 600 | +106 400 | 6,3 | +300 | 0,02 (0,08) | non |
+| Zone 0,25 ATR | 68 % | 22 400 | +102 900 | 6,0 | +430 | 0,59 (1) | non |
+| Rejet 2 clôtures | 60 % | 25 600 | +80 700 | 6,1 | −640 | 0,71 (1) | non |
+| Rejet 3 clôtures | 58 % | 26 900 | +83 800 | 6,5 | −180 | 0,59 (1) | non |
+| Budget q = 1/3 | **17 %** | 49 600 | +80 300 | 5,4 | +1 070 | 0,00 (0) | non |
+| **Budget q = 1/2** | **32 %** | **53 900** | **+95 400** | 5,7 | +690 | 0,00 (0) | non |
+
+1. **Zone (Astra n° 1)** : meilleure sur le principal en R (gain÷creux 13,3 contre 12,8, Sharpe 3,59 contre 3,45, spread doublé 400 contre 387 R), 3 points d'arrêt en moins. Mais elle ne change que 6 entrées sur 15 mois, aucune dans la réserve (réserve égale, pas meilleure), et le placebo corrigé tombe à 0,08. Pas prouvée. *Correction : le premier placebo de la zone était faux (il ne sautait rien, p = 0) ; relancé après correction : p = 0,02.*
+2. **Rejet (Astra n° 2)** : il récupère bien les paniers qui retombent (44 paniers proches de zéro : +1,6 R → +42 R), mais coupe les 5 plus grands gagnants (221 → 182 R) ; historique −17 à −20 %, réserve négative, placebo 0,6-0,7. Non.
+3. **Budget de risque (Astra n° 3)** : le placebo est net (des réductions au hasard de même fréquence laissent 48-55 % d'arrêts contre 17-32 %). B50 n'a refusé que 3 renforts sur l'historique ; il agit surtout sur les mauvais parcours. B33 refuse 13 cinquièmes positions, dont celles de 5 des plus grands paniers (−228 R). Échoue sur : gain÷creux 5,7 contre 6,0, Sharpe 1,91 contre 1,99, spread doublé 90 500 contre 96 700.
+
+**Ton plancher (« au moins récupérer un peu de gain »)** : plus il est haut, plus il protège un panier qui retombe, mais il coupe les grandes tendances. Aucun ne passe (placebos 0,82 à 0,99).
+
+| Plancher dès 4 positions | Arrêt | Historique | Réserve | Paniers qui retombent (44) : gain moyen | Grands paniers coupés | Ton panier du 27/11 s'il retombe |
+|---|---|---|---|---|---|---|
+| **v4 (prix moyen)** | **68 %** | **+101 500** | +480 | +0,04 R | 0/32 | +0,04 $ |
+| + 0,10 ATR | 54 % | +95 000 | +1 590 | +1,7 R | 8/32 | +2,24 $ |
+| + 0,20 ATR | 70 % | +46 900 | −3 930 | +3,2 R | 23/32 | +4,45 $ |
+| + 0,30 ATR | 44 % | +36 800 | +2 260 | +4,5 R | 26/32 | +6,65 $ |
+| garder 20 % du max (≥ 3 R) | 61 % | +88 600 | +310 | +1,2 R | 6/32 | +1,74 $ |
+| garder 30 % du max | 55 % | +95 700 | −2 790 | +1,8 R | 9/32 | +2,60 $ |
+| + rejet (5 combinaisons) | 44-70 % | +36 800 à +74 800 | — | — | 4-26/32 | jusqu'à +5,10 $ |
+
++0,10 ATR est le seul compromis raisonnable (−14 points d'arrêt, −6 % de gain historique), mais ce n'est pas prouvé (placebo 0,82). Le budget à 1/2 fait mieux sur l'arrêt (−36 points) pour un coût comparable (−6 %).
+
+**Ce que je te propose (tu choisis)** : (a) rester en v4 ; (b) préparer une v5 « budget de risque q = 1/2 » en démo `_opt` d'abord, puis en réel seulement sur ton accord écrit ; (c) le plancher +0,10 ATR si tu préfères garder un petit gain sur chaque panier.
+
 # Avis pour Baptiste — 27/11/2026, matin (Lot M : point mort avec un petit bénéfice garanti)
 
 **Réponse courte : remonter le point mort d'un petit cran (prix moyen + 0,05 à 0,10 ATR) garantit 1 à 2 $ de plus sur un panier comme celui d'aujourd'hui, mais sur 15 mois cela coûte du gain total (−6 % à −16 %), et sur la grande tendance 2024-26 on perd la moitié du rapport gain/risque. Rien ne passe le test ; on reste en v4, sauf si tu préfères la sécurité.** Banc `banc_lotm.py`, contrat figé avant (4778206).

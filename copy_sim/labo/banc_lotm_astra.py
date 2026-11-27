@@ -127,7 +127,7 @@ def simule(d, span, heures, debut, mode=None, prm=None, mult=1.0, plac=None, mar
                 p["ev"].append((t[i], "fin", None, niv))
                 P.append(dict(t0=t[p["i"]], t1=t[i], s=s, g=usd / p["unite"], usd=usd, npos=len(p["e"]), A=p["A"],
                               retire=p["retire"], jambes=p["jambes"], ev=p["ev"], heure=p["heure"], mfe=p["gmax"] / p["unite"]))
-                if mode == "zone" and len(p["e"]) == 1 and usd < 0:
+                if (mode == "zone" or (plac and "zone" in plac)) and len(p["e"]) == 1 and usd < 0:   # corrigé : le placebo mémorise aussi
                     mem[s] = (p["e"][0], p["A"], t[i])
                 del ouvert[s]
                 continue
@@ -499,3 +499,22 @@ if __name__ == "__main__":
     D1, D2, D3, top = details(E1, S1)
     for x in (D1, D2, D3, top):
         print(x.round(3).to_string(index=False))
+
+
+def placebo_zone(n_plac=200):
+    """Placebo de la zone relancé après correction (le 1er passage ne mémorisait pas les pertes en mode placebo)."""
+    d, k = G.jeu_m5(); k.pop("bars_h")
+    princ = lambda P: P[P.d1 <= FIN]
+    sd = lambda P: princ(P).groupby("jour").g.sum().reindex(pd.date_range("2025-08-06", "2026-08-31"), fill_value=0).std()
+    s_ref = sd(simule(d, **k)[0]); out = []
+    for v in ("Z15", "Z25"):
+        P, cpt = simule(d, mode="zone", prm=SOURCES[v][1], **k)
+        reel = H.mesures(princ(P.assign(g=P.g * s_ref / sd(P))))["g_creux"]
+        pl = {"zone": {c_: cpt["saut_z"].get(c_, 0) / n_ for c_, n_ in cpt["elig_z"].items()}}
+        st, ns = [], []
+        for _ in range(n_plac):
+            Pp, cp = simule(d, plac=pl, **k); st.append(H.mesures(princ(Pp.assign(g=Pp.g * s_ref / sd(Pp))))["g_creux"])
+            ns.append(sum(cp["saut_z"].values()))
+        out.append(dict(variante=v, reel=reel, sauts_reels=sum(cpt["saut_z"].values()), sauts_placebo_moy=np.mean(ns),
+                        placebo_med=np.median(st), placebo_p=float((np.array(st) >= reel).mean())))
+    return pd.DataFrame(out)

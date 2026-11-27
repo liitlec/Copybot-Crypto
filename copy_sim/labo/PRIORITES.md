@@ -1198,6 +1198,13 @@ du gain latent maximal du panier une fois ce gain ≥ 3 R ; (c) (a) ou (b) combi
 Rapporter pour chacune : gain moyen gardé sur les paniers qui retombent, grands paniers coupés trop tôt, total,
 réserve, risque d'arrêt, et le rejeu du panier réel du 27/11 (0,02 @3563,54 / 0,04 @3598,58 / 0,06 @3648,08 /
 0,08 @3677,30, meilleur ≈ 3 685 $).
+**FAIT le 27/11 (Opus)** : `banc_lotm_astra.py` (contrat 4affbbf) + `banc_lotm_plancher.py` (contrat e2115bc) ; AUCUNE
+règle adoptée, pas de v5. Argent (2 000 parcours, flottant horaire) : arrêt v4 68 %, v4 base 0,03 35 % ; zone 0,15
+65 % (placebo corrigé 0,02, Holm 0,08, réserve inchangée) ; rejet 58-60 % (placebo 0,6-0,7, historique −17 à −20 %) ;
+budget 1/3 17 %, 1/2 32 % (placebo 0,00 ; médiane 49-54 k contre 22,5 k ; historique 80 / 95 k contre 101,5 k, échoue
+sur gain÷creux, Sharpe, spread doublé). Plancher : +0,10 ATR 54 % (historique −6 %, placebo 0,82), +0,30 ATR 44 % mais
+historique ÷3 ; G20/G30 et combinaisons avec rejet : non. Panier du 27/11 : +0,04 $ (v4) à +6,65 $ (+0,30 ATR).
+Choix laissé à Baptiste : v4 / budget 1/2 en démo `_opt` / plancher +0,10.
 
 ## 27/11 13 h — Lot N : chercher d'AUTRES stratégies à greffer à bt_or_plus (demande écrite de Baptiste)
 Baptiste : « il faut qu'on trouve, je suis sûr qu'il y a d'autres stratégies à avoir encore » ; idée de départ :
