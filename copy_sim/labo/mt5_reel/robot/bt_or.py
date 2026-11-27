@@ -89,8 +89,12 @@ class PanierBT:
     moyenne < -0,3 R apres 40 paniers. Rappel : au banc (passage 24) la mecanique ne gagnait rien sur BTC et ETH."""
 
     def __init__(self, pont, fichier=FICHIER, symbole=SYMBOLE, nom="bt_or", lots=LOTS, taille=100.0, spread_rel=None,
-                 max_pos=MAX_POS, croissant=False, serre=None, sens_force=None):
+                 max_pos=MAX_POS, croissant=False, serre=None, sens_force=None, protege=False):
         self.pont, self.fichier = pont, fichier
+        # 27/11 (robot réel v4, démo v30 ; lot J, accord de Baptiste « Mets-le en place ») : sortie « point mort après le
+        # 3e renfort + paliers +2 / +4 R » : recul 0,6667 ATR, 0,5 ATR quand le meilleur prix est à +2 R de la 1re
+        # entrée, 0,35 ATR à +4 R ; dès 4 positions, jamais sous le prix moyen du panier (spread compris).
+        self.protege = protege
         # v21 : bt_or_plus_opt = memes entrees et meme stop suiveur, ajouts de taille croissante (niveau n = n x lots),
         # 5 positions au plus ; stop marque 97 ; R compte pour la mise de base. REGLE D'ARRET (ecrite avant) : -20 R.
         self.max_pos, self.croissant = max_pos, croissant
@@ -228,12 +232,38 @@ class PanierBT:
                 recul = self.serre[1] * p["stop"]          # v22 : suiveur resserre au-dela de +3 R
             if s > 0:
                 p["meilleur"] = max(p["meilleur"], px["bid"])
-                touche = px["bid"] <= p["meilleur"] - recul
             else:
                 p["meilleur"] = min(p["meilleur"], px["bid"])
-                touche = px["ask"] >= p["meilleur"] + recul
+            niveau = p["meilleur"] - s * recul
+            raison = "recul depuis le meilleur prix"
+            if self.protege:
+                niveau, raison = self.niveau_protege(p, s, [ps[t] for t in vivants], px)
+            touche = px["bid"] <= niveau if s > 0 else px["ask"] >= niveau
             if touche:
-                self._cloture(cle, "recul depuis le meilleur prix", ps)
+                self._cloture(cle, raison, ps)
+
+    def niveau_protege(self, p, s, pos, px):
+        """Niveau de sortie « point mort + paliers » (lot J) ; le note quand la protection change."""
+        gR = s * (p["meilleur"] - p.get("c0", p["meilleur"])) / p["stop"] if p["stop"] > 0 else 0.0
+        palier = 2 if gR >= 4 else (1 if gR >= 2 else 0)
+        recul = p["stop"] * (0.35 / STOP_K if palier == 2 else (0.5 / STOP_K if palier == 1 else 1.0))
+        niveau = p["meilleur"] - s * recul
+        raison = "recul depuis le meilleur prix" + ("" if not palier else " (palier +%d R)" % (2 * palier))
+        pm = False
+        lots = sum((q.get("lots") or 0) for q in pos)
+        if len(pos) >= 4 and lots > 0:
+            moyen = sum(q["prix_entree"] * (q.get("lots") or 0) for q in pos) / lots
+            point_mort = moyen + s * max(px["ask"] - px["bid"], 0.0)
+            if s * (point_mort - niveau) > 0:
+                niveau, raison, pm = point_mort, "point mort du panier (4 positions et plus)", True
+        etat = (palier, pm)
+        if p.get("protection") != list(etat):
+            p["protection"] = list(etat)
+            self.pont.noter(evenement="protection", hypothese=self.nom, sens=s, palier_R=2 * palier if palier else 0,
+                            point_mort=pm, niveau_sortie=round(niveau, 2), positions=len(pos))
+            self.sauver()
+        p["niv_eff"] = niveau
+        return niveau, raison
 
     # ------------------------------------------------------------------ entrees et ajouts (a chaque bougie M5 fermee)
     def _ouvre(self, p, s, niveau, chiffres):
@@ -265,6 +295,10 @@ class PanierBT:
         for cle, p in self.paniers.items():                      # stop de secours remonte, puis ajouts
             s = int(cle)
             secours = marquer(p["meilleur"] - s * SECOURS_K * p["stop"], chiffres, self.plus)
+            if self.protege and p.get("niv_eff") is not None:   # 27/11 : secours relevé avec la sortie protégée
+                cible = marquer(p["niv_eff"] - s * (SECOURS_K - 1) * p["stop"], chiffres, self.plus)
+                if s * (cible - secours) > 0 and s * (c - cible) > 0.1 * p["stop"]:
+                    secours = cible
             if abs(secours - p.get("secours", 0)) > 0.1 * p["stop"] and s * (secours - p.get("secours", secours - s)) > 0:
                 for t in p["tickets"]:
                     self.pont.modifier(t, secours)

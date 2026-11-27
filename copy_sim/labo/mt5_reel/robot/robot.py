@@ -1,4 +1,6 @@
-"""Robot RÉEL du labo (compte STARTRADER cent), version 3 (26/11 soir, Lot H point A, demande écrite de Baptiste :
+"""Robot RÉEL du labo (compte STARTRADER cent), version 4 (27/11, accord écrit de Baptiste « Mets-le en place » :
+sortie de bt_or_plus « point mort après le 3e renfort + paliers +2 / +4 R » du lot J, voir bt_or.niveau_protege ;
+le panier ouvert à l'installation passe sous ces règles). Version 3 (26/11 soir, Lot H point A, demande écrite de Baptiste :
 MISE PROPORTIONNELLE AU SOLDE). v2 : base bt_or_plus 0,05.
 v3 : base bt_or_plus = 0,05 lot cent x (solde / 20 000 USC), arrondie vers le bas au pas de lot, choisie au DÉBUT de
 chaque nouveau panier et gardée pour tous ses renforts (jamais changée en cours de panier), bornée par 5 x base <=
@@ -22,7 +24,7 @@ import time
 
 import bt_or
 
-VERSION = 3
+VERSION = 4
 SOLDE_REF = 20000.0                # USC : à ce solde, base 0,05 et règles courtes 0,01
 FICHIER_ETAT = "etat_robot.json"
 PAUSE = 1.0
@@ -214,7 +216,10 @@ class Robot:
         self.sym, self.info = sym, info
         bt_or.SYMBOLE = sym
         self.btp = PanierProp(self.pont, self, fichier="etat_bt_plus.json", symbole=sym, nom="bt_or_plus",
-                              lots=None, taille=info["taille_contrat"], max_pos=5, croissant=True)
+                              lots=None, taille=info["taille_contrat"], max_pos=5, croissant=True, protege=True)
+        self.pont.noter(evenement="sortie v4", hypothese="bt_or_plus", regle="point mort des 4 positions + paliers +2/+4 R "
+                        "(recul 0,6667 -> 0,5 -> 0,35 ATR)", paniers_en_cours=len(self.btp.paniers),
+                        note="les paniers en cours (ou repris au premier tour) passent sous ces regles")
         b, lc, plaf, solde = self.base_bt(c), self.lots_courtes(c), self.plafond(c), c.get("solde")
         self.lots_c = lc
         self.pont.noter(evenement="tailles", symbole=sym, lot_min=info["lot_min"], pas_lot=info["pas_lot"],

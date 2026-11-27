@@ -1170,7 +1170,7 @@ for f in ("etat_v28_essai.json", "etat_gpt28_essai.json"):
         os.remove(f)
 # v29 (PRIORITES 25/11 22 h 15) : pari_opt et pari_court_opt retires (sorties seulement) ; encaisse_calme_opt nourrie par
 # les paniers fermes de bt_or_plus_opt.
-assert robot.VERSION == 29 and {"pari_opt", "pari_court_opt"} <= robot.RETIRES
+assert robot.VERSION >= 29 and {"pari_opt", "pari_court_opt"} <= robot.RETIRES
 assert vu28["pari"] is False and vu28["pari_court"] is False, vu28
 assert isinstance(r28.btp.poche, encaisse.Poche) and r28.gpt.poche is None
 for f in ("etat_enc29_essai.json", "etat_bp29_essai.json"):
@@ -1185,6 +1185,23 @@ bp29.paniers["1"]["tickets"] = [1]
 bp29._cloture("1", "essai", {})
 assert bp29.poche.e["n"] == 1 and abs(bp29.poche.e["capital"] - 470.0) < 1e-6, bp29.poche.e   # -1 R : 6 % de 500
 for f in ("etat_enc29_essai.json", "etat_bp29_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
+# v30 (27/11) : bt_or_plus_opt a la sortie « point mort + paliers +2/+4 R » du réel v4 ; bt_or et le reste inchangés
+assert robot.VERSION == 30
+for f in ("etat_v30_essai.json",):
+    if os.path.exists(f):
+        os.remove(f)
+r30 = robot.Robot(pont, fichier="etat_v30_essai.json")
+assert r30.btp.protege and not r30.bt.protege and not getattr(r30.bts, "protege", False)
+fv30 = FauxPont()
+b30 = bt_or.PanierBT(fv30, fichier="etat_b30_essai.json", nom="bt_or_plus_opt", max_pos=5, croissant=True, protege=True)
+b30.paniers = {"1": {"tickets": [1], "profits": {}, "meilleur": 4080.0, "stop": 40.0, "pas": 15.0, "prochain": 4015.0,
+                     "debut": 0, "secours": 3950.07, "c0": 4000.0}}
+fv30.pos[1] = {"ticket": 1, "sens": "achat", "prix_entree": 4000.0, "stop": 3950.07, "profit": 0.0, "lots": 0.01}
+b30.surveiller({1: fv30.pos[1]}, {"bid": 4049.0, "ask": 4049.2})
+assert "1" not in b30.paniers, "palier +2 R : sortie sous 4050 (avant : 4040)"
+for f in ("etat_v30_essai.json", "etat_b30_essai.json"):
     if os.path.exists(f):
         os.remove(f)
 print("ESSAIS OK")

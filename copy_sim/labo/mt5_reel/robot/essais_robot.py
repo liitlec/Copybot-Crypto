@@ -253,6 +253,89 @@ for f in ("etat_robot_c.json", "etat_robot_c2.json", "etat_robot_c3.json"):
 for f in ("etat_robot_plafond.json",):
     if os.path.exists(f):
         os.remove(f)
+
+# 11) v4 : sortie « point mort après le 3e renfort + paliers +2 / +4 R » (lot J), le panier en cours y passe
+assert robot.VERSION == 4 and rc.btp.protege, "v4 : bt_or_plus protege"
+assert any(n.get("evenement") == "sortie v4" for n in fc.notes), "passage noté au démarrage"
+def panier_test(fpx, entrees, s=1, c0=4000.0, stop=40.0, meilleur=None):
+    """Panier dans un PanierProp neuf, positions (prix, lots) chez le faux pont ; rend (panier, cle)."""
+    for f in ("etat_bt_v4.json",):
+        if os.path.exists(f):
+            os.remove(f)
+    fpx.pos.clear()
+    bpx = robot.PanierProp(fpx, rc, fichier="etat_bt_v4.json", symbole="XAUUSD.c", nom="bt_or_plus", lots=None,
+                           taille=1.0, max_pos=5, croissant=True, protege=True)
+    tk = []
+    for e, l in entrees:
+        fpx.n += 1
+        fpx.pos[fpx.n] = {"ticket": fpx.n, "sens": "achat" if s > 0 else "vente", "prix_entree": e, "stop": 1.0 if s > 0 else 9999.0,
+                          "profit": 0.0, "lots": l, "symbole": "XAUUSD.c", "heure_serveur": 1794009600}
+        tk.append(fpx.n)
+    bpx.paniers[str(s)] = {"tickets": tk, "profits": {}, "meilleur": meilleur or c0, "stop": stop, "pas": 15.0,
+                           "prochain": c0 + s * 15.0, "debut": 0, "secours": c0 - s * 50.0, "c0": c0, "lots0": entrees[0][1]}
+    return bpx, str(s)
+def tour_px(bpx, fpx, bid, spread=0.2):
+    fpx.bid = bid
+    ps = {x["ticket"]: x for x in fpx.pos.values()}
+    bpx.surveiller(ps, {"bid": bid, "ask": bid + spread, "heure_serveur": 0})
+fv = FauxPontC(); fv.lm = 0.50
+# a) sans palier (meilleur +1 R) : recul normal 40 $ -> sortie a 4000 (meilleur 4040)
+bx, k = panier_test(fv, [(4000.0, 0.02)], meilleur=4040.0)
+tour_px(bx, fv, 4001.0); assert k in bx.paniers
+tour_px(bx, fv, 3999.9); assert k not in bx.paniers, "recul normal sans palier"
+# b) palier +2 R (meilleur 4080) : recul 0,5 ATR = 30 $ -> sortie sous 4050 (au lieu de 4040)
+bx, k = panier_test(fv, [(4000.0, 0.02)], meilleur=4080.0)
+tour_px(bx, fv, 4050.5); assert k in bx.paniers and bx.paniers[k]["protection"] == [1, False]
+tour_px(bx, fv, 4049.9); assert k not in bx.paniers
+assert any(n.get("evenement") == "protection" and n.get("palier_R") == 2 for n in fv.notes)
+# c) palier +4 R (meilleur 4160) : recul 0,35 ATR = 21 $ -> sortie sous 4139
+bx, k = panier_test(fv, [(4000.0, 0.02)], meilleur=4160.0)
+tour_px(bx, fv, 4139.5); assert k in bx.paniers and bx.paniers[k]["protection"] == [2, False]
+tour_px(bx, fv, 4138.9); assert k not in bx.paniers
+# d) point mort dès 4 positions : moyen 4020, + spread 0,2 -> sortie a 4020,2 (le recul seul sortirait a 4000)
+e4 = [(4000.0, 0.02), (4010.0, 0.04), (4020.0, 0.06), (4030.0, 0.08)]
+bx, k = panier_test(fv, e4, meilleur=4040.0)
+tour_px(bx, fv, 4020.5); assert k in bx.paniers and bx.paniers[k]["protection"] == [0, True]
+tour_px(bx, fv, 4020.1); assert k not in bx.paniers, "point mort"
+# 3 positions : pas de point mort
+bx, k = panier_test(fv, e4[:3], meilleur=4040.0)
+tour_px(bx, fv, 4010.0); assert k in bx.paniers and bx.paniers[k]["protection"] == [0, False]
+# e) vente : point mort et palier symétriques (sortie quand l'ask remonte au niveau)
+ev = [(4000.0, 0.02), (3990.0, 0.04), (3980.0, 0.06), (3970.0, 0.08)]
+bx, k = panier_test(fv, ev, s=-1, meilleur=3960.0)
+tour_px(bx, fv, 3979.5, spread=0.2); assert k in bx.paniers      # ask 3979,7 < 3980 - 0,2 ? non : 3979,8 niveau
+tour_px(bx, fv, 3979.7, spread=0.2); assert k not in bx.paniers, "point mort en vente (ask >= moyen - spread)"
+bx, k = panier_test(fv, [(4000.0, 0.02)], s=-1, meilleur=3920.0)   # +2 R en vente -> recul 30 -> 3950
+tour_px(bx, fv, 3949.7); assert k in bx.paniers
+tour_px(bx, fv, 3949.9); assert k not in bx.paniers
+# f) stop de secours chez le courtier relevé avec la sortie protégée (jamais moins protecteur), marque 97 gardée
+bx, k = panier_test(fv, e4, meilleur=4040.0)
+tour_px(bx, fv, 4030.0)
+bx.vu = None
+bx.bougie(m5_jusqua(9, 0, 4030.0), d1, False)
+sec = bx.paniers[k]["secours"]
+assert sec > 4040.0 - 1.25 * 40.0 + 1 and bt_or.code_marque(sec) == bt_or.MARQUE_PLUS, sec
+assert abs(sec - (4020.2 - 10.0)) < 1.0 and all(fv.pos[t]["stop"] == sec for t in bx.paniers[k]["tickets"])
+# g) le panier ouvert sous la v3 (repris après installation) passe sous ces règles
+os.remove("etat_bt_v4.json")
+bx2 = robot.PanierProp(fv, rc, fichier="etat_bt_v4.json", symbole="XAUUSD.c", nom="bt_or_plus", lots=None,
+                       taille=1.0, max_pos=5, croissant=True, protege=True)
+bx2.adopter({t: dict(x, prix_actuel=4030.0) for t, x in fv.pos.items()}, m5_jusqua(9, 0, 4030.0), d1)
+assert bx2.paniers and bx2.paniers["1"]["lots0"] == 0.02
+tour_px(bx2, fv, 4030.0); assert bx2.paniers["1"]["protection"][1] is True, "point mort actif sur le panier repris"
+# h) sans protege : comportement d'avant inchangé (palier ignoré)
+bn = bt_or.PanierBT(fv, fichier="etat_bt_v4n.json", symbole="XAUUSD.c", nom="x", lots=0.02, taille=1.0, max_pos=5, croissant=True)
+bn.paniers = {"1": {"tickets": [], "profits": {}, "meilleur": 4080.0, "stop": 40.0, "pas": 15.0, "prochain": 4015.0,
+                    "debut": 0, "secours": 3950.0, "c0": 4000.0}}
+fv.pos.clear(); fv.n += 1
+fv.pos[fv.n] = {"ticket": fv.n, "sens": "achat", "prix_entree": 4000.0, "stop": 1.0, "profit": 0.0, "lots": 0.02,
+                "symbole": "XAUUSD.c"}
+bn.paniers["1"]["tickets"] = [fv.n]
+bn.surveiller({fv.n: fv.pos[fv.n]}, {"bid": 4045.0, "ask": 4045.2})
+assert "1" in bn.paniers, "sans protege : sortie seulement a 4040"
+for f in ("etat_bt_v4.json", "etat_bt_v4n.json"):
+    if os.path.exists(f):
+        os.remove(f)
 for f in ("etat_robot.json", "etat_bt_plus.json", "sommet_reel.json", "garde_essai.json", "journal_essai.jsonl",
           pont_reel.FICHIER_AUTORISATION):
     if os.path.exists(f):

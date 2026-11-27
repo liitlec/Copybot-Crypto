@@ -22,7 +22,7 @@ import encaisse
 
 NOM_PARI_T = pari_tendance.NOM
 
-VERSION = 29
+VERSION = 30
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -225,7 +225,8 @@ class Robot:
         self.calme, self.calme_vu = None, 0      # regime de l'or (None = inconnu : pas de pause), heure du dernier calcul
         self.essais_orph = {}   # ticket -> heure du dernier essai de fermeture d'une orpheline
         self.bt = bt_or.PanierBT(pont)
-        self.btp = bt_or.PanierBT(pont, fichier="etat_bt_plus.json", nom="bt_or_plus_opt", max_pos=5, croissant=True)
+        self.btp = bt_or.PanierBT(pont, fichier="etat_bt_plus.json", nom="bt_or_plus_opt", max_pos=5, croissant=True,
+                                  protege=True)      # v30 (27/11) : sortie point mort + paliers +2/+4 R, comme le réel v4
         self.bts = bt_or.PanierBT(pont, fichier="etat_bt_serre.json", nom="bt_or_serre_opt", serre=(3.0, 0.5))
         self.btt = pari_tendance.PanierPari(pont)       # v23 : pari_tendance_opt, compte virtuel separe, hors totaux
         self.btt.retire = NOM_PARI_T in RETIRES        # v27 : arrete (paniers ouverts suivis jusqu'a leur sortie)
