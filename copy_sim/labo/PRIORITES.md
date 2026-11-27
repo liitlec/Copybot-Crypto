@@ -1176,3 +1176,18 @@ horizon de tenue plus long pour elan/cassure quand un panier est plein ; autre i
 Livrable : tableau simple en tête d'AVIS.md, rejeu des paniers réels depuis le 18/11, et une recommandation franche.
 Si une piste bat la v4 sur 2025-26 ET la réserve sans plus de risque d'arrêt : préparer la v5 réelle SANS la publier.
 **FAIT le 27/11 (Opus)** : `banc_lotl.py` (contrat 86acb6a) ; aucune piste retenue ; P2b (réentrée si le prix repasse la sortie dans l'heure) : principal 5,97 contre 5,57, placebo 0,02 (Holm 0,16), réserve −234 contre +406 ; P1 2e panier : 10 positions, réserve instable ; P3 replis bien pires ; P4 sans effet. Pas de v5 ; recommandation : rester en v4.
+
+## 27/11 — Lot M : trois règles d'Astra pour bt_or_plus v4 (envoyées par Baptiste)
+Texte complet : `copy_sim/labo/astra_protocole/Etude_bt_or_plus_2711.pdf` (son contrat de validation p. 3 s'applique).
+1. **Zone** : après un panier clos en perte SANS renfort, pendant 6 h, sauter l'entrée v4 de même sens si son prix
+   théorique est à moins de w × ATR du prix initial perdant (w = 0,15 ou 0,25). (Astra : gain÷creux 13,33 contre 12,82.)
+2. **Rejet** : dès la 4e position, ancre A = prix du dernier renfort ; si 2 ou 3 clôtures M5 consécutives passent
+   sous A − 0,05 ATR (au-dessus en vente) et que le panier est encore positif, fermer seulement le dernier renfort, une
+   fois par panier ; garder la pyramide virtuelle pour les seuils suivants ; point mort recalculé sur le reste.
+3. **Budget de risque** : avant chaque entrée ou renfort, D = equity − 0,66 × sommet d'equity ; autoriser si le recul
+   jusqu'aux stops de secours de toutes les jambes + l'ordre envisagé reste sous q × D (q = 1/3 ou 1/2) ; sinon
+   réduire la base au pas de 0,01 ou sauter ; renfort inabordable sauté. Comparer à la base fixe 0,03.
+Contrat d'Astra : placebos appariés (zone, rejet, budget), Holm sur les 6 variantes, réserve 09-11/2026 gelée avant,
+spread doublé, 20 000 USC en argent avec règles courtes, garde-fou −5 % et arrêt −34 %, 2 000 chemins de 12 mois.
+Adoption seulement si MOINS d'arrêts ET gain médian au moins égal à v4 ; rapporter aussi v4 à 0,03, les 5 grands
+gagnants, les paniers proches de zéro, les ordres refusés. Préparer v5 SANS la publier ; résumé à @parent.
