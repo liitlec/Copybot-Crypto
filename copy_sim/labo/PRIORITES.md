@@ -1134,3 +1134,19 @@ courtes, sécurités : inchangées. Stop de secours chez le courtier relevé en 
 protecteur qu'avant). Essais soignés (ordres réels) : ESSAIS OK obligatoire, puis VERSION 4 (installation automatique,
 mode auto). Démo : même sortie pour bt_or_plus_opt dans la version démo suivante. Résumé à @parent.
 **FAIT le 27/11** : `bt_or.py` (option protege, `niveau_protege`) : paliers 0,6667 → 0,5 ATR à +2 R → 0,35 ATR à +4 R depuis la 1re entrée ; dès 4 positions, jamais sous le prix moyen + spread ; stop de secours relevé (jamais moins protecteur, marque 97) ; évènement « protection » à chaque changement, « sortie v4 » au démarrage. Réel VERSION 4 (essais OK en bac à sable, 8 cas dont vente, panier repris, secours) ; démo VERSION 30 (bt_or_plus_opt seulement, essais OK). Panier réel en cours : 3 positions, +1,4 R → rien ne change tant qu'il n'a pas 4 positions ou +2 R (≈ 3 710 $).
+
+## 27/11 9 h 35 — Lot K : taille des renforts par coefficient (demande écrite de Baptiste)
+Baptiste : « les renforts vont de deux en deux, il ne faut pas que ce soit une règle dure, il faut plutôt un coef ;
+cherche comment améliorer ça ». Aujourd'hui (v4) : renforts 1-2-3-4-5 × base (arithmétique). Lot H B2 a déjà testé
+1-2-3-4-5 / 1-1-2-2-3 / 1-1,5-2-2,5-3 / constant (rien de meilleur partout). Nouveau, jugé sur or M5 08/2025-08/2026
+avec réserve 09-11/2026 (demande de Baptiste : caler sur 2025-26), sortie v4 (point mort + paliers) incluse :
+1. Coefficient géométrique fixe : taille du renfort n = base × c^(n-1), c = 1,2 / 1,4 / 1,6 / 2,0, max 5 positions
+   (et variante 6 si la marge le permet), même risque total qu'aujourd'hui à la même base (comparer aussi à risque égal).
+2. Coefficient décroissant (les premiers renforts plus gros) : c = 0,8.
+3. Coefficient adaptatif, connu au moment du renfort (aucune donnée future) : selon la force de la tendance (pente /
+   efficacité de Kaufman sur 4-12 h), selon le gain déjà acquis du panier (en R), selon la volatilité (ATR jour vs
+   médiane 20 j). Ex. c = 1 + k × force, borné 1,0-2,0. Peu de réglages (≤ 12).
+Mesures : total R et USC (20 000 USC, base 0,05 ∝ solde), gain÷pire baisse, réserve, risque d'arrêt −34 % sur 12
+mois, marge maximale utilisée (levier 500, plafond local 0,25 lot/position : signaler tout renfort qui dépasserait),
+et rejeu des paniers réels depuis le 18/11. Placebo / correction pour essais multiples. Si une variante bat la v4
+sur 2025-26 ET sur la réserve : préparer v5 sans la publier ; résumé chiffré à @parent, Baptiste décide.
