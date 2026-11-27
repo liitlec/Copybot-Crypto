@@ -1122,3 +1122,14 @@ correction pour 6 essais. Peu de réglages (≤ 15) pour limiter le sur-ajusteme
 Si une variante bat la sortie actuelle sur 2025-26 ET sur la réserve : préparer la version réelle 4 (mode auto) mais
 NE PAS la publier : résumé à @parent, Baptiste décide.
 **FAIT le 27/11** : `banc_lotj.py` (contrat a93cb88) ; aucune variante retenue (paliers +3/+6 : principal 469 R contre 390, placebo < 0,001, mais réserve −13 contre +25) ; point mort / cliquet protègent mais coupent les grands paniers ; panier du 27/11 : cliquet +2,8 à +3,9 $ contre −3,2 $ actuel. Pas de v4 préparée.
+
+## 27/11 10 h — Robot réel v4 : compromis « point mort + paliers » (accord écrit de Baptiste : « Mets-le en place »)
+Sortie de bt_or_plus (réel, et bt_or_plus_opt en démo pour comparer) = variante du lot J « point mort après le 3e
+renfort + paliers +2 / +4 R », exactement comme testée :
+- dès que le panier a 4 positions (entrée + 3 renforts), le stop suiveur ne descend plus sous le prix moyen du panier
+  (spread compris) ;
+- paliers sur le meilleur prix compté depuis la 1re entrée : recul 0,6667 ATR, puis 0,5 ATR à +2 R, puis 0,35 ATR à +4 R.
+Le panier ouvert au moment de l'installation passe sous ces règles (le noter). Base, mise ∝ solde (v3), règles
+courtes, sécurités : inchangées. Stop de secours chez le courtier relevé en conséquence si nécessaire (jamais moins
+protecteur qu'avant). Essais soignés (ordres réels) : ESSAIS OK obligatoire, puis VERSION 4 (installation automatique,
+mode auto). Démo : même sortie pour bt_or_plus_opt dans la version démo suivante. Résumé à @parent.
