@@ -1,3 +1,17 @@
+# Avis pour Baptiste — 27/11/2026, matin (Lot M : point mort avec un petit bénéfice garanti)
+
+**Réponse courte : remonter le point mort d'un petit cran (prix moyen + 0,05 à 0,10 ATR) garantit 1 à 2 $ de plus sur un panier comme celui d'aujourd'hui, mais sur 15 mois cela coûte du gain total (−6 % à −16 %), et sur la grande tendance 2024-26 on perd la moitié du rapport gain/risque. Rien ne passe le test ; on reste en v4, sauf si tu préfères la sécurité.** Banc `banc_lotm.py`, contrat figé avant (4778206).
+
+| Point mort dès 4 positions | Total 2025-26 (R) | Gain÷pire baisse | Réserve | Or H1 2024-26 | Placebo | Gain garanti sur ton panier du 27/11 |
+|---|---|---|---|---|---|---|
+| **Prix moyen (v4 actuelle)** | **388** | 12,8 | +8,5 | **10,8** | — | +0,08 $ |
+| + 0,05 ATR (≈ 5,5 $ au-dessus) | 365 | 13,9 | +5,9 | 7,5 | 0,41 | +1,18 $ |
+| + 0,10 ATR (≈ 11 $) | 326 | 13,8 | +13,5 | 4,9 | 0,72 | +2,28 $ |
+| + 0,15 ATR | 204 | 8,6 | −18,7 | 4,2 | 0,69 | +3,39 $ |
+| + 0,25 ATR | 85 | 4,4 | −22,7 | 7,8 | 0,98 | +5,59 $ |
+
+Pourquoi : dans une tendance, le prix revient souvent toucher la zone du prix moyen avant de repartir. Plus on monte le plancher, plus on se fait sortir juste avant la reprise.
+
 # Avis pour Baptiste — 27/11/2026 (Lot L : tirer plus des tendances sans plus de risque, pistes nouvelles)
 
 **Réponse courte : aucune des 4 pistes nouvelles ne gagne à la fois sur 2025-26 et sur la réserve à risque égal. La meilleure, la réentrée juste après une sortie gagnante si le prix repasse au-dessus du prix de sortie dans l'heure, bat le hasard (p 0,02 avant correction) et fait mieux sur 2025-26, mais perd sur la réserve. Pas de v5. Recommandation franche : ne rien changer au robot réel. Le gain des tendances vient déjà de la pyramide et de la sortie v4 ; tout ce qui rajoute de l'exposition augmente surtout le risque.** Banc `banc_lotl.py`, contrat figé et poussé avant les résultats (86acb6a). Fait sur Opus (la session Fable n'avait plus de crédits).
