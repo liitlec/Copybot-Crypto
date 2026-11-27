@@ -224,3 +224,22 @@
 {"heure": "2026-11-27T08:15:00Z", "type": "note", "evenement": "sortie", "hypothese": "cassure_m15", "raison": "temps", "ticket": 324069420, "sens": 1, "entree": 3638.71, "prix_sortie": null, "profit": 30.81}
 {"heure": "2026-11-27T08:15:01Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.01, "stop": 3635.11, "id": "cassure_m15", "prix_demande": 3670.01, "spread_points": 41.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 324105960}
 {"heure": "2026-11-27T08:15:01Z", "type": "note", "evenement": "ouverture", "hypothese": "cassure_m15", "sens": 1, "ok": true, "refus": null, "bid": 3669.6, "ask": 3670.01, "stop": 3635.11, "lots": 0.01, "prix_obtenu": null}
+{"heure": "2026-11-27T08:19:30Z", "type": "lanceur", "evenement": "arrete", "version": 3, "raison": "nouvelle version"}
+{"heure": "2026-11-27T08:19:30Z", "type": "lanceur", "evenement": "installee", "version": 4}
+{"heure": "2026-11-27T08:19:30Z", "type": "lanceur", "evenement": "demarre", "version": 4}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "demarrage", "version": 4, "mode": "reel", "hypotheses": ["cassure_m15", "elan_m15", "exces_m1", "exces_m5", "retour_court_ar", "bt_or_plus"], "repris": []}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "sortie v4", "hypothese": "bt_or_plus", "regle": "point mort des 4 positions + paliers +2/+4 R (recul 0,6667 -> 0,5 -> 0,35 ATR)", "paniers_en_cours": 0, "note": "les paniers en cours (ou repris au premier tour) passent sous ces regles"}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "tailles", "symbole": "XAUUSD.c", "lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 1.0, "solde": 20032.33, "plafond": 0.25, "base_bt_or_plus": 0.05, "lots_regles_courtes": 0.01, "regle": "base = 0,05 x solde / 20 000, recalculee a chaque panier"}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "reprise", "hypothese": "elan_m15", "ticket": 324102745}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "reprise", "hypothese": "cassure_m15", "ticket": 324105960}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or_plus", "sens": 1, "positions": 3, "tickets": [323828668, 323847271, 324072092], "meilleur": 3670.21, "distance_stop": 73.46}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "protection", "hypothese": "bt_or_plus", "sens": 1, "palier_R": 0, "point_mort": false, "niveau_sortie": 3599.9, "positions": 3}
+{"heure": "2026-11-27T08:19:31Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
+{"heure": "2026-11-27T08:20:02Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "vente", "lots": 0.01, "stop": 3688.33, "id": "exces_m1", "prix_demande": 3676.95, "spread_points": 40.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 324107875}
+{"heure": "2026-11-27T08:20:02Z", "type": "note", "evenement": "ouverture", "hypothese": "exces_m1", "sens": -1, "ok": true, "refus": null, "bid": 3676.95, "ask": 3677.35, "stop": 3688.33, "lots": 0.01, "prix_obtenu": null}
+{"heure": "2026-11-27T08:20:02Z", "type": "ordre", "ticket": 323828668, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3585.97, "objectif": null, "ok": true, "retcode": 10009}
+{"heure": "2026-11-27T08:20:02Z", "type": "ordre", "ticket": 323847271, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3585.97, "objectif": null, "ok": true, "retcode": 10009}
+{"heure": "2026-11-27T08:20:02Z", "type": "ordre", "ticket": 324072092, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3585.97, "objectif": null, "ok": true, "retcode": 10009}
+{"heure": "2026-11-27T08:20:03Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.08, "stop": 3585.97, "id": "bt_or_plus_4", "prix_demande": 3677.38, "spread_points": 41.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 324107880}
+{"heure": "2026-11-27T08:20:03Z", "type": "note", "evenement": "ouverture", "hypothese": "bt_or_plus", "niveau": 4, "sens": 1, "ok": true, "refus": null, "prix_obtenu": null, "stop_secours": 3585.97, "distance_stop": 73.46, "essai": "non prouve"}
+{"heure": "2026-11-27T08:20:04Z", "type": "note", "evenement": "protection", "hypothese": "bt_or_plus", "sens": 1, "palier_R": 0, "point_mort": true, "niveau_sortie": 3641.81, "positions": 4}
