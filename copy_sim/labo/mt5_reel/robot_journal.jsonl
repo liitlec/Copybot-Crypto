@@ -320,3 +320,4 @@
 {"heure": "2026-11-27T17:59:07Z", "type": "note", "evenement": "sortie", "hypothese": "exces_m1", "raison": "stop ou fermeture hors robot", "ticket": 324224818, "sens": -1, "entree": null, "dernier_profit": -7.93}
 {"heure": "2026-11-27T18:00:01Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD.c", "sens": "achat", "lots": 0.01, "stop": 3621.44, "id": "exces_m5", "prix_demande": 3647.79, "spread_points": 41.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": null, "ticket": 324226258}
 {"heure": "2026-11-27T18:00:01Z", "type": "note", "evenement": "ouverture", "hypothese": "exces_m5", "sens": 1, "ok": true, "refus": null, "bid": 3647.38, "ask": 3647.79, "stop": 3621.44, "lots": 0.01, "prix_obtenu": null}
+{"heure": "2026-11-27T18:10:00Z", "type": "ordre", "ticket": 324165566, "action": "modification", "id": "robot", "symbole": "XAUUSD.c", "stop": 3564.97, "objectif": null, "ok": true, "retcode": 10009}
