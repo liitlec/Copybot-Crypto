@@ -78,7 +78,7 @@ SOURCES = {"V4": (None, None), "Z15": ("zone", 0.15), "Z25": ("zone", 0.25), "R2
 
 
 # ------------------------------------------------------------------------------------------------ moteur
-def simule(d, span, heures, debut, mode=None, prm=None, mult=1.0, plac=None, marque=12):
+def simule(d, span, heures, debut, mode=None, prm=None, mult=1.0, plac=None, marque=12, plancher=None):
     """bt_or_plus v4 (banc_lotm k=0) + zone / rejet. plac : placebo (dict de probabilités). Rend (paniers, compteurs).
     Chaque panier garde ses jambes et ses marques (heure, prix de sortie courant, stop de secours) pour l'argent."""
     c, o, hi, lo, t = (d[x].values for x in ("cloture", "ouverture", "haut", "bas", "heure"))
@@ -105,8 +105,12 @@ def simule(d, span, heures, debut, mode=None, prm=None, mult=1.0, plac=None, mar
             niv = LJ.niveau_sortie({"pal": (2, 4)}, s, p["meilleur"], p["e"], p["w"], p["A"], p["unite"], 0.0, sp[i])
             if len(p["e"]) >= 4:
                 moyen = sum(w * e for w, e in zip(p["w"], p["e"])) / sum(p["w"])
-                pm = moyen + s * sp[i]
+                pm = moyen + s * (sp[i] + (plancher[1] * p["A"] if plancher and plancher[0] == "F" else 0.0))
                 niv = max(niv, pm) if s > 0 else min(niv, pm)
+                if plancher and plancher[0] == "G" and p["gmax"] >= 3 * p["unite"]:
+                    vv = [jb for jb in p["jambes"] if jb[3] is None]; Wr = sum(jb[0] for jb in vv)
+                    lv = sum(jb[0] * jb[2] for jb in vv) / Wr + s * plancher[1] * p["gmax"] / Wr
+                    niv = max(niv, lv) if s > 0 else min(niv, lv)
             touche = (lo[i] <= niv) if s > 0 else (hi[i] + sp[i] >= niv)
             if p["retrait"] is not None and not touche:          # rejet : jambe récente sortie à l'ouverture
                 x = o[i] if s > 0 else o[i] + sp[i]
@@ -122,7 +126,7 @@ def simule(d, span, heures, debut, mode=None, prm=None, mult=1.0, plac=None, mar
                     usd += jb[0] * s * (jb[4] - jb[2])
                 p["ev"].append((t[i], "fin", None, niv))
                 P.append(dict(t0=t[p["i"]], t1=t[i], s=s, g=usd / p["unite"], usd=usd, npos=len(p["e"]), A=p["A"],
-                              retire=p["retire"], jambes=p["jambes"], ev=p["ev"], heure=p["heure"]))
+                              retire=p["retire"], jambes=p["jambes"], ev=p["ev"], heure=p["heure"], mfe=p["gmax"] / p["unite"]))
                 if mode == "zone" and len(p["e"]) == 1 and usd < 0:
                     mem[s] = (p["e"][0], p["A"], t[i])
                 del ouvert[s]
@@ -150,6 +154,7 @@ def simule(d, span, heures, debut, mode=None, prm=None, mult=1.0, plac=None, mar
                     elif reel > 0:
                         if rng.random() < plac["rejet"] and i + 1 < len(c):
                             p["retrait"] = len(p["jambes"]) - 1
+            p["gmax"] = max(p["gmax"], sum(jb[0] * s * (marq(s, i) - jb[2]) for jb in p["jambes"] if jb[3] is None))
             if (i - p["i"]) % marque == 0:
                 p["ev"].append((t[i], "marque", None, marq(s, i), secours(p, s, niv)))
         if (hh[i], mm[i]) in heures and atr[i] == atr[i] and ema[i] == ema[i] and atr[i] > 0:
@@ -171,7 +176,7 @@ def simule(d, span, heures, debut, mode=None, prm=None, mult=1.0, plac=None, mar
                 A = atr[i]
                 p = {"i": i, "e": [x], "w": [1.0], "meilleur": c[i], "A": A, "unite": 0.6667 * A, "pas": 0.25 * A,
                      "prochain": c[i] + s * 0.25 * A, "jambes": [[1.0, t[i], x, None, None]], "compte": 0,
-                     "retrait": None, "retire": False, "heure": (int(hh[i]), int(mm[i]))}
+                     "retrait": None, "retire": False, "heure": (int(hh[i]), int(mm[i])), "gmax": 0.0}
                 p["ev"] = [(t[i], "jambe", 0, x, c[i] - s * 0.8333 * A, marq(s, i))]
                 ouvert[s] = p
     P = pd.DataFrame(P)
