@@ -1,3 +1,45 @@
+# Avis pour Baptiste — 27/11/2026 (Lot J : protéger les gains du panier bt_or_plus, jugé sur 2025-26)
+
+**Réponse courte : aucune façon de protéger le gain ne bat la sortie actuelle sur 08/2025-08/2026 ET sur la réserve 09-11/2026. Pas de v4. Les paliers +3/+6 R sont nettement meilleurs sur la période principale (le seul résultat qui bat le hasard), mais ils perdent sur la réserve. Les stops au point mort et le cliquet protègent les petits paniers, mais coupent les grands.** Banc `banc_lotj.py`, contrat figé et poussé avant les résultats (a93cb88).
+
+**Or M5 du courtier, bt_or_plus (R de la position de base) ; principal = 08/2025-08/2026, réserve = 09-11/2026**
+
+| Variante | Principal : total R / gain÷pire baisse / Sharpe | Grands paniers coupés | Réserve : total R | P(arrêt −34 %) 12 mois à 0,02 / 0,05 | Placebo (Holm) |
+|---|---|---|---|---|---|
+| **Actuelle** | **390 / 7,7 / 3,3** | 0 sur 33 | **+25** | 12 % / 64 % | — |
+| Paliers +3/+6 R | **469 / 9,2 / 3,7** | 0 sur 32 | −13 | 11 % / 60 % | **< 0,001** |
+| Paliers +2/+4 R ; +1,5/+3 R | 433 / 9,1 ; 429 / 8,6 | 4 ; 6 | −5 ; −11 | 13 % ; 10 % | 1,00 |
+| Point mort après le 2e renfort | 205 / 7,2 / 2,2 | 17 sur 29 | −36 | 6 % / 69 % | 1,00 |
+| Point mort après le 3e renfort | 342 / 11,2 / 3,3 | 9 sur 32 | −4 | 5 % / 56 % | 1,00 |
+| Point mort (3e) + paliers +3/+6 ; + paliers +2/+4 | 391 / 12,9 ; 388 / 12,8 | 8 ; 10 | −3 ; +8 | 5 % ; 3 % | 1,00 |
+| Cliquet (rendre au plus 30 / 40 / 50 % du gain max) | 54 à 187 / 2,5 à 7,8 | 22 à 32 sur 33 | −17 à 0 | 0 à 0,4 % | ≥ 0,97 |
+| Stop calé sur le prix moyen (dès 3 positions) | 383 / 8,8 / 3,3 | 1 sur 33 | −7 | 18 % / 65 % | 1,00 |
+
+1. **Les paliers +3/+6 R** (recul resserré à 0,5 puis 0,35 ATR une fois le panier bien gagnant) : +79 R et meilleur rapport gain/risque sur la période principale, sans couper de grand panier, et c'est le seul résultat qui bat le hasard. **Mais sur la réserve : −13 R contre +25 R**, et sur l'or H1 2022-24, moins bien (−0,39 contre −0,27). Pas retenu selon le contrat. C'est la piste à garder en observation.
+2. **Le point mort après le 3e renfort**, seul ou avec les paliers, a le meilleur rapport gain/risque (11 à 13 contre 7,7) et divise par 2-3 le risque d'arrêt à 0,02. Mais il coupe 8 à 10 grands paniers sur 32 : le gain total ne monte pas, il perd sur la réserve, et il bat moins bien le hasard.
+3. **Le cliquet** (ne jamais rendre plus de 30-50 % du gain maximal) protège presque parfaitement contre l'arrêt (≈ 0 %), mais il **coupe presque tous les grands paniers** (22 à 32 sur 33) : le gain tombe de 390 à 54-187 R.
+
+**Paniers démo depuis le 18/11** (rejoués sur l'or à terme GC=F 5 min, décalé : approximation, le panier du 24-25/11 fait +6,3 R au rejeu contre +12,6 R réels)
+
+| Panier | Réel | Actuelle (rejeu) | Point mort 2e / 3e renfort | Paliers +3/+6 ; +2/+4 ; +1,5/+3 | Cliquet 30-50 % | Prix moyen |
+|---|---|---|---|---|---|---|
+| 23/11 vente, 1 position | −0,73 R | −0,65 | −0,65 | −0,65 | −0,65 | −0,65 |
+| 23/11 achat, 1 position | +0,06 | +0,06 | +0,06 | +0,06 | +0,06 | +0,06 |
+| 24/11 achat, 1 position | −0,66 | −0,74 | −0,74 | −0,74 | −0,74 | −0,74 |
+| 24-25/11 vente, 5 positions | **+12,63** | +6,29 | **+0,03** | +6,29 ; **+10,04** ; −2,62 | +1,1 à +2,2 | +6,29 |
+
+**Ton panier réel du 27/11** (0,02 @3563,54 + 0,04 @3598,58 + 0,06 @3648,08 ; meilleur prix 3 664, latent +5,58 $)
+
+| Sortie | Niveau de sortie | Résultat si touché |
+|---|---|---|
+| Actuelle, paliers, point mort après le 3e renfort, prix moyen | 3 590,54 | **−3,23 $** |
+| Point mort après le 2e renfort | 3 617,69 | +0,02 $ |
+| Cliquet 30 % / 40 % / 50 % | 3 650,05 / 3 645,40 / 3 640,74 | **+3,91 / +3,35 / +2,79 $** |
+
+Sur ce panier précis, le cliquet aurait gardé 3 à 4 $ au lieu de perdre 3 $. Mais sur 15 mois, la même règle aurait coupé presque tous les grands paniers, comme celui du 24-25/11 (+12,6 R en réel, environ +1 à +2 R avec le cliquet). On ne peut pas avoir les deux avec une règle simple.
+
+**Conclusion** : on reste en v3, aucune v4 préparée. Si tu veux quand même protéger ces cas, le compromis le moins coûteux mesuré est « point mort après le 3e renfort + paliers +2/+4 ». Il est seul positif sur la réserve parmi les protections (+8 R contre +25), et il divise le risque d'arrêt par 4 à base 0,02 (3 % contre 12 %), au prix de 10 grands paniers coupés sur 31. C'est ton choix ; je ne le publie pas sans ton feu vert.
+
 # Avis pour Baptiste — 26/11/2026, nuit (Lot I : risque par base, renfort au retour du panier au point mort)
 
 **Réponse courte : (1) seule la base de 0,02 garde le risque d'arrêt −34 % rare. (2) Renforcer quand le panier revient au point mort gagne bien plus que des renforts placés au hasard : le moment est donc bon. Mais cela revient surtout à miser plus gros. À risque égal, ce n'est pas mieux partout, et le risque d'arrêt grimpe. Rien n'est retenu ; on reste en v3.** Banc `banc_loti.py`, contrat du point 2 figé et poussé avant ses résultats (7ee1f05).

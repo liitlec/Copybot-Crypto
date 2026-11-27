@@ -1121,3 +1121,4 @@ chaque variante aurait fait sur les 6 paniers réels/démo depuis le 18/11 (dont
 correction pour 6 essais. Peu de réglages (≤ 15) pour limiter le sur-ajustement sur 15 mois.
 Si une variante bat la sortie actuelle sur 2025-26 ET sur la réserve : préparer la version réelle 4 (mode auto) mais
 NE PAS la publier : résumé à @parent, Baptiste décide.
+**FAIT le 27/11** : `banc_lotj.py` (contrat a93cb88) ; aucune variante retenue (paliers +3/+6 : principal 469 R contre 390, placebo < 0,001, mais réserve −13 contre +25) ; point mort / cliquet protègent mais coupent les grands paniers ; panier du 27/11 : cliquet +2,8 à +3,9 $ contre −3,2 $ actuel. Pas de v4 préparée.
