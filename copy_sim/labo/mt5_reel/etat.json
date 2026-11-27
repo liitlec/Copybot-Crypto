@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-27T14:58:37Z",
+ "ecrit": "2026-11-27T15:03:44Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 10,
   "lots_par_position": 0.25
  },
- "solde": 20013.97,
- "valeur": 19970.81,
- "marge_libre": 19941.64,
+ "solde": 20021.96,
+ "valeur": 19964.58,
+ "marge_libre": 19928.11,
  "devise": "USC",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD.c": {
-   "bid": 3638.37,
-   "ask": 3638.77,
-   "spread_points": 40.0,
+   "bid": 3635.97,
+   "ask": 3636.38,
+   "spread_points": 41.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795798717
+   "heure_serveur": 1795799024
   }
  },
  "positions_robot": [
@@ -34,10 +34,10 @@
    "sens": "achat",
    "lots": 0.05,
    "prix_entree": 3647.24,
-   "prix_actuel": 3638.37,
+   "prix_actuel": 3635.97,
    "stop": 3556.97,
    "objectif": null,
-   "profit": -44.35,
+   "profit": -56.35,
    "ouverte_heure_serveur": 1795794601
   },
   {
@@ -45,38 +45,27 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3644.27,
-   "prix_actuel": 3638.77,
+   "prix_actuel": 3636.38,
    "stop": 3682.22,
    "objectif": null,
-   "profit": 5.5,
+   "profit": 7.89,
    "ouverte_heure_serveur": 1795795200
-  },
-  {
-   "symbole": "XAUUSD.c",
-   "sens": "vente",
-   "lots": 0.01,
-   "prix_entree": 3640.8,
-   "prix_actuel": 3638.77,
-   "stop": 3654.33,
-   "objectif": null,
-   "profit": 2.03,
-   "ouverte_heure_serveur": 1795798260
   },
   {
    "symbole": "XAUUSD.c",
    "sens": "achat",
    "lots": 0.01,
    "prix_entree": 3644.89,
-   "prix_actuel": 3638.37,
+   "prix_actuel": 3635.97,
    "stop": 3621.44,
    "objectif": null,
-   "profit": -6.52,
+   "profit": -8.92,
    "ouverte_heure_serveur": 1795798501
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-27",
-  "perte_du_jour": -32.63,
+  "perte_du_jour": -38.68,
   "seuil": -993.98,
   "ouvertures_bloquees": false
  },
@@ -89,7 +78,7 @@
  },
  "sommet": {
   "plus_haut": 20945.21,
-  "recul": -0.0465,
+  "recul": -0.0468,
   "arret": false,
   "heure_arret": null
  },
