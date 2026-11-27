@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-27T01:25:02Z",
+ "ecrit": "2026-11-27T01:30:09Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 10,
   "lots_par_position": 0.25
  },
- "solde": 20007.93,
- "valeur": 19904.63,
- "marge_libre": 19875.93,
+ "solde": 19999.09,
+ "valeur": 19919.07,
+ "marge_libre": 19890.37,
  "devise": "USC",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD.c": {
-   "bid": 3572.52,
-   "ask": 3572.92,
-   "spread_points": 40.0,
+   "bid": 3576.04,
+   "ask": 3576.45,
+   "spread_points": 41.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795749901
+   "heure_serveur": 1795750208
   }
  },
  "positions_robot": [
@@ -34,10 +34,10 @@
    "sens": "achat",
    "lots": 0.02,
    "prix_entree": 3563.54,
-   "prix_actuel": 3572.52,
+   "prix_actuel": 3576.04,
    "stop": 3515.97,
    "objectif": null,
-   "profit": 17.96,
+   "profit": 25.0,
    "ouverte_heure_serveur": 1795662601
   },
   {
@@ -45,10 +45,10 @@
    "sens": "achat",
    "lots": 0.04,
    "prix_entree": 3598.58,
-   "prix_actuel": 3572.52,
+   "prix_actuel": 3576.04,
    "stop": 3515.97,
    "objectif": null,
-   "profit": -104.24,
+   "profit": -90.16,
    "ouverte_heure_serveur": 1795667701
   },
   {
@@ -56,27 +56,27 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3565.62,
-   "prix_actuel": 3572.92,
+   "prix_actuel": 3576.45,
    "stop": 3590.22,
    "objectif": null,
-   "profit": -7.3,
+   "profit": -10.83,
    "ouverte_heure_serveur": 1795742101
   },
   {
    "symbole": "XAUUSD.c",
    "sens": "vente",
    "lots": 0.01,
-   "prix_entree": 3567.19,
-   "prix_actuel": 3572.92,
-   "stop": 3575.55,
-   "objectif": null,
-   "profit": -5.73,
-   "ouverte_heure_serveur": 1795746601
+   "prix_entree": 3576.41,
+   "prix_actuel": 3576.45,
+   "stop": 3579.55,
+   "objectif": 3567.58,
+   "profit": -0.04,
+   "ouverte_heure_serveur": 1795750201
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-27",
-  "perte_du_jour": -98.63,
+  "perte_du_jour": -84.19,
   "seuil": -993.98,
   "ouvertures_bloquees": false
  },
@@ -89,7 +89,7 @@
  },
  "sommet": {
   "plus_haut": 20191.75,
-  "recul": -0.0142,
+  "recul": -0.0135,
   "arret": false,
   "heure_arret": null
  },
