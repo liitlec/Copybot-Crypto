@@ -1224,3 +1224,14 @@ risque d'arrêt −34 % du compte réel.
    doublé, placebo, Holm ; corrélation avec bt_or_plus par semaine ; effet sur le compte réel (USC, risque d'arrêt).
 4. Ce qui tient : variante démo `_opt` hors totaux (version démo suivante) pour vérification en direct ; JAMAIS en
    réel sans accord de Baptiste. Résultats en tête d'AVIS.md ; résumé chiffré à @parent.
+**Ajout au lot N (Baptiste, 27/11 13 h 40) : « les autres stratégies, je suis sûr qu'on peut encore plus les améliorer
+pour qu'elles dégagent plus de gains ».** Règles courtes du robot réel (elan_m15, cassure_m15, exces_m1, exces_m5,
+retour_court_ar). Le lot G a déjà testé seuils, durée, stop 0,5 ATR, heures et lien avec le sens de bt_or (72 réglages,
+pire hors échantillon) : NE PAS refaire. Nouveau, jugé sur 2025-26 + réserve, contrat figé, placebo, Holm :
+1. SORTIES au lieu de la tenue fixe : objectif en ATR (0,5 / 1 / 1,5), stop suiveur, sortie sur essoufflement
+   (1re clôture M5/M15 contre le sens), point mort après +0,5 ATR — c'est la sortie qui n'a jamais été changée.
+2. Tendance courte (elan, cassure, exces_m5) seulement dans le sens de la pente EMA 576 M5 (le « sens » de bt_or)
+   avec la nouvelle sortie ; contre-tendance (exces_m1, retour_court_ar) seulement contre une poussée locale ET dans le
+   sens de cette pente (acheter les replis d'une tendance haussière).
+3. Taille selon la qualité du signal (force de la cassure / de l'excès en écarts-types), bornée 0,01-0,02.
+Mesurer par règle et pour l'ensemble avec bt_or_plus v4 (USC, risque d'arrêt). Ce qui tient → démo `_opt` d'abord.
