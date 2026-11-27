@@ -25,6 +25,28 @@
 4. **Taille et plafond** : à risque égal, les variantes qui grossissent vite mettent une position au-dessus de 0,25 lot à base 0,05 (jusqu'à 0,60-0,72 pour les adaptatifs). Avec ton plafond, ces renforts seraient refusés ou il faudrait baisser la base. La marge reste petite partout (au plus 33 $ au levier 500).
 5. **Paniers démo depuis le 18/11** (rejeu approximatif sur GC=F) : avec la sortie v4, le gros panier du 24-25/11 (+12,6 R en réel) sort au point mort dans le rejeu (≈ 0 R) pour toutes les tailles, sauf le décroissant (+11,9 R, car le prix moyen y reste plus bas). Les 3 petits paniers d'une position ne changent qu'à proportion du facteur de taille.
 
+**Ajout : cliquet PARTIEL** (ta demande de 9 h 45 : encaisser une partie quand le panier rend trop, laisser courir le reste ; contrat 7830881)
+
+| Cliquet partiel (une fois par panier) | Principal : gain÷pire baisse / Sharpe | Réserve : total R | H1 2024-26 : gain÷pire baisse | P(arrêt) 12 mois à 0,05 | Placebo |
+|---|---|---|---|---|---|
+| **Sans (v4)** | **12,8 / 3,45** | **+8,5** | **10,8** | 43 % | — |
+| Moitié de chaque position, après 30 / 40 / 50 % rendus (gain max ≥ 2 R) | 13,5 / 13,1 / 13,1 (Sharpe 3,0-3,1) | +8,8 / +6,5 / **+11,5** | 4,5 à 4,8 | 45-47 % | 0,74-0,78 |
+| Idem, gain max ≥ 3 R | 10,7 à 12,0 | −0,7 à +2,2 | 6,4 à 6,8 | 54-62 % | 0,59-0,82 |
+| Renforts les plus récents (= les plus gros), toutes variantes | 8,1 à 11,0 | −26 à −12 | 5,1 à 7,6 | 56-67 % | 0,20-0,49 |
+
+1. **Rien ne tient** (Holm 1,00). Encaisser la moitié après 50 % rendus est le moins mauvais : meilleur sur la réserve (+11,5 contre +8,5), à peu près égal sur 2025-26. Mais sur l'or H1 2024-26, la grande tendance, il ne garde que **la moitié** du gain/risque (4,8 contre 10,8).
+2. Fermer les renforts récents est nettement pire : ce sont les plus gros, et ce sont eux qui font les grands gains.
+
+**Ton panier du 27/11** (meilleur 3 664 $)
+
+| Règle | Encaissé au déclenchement | Si l'or revient ensuite au stop v4 (3 590,5) | Si l'or monte à 3 700 |
+|---|---|---|---|
+| v4 sans cliquet | — | **−3,23 $** | **+9,90 $** |
+| Moitié à 30 % rendus (3 650,05) | +1,95 $ | +0,34 $ | +6,90 $ |
+| Moitié à 50 % rendus (3 640,74) | +1,40 $ | −0,22 $ | +6,35 $ |
+
+On échange environ 3,5 $ de protection contre environ 3 $ de gain en moins si la tendance repart. Sur 15 mois, ces deux effets s'annulent à peu près, et sur 4 ans le cliquet coûte.
+
 **Conclusion** : on garde 1-2-3-4-5, pas de v5. Si tu veux un coefficient quand même, le seul qui a une logique et des chiffres corrects est « efficacité 4 h × 2 ». À essayer d'abord en démo (bt_or_plus_opt) pour voir s'il tient en direct, et avec une base plus petite pour rester sous 0,25 lot.
 
 # Avis pour Baptiste — 27/11/2026 (Lot J : protéger les gains du panier bt_or_plus, jugé sur 2025-26)

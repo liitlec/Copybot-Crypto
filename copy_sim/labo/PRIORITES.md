@@ -1155,4 +1155,5 @@ laisser courir le reste ».** Cliquet PARTIEL (jamais testé ; le lot J ne testa
 quand le panier a rendu 30 / 40 / 50 % de son gain maximal latent (gain max ≥ 2 / 3 R), fermer la moitié (ou les
 renforts les plus récents, ou les plus gros) et laisser le reste sous la sortie v4. Une seule fois par panier. Mêmes
 mesures et même jugement (2025-26 + réserve), y compris le rejeu du panier réel du 27/11.
+**Ajout FAIT le 27/11** (contrat 7830881) : cliquet partiel, 12 variantes, aucune retenue (Holm 1,00) ; « moitié à 50 % rendus » : réserve +11,5 contre +8,5 mais H1 2024-26 4,8 contre 10,8 ; panier du 27/11 : +0,34 $ au lieu de −3,23 $ si retour au stop, +6,90 $ au lieu de +9,90 $ si 3 700.
 **Partie coefficients FAITE le 27/11** : `banc_lotk.py` (contrat cca54b3) ; aucune variante retenue (Holm 1,00) ; à surveiller : « efficacité 4 h × 2 » (gain÷pire baisse 15,0 contre 12,8, réserve +13,3 contre +8,5, arrêt 38 % contre 43 %, mais placebo 0,29, H1 2024-26 moins bon, positions jusqu'à 0,60 lot à base 0,05). Pas de v5.
