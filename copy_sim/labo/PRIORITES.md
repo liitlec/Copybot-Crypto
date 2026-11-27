@@ -1175,3 +1175,4 @@ autorisées seulement dans le sens d'un panier bt_or_plus plein (le lot G ne l'a
 horizon de tenue plus long pour elan/cassure quand un panier est plein ; autre idée argumentée.
 Livrable : tableau simple en tête d'AVIS.md, rejeu des paniers réels depuis le 18/11, et une recommandation franche.
 Si une piste bat la v4 sur 2025-26 ET la réserve sans plus de risque d'arrêt : préparer la v5 réelle SANS la publier.
+**FAIT le 27/11 (Opus)** : `banc_lotl.py` (contrat 86acb6a) ; aucune piste retenue ; P2b (réentrée si le prix repasse la sortie dans l'heure) : principal 5,97 contre 5,57, placebo 0,02 (Holm 0,16), réserve −234 contre +406 ; P1 2e panier : 10 positions, réserve instable ; P3 replis bien pires ; P4 sans effet. Pas de v5 ; recommandation : rester en v4.

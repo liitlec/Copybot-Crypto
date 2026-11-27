@@ -1,3 +1,28 @@
+# Avis pour Baptiste — 27/11/2026 (Lot L : tirer plus des tendances sans plus de risque, pistes nouvelles)
+
+**Réponse courte : aucune des 4 pistes nouvelles ne gagne à la fois sur 2025-26 et sur la réserve à risque égal. La meilleure, la réentrée juste après une sortie gagnante si le prix repasse au-dessus du prix de sortie dans l'heure, bat le hasard (p 0,02 avant correction) et fait mieux sur 2025-26, mais perd sur la réserve. Pas de v5. Recommandation franche : ne rien changer au robot réel. Le gain des tendances vient déjà de la pyramide et de la sortie v4 ; tout ce qui rajoute de l'exposition augmente surtout le risque.** Banc `banc_lotl.py`, contrat figé et poussé avant les résultats (86acb6a). Fait sur Opus (la session Fable n'avait plus de crédits).
+
+Mesure : robot complet (bt_or_plus v4 + 5 règles courtes), en USC, base 0,05, à risque égal (même écart-type journalier que le robot actuel). Principal = 08/2025-08/2026, réserve = 09-11/2026.
+
+| Piste | Principal : gain÷pire baisse / Sharpe | Réserve (USC, risque égal) | P(arrêt −34 %) 12 mois | Positions max | Placebo (Holm) | Verdict |
+|---|---|---|---|---|---|---|
+| **Robot actuel (v4)** | **5,57 / 1,85** | **+406** | 47 % | 6 | — | référence |
+| P1a : 2e panier quand le 1er gagne ≥ 2 R | 6,14 / 1,91 | **−1 554** | 45 % | **10** | 0,45 (1,00) | non |
+| P1b : 2e panier à ≥ 4 R | 6,29 / 1,64 | +1 399 | 34 % | **10** | 0,33 (1,00) | non (Sharpe plus bas, ne bat pas le hasard) |
+| P2a : réentrée immédiate après sortie ≥ +2 R | 5,63 / 1,82 | +321 | 50 % | 6 | 0,33 (1,00) | non |
+| **P2b : réentrée si le prix repasse la sortie dans l'heure** | **5,97 / 1,93** | −234 | 49 % | 6 | **0,02** (0,16) | non (perd sur la réserve) |
+| P3a / P3b : renforts sur replis (moyenne 20 / 50 M5) | 1,80 / 2,15 | −10 269 / −13 903 | 85 % / 84 % | 5 | 0,89 / 0,75 | non (bien pire) |
+| P4a : elan/cassure seulement dans le sens d'un panier plein | 5,40 / 1,85 | +353 | 46 % | 6 | 0,23 (1,00) | non |
+| P4b : tenue d'elan/cassure doublée quand le panier est plein | 5,48 / 1,85 | +331 | 48 % | 6 | 0,74 (1,00) | non |
+
+1. **Pyramide de paniers (P1)** : un 2e panier rapporte beaucoup en R brut (+540 R contre +397 sur 15 mois), mais c'est surtout plus d'exposition : à risque égal, presque rien. Il remplit les **10 positions** du plafond du pont, et la réserve diverge (−1 554 ou +1 399 selon le seuil).
+2. **Réentrée (P2b)** : la seule idée qui bat le hasard avant correction (p 0,02). +4 % sur 2025-26 à risque égal, mais −234 USC sur la réserve, et pas mieux sur l'or H1 2024-26 (9,8 contre 10,8). À garder en observation, pas à installer.
+3. **Renforts sur replis (P3)** : nettement pires. Acheter les replis dans un panier en gain, c'est renforcer quand la tendance faiblit, et le point mort v4 coupe ensuite.
+4. **Règles courtes avec le panier (P4)** : le lien avec le panier ne change rien (comme au lot G). Les règles courtes comptent très peu dans le total.
+5. **Ton panier du 27/11** n'est pas rejouable pour ces pistes : il manque les bougies après le 11/11 et l'or à terme s'arrête le 26/11. Pour ce panier précis : P1a aurait ouvert un 2e panier vers +2 R (≈ 3 710 $), P2 ne joue qu'après sa sortie.
+
+**Recommandation franche** : rester en v4. Après 12 lots (A à L), l'avantage du robot reste le même : être en place sur les tendances, renforcer, sortir au recul. Chaque ajout testé depuis (régimes, sorties, tailles, réentrées, 2e panier) gagne parfois sur une période et perd sur l'autre. Pour gagner plus dans une tendance sans plus de risque, aucun levier mesuré ne tient. Le seul levier réel est la mise, et elle se paie en risque d'arrêt (lot I).
+
 # Avis pour Baptiste — 27/11/2026 (Lot K : taille des renforts par coefficient)
 
 **Réponse courte : aucun coefficient ne bat la pyramide actuelle (1-2-3-4-5) sur 2025-26 ET sur la réserve de façon sûre. Les deux réglages adaptatifs les plus prometteurs (renfort plus gros quand la tendance des 4 dernières heures est nette, ou quand le panier gagne déjà) font un peu mieux, mais sans battre le hasard (p 0,29 et 0,38 avant correction), et ils dépasseraient ton plafond de 0,25 lot par position. Pas de v5.** Banc `banc_lotk.py`, contrat figé et poussé avant les résultats (cca54b3). Sortie v4 incluse partout ; comparaison à risque égal (même écart-type journalier que la pyramide actuelle).
