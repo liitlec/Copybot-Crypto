@@ -182,3 +182,15 @@ if __name__ == "__main__":
     print(T.round(3).to_string(index=False))
     TR = reels(T); TR.to_csv(os.path.join(ICI, "donnees", "lotk_paniers_reels.csv"), index=False)
     print("\npaniers demo depuis le 18/11 (rejeu GC=F, sortie v4, a risque egal)"); print(TR.round(2).to_string(index=False))
+
+
+CONTRAT_CLIQUET_PARTIEL = """AJOUT AU LOT K (Baptiste 27/11 9 h 45 : « retirer une partie des gains si ça descend trop, laisser courir le
+reste »). CONTRAT FIGÉ ET POUSSÉ AVANT SES RÉSULTATS. Pyramide actuelle 1-2-3-4-5 et sortie v4 pour le reste.
+Déclencheur, une seule fois par panier : le gain maximal latent du panier (clôtures) a atteint 2 / 3 R et le panier en
+a rendu 30 / 40 / 50 % (niveau de prix où le gain latent vaut 70 / 60 / 50 % du maximum, touché par bas/haut + spread).
+Fermeture partielle à ce niveau : « moitié » = la moitié de chaque position ; « récents » = les positions les plus
+récentes (ce sont aussi les plus grosses en 1-2-3-4-5) jusqu'à au moins la moitié de la taille du panier. Le reste
+continue sous la sortie v4 (point mort recalculé sur ce qui reste). 12 variantes (3 x 2 x 2) + REF (v4).
+Mêmes mesures, même jugement et même correction (Holm sur les 12) que le lot K, à risque égal ; plus : le panier réel
+du 27/11 (0,02 @3563,54 + 0,04 @3598,58 + 0,06 @3648,08, meilleur 3 664) calculé directement.
+"""
