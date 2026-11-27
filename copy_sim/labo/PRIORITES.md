@@ -1191,3 +1191,10 @@ Contrat d'Astra : placebos appariés (zone, rejet, budget), Holm sur les 6 varia
 spread doublé, 20 000 USC en argent avec règles courtes, garde-fou −5 % et arrêt −34 %, 2 000 chemins de 12 mois.
 Adoption seulement si MOINS d'arrêts ET gain médian au moins égal à v4 ; rapporter aussi v4 à 0,03, les 5 grands
 gagnants, les paniers proches de zéro, les ordres refusés. Préparer v5 SANS la publier ; résumé à @parent.
+**Ajout au lot M (Baptiste, 27/11 12 h 50) : « dans les cas comme ça, si ça redescend, au moins récupérer un peu de
+gain et pas être à zéro ».** Variantes du plancher de la v4 (dès 4 positions), mêmes épreuves que le lot M :
+(a) plancher = prix moyen + 0,10 / 0,20 / 0,30 ATR (au-dessous en vente) ; (b) plancher = garder au moins 20 / 30 %
+du gain latent maximal du panier une fois ce gain ≥ 3 R ; (c) (a) ou (b) combiné à la règle « rejet » d'Astra.
+Rapporter pour chacune : gain moyen gardé sur les paniers qui retombent, grands paniers coupés trop tôt, total,
+réserve, risque d'arrêt, et le rejeu du panier réel du 27/11 (0,02 @3563,54 / 0,04 @3598,58 / 0,06 @3648,08 /
+0,08 @3677,30, meilleur ≈ 3 685 $).
