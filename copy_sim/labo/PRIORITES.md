@@ -1198,3 +1198,22 @@ du gain latent maximal du panier une fois ce gain ≥ 3 R ; (c) (a) ou (b) combi
 Rapporter pour chacune : gain moyen gardé sur les paniers qui retombent, grands paniers coupés trop tôt, total,
 réserve, risque d'arrêt, et le rejeu du panier réel du 27/11 (0,02 @3563,54 / 0,04 @3598,58 / 0,06 @3648,08 /
 0,08 @3677,30, meilleur ≈ 3 685 $).
+
+## 27/11 13 h — Lot N : chercher d'AUTRES stratégies à greffer à bt_or_plus (demande écrite de Baptiste)
+Baptiste : « il faut qu'on trouve, je suis sûr qu'il y a d'autres stratégies à avoir encore » ; idée de départ :
+« greffer une autre stratégie à bt_or qui capture le début du mouvement et s'arrête au maximum ».
+Après le lot M. But : 1 à 3 compléments qui gagnent sur 2025-26 ET sur la réserve 09-11/2026, peu corrélés aux
+pertes de bt_or_plus (idéalement gagnants les semaines où bt_or perd), petits (0,01 lot cent), sans augmenter le
+risque d'arrêt −34 % du compte réel.
+1. Jumeau « début de mouvement » sorti sur ESSOUFFLEMENT (non testé le 18/11) : entre avec la 1re position de
+   bt_or_plus (ou sur cassure M15 dans son sens), sort à la 1re clôture M15 contre la tendance (EMA 20 M5/M15, mèche
+   de rejet, ralentissement de l'ATR M5), ou à un objectif en ATR ; comparer à « miser plus sur bt_or ».
+2. Recherche large, y compris littérature et internet (stratégies documentées sur l'or et les métaux : cassures de
+   séance Londres/New York, ouverture de Comex, retour après news, momentum horaire, saisonnalité intrajour, argent
+   XAG en complément, ratio or/argent, etc.) : retenir 5 à 10 candidats argumentés, PAS ce qui a déjà échoué (voir
+   « Tout ce qui a été testé » dans AVIS.md : 48 790 essais de scalp or, détecteurs, grilles, martingales, indices
+   déjà en démo, tendance 14 marchés).
+3. Chaque candidat : règle exacte, contrat figé avant, M5 courtier 08/2025-08/2026, réserve gelée, spread réel puis
+   doublé, placebo, Holm ; corrélation avec bt_or_plus par semaine ; effet sur le compte réel (USC, risque d'arrêt).
+4. Ce qui tient : variante démo `_opt` hors totaux (version démo suivante) pour vérification en direct ; JAMAIS en
+   réel sans accord de Baptiste. Résultats en tête d'AVIS.md ; résumé chiffré à @parent.
