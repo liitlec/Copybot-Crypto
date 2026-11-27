@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-27T21:57:52Z",
+ "ecrit": "2026-11-27T22:03:57Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -10,8 +10,8 @@
   "lots_par_position": 0.25
  },
  "solde": 20007.04,
- "valeur": 20019.9,
- "marge_libre": 19990.72,
+ "valeur": 20016.88,
+ "marge_libre": 19987.7,
  "devise": "USC",
  "levier": 500,
  "positions": [],
@@ -54,7 +54,7 @@
  ],
  "garde_fou": {
   "jour_paris": "2026-11-27",
-  "perte_du_jour": 16.64,
+  "perte_du_jour": 13.62,
   "seuil": -993.98,
   "ouvertures_bloquees": false
  },
@@ -67,7 +67,7 @@
  },
  "sommet": {
   "plus_haut": 20945.21,
-  "recul": -0.0442,
+  "recul": -0.0443,
   "arret": false,
   "heure_arret": null
  },
