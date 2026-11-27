@@ -1150,3 +1150,8 @@ Mesures : total R et USC (20 000 USC, base 0,05 ∝ solde), gain÷pire baisse, r
 mois, marge maximale utilisée (levier 500, plafond local 0,25 lot/position : signaler tout renfort qui dépasserait),
 et rejeu des paniers réels depuis le 18/11. Placebo / correction pour essais multiples. Si une variante bat la v4
 sur 2025-26 ET sur la réserve : préparer v5 sans la publier ; résumé chiffré à @parent, Baptiste décide.
+**Ajout au lot K (Baptiste, 27/11 9 h 45) : « retirer une partie des gains si ça descend trop pour sécuriser, et
+laisser courir le reste ».** Cliquet PARTIEL (jamais testé ; le lot J ne testait que le cliquet qui ferme tout) :
+quand le panier a rendu 30 / 40 / 50 % de son gain maximal latent (gain max ≥ 2 / 3 R), fermer la moitié (ou les
+renforts les plus récents, ou les plus gros) et laisser le reste sous la sortie v4. Une seule fois par panier. Mêmes
+mesures et même jugement (2025-26 + réserve), y compris le rejeu du panier réel du 27/11.
