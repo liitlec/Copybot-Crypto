@@ -1099,3 +1099,25 @@ Résultats en tête d'AVIS.md, tableaux simples ; résumé chiffré à @parent a
    le feu vert de Baptiste dans la conversation).
 Résultats en tête d'AVIS.md ; résumé chiffré à @parent (point 1 d'abord, il attend pour décider de sa base).
 **FAIT le 26/11** : `banc_loti.py`. Point 1 : P(arrêt −34 %) 12 mois H1/M5 mesuré : 0,02 → 0,4 % / 16 % ; 0,03 → 12 / 41 % ; 0,04 → 28 / 53 % ; 0,05 → 43 / 63 %. Point 2 (contrat 7ee1f05) : renfort au point mort bien placé (+292 R contre +123 au hasard, p < 0,001), mais à risque égal moins bon sur M5 et 2024-26, et P(arrêt) à 0,02 de 0,4 → 7 % (H1), 12 → 37 % (M5) ; rien de retenu, on reste en v3.
+
+## 27/11 9 h 15 — Lot J : protéger les gains du panier bt_or_plus, jugé sur 2025-26 (demande écrite de Baptiste)
+Baptiste : « il faut qu'on se cale sur les deux dernières années… 25-26 pas 24, et teste comment on peut faire ».
+Cas réel du 27/11 : panier acheteur 0,02 @3563,54 + 0,04 @3598,58 + 0,06 @3648,08, +5,5 $ latents à 3 664 $ ; un
+retour au stop suiveur (73 $ sous le meilleur) le ferait finir vers −2,8 $. But : profiter de ces mouvements sans
+couper les grandes tendances.
+**Période de jugement principale : or M5 du courtier 08/2025 → 11/2026** (demande de Baptiste) ; garder les 3
+derniers mois (09-11/2026) en réserve pour la vérification finale ; H1 2024-26 et 2022-24 en information seulement.
+Variantes de sortie de bt_or_plus (même entrée, mêmes renforts 1-2-3-4-5) :
+1. stop au point mort du panier (prix moyen + spread) après le 2e / 3e renfort ;
+2. paliers +3 / +6 R (actuel lot G) et paliers plus tôt (+1,5 / +3 R ; +2 / +4 R) ;
+3. combinaison point mort après le 3e renfort + paliers ;
+4. cliquet sur le gain du panier : ne jamais rendre plus de 30 / 40 / 50 % du gain maximal latent du panier, une fois
+   ce gain au-delà de 2 / 3 R ;
+5. stop suiveur calé sur le prix moyen du panier (et non le meilleur prix) quand le panier a ≥ 3 positions ;
+6. témoin : sortie actuelle.
+Mesures : total en R et en USC (20 000 USC, base v3), gain÷pire baisse, gain rendu par panier, grands paniers coupés
+trop tôt, résultat sur la réserve 09-11/2026, risque d'arrêt −34 % en 12 mois aux bases 0,02 / 0,03 / 0,05, et ce que
+chaque variante aurait fait sur les 6 paniers réels/démo depuis le 18/11 (dont celui du 27/11). Placebo et
+correction pour 6 essais. Peu de réglages (≤ 15) pour limiter le sur-ajustement sur 15 mois.
+Si une variante bat la sortie actuelle sur 2025-26 ET sur la réserve : préparer la version réelle 4 (mode auto) mais
+NE PAS la publier : résumé à @parent, Baptiste décide.
