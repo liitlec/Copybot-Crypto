@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-27T00:01:11Z",
+ "ecrit": "2026-11-27T00:06:17Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -10,22 +10,22 @@
   "lots_par_position": 0.25
  },
  "solde": 20010.12,
- "valeur": 19906.9,
- "marge_libre": 19878.2,
+ "valeur": 19904.46,
+ "marge_libre": 19875.76,
  "devise": "USC",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD.c": {
-   "bid": 3571.59,
-   "ask": 3571.99,
+   "bid": 3570.98,
+   "ask": 3571.38,
    "spread_points": 40.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795744870
+   "heure_serveur": 1795745176
   }
  },
  "positions_robot": [
@@ -34,10 +34,10 @@
    "sens": "achat",
    "lots": 0.02,
    "prix_entree": 3563.54,
-   "prix_actuel": 3571.59,
+   "prix_actuel": 3570.98,
    "stop": 3515.97,
    "objectif": null,
-   "profit": 16.1,
+   "profit": 14.88,
    "ouverte_heure_serveur": 1795662601
   },
   {
@@ -45,10 +45,10 @@
    "sens": "achat",
    "lots": 0.04,
    "prix_entree": 3598.58,
-   "prix_actuel": 3571.59,
+   "prix_actuel": 3570.98,
    "stop": 3515.97,
    "objectif": null,
-   "profit": -107.96,
+   "profit": -110.4,
    "ouverte_heure_serveur": 1795667701
   },
   {
@@ -56,10 +56,10 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3565.62,
-   "prix_actuel": 3571.99,
+   "prix_actuel": 3571.38,
    "stop": 3590.22,
    "objectif": null,
-   "profit": -6.37,
+   "profit": -5.76,
    "ouverte_heure_serveur": 1795742101
   },
   {
@@ -67,16 +67,16 @@
    "sens": "vente",
    "lots": 0.01,
    "prix_entree": 3570.99,
-   "prix_actuel": 3571.99,
+   "prix_actuel": 3571.38,
    "stop": 3577.33,
    "objectif": null,
-   "profit": -1.0,
+   "profit": -0.39,
    "ouverte_heure_serveur": 1795744860
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-27",
-  "perte_du_jour": -96.36,
+  "perte_du_jour": -98.8,
   "seuil": -993.98,
   "ouvertures_bloquees": false
  },
@@ -89,7 +89,7 @@
  },
  "sommet": {
   "plus_haut": 20191.75,
-  "recul": -0.0141,
+  "recul": -0.0142,
   "arret": false,
   "heure_arret": null
  },
