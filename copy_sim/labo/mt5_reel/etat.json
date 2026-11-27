@@ -1,5 +1,5 @@
 {
- "ecrit": "2026-11-27T13:57:15Z",
+ "ecrit": "2026-11-27T14:02:22Z",
  "pont": 1,
  "ordres_autorises": true,
  "arret": null,
@@ -9,23 +9,23 @@
   "positions": 10,
   "lots_par_position": 0.25
  },
- "solde": 20056.81,
- "valeur": 20040.51,
- "marge_libre": 19989.39,
+ "solde": 20021.88,
+ "valeur": 19999.36,
+ "marge_libre": 19962.89,
  "devise": "USC",
  "levier": 500,
  "positions": [],
  "symboles": {
   "XAUUSD.c": {
-   "bid": 3648.85,
-   "ask": 3649.25,
+   "bid": 3642.56,
+   "ask": 3642.96,
    "spread_points": 40.0,
    "point": 0.01,
    "chiffres": 2,
    "lot_min": 0.01,
    "pas_lot": 0.01,
    "taille_contrat": 1.0,
-   "heure_serveur": 1795795035
+   "heure_serveur": 1795795342
   }
  },
  "positions_robot": [
@@ -33,22 +33,11 @@
    "symbole": "XAUUSD.c",
    "sens": "achat",
    "lots": 0.01,
-   "prix_entree": 3679.06,
-   "prix_actuel": 3648.85,
-   "stop": 3640.22,
-   "objectif": null,
-   "profit": -30.21,
-   "ouverte_heure_serveur": 1795784401
-  },
-  {
-   "symbole": "XAUUSD.c",
-   "sens": "achat",
-   "lots": 0.01,
    "prix_entree": 3642.99,
-   "prix_actuel": 3648.85,
+   "prix_actuel": 3642.56,
    "stop": 3638.55,
    "objectif": null,
-   "profit": 5.86,
+   "profit": -0.43,
    "ouverte_heure_serveur": 1795794300
   },
   {
@@ -56,16 +45,27 @@
    "sens": "achat",
    "lots": 0.05,
    "prix_entree": 3647.24,
-   "prix_actuel": 3648.85,
+   "prix_actuel": 3642.56,
    "stop": 3556.97,
    "objectif": null,
-   "profit": 8.05,
+   "profit": -23.4,
    "ouverte_heure_serveur": 1795794601
+  },
+  {
+   "symbole": "XAUUSD.c",
+   "sens": "vente",
+   "lots": 0.01,
+   "prix_entree": 3644.27,
+   "prix_actuel": 3642.96,
+   "stop": 3682.22,
+   "objectif": null,
+   "profit": 1.31,
+   "ouverte_heure_serveur": 1795795200
   }
  ],
  "garde_fou": {
   "jour_paris": "2026-11-27",
-  "perte_du_jour": 37.25,
+  "perte_du_jour": -3.9,
   "seuil": -993.98,
   "ouvertures_bloquees": false
  },
@@ -78,7 +78,7 @@
  },
  "sommet": {
   "plus_haut": 20945.21,
-  "recul": -0.0432,
+  "recul": -0.0452,
   "arret": false,
   "heure_arret": null
  },
