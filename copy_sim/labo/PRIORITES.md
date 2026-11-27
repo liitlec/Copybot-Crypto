@@ -1235,3 +1235,9 @@ pire hors échantillon) : NE PAS refaire. Nouveau, jugé sur 2025-26 + réserve,
    sens de cette pente (acheter les replis d'une tendance haussière).
 3. Taille selon la qualité du signal (force de la cassure / de l'excès en écarts-types), bornée 0,01-0,02.
 Mesurer par règle et pour l'ensemble avec bt_or_plus v4 (USC, risque d'arrêt). Ce qui tient → démo `_opt` d'abord.
+**Lot N FAIT le 27/11 (Opus)** : `banc_lotn.py` (contrat d822294) : aucun des 10 candidats ne tient (jumeaux J1-J4,
+fin de Comex, Shanghai, trou du week-end, retour Asie, cassure Comex, cassure Asie à Londres) ; le plus proche :
+cassure Asie à Londres +681 $ / réserve +147 / arrêt −0,7 pt, placebo 0,11 (Holm 0,96). `banc_lotn_courtes.py` (40
+variantes) : « presque » cassure_m15 objectif +1,5 ATR (+2 519 contre +447 $, réserve +201 contre −60, placebo 0,010,
+Holm 0,38, arrêt −1,6 pt), cassure_m15 stop suiveur (p 0,036), retour_court_ar dans le sens de bt_or (+411 contre
+−886, p 0,022, Holm 0,88) ; exces_m1 non jugeable (M1 depuis le 12/08/2026). Rien en démo sans accord de Baptiste.

@@ -1,3 +1,41 @@
+# Avis pour Baptiste — 27/11/2026, fin d'après-midi (Lot N : d'autres stratégies + améliorer les règles courtes)
+
+**Réponse courte : aucune nouvelle stratégie ne tient. Deux améliorations des règles courtes sont « presque » (gagnent partout, mais pas assez nettes après correction pour 40 essais) : `cassure_m15` avec un objectif à +1,5 ATR au lieu de la tenue fixe, et `retour_court_ar` seulement dans le sens de bt_or. Rien en démo sans ton feu vert.** Bancs `banc_lotn.py` (contrat d822294) et `banc_lotn_courtes.py` (contrat figé avant), or M5 du courtier, principal 08/2025-08/2026, réserve 09-11/2026, spread réel puis doublé, placebo, Holm ; arrêt = risque −34 % en 12 mois du compte réel simulé (v4 base 0,05 : 68 %).
+
+**1. Nouvelles stratégies (0,01 lot, $ sur le principal)**
+
+| Candidat | Trades | Gain | Réserve | Spread ×2 | Placebo (Holm) | Corrél. hebdo bt_or | Effet sur l'arrêt | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| Jumeau, sortie EMA 20 M15 | 267 | −106 | −44 | −176 | 0,48 (1) | +0,09 | +0,4 pt | non |
+| Jumeau, bougie de rejet M15 | 267 | +117 | −193 | +33 | 0,27 (1) | 0,00 | +0,1 | non |
+| Jumeau, ralentissement M15 | 267 | −263 | −338 | −261 | 0,54 (1) | −0,11 | +0,8 | non |
+| Jumeau, objectif +1 ATR | 267 | +664 | −580 | +630 | 0,07 (0,67) | +0,51 | +0,1 | non |
+| Momentum de fin de Comex | 273 | −112 | +59 | −165 | 0,73 (1) | +0,51 | +0,2 | non |
+| Ouverture de Shanghai | 275 | −61 | +4 | −115 | 0,57 (1) | +0,56 | +0,2 | non |
+| Trou du week-end (contre) | 24 | −631 | +23 | −635 | 1,00 (1) | +0,02 | +0,5 | non |
+| Retour en séance asiatique | 445 | −653 | −39 | −735 | 0,96 (1) | −0,36 | +0,4 | non |
+| Cassure ouverture Comex | 264 | −685 | −58 | −724 | 0,91 (1) | −0,06 | +0,7 | non |
+| **Cassure Asie à Londres** | 168 | **+681** | **+147** | +648 | 0,11 (0,96) | +0,37 | **−0,7** | non (pas prouvé) |
+
+Aucun jumeau ne fait mieux que « miser plus sur bt_or » (gain÷creux 5,39 au mieux contre 5,33). Les pistes de la littérature (fin de Comex, Shanghai) ne marchent pas sur l'or de ce courtier ; le trou du week-end se prolonge plus souvent qu'il ne se referme (−26 $ par trade, t −2,7 : piste inverse non testée, 24 trades seulement).
+
+**2. Règles courtes : sorties, filtre du sens, taille (40 variantes)**
+
+| Règle | Variante | Gain principal (actuel) | Réserve (actuel) | Spread ×2 (actuel) | Placebo (Holm) | Arrêt | Verdict |
+|---|---|---|---|---|---|---|---|
+| **cassure_m15** | **objectif +1,5 ATR** | **+2 519 (+447)** | **+201 (−60)** | +2 460 (+319) | **0,010** (0,38) | **−1,6 pt** | **presque** |
+| cassure_m15 | stop suiveur 0,5 ATR | +2 118 (+447) | +142 (−60) | +2 028 (+319) | 0,036 (1) | −1,1 pt | presque |
+| cassure_m15 | objectif +0,5 / +1 ATR | +2 705 / +2 113 | +216 / +276 | +2 653 / +2 056 | 0,09 / 0,07 | −1,4 / −1,3 | non |
+| **retour_court_ar** | **sens de bt_or seulement** | **+411 (−886)** | **+21 (−139)** | +271 (−1 310) | **0,022** (0,88) | −1,0 pt | **presque** |
+| retour_court_ar | stop suiveur 0,5 ATR | +797 (−886) | −180 (−139) | +494 | 0,10 | −1,5 | non |
+| elan_m15 | toutes | −330 à +2 561 (+1 296) | souvent pire | — | ≥ 0,07 | ≈ 0 à +1,6 | non |
+| exces_m5 | toutes | +58 à +856 (+376) | toutes pires | — | ≥ 0,09 | ≈ 0 | non |
+| exces_m1 | toutes | non jugeable : données M1 seulement depuis le 12/08/2026 | | | | | — |
+
+Ce qui ressort : pour `cassure_m15`, **laisser courir** (tenue jusqu'à 4 × 3 h avec objectif ou stop suiveur) au lieu de sortir après 3 h multiplie le gain par 4 à 6 sur toutes les variantes de sortie, réserve comprise, et baisse un peu le risque d'arrêt. Le point mort et la taille selon la force du signal n'apportent rien.
+
+**Ce que je te propose (tu choisis)** : mettre `cassure_m15_o15_opt` et `retour_court_ar_sens_opt` en démo `_opt` hors totaux pour les vérifier en direct ; rien en réel sans ton accord écrit.
+
 # Avis pour Baptiste — 27/11/2026, après-midi (Lot M : les 3 règles d'Astra + ton plancher)
 
 **Réponse courte : aucune règle ne passe l'adoption, on reste en v4, pas de v5.** La seule vraie trouvaille est le **budget de risque à 1/2** (B50) : il divise par deux le risque d'arrêt en gardant presque tout le gain historique, et il fait nettement mieux que « baisser la mise à 0,03 ». Il échoue seulement parce qu'il est un peu moins bon que v4 sur l'historique (gain÷creux, Sharpe, spread doublé). C'est **à toi de décider** si tu veux qu'on le prépare quand même (en démo d'abord).
