@@ -1157,3 +1157,21 @@ renforts les plus récents, ou les plus gros) et laisser le reste sous la sortie
 mesures et même jugement (2025-26 + réserve), y compris le rejeu du panier réel du 27/11.
 **Ajout FAIT le 27/11** (contrat 7830881) : cliquet partiel, 12 variantes, aucune retenue (Holm 1,00) ; « moitié à 50 % rendus » : réserve +11,5 contre +8,5 mais H1 2024-26 4,8 contre 10,8 ; panier du 27/11 : +0,34 $ au lieu de −3,23 $ si retour au stop, +6,90 $ au lieu de +9,90 $ si 3 700.
 **Partie coefficients FAITE le 27/11** : `banc_lotk.py` (contrat cca54b3) ; aucune variante retenue (Holm 1,00) ; à surveiller : « efficacité 4 h × 2 » (gain÷pire baisse 15,0 contre 12,8, réserve +13,3 contre +8,5, arrêt 38 % contre 43 %, mais placebo 0,29, H1 2024-26 moins bon, positions jusqu'à 0,60 lot à base 0,05). Pas de v5.
+
+## 27/11 9 h 50 — Lot L (Fable) : tirer plus des tendances comme celle du 27/11 (demande écrite de Baptiste)
+Baptiste : « je suis sûr qu'on peut améliorer tout ça encore pour en tirer plus dans cette situation ; cherche avec
+Fable ». Situation : or en forte tendance (3 448 → 3 676 $ du 25 au 27/11), panier bt_or_plus acheteur 4 positions
+(0,02-0,04-0,06-0,08 de base 0,02, sortie v4 : point mort à 4 positions, paliers +2/+4 R), règles courtes autour.
+Mission : idées NOUVELLES pour gagner plus pendant les tendances, sans augmenter le risque d'arrêt −34 % (base 0,05 ∝
+solde, plafond local 0,25 lot/position, 10 positions). Jugement : or M5 courtier 08/2025-08/2026, réserve 09-11/2026,
+H1 2024-26 en information ; contrat figé avant ; placebo ; correction pour essais multiples ; à risque égal ET en USC.
+DÉJÀ TESTÉ, ne pas refaire (voir AVIS.md) : détecteurs de régime (38 méthodes), sorties serrées / paliers / point mort /
+cliquets total et partiel (lots G, J, K), coefficients de renfort fixes et adaptatifs (K), renfort au point mort (I),
+plus de paniers / entrées toutes les heures (banc_freq), jumeau, martingale, retraits, heures fixes.
+Pistes possibles (à toi de juger) : 2e panier indépendant ouvert seulement après un panier gagnant ≥ +2 R dans le même
+sens (pyramide de paniers) ; réentrée immédiate après une sortie au palier si la tendance continue ; renforts sur
+replis (achat sur retour à la moyenne courte dans la tendance du panier) plutôt que sur cassure ; règles courtes
+autorisées seulement dans le sens d'un panier bt_or_plus plein (le lot G ne l'a testé que partiellement) ;
+horizon de tenue plus long pour elan/cassure quand un panier est plein ; autre idée argumentée.
+Livrable : tableau simple en tête d'AVIS.md, rejeu des paniers réels depuis le 18/11, et une recommandation franche.
+Si une piste bat la v4 sur 2025-26 ET la réserve sans plus de risque d'arrêt : préparer la v5 réelle SANS la publier.
