@@ -1150,3 +1150,4 @@ Mesures : total R et USC (20 000 USC, base 0,05 ∝ solde), gain÷pire baisse, r
 mois, marge maximale utilisée (levier 500, plafond local 0,25 lot/position : signaler tout renfort qui dépasserait),
 et rejeu des paniers réels depuis le 18/11. Placebo / correction pour essais multiples. Si une variante bat la v4
 sur 2025-26 ET sur la réserve : préparer v5 sans la publier ; résumé chiffré à @parent, Baptiste décide.
+**FAIT le 27/11** : `banc_lotk.py` (contrat cca54b3) ; aucune variante retenue (Holm 1,00) ; à surveiller : « efficacité 4 h × 2 » (gain÷pire baisse 15,0 contre 12,8, réserve +13,3 contre +8,5, arrêt 38 % contre 43 %, mais placebo 0,29, H1 2024-26 moins bon, positions jusqu'à 0,60 lot à base 0,05). Pas de v5.

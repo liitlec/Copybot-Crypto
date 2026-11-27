@@ -1,3 +1,32 @@
+# Avis pour Baptiste — 27/11/2026 (Lot K : taille des renforts par coefficient)
+
+**Réponse courte : aucun coefficient ne bat la pyramide actuelle (1-2-3-4-5) sur 2025-26 ET sur la réserve de façon sûre. Les deux réglages adaptatifs les plus prometteurs (renfort plus gros quand la tendance des 4 dernières heures est nette, ou quand le panier gagne déjà) font un peu mieux, mais sans battre le hasard (p 0,29 et 0,38 avant correction), et ils dépasseraient ton plafond de 0,25 lot par position. Pas de v5.** Banc `banc_lotk.py`, contrat figé et poussé avant les résultats (cca54b3). Sortie v4 incluse partout ; comparaison à risque égal (même écart-type journalier que la pyramide actuelle).
+
+**Or M5 du courtier ; principal = 08/2025-08/2026, réserve = 09-11/2026**
+
+| Taille des renforts | Principal : gain÷pire baisse / Sharpe | Réserve : total R / gain÷pire baisse | P(arrêt −34 %) 12 mois à 0,05 | Plus grosse position à base 0,05 | Placebo (avant correction) |
+|---|---|---|---|---|---|
+| **Actuelle 1-2-3-4-5** | **12,8 / 3,45** | **+8,5 / 0,24** | 43 % | 0,25 | — |
+| Géométrique ×1,2 / ×1,4 / ×1,6 | 8,6 / 11,9 / 13,4 | −3,9 / +3,1 / +3,5 | 68 / 57 / 50 % | 0,20 / 0,26 / 0,33 | 1,00 / 1,00 / 0,50 |
+| Géométrique ×2 (1-2-4-8-16) | 12,0 / 2,90 | **+25,5 / 1,37** | 34 % | 0,46 | 0,77 |
+| ×1,4 sur 6 positions | 13,1 / 3,35 | +4,0 / 0,12 | 43 % | 0,29 | 0,70 |
+| Décroissant ×0,8 | 7,0 / 3,26 | −19,4 / −0,35 | 67 % | 0,16 | 0,55 |
+| Efficacité 4 h (c = 1 + ER) / 12 h | 9,5 / 7,9 | +6,5 / +4,8 | 68 / 64 % | 0,46 / 0,31 | 0,99 / 0,96 |
+| **Efficacité 4 h × 2 (c = 1 + 2 ER, borné à 2)** | **15,0 / 3,47** | **+13,3 / 0,45** | 38 % | 0,60 | 0,29 |
+| **Gain acquis / 2 (c = 1 + gain en R / 2)** | **15,9 / 3,35** | +8,5 / 0,28 | 36 % | 0,72 | 0,38 |
+| Gain acquis / 4 | 12,1 / 3,13 | +4,2 / 0,11 | 59 % | 0,62 | 0,62 |
+| Volatilité basse → plus gros / haute → plus gros | 11,3 / 7,8 | +3,3 / −4,4 | 53 / 75 % | 0,36 / 1,69 | 0,73 / 0,43 |
+
+1. **Rien ne passe le contrat** : après correction pour 13 essais, aucune variante ne bat le hasard (p = 1,00).
+2. **Les deux adaptatifs à surveiller** :
+   - « Efficacité 4 h × 2 » (renforts plus gros quand le prix monte en ligne droite) : meilleure partout sur 2025-26 et sur la réserve, moins d'arrêts (38 % contre 43 %). Mais plus mauvaise en 2024-26 sur l'or H1 (7,7 contre 10,8), et non significative.
+   - « Gain acquis / 2 » : un peu mieux sur 2025-26, égale sur la réserve.
+3. **Géométrique ×2 (1-2-4-8-16)** : excellent sur la réserve, mais moins bon sur la période principale et en 2024-26 (4,8 contre 10,8).
+4. **Taille et plafond** : à risque égal, les variantes qui grossissent vite mettent une position au-dessus de 0,25 lot à base 0,05 (jusqu'à 0,60-0,72 pour les adaptatifs). Avec ton plafond, ces renforts seraient refusés ou il faudrait baisser la base. La marge reste petite partout (au plus 33 $ au levier 500).
+5. **Paniers démo depuis le 18/11** (rejeu approximatif sur GC=F) : avec la sortie v4, le gros panier du 24-25/11 (+12,6 R en réel) sort au point mort dans le rejeu (≈ 0 R) pour toutes les tailles, sauf le décroissant (+11,9 R, car le prix moyen y reste plus bas). Les 3 petits paniers d'une position ne changent qu'à proportion du facteur de taille.
+
+**Conclusion** : on garde 1-2-3-4-5, pas de v5. Si tu veux un coefficient quand même, le seul qui a une logique et des chiffres corrects est « efficacité 4 h × 2 ». À essayer d'abord en démo (bt_or_plus_opt) pour voir s'il tient en direct, et avec une base plus petite pour rester sous 0,25 lot.
+
 # Avis pour Baptiste — 27/11/2026 (Lot J : protéger les gains du panier bt_or_plus, jugé sur 2025-26)
 
 **Réponse courte : aucune façon de protéger le gain ne bat la sortie actuelle sur 08/2025-08/2026 ET sur la réserve 09-11/2026. Pas de v4. Les paliers +3/+6 R sont nettement meilleurs sur la période principale (le seul résultat qui bat le hasard), mais ils perdent sur la réserve. Les stops au point mort et le cliquet protègent les petits paniers, mais coupent les grands.** Banc `banc_lotj.py`, contrat figé et poussé avant les résultats (a93cb88).
