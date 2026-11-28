@@ -1,0 +1,6 @@
+{"version": 0, "pause": true,
+ "pourquoi": "règle de départ : en pause tant que l'IA chercheuse n'a pas écrit sa première version",
+ "entree": {"conditions": []},
+ "classement": {"champ": "score", "ordre": "desc"},
+ "sortie": {"stop": -0.2, "objectif": null, "suiveur": null, "duree_max_h": 4, "sortie_volume": false},
+ "max_positions": 10}

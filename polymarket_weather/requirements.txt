@@ -1,0 +1,4 @@
+requests>=2.31
+tzdata               # fuseaux IANA sous Windows (zoneinfo)
+python-dotenv>=1.0   # optionnel : charge .env si présent
+pytest>=8            # tests uniquement

@@ -1,0 +1,10 @@
+{
+  "nom": "Bureau papier façon @savipww : parties crypto et tendance (+ memecoins sur le VPS)",
+  "debut": "2026-10-30",
+  "debut_ts": 1793353808,
+  "code": "copy_sim/desk/desk.py (crypto_sleeve, trend_sleeve) et copy_sim/memes/memes_paper.py",
+  "crypto": "chaque jour à la clôture (bougie Hyperliquid 00:00 UTC) : momentum de J-365 à J-30 sur BTC, ETH, SOL ; les 2 meilleurs s'ils sont positifs, à parts égales, sinon cash ; × cadran (liquidité nette Fed en hausse sur 4 semaines, écart HY en baisse/stable sur 4 semaines, BTC > moyenne 200 j ; donnée absente = rouge ; < 0,5 = cash) ; 10 pb par côté sur ce qui change",
+  "tendance": "Nasdaq 100 ×3 synthétique (3 × rendement − 2 × taux 3 mois − 0,95 %/an) si clôture > moyenne 200 j × 1,01, sortie si < × 0,97 ; sinon taux 3 mois ; 10 pb par côté à chaque bascule",
+  "verdict_papier": "après au moins 8 semaines : chaque partie comparée à son acheter-et-garder (BTC, Nasdaq) sur la même période ; on ne passe en réel que si la partie fait au moins aussi bien avec une pire baisse plus faible, et sans écart inexpliqué avec le rejeu",
+  "test_sur_le_passe": "reports/desk_backtest.md du 30/10/2026 : crypto COMPROMIS (2023-2026 : +44,8 %/an, pire baisse −33 % contre BTC +49,8 %/an, −53 %) ; tendance COMPROMIS (2015-2026 : +31 %/an, pire baisse −62 % ; 1999-2014 : −92 %) ; cadran memecoins : sépare les jours en 2021-2023 mais plus du tout depuis 2024"
+}

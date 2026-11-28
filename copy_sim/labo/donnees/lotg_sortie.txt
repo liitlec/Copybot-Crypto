@@ -1,0 +1,49 @@
+PARTIE 1 : sorties de bt_or_plus
+  walk-forward M5 : +31.6 R contre REF +140.8 R ; choix {'b24': 3, 'serre': 2, 'd': 2, 'a35': 1, 'c10': 1}
+  walk-forward H1 : +394.8 R contre REF +568.4 R ; choix {'b24': 4, 'e4': 3, 'c10': 3, 'serre': 2, 'd': 1, 'b36': 1}
+jeu variante  paniers  total   creux  g_creux  sharpe  rendu  total_x2  gc_x2 grands_coupes  placebo_p  white_p  B1_gc  B1_sh  B2_gc  B2_sh  retenue
+ M5      REF      269 414.79  -55.70     7.45    2.93   5.42    406.79   7.24           NaN        NaN      NaN    NaN    NaN    NaN    NaN    False
+ M5      a35      269 304.50  -36.49     8.35    2.98   3.88    297.13   7.67          8/38       0.94     0.77    NaN    NaN    NaN    NaN    False
+ M5      a50      269 360.08  -46.67     7.72    3.10   4.66    354.97   7.53          4/38       0.79     0.77    NaN    NaN    NaN    NaN    False
+ M5      b36      278 456.20  -55.70     8.19    3.11   5.02    448.10   7.98          0/37       0.04     0.77    NaN    NaN    NaN    NaN    False
+ M5      b24      294 428.72  -52.69     8.14    3.04   4.58    423.27   7.96          4/37       0.54     0.77    NaN    NaN    NaN    NaN    False
+ M5      c05      269 177.38  -39.49     4.49    2.33   2.98    167.73   4.01         12/38       1.00     0.77    NaN    NaN    NaN    NaN    False
+ M5      c10      269 356.16  -52.58     6.77    3.12   3.88    350.36   6.61          1/38       0.79     0.77    NaN    NaN    NaN    NaN    False
+ M5        d      307 336.21  -38.05     8.84    2.77   4.40    332.67   8.69         11/36       0.94     0.77    NaN    NaN    NaN    NaN    False
+ M5       e4     1601  19.43  -23.49     0.83    0.41   0.35      8.66   0.31         36/38       1.00     0.77    NaN    NaN    NaN    NaN    False
+ M5       e8     1347 108.23  -29.79     3.63    1.30   0.57     97.72   3.08         34/38       0.99     0.77    NaN    NaN    NaN    NaN    False
+ M5    serre      283 456.72  -56.11     8.14    3.21   4.67    448.48   7.92          1/37       0.37     0.77    NaN    NaN    NaN    NaN    False
+ H1      REF      956 455.46 -172.92     2.63    1.28   3.57    430.62   2.43           NaN        NaN      NaN  -0.27  -0.30   9.24   2.56    False
+ H1      a35      956 255.32 -138.59     1.84    1.06   2.81    228.58   1.60         13/78       0.99     0.94  -0.42  -0.55   7.79   2.40    False
+ H1      a50      956 309.75 -166.47     1.86    1.08   3.17    287.41   1.68          6/78       0.98     0.94  -0.43  -0.55   8.13   2.51    False
+ H1      b36      978 475.69 -186.74     2.55    1.36   3.31    447.91   2.35          5/78       0.25     0.94  -0.39  -0.54  10.11   2.70    False
+ H1      b24     1021 418.58 -163.69     2.56    1.34   2.98    399.81   2.38         15/76       0.67     0.94  -0.21  -0.27   9.13   2.55    False
+ H1      c05      956 226.51 -123.72     1.83    1.15   2.21    193.00   1.52         20/78       0.97     0.94  -0.52  -0.78   7.02   2.60    False
+ H1      c10      956 386.08 -165.27     2.34    1.38   2.85    362.40   2.14          3/78       0.77     0.94  -0.47  -0.69   9.26   2.88    False
+ H1        d     1005 359.50 -126.26     2.85    1.14   3.18    295.82   1.88         14/76       0.92     0.94  -0.44  -0.41  10.52   2.38    False
+ H1       e4     4036 -40.67  -51.19    -0.79   -0.31   0.40    -95.75  -0.95         74/77       0.98     0.94  -0.03  -0.02  -0.87  -0.73    False
+ H1       e8     3443  27.02  -76.95     0.35    0.15   0.58    -24.42  -0.24         70/77       0.99     0.94  -0.24  -0.20   1.32   0.47    False
+ H1    serre      994 474.12 -173.87     2.73    1.42   3.06    421.84   2.36          6/77       0.32     0.94  -0.41  -0.54   9.62   2.82    False
+
+PARTIE 2 : regles courtes (walk-forward, $ pour 0,01 lot)
+  elan_m15         fait en 72 s
+  cassure_m15      fait en 71 s
+  exces_m5         fait en 73 s
+  exces_m1         fait en 18 s
+  retour_court_ar  fait en 27 s
+          regle  mois_test  ref_total  wf_total  gain_moitie1  gain_moitie2  placebo_p    wf_x2   ref_x2        reglage_le_plus_choisi  part   h1_B1   h1_B2  retenu
+       elan_m15          9     551.42    -88.18       -443.62       -195.98       0.64  -268.12   261.11    (8, 16, 0.5, False, False)  0.33 -543.70 1036.31   False
+    cassure_m15          9      41.55   -412.46       -136.78       -317.23       0.96  -314.42   -48.86    (64, 8, None, False, True)  0.22  210.48 -151.87   False
+       exces_m5          9      47.05   -401.23       -411.59        -36.69       0.95  -481.57  -108.12       (3, 3, 0.5, True, True)  0.22     NaN     NaN   False
+       exces_m1          2    -225.03    -57.10         97.10         70.83       0.30    18.34  -311.78 (3.5, 12, None, False, False)  0.50     NaN     NaN   False
+retour_court_ar          9    -821.54  -1200.38       -226.20       -152.65       1.00 -1301.23 -1175.21     (2, 8, None, True, False)  0.22 -107.12  138.99   False
+  elan_m15         REF test : 1388 trades +551 $ ; aux heures coupees -97 $ (242) ; avec lien bt_or +0 $ (691 gardes) / sans lien +551 $
+  cassure_m15      REF test : 434 trades +42 $ ; aux heures coupees -126 $ (101) ; avec lien bt_or +223 $ (269 gardes) / sans lien -182 $
+  exces_m5         REF test : 742 trades +47 $ ; aux heures coupees +24 $ (200) ; avec lien bt_or -120 $ (364 gardes) / sans lien +167 $
+  exces_m1         REF test : 433 trades -225 $ ; aux heures coupees +81 $ (77) ; avec lien bt_or -9 $ (205 gardes) / sans lien -216 $
+  retour_court_ar  REF test : 2189 trades -822 $ ; aux heures coupees +322 $ (445) ; avec lien bt_or -617 $ (1265 gardes) / sans lien -205 $
+
+PARTIE 3 : ensemble en $ (0,01 lot de base), periode de test des regles
+  bt_or_plus seul                        total  +10954 $ (risque egal  +11495) ; moities +10325 /  +1170 ; pire baisse  -4122 ; semaines perdantes 59 %
+  bt_or_plus + regles telles quelles     total  +10548 $ (risque egal  +10548) ; moities +10121 /   +427 ; pire baisse  -4851 ; semaines perdantes 59 %
+  bt_or_plus + regles optimisees (WF)    total   +8795 $ (risque egal   +8953) ; moities  +8805 /   +149 ; pire baisse  -5526 ; semaines perdantes 59 %

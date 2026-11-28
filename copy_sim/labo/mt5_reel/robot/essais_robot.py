@@ -1,0 +1,411 @@
+"""Essais hors ligne du robot RÉEL sur le faux terminal en compte réel cent (USC). Doit finir par « ESSAIS OK ».
+Le mode réel du pont (pont_reel.py) est activé dans CE processus ; l'autorisation d'essai est écrite dans le dossier
+du robot (jamais ailleurs), avec le numéro factice du faux terminal."""
+import json
+import os
+
+import faux_mt5
+import acces_robot
+import pont_reel
+
+pmod = pont_reel.activer_essais(".", faux_mt5)
+
+for f in ("etat_robot.json", "etat_bt_plus.json", "sommet_reel.json", "garde_essai.json"):
+    if os.path.exists(f):
+        os.remove(f)
+pont = acces_robot.AccesRobot.pour_essais(faux_mt5)
+import robot
+import bt_or
+
+# 0) le pont est en mode réel : compte autorisé, cent, symbole or lu chez le courtier
+c = pont.compte()
+assert c["ordres_autorises"] and c["devise"] == "USC" and c["symbole_or"] == "XAUUSD" and c["mode"] == "reel", c
+assert pmod.MAGIQUE_ROBOT == pont_reel.MAGIQUE_ROBOT_REEL and pmod.MAX_LOTS == 0.10 and pmod.MAX_POSITIONS == 10
+assert set(robot.HYPOTHESES) == {"elan_m15", "cassure_m15", "exces_m1", "exces_m5", "retour_court_ar"}, "rien d'autre"
+assert len(set(robot.CODE.values())) == 5 and all(v % 10 != 7 for v in robot.CODE.values())
+
+
+def barres(n, pas, debut=1794000000, prix=2650.0, pente=0.0, dernier_saut=0.0):
+    b = []
+    for i in range(n):
+        o = prix + pente * i
+        cl = o + pente + (dernier_saut if i == n - 2 else 0.0)
+        b.append([debut + pas * i, o, max(o, cl) + 0.5, min(o, cl) - 0.5, cl, 100, 19])
+    return b
+
+
+# 1) signaux (mêmes règles que la démo)
+plat = barres(130, 900)[:-1]
+assert robot.signal("elan_m15", plat) == 0 and robot.signal("cassure_m15", plat) == 0
+assert robot.signal("elan_m15", barres(130, 900, pente=0.4)[:-1]) == 1
+assert robot.signal("cassure_m15", barres(130, 900, dernier_saut=-5.0)[:-1]) == -1
+bruit = barres(130, 300)
+for i, x in enumerate(bruit):
+    x[4] = x[1] + (0.1 if i % 2 else -0.1)
+calme = [list(x) for x in bruit]
+bruit[-2][4] = bruit[-2][1] + 8.0
+assert robot.signal("exces_m5", bruit[:-1]) == 1 and robot.signal("exces_m1", bruit[:-1]) == -1
+assert robot.signal("exces_m5", calme[:-1]) == 0
+assert robot.sur_grille(0.02, 0.01, 0.01) == 0.02 and robot.sur_grille(0.005, 0.01, 0.01) is None
+assert robot.sur_grille(0.025, 0.01, 0.01) == 0.02
+
+# 2) tailles lues chez le courtier ; premier tour sans ordre, puis ouvertures avec stop, 0,01 lot, numéro réel
+r = robot.Robot(pont, fichier="etat_robot.json")
+t0 = [1794000000]
+m1 = barres(130, 60, pente=0.1, dernier_saut=9.0)
+m5, m15 = barres(130, 300, dernier_saut=9.0), barres(130, 900, pente=0.4, dernier_saut=9.0)
+for i, x in enumerate(m5):
+    x[4] = x[1] + (0.1 if i % 2 else -0.1)
+m5[-2][4] = m5[-2][1] + 9.0
+r.heure = lambda: t0[0]
+r.tour({"M1": m1, "M5": m5, "M15": m15})
+assert r.sym == "XAUUSD" and r.lots_c == 0.01 and r.btp is not None and r.btp.max_pos == 5
+assert r.base_bt() == 0.02, "v3 : solde 10 000 -> 0,025 -> 0,02 (pas de lot), plafond 0,10 / 5 = 0,02"
+assert not faux_mt5.ordres_recus and not pont.positions(), "aucun ordre au premier tour"
+dec = lambda b, s: [[x[0] + s] + x[1:] for x in b]
+r.tour({"M1": dec(m1, 60), "M5": dec(m5, 300), "M15": dec(m15, 900)})
+ps = pont.positions()
+assert ps and set(r.ouvert) <= set(robot.HYPOTHESES), sorted(r.ouvert)
+for o in faux_mt5.ordres_recus:
+    assert o["magic"] == pont_reel.MAGIQUE_ROBOT_REEL and o["volume"] == 0.01 and o["sl"] > 0, o
+assert all(robot.NOTE_DU_CODE.get(int(round(p["stop"] * 100)) % 100) for p in ps), "nom code dans le stop"
+
+# 3) reprise après redémarrage (mémoire perdue) : retrouvées par le code du stop, rien fermé
+os.remove("etat_robot.json")
+r2 = robot.Robot(pont, fichier="etat_robot.json")
+r2.heure = lambda: t0[0]
+r2.preparer()
+r2.reconcilier()
+assert set(r2.ouvert) == set(r.ouvert) and len(pont.positions()) == len(ps)
+
+# 4) sortie au temps
+t0[0] += 4 * 3600
+r.tour({"M1": dec(m1, 60), "M5": dec(m5, 300), "M15": dec(m15, 900)})
+assert not r.ouvert and not pont.positions(), "toutes sorties au temps"
+
+# 5) sans autorisation, ou après l'arrêt -34 % : plus aucune ouverture
+os.remove(pont_reel.FICHIER_AUTORISATION)
+assert not pont.compte()["ordres_autorises"]
+avant = len(faux_mt5.ordres_recus)
+r.tour({"M1": dec(m1, 120), "M5": dec(m5, 600), "M15": dec(m15, 1800)})
+assert len(faux_mt5.ordres_recus) == avant, "sans autorisation : aucun ordre"
+assert pont.ouvrir("XAUUSD", "achat", 0.01, stop=2600.0)["ok"] is False
+pont_reel.activer_essais(".", faux_mt5)
+faux_mt5.valeur = 20000.0
+assert pont.compte()["ordres_autorises"]
+faux_mt5.valeur = 20000.0 * 0.6
+assert not pont.compte()["ordres_autorises"] and "ARRET AUTOMATIQUE" in pont.compte()["arret"]
+assert not pont.ouvrir("XAUUSD", "achat", 0.01, stop=2600.0)["ok"]
+os.remove(pont_reel.FICHIER_SOMMET)
+faux_mt5.valeur = 10000.0
+assert pont.compte()["ordres_autorises"], "levee seulement en supprimant sommet_reel.json"
+
+# 6) plafonds du pont réel : 0,11 lot refusé, stop obligatoire
+assert "plafond" in pont.ouvrir("XAUUSD", "achat", 0.11, stop=2600.0)["refus"]
+assert not pont.ouvrir("XAUUSD", "achat", 0.01, stop=0)["ok"]
+
+# 7) panier bt_or_plus : 0,02 lot de base, renfort à 0,04, stop de secours marqué 97
+class FauxPont:
+    def __init__(self):
+        self.bid, self.pos, self.n, self.notes = 4000.0, {}, 100, []
+
+    def prix(self, s):
+        return {"bid": self.bid, "ask": self.bid + 0.2, "heure_serveur": 0}
+
+    def symbole(self, s):
+        return {"lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 100.0, "chiffres": 2, "point": 0.01}
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "XAUUSD.c" and stop > 0 and id.startswith("bt_or_plus_") and lots <= 0.10 + 1e-9
+        self.n += 1
+        e = self.bid + 0.2 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "sens": sens, "prix_entree": e, "stop": stop, "profit": 0.0, "id": id,
+                            "lots": lots, "symbole": s}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+    def fermer(self, t):
+        return {"ok": self.pos.pop(t, None) is not None}
+
+    def modifier(self, t, stop, objectif=None):
+        self.pos[t]["stop"] = stop
+        return {"ok": True}
+
+    def noter(self, **k):
+        self.notes.append(k)
+        return True
+
+
+def m5_jusqua(h, m, prix, n=2600, base=3900.0):
+    fin = 1794009600 - 1794009600 % 86400 + h * 3600 + m * 60
+    return [[fin - 300 * (n - 1 - i), 0, base + (prix - base) * i / (n - 1) + 1, base + (prix - base) * i / (n - 1) - 1,
+             base + (prix - base) * i / (n - 1), 1, 20] for i in range(n)]
+
+
+d1 = [[i * 86400, 4000, 4030, 3970, 4000, 1, 20] for i in range(29)]
+fp = FauxPont()
+bp = bt_or.PanierBT(fp, fichier="etat_bt_plus.json", symbole="XAUUSD.c", nom="bt_or_plus", lots=0.02, taille=100.0,
+                    max_pos=5, croissant=True)
+bp.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+q = list(fp.pos.values())
+assert len(q) == 1 and q[0]["lots"] == 0.02 and bt_or.code_marque(q[0]["stop"]) == bt_or.MARQUE_PLUS
+fp.bid = 4016.0
+bp.surveiller({x["ticket"]: x for x in fp.pos.values()}, fp.prix("XAUUSD.c"))
+bp.bougie(m5_jusqua(8, 35, 4016.0), d1, True)
+assert sorted(x["lots"] for x in fp.pos.values()) == [0.02, 0.04], "renfort a 2 x la base"
+
+# 8) symbole avec suffixe chez le courtier : lu, pas supposé
+ancien = faux_mt5._prix.pop("XAUUSD")
+faux_mt5._prix["XAUUSD.c"] = ancien
+assert pont_reel.symbole_or(faux_mt5) == "XAUUSD.c" and pont.compte()["symbole_or"] == "XAUUSD.c"
+faux_mt5._prix["XAUUSD"] = faux_mt5._prix.pop("XAUUSD.c")
+
+# 9) v3 : base = 0,05 x solde / 20 000 (pas de lot, vers le bas), 5 x base <= plafond local ; règles courtes 0,01 x solde
+#    / 20 000, au moins 0,01
+class _PontPlafond:
+    def __init__(self, base, lm, solde):
+        self._b, self._lm, self._s = base, lm, solde
+    def compte(self):
+        c = dict(self._b.compte(), solde=self._s)
+        c.pop("lots_max", None)
+        if self._lm is not None:
+            c["lots_max"] = self._lm
+        return c
+    def __getattr__(self, n):
+        return getattr(self._b, n)
+for lm, solde, base_att, courte_att in ((0.25, 20000, 0.05, 0.01), (0.25, 40000, 0.05, 0.02), (0.50, 40000, 0.10, 0.02),
+                                        (0.25, 10000, 0.02, 0.01), (0.25, 4000, 0.01, 0.01), (0.25, 3000, None, 0.01),
+                                        (0.10, 20000, 0.02, 0.01), (None, 20000, 0.02, 0.01), (0.25, 61000, 0.05, 0.03),
+                                        (0.50, 1e7, 0.10, 0.50)):
+    rp = robot.Robot(_PontPlafond(pont, lm, solde), fichier="etat_robot_plafond.json")
+    assert rp.preparer() and rp.btp is not None
+    b, cl = rp.base_bt(), rp.lots_courtes()
+    assert b == base_att and cl == courte_att, (lm, solde, b, cl)
+    assert b is None or 5 * b <= (lm or 0.10) + 1e-9
+    assert cl <= (lm or 0.10) + 1e-9
+    if os.path.exists("etat_bt_plus.json"):
+        os.remove("etat_bt_plus.json")
+
+# 10) v3 : la base est choisie à l'ouverture du panier et gardée pour ses renforts ; notée dans le journal
+class FauxPontC(FauxPont):
+    def __init__(self):
+        super().__init__()
+        self.solde, self.lm = 20000.0, 0.25
+
+    def compte(self):
+        return {"ordres_autorises": True, "solde": self.solde, "valeur": getattr(self, "valeur", None) or self.solde,
+                "lots_max": self.lm, "symbole_or": "XAUUSD.c", "devise": "USC"}
+
+    def symbole(self, s):                      # comme le vrai compte cent : 1 lot = 1 once, profit en USC (x 100)
+        return {"lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 1.0, "chiffres": 2, "point": 0.01}
+
+    def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
+        assert s == "XAUUSD.c" and stop > 0 and id.startswith("bt_or_plus_") and lots <= self.lm + 1e-9, (lots, self.lm)
+        self.n += 1
+        e = self.bid + 0.2 if sens == "achat" else self.bid
+        self.pos[self.n] = {"ticket": self.n, "sens": sens, "prix_entree": e, "stop": stop, "profit": 0.0, "id": id,
+                            "lots": lots, "symbole": s, "heure_serveur": 1794009600}
+        return {"ok": True, "ticket": self.n, "prix_obtenu": e}
+
+    def positions(self):
+        return list(self.pos.values())
+
+
+for f in ("etat_bt_plus.json", robot.FICHIER_SOMMET_ROBOT):
+    if os.path.exists(f):
+        os.remove(f)
+fc = FauxPontC()
+rc = robot.Robot(fc, fichier="etat_robot_c.json")
+assert rc.preparer() and isinstance(rc.btp, robot.PanierProp)
+rc.btp.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+assert [x["lots"] for x in fc.pos.values()] == [0.05], "solde 20 000, plafond 0,25 : base 0,05"
+assert [n["base"] for n in fc.notes if n.get("evenement") == "base"] == [0.05]
+fc.solde, fc.lm = 40000.0, 0.50                                   # le solde double en cours de panier
+fc.bid = 4016.0
+rc.btp.surveiller({x["ticket"]: x for x in fc.pos.values()}, fc.prix("XAUUSD.c"))
+rc.btp.bougie(m5_jusqua(8, 35, 4016.0), d1, True)
+assert sorted(x["lots"] for x in fc.pos.values()) == [0.05, 0.10], "renfort a 2 x la base DU PANIER (pas 2 x 0,10)"
+assert rc.base_bt() == 0.10, "le panier suivant prendra la nouvelle base"
+# reprise après redémarrage : la base du panier est retrouvée par sa 1re position
+os.remove("etat_bt_plus.json")
+rc2 = robot.Robot(fc, fichier="etat_robot_c2.json")
+rc2.preparer()
+rc2.btp.adopter({t: dict(x, prix_actuel=fc.bid) for t, x in fc.pos.items()}, m5_jusqua(8, 35, 4016.0), d1)
+assert rc2.btp.paniers["1"]["lots0"] == 0.05 and rc2.btp.tickets() == set(fc.pos)
+# panier hérité de la v2 (mémoire sans lots0) : base retrouvée au premier tour
+rc2.btp.paniers["1"].pop("lots0")
+rc2.btp.completer({x["ticket"]: x for x in fc.pos.values()})
+assert rc2.btp.paniers["1"]["lots0"] == 0.05
+# clôture : R compté sur la base du panier (0,05), pas sur la base du moment
+for x in fc.pos.values():
+    x["profit"] = -0.05 * 1.0 * 100.0 * rc2.btp.paniers["1"]["stop"] * (x["lots"] / 0.05) / 3   # USC : x 100
+total = sum(x["profit"] for x in fc.pos.values())
+rc2.btp.lots = 0.10
+rc2.btp._cloture("1", "essai", {x["ticket"]: x for x in fc.pos.values()})
+assert abs(rc2.btp.cumul_r - (-1.0)) < 1e-6, rc2.btp.cumul_r
+# solde trop faible : base sous le lot minimum -> aucun nouveau panier, noté une fois
+fp3 = FauxPontC()
+fp3.solde = 3000.0
+for f in ("etat_bt_plus.json",):
+    if os.path.exists(f):
+        os.remove(f)
+r3 = robot.Robot(fp3, fichier="etat_robot_c3.json")
+r3.preparer()
+r3.btp.bougie(m5_jusqua(8, 0, 4000.0), d1, True)
+assert not fp3.pos and any(n.get("evenement") == "attente" and "base" in n.get("raison", "") for n in fp3.notes)
+for f in ("etat_robot_c.json", "etat_robot_c2.json", "etat_robot_c3.json"):
+    if os.path.exists(f):
+        os.remove(f)
+for f in ("etat_robot_plafond.json",):
+    if os.path.exists(f):
+        os.remove(f)
+
+# 11) v4 : sortie « point mort après le 3e renfort + paliers +2 / +4 R » (lot J), le panier en cours y passe
+assert robot.VERSION >= 4 and rc.btp.protege, "v4 : bt_or_plus protege"
+assert any(n.get("evenement") == "sortie v4" for n in fc.notes), "passage noté au démarrage"
+def panier_test(fpx, entrees, s=1, c0=4000.0, stop=40.0, meilleur=None):
+    """Panier dans un PanierProp neuf, positions (prix, lots) chez le faux pont ; rend (panier, cle)."""
+    for f in ("etat_bt_v4.json",):
+        if os.path.exists(f):
+            os.remove(f)
+    fpx.pos.clear()
+    bpx = robot.PanierProp(fpx, rc, fichier="etat_bt_v4.json", symbole="XAUUSD.c", nom="bt_or_plus", lots=None,
+                           taille=1.0, max_pos=5, croissant=True, protege=True)
+    tk = []
+    for e, l in entrees:
+        fpx.n += 1
+        fpx.pos[fpx.n] = {"ticket": fpx.n, "sens": "achat" if s > 0 else "vente", "prix_entree": e, "stop": 1.0 if s > 0 else 9999.0,
+                          "profit": 0.0, "lots": l, "symbole": "XAUUSD.c", "heure_serveur": 1794009600}
+        tk.append(fpx.n)
+    bpx.paniers[str(s)] = {"tickets": tk, "profits": {}, "meilleur": meilleur or c0, "stop": stop, "pas": 15.0,
+                           "prochain": c0 + s * 15.0, "debut": 0, "secours": c0 - s * 50.0, "c0": c0, "lots0": entrees[0][1]}
+    return bpx, str(s)
+def tour_px(bpx, fpx, bid, spread=0.2):
+    fpx.bid = bid
+    ps = {x["ticket"]: x for x in fpx.pos.values()}
+    bpx.surveiller(ps, {"bid": bid, "ask": bid + spread, "heure_serveur": 0})
+fv = FauxPontC(); fv.lm = 0.50
+# a) sans palier (meilleur +1 R) : recul normal 40 $ -> sortie a 4000 (meilleur 4040)
+bx, k = panier_test(fv, [(4000.0, 0.02)], meilleur=4040.0)
+tour_px(bx, fv, 4001.0); assert k in bx.paniers
+tour_px(bx, fv, 3999.9); assert k not in bx.paniers, "recul normal sans palier"
+# b) palier +2 R (meilleur 4080) : recul 0,5 ATR = 30 $ -> sortie sous 4050 (au lieu de 4040)
+bx, k = panier_test(fv, [(4000.0, 0.02)], meilleur=4080.0)
+tour_px(bx, fv, 4050.5); assert k in bx.paniers and bx.paniers[k]["protection"] == [1, False]
+tour_px(bx, fv, 4049.9); assert k not in bx.paniers
+assert any(n.get("evenement") == "protection" and n.get("palier_R") == 2 for n in fv.notes)
+# c) palier +4 R (meilleur 4160) : recul 0,35 ATR = 21 $ -> sortie sous 4139
+bx, k = panier_test(fv, [(4000.0, 0.02)], meilleur=4160.0)
+tour_px(bx, fv, 4139.5); assert k in bx.paniers and bx.paniers[k]["protection"] == [2, False]
+tour_px(bx, fv, 4138.9); assert k not in bx.paniers
+# d) point mort dès 4 positions : moyen 4020, + spread 0,2 -> sortie a 4020,2 (le recul seul sortirait a 4000)
+e4 = [(4000.0, 0.02), (4010.0, 0.04), (4020.0, 0.06), (4030.0, 0.08)]
+bx, k = panier_test(fv, e4, meilleur=4040.0)
+tour_px(bx, fv, 4020.5); assert k in bx.paniers and bx.paniers[k]["protection"] == [0, True]
+tour_px(bx, fv, 4020.1); assert k not in bx.paniers, "point mort"
+# 3 positions : pas de point mort
+bx, k = panier_test(fv, e4[:3], meilleur=4040.0)
+tour_px(bx, fv, 4010.0); assert k in bx.paniers and bx.paniers[k]["protection"] == [0, False]
+# e) vente : point mort et palier symétriques (sortie quand l'ask remonte au niveau)
+ev = [(4000.0, 0.02), (3990.0, 0.04), (3980.0, 0.06), (3970.0, 0.08)]
+bx, k = panier_test(fv, ev, s=-1, meilleur=3960.0)
+tour_px(bx, fv, 3979.5, spread=0.2); assert k in bx.paniers      # ask 3979,7 < 3980 - 0,2 ? non : 3979,8 niveau
+tour_px(bx, fv, 3979.7, spread=0.2); assert k not in bx.paniers, "point mort en vente (ask >= moyen - spread)"
+bx, k = panier_test(fv, [(4000.0, 0.02)], s=-1, meilleur=3920.0)   # +2 R en vente -> recul 30 -> 3950
+tour_px(bx, fv, 3949.7); assert k in bx.paniers
+tour_px(bx, fv, 3949.9); assert k not in bx.paniers
+# f) stop de secours chez le courtier relevé avec la sortie protégée (jamais moins protecteur), marque 97 gardée
+bx, k = panier_test(fv, e4, meilleur=4040.0)
+tour_px(bx, fv, 4030.0)
+bx.vu = None
+bx.bougie(m5_jusqua(9, 0, 4030.0), d1, False)
+sec = bx.paniers[k]["secours"]
+assert sec > 4040.0 - 1.25 * 40.0 + 1 and bt_or.code_marque(sec) == bt_or.MARQUE_PLUS, sec
+assert abs(sec - (4020.2 - 10.0)) < 1.0 and all(fv.pos[t]["stop"] == sec for t in bx.paniers[k]["tickets"])
+# g) le panier ouvert sous la v3 (repris après installation) passe sous ces règles
+os.remove("etat_bt_v4.json")
+bx2 = robot.PanierProp(fv, rc, fichier="etat_bt_v4.json", symbole="XAUUSD.c", nom="bt_or_plus", lots=None,
+                       taille=1.0, max_pos=5, croissant=True, protege=True)
+bx2.adopter({t: dict(x, prix_actuel=4030.0) for t, x in fv.pos.items()}, m5_jusqua(9, 0, 4030.0), d1)
+assert bx2.paniers and bx2.paniers["1"]["lots0"] == 0.02
+tour_px(bx2, fv, 4030.0); assert bx2.paniers["1"]["protection"][1] is True, "point mort actif sur le panier repris"
+# h) sans protege : comportement d'avant inchangé (palier ignoré)
+bn = bt_or.PanierBT(fv, fichier="etat_bt_v4n.json", symbole="XAUUSD.c", nom="x", lots=0.02, taille=1.0, max_pos=5, croissant=True)
+bn.paniers = {"1": {"tickets": [], "profits": {}, "meilleur": 4080.0, "stop": 40.0, "pas": 15.0, "prochain": 4015.0,
+                    "debut": 0, "secours": 3950.0, "c0": 4000.0}}
+fv.pos.clear(); fv.n += 1
+fv.pos[fv.n] = {"ticket": fv.n, "sens": "achat", "prix_entree": 4000.0, "stop": 1.0, "profit": 0.0, "lots": 0.02,
+                "symbole": "XAUUSD.c"}
+bn.paniers["1"]["tickets"] = [fv.n]
+bn.surveiller({fv.n: fv.pos[fv.n]}, {"bid": 4045.0, "ask": 4045.2})
+assert "1" in bn.paniers, "sans protege : sortie seulement a 4040"
+for f in ("etat_bt_v4.json", "etat_bt_v4n.json"):
+    if os.path.exists(f):
+        os.remove(f)
+
+# 12) v5 : budget de risque d'Astra q = 1/2 (lot M) ; R juste en compte cent
+assert robot.VERSION == 5 and robot.BUDGET_Q == 0.5 and robot.BUDGET_ARRET == 0.34
+assert rc.btp.k_devise == 100.0 and any(n.get("evenement") == "budget v5" for n in fc.notes)
+assert abs(rc2.btp.cumul_r - (-1.0)) < 1e-6, "R d'un panier perdant 1 x stop x base x 100 USC = -1 (et non -100)"
+def neuf(fb, nom="etat_bt_v5.json"):
+    if os.path.exists(nom):
+        os.remove(nom)
+    rb = robot.Robot(fb, fichier="etat_robot_v5.json")
+    assert rb.preparer()
+    return rb
+for f in (robot.FICHIER_SOMMET_ROBOT,):
+    if os.path.exists(f):
+        os.remove(f)
+fb = FauxPontC(); fb.lm = 0.25; fb.bid = 4000.0
+rb = neuf(fb)
+pn = lambda: {"tickets": [], "profits": {}, "meilleur": 4000.0, "stop": 40.0, "pas": 10.0, "prochain": 4010.0,
+              "debut": 0, "c0": 4000.0}
+# ordre de 1 lot : recul = 100 x (4000,2 - (4000 - 1,25 x 40)) = 5 020 USC par lot
+# a) valeur 20 000 = plus haut : D = 6 800, limite 3 400 -> base 0,05 entière (251)
+p = pn(); assert rb.btp._ouvre(p, 1, 1, 2) and p["lots0"] == 0.05 and p["rang"] == 1
+assert json.load(open(robot.FICHIER_SOMMET_ROBOT))["plus_haut"] == 20000.0
+# b) valeur 13 600 (plus haut gardé à 20 000) : D = 400, limite 200 ; la position 0,05 ouverte reculerait de
+#    5 x 50,2 = 251 -> renfort 2 (0,10) inabordable : sauté pour toujours, rang virtuel 2, rien d'envoyé
+fb.valeur = 13600.0
+t1 = list(fb.pos)[-1]; fb.pos[t1]["prix_actuel"] = 4000.0
+p["tickets"] = [t1]
+n_av = len(fb.pos)
+assert not rb.btp._ouvre(p, 1, 2, 2) and p["rang"] == 2 and len(fb.pos) == n_av
+assert any(n.get("evenement") == "budget" and n.get("decision") == "renfort saute" and n.get("niveau") == 2 for n in fb.notes)
+assert json.load(open(robot.FICHIER_SOMMET_ROBOT))["plus_haut"] == 20000.0, "le plus haut ne baisse jamais"
+# la boucle des renforts compte le rang virtuel : le suivant est le niveau 3 (3 x base), pas un 2e « niveau 2 »
+vus = []
+rb.btp._ouvre_av = rb.btp._ouvre
+rb.btp._ouvre = lambda pp, ss, nv, ch: vus.append(nv) or False
+rb.btp.paniers = {"1": dict(p, prochain=4010.0, secours=3950.0)}
+rb.btp.vu = None
+rb.btp.bougie(m5_jusqua(9, 0, 4012.0), d1, True)
+assert vus and vus[0] == 3, vus
+rb.btp._ouvre = rb.btp._ouvre_av
+# c) panier neuf, valeur 13 600 : D = 400, limite 200 -> base descendue 0,05 -> 0,03 (150,6), notée
+fb.pos.clear()
+p2 = pn(); assert rb.btp._ouvre(p2, 1, 1, 2) and p2["lots0"] == 0.03
+assert any(n.get("evenement") == "budget" and n.get("decision") == "base reduite" and n.get("base") == 0.03 for n in fb.notes)
+# d) valeur 13 300 : D = 100, limite 50 -> même 0,01 (50,2) ne passe pas : panier sauté
+fb.pos.clear(); fb.valeur = 13300.0
+p3 = pn(); assert not rb.btp._ouvre(p3, 1, 1, 2) and not fb.pos and not p3.get("lots0")
+assert any(n.get("evenement") == "budget" and n.get("decision") == "panier saute" for n in fb.notes)
+# e) valeur sous 66 % du plus haut (D <= 0) : rien
+fb.valeur = 13000.0
+assert not rb.btp._ouvre(pn(), 1, 1, 2) and not fb.pos
+# f) vente symétrique : valeur revenue à 20 000 ; secours au-dessus, recul = bid - ... (ask pour un rachat)
+fb.valeur = 20000.0
+pv = dict(pn(), prochain=3990.0); assert rb.btp._ouvre(pv, -1, 1, 2) and pv["lots0"] == 0.05
+assert rb.budget_info["recul_ordre"] == round(0.05 * 100.0 * (4050.0 - 4000.0), 2), rb.budget_info
+# g) point mort de la v4 compté sur la pyramide virtuelle (renfort sauté) : rang 4 avec 3 positions -> actif
+fv2 = FauxPontC(); fv2.lm = 0.50
+bx, k = panier_test(fv2, e4[:3], meilleur=4040.0)
+bx.paniers[k]["rang"] = 4
+tour_px(bx, fv2, 4015.0); assert bx.paniers[k]["protection"][1] is True
+for f in ("etat_bt_v5.json", "etat_robot_v5.json", "etat_bt_v4.json", robot.FICHIER_SOMMET_ROBOT):
+    if os.path.exists(f):
+        os.remove(f)
+for f in ("etat_robot.json", "etat_bt_plus.json", "sommet_reel.json", "garde_essai.json", "journal_essai.jsonl",
+          pont_reel.FICHIER_AUTORISATION):
+    if os.path.exists(f):
+        os.remove(f)
+print("ESSAIS OK")

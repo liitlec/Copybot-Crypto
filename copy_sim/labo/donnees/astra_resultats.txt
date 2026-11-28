@@ -1,0 +1,69 @@
+Or M5/M15 2025-08-06 -> 2026-11-11 ; 328 jours ; trades tendance 3279, retour 10298 ; 1 R = {'T': np.float64(18.92), 'R': np.float64(5.64)} $/once par trade
+  Temoins (spread reel) : 50/50 -175.1 R ; tendance seule -4.8 ; retour seul -345.3
+  Temoins (spread double) : 50/50 -370.1 R ; tendance seule -38.6 ; retour seul -701.6
+
+1. ORACLE HORAIRE (or M5/M15, spread reel) : 50/50 -175.1 R ; oracle +4456.7 R ; borne haute +4631.8 R sur 6529 heures changees (+0.709 R par heure changee ; 13.83 R par jour) ; les 10 meilleures heures = 4 % du gain
+
+1. ORACLE HORAIRE (spread double) : 50/50 -370.1 R ; oracle +4269.4 R ; borne haute +4639.6 R sur 6527 heures changees (+0.711 R par heure changee ; 13.85 R par jour) ; les 10 meilleures heures = 4 % du gain
+  10 heures qui font le plus de gain (heure de Paris, gain R, choix) :
+    2026-01-29 16:00  +48.32 R  tendance (T +1.55, R -95.10)
+    2026-02-12 17:00  +18.77 R  tendance (T +0.00, R -37.54)
+    2026-01-30 19:00  +17.78 R  tendance (T +0.00, R -35.55)
+    2026-03-23 02:00  +15.40 R  tendance (T +4.52, R -26.27)
+    2026-01-30 03:00  +14.61 R  tendance (T -0.83, R -30.04)
+    2026-06-11 19:00  +11.11 R  tendance (T +2.27, R -19.94)
+    2026-09-04 14:00  +10.53 R  retour (T -5.20, R +15.86)
+    2026-01-27 21:00  +10.24 R  tendance (T +2.63, R -17.84)
+    2026-03-19 08:00  +10.15 R  tendance (T +4.27, R -16.03)
+    2026-01-30 09:00  +9.76 R  retour (T -2.63, R +16.90)
+  Controle (ajoute apres coup) : borne haute avec heures melangees au hasard +4622.2 R (q5-q95 +4587.7 / +4659.1) contre +4631.8 R reel
+  Seuil d'arret (contrat) : depasse, on continue
+
+2. VETO DE COUT (A/c < 4) : 0 heures avec trades sur 6532 en veto (0.0 %) ; A/c median 50.8 (q10 32.2)
+  Placebo (a) memes cases : mediane -175.1 R (regle -175.1) p 1.000 ; placebo (b) risque x 1.000 partout : -175.1 R
+  veto de cout : 50/50 -175.1 R, regle -175.1 R (diff +0.0 ; couts x2 +0.0) ; 0 heures changees, +0.000 R par heure changee ; creux -188.6 contre -188.6 ; IC bas (3 essais) +0.0000 R/j (moy +0.0000) ; placebo p 1.000
+
+3. PROLONGEMENT : delta median 14.70 $ ; jambes par seance mediane 8 ; heures avec 3 jambes 3677 ; tendance 1055 h, retour 892 h
+  1er signal de la seance (heure de Paris) : mediane 12.0 h, quartiles 8.0-16.0 h ; 13 % des seances avec signal apres 18 h
+  Placebo (permutations a heure et volatilite egales) : mediane -162.2 R, regle -85.7 R, p 0.112
+  prolongement : 50/50 -175.1 R, regle -85.7 R (diff +89.3 ; couts x2 +92.0) ; 1660 heures changees, +0.054 R par heure changee ; creux -137.1 contre -188.6 ; IC bas (3 essais) -0.1456 R/j (moy +0.2724) ; placebo p 0.112
+  Retard en argent (prolongement) : 441 alertes ; deja passe : somme +63.7 R (mediane +0.23) ; encore accessible : somme +58.2 R (mediane +0.08)
+
+4. ANNONCES (CPI + emploi, 24 evenements avec donnees) : 2 petits, 8 en 50/50, 14 tendance, 0 retour
+  Trade direct 15:45 -> 16:30 : moyenne -0.005 ATR par evenement (n 14 ; gagnants 7) ; faux evenements : 34, moyenne -0.016 ATR ; placebo p 0.514
+  Poids sur les familles (15:45-16:30) : -9.27 R contre le 50/50 sur 14 evenements
+    2025-12-18 14:30 CPI tendance trade direct -0.064 ATR
+    2026-01-09 14:30 NFP tendance trade direct +0.076 ATR
+    2026-01-13 14:30 CPI tendance trade direct +0.001 ATR
+    2026-03-06 14:30 NFP tendance trade direct -0.121 ATR
+    2026-03-11 14:30 CPI tendance trade direct +0.032 ATR
+    2026-05-08 14:30 NFP tendance trade direct +0.031 ATR
+    2026-06-05 14:30 NFP tendance trade direct +0.424 ATR
+    2026-06-10 14:30 CPI tendance trade direct -0.110 ATR
+    2026-07-02 14:30 NFP tendance trade direct -0.175 ATR
+    2026-07-14 14:30 CPI tendance trade direct -0.111 ATR
+    2026-08-07 14:30 NFP tendance trade direct -0.123 ATR
+    2026-09-04 14:30 NFP tendance trade direct -0.168 ATR
+    2026-10-14 14:30 CPI tendance trade direct +0.039 ATR
+    2026-11-06 14:30 NFP tendance trade direct +0.195 ATR
+
+SPA de Hansen (3 regles contre 50/50, gain journalier) : p = 0.528
+
+VERDICTS (contrat fixe d'avance) :
+  veto de cout   NE TIENT PAS  +0.0 R sur 0 decisions (+0.000 R par decision) ; i +0,05 R/decision non ; ii couts doubles > 0 non ; iii recul pas pire oui ; iv IC bas > 0 non ; vi placebo non ; v SPA < 0,05 non
+  prolongement   INDETERMINE   +89.3 R sur 1660 decisions (+0.054 R par decision) ; i +0,05 R/decision oui ; ii couts doubles > 0 oui ; iii recul pas pire oui ; iv IC bas > 0 non ; vi placebo non ; v SPA < 0,05 non
+  annonces       NE TIENT PAS  -9.3 R sur 14 decisions (-0.662 R par decision) ; i +0,05 R/decision non ; ii couts doubles > 0 — ; iii recul pas pire — ; iv IC bas > 0 non ; vi placebo non ; v SPA < 0,05 non
+
+CONTROLE 4 ANS or H1 (spread x1), 11/2022 -> 11/2026 : 50/50 +8.7 R ; tendance seule +64.2 ; retour seul -46.8
+
+1. ORACLE HORAIRE (H1 4 ans, spread x1) : 50/50 +8.7 R ; oracle +2354.0 R ; borne haute +2345.2 R sur 2510 heures changees (+0.934 R par heure changee ; 2.33 R par jour) ; les 10 meilleures heures = 6 % du gain
+    2022-11 -> 2024-08 : borne haute +507.2 R sur 1044 heures
+    2024-08 -> 2027-01 : borne haute +1838.0 R sur 1466 heures
+    Veto de cout H1 : 0 heures sur 2510 (0.0 %) ; 50/50 +8.7 R, avec veto +8.7 R
+
+CONTROLE 4 ANS or H1 (spread x2), 11/2022 -> 11/2026 : 50/50 -26.6 R ; tendance seule +12.6 ; retour seul -65.8
+
+1. ORACLE HORAIRE (H1 4 ans, spread x2) : 50/50 -26.6 R ; oracle +2319.2 R ; borne haute +2345.8 R sur 2508 heures changees (+0.935 R par heure changee ; 2.33 R par jour) ; les 10 meilleures heures = 6 % du gain
+    2022-11 -> 2024-08 : borne haute +507.9 R sur 1043 heures
+    2024-08 -> 2027-01 : borne haute +1837.9 R sur 1465 heures
+    Veto de cout H1 : 0 heures sur 2510 (0.0 %) ; 50/50 -26.6 R, avec veto -26.6 R

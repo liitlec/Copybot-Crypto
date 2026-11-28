@@ -1,0 +1,151 @@
+{
+ "ecrit": "2026-11-28T17:28:27Z",
+ "pont": 1,
+ "ordres_autorises": true,
+ "arret": null,
+ "consigne": "consigne absente : rien ne change",
+ "version_appliquee": 0,
+ "plafonds": {
+  "positions": 30,
+  "lots_par_position": 0.5
+ },
+ "solde": 67732.09,
+ "valeur": 84006.91,
+ "marge_libre": 80709.65,
+ "devise": "USD",
+ "levier": 500,
+ "positions": [],
+ "symboles": {
+  "XAUUSD": {
+   "bid": 3654.0,
+   "ask": 3654.21,
+   "spread_points": 21.0,
+   "point": 0.01,
+   "chiffres": 2,
+   "lot_min": 0.01,
+   "pas_lot": 0.01,
+   "taille_contrat": 100.0,
+   "heure_serveur": 1795815899
+  }
+ },
+ "positions_robot": [
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3481.58,
+   "prix_actuel": 3654.0,
+   "stop": 3597.17,
+   "objectif": null,
+   "profit": 172.42,
+   "ouverte_heure_serveur": 1795621800
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3520.01,
+   "prix_actuel": 3654.0,
+   "stop": 3597.17,
+   "objectif": null,
+   "profit": 133.99,
+   "ouverte_heure_serveur": 1795636500
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3540.71,
+   "prix_actuel": 3654.0,
+   "stop": 3597.17,
+   "objectif": null,
+   "profit": 113.29,
+   "ouverte_heure_serveur": 1795638600
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3563.38,
+   "prix_actuel": 3654.0,
+   "stop": 3593.07,
+   "objectif": null,
+   "profit": 90.62,
+   "ouverte_heure_serveur": 1795662600
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3598.39,
+   "prix_actuel": 3654.0,
+   "stop": 3593.07,
+   "objectif": null,
+   "profit": 55.61,
+   "ouverte_heure_serveur": 1795667700
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3647.99,
+   "prix_actuel": 3654.0,
+   "stop": 3593.07,
+   "objectif": null,
+   "profit": 6.01,
+   "ouverte_heure_serveur": 1795764300
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3647.16,
+   "prix_actuel": 3654.0,
+   "stop": 3564.97,
+   "objectif": null,
+   "profit": 6.84,
+   "ouverte_heure_serveur": 1795794601
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "vente",
+   "lots": 0.01,
+   "prix_entree": 3633.91,
+   "prix_actuel": 3654.21,
+   "stop": 3673.04,
+   "objectif": null,
+   "profit": -20.3,
+   "ouverte_heure_serveur": 1795806000
+  },
+  {
+   "symbole": "XAUUSD",
+   "sens": "achat",
+   "lots": 0.01,
+   "prix_entree": 3648.79,
+   "prix_actuel": 3654.0,
+   "stop": 3644.13,
+   "objectif": null,
+   "profit": 5.21,
+   "ouverte_heure_serveur": 1795815660
+  }
+ ],
+ "garde_fou": {
+  "jour_paris": "2026-11-28",
+  "perte_du_jour": 548.92,
+  "seuil": -4184.91,
+  "ouvertures_bloquees": false
+ },
+ "robot": {
+  "version_installee": 31,
+  "version_precedente": 30,
+  "en_marche": true,
+  "dernier_refus": {
+   "version": 16,
+   "raison": "essais rates : PermissionError: [WinError 5] Acc�s refus�: 'C:\\\\Users\\\\bapti\\\\pont_mt5\\\\robot\\\\v16\\\\garde_essai.json.tmp' -> 'C:\\\\Users\\\\bapti\\\\pont_mt5\\\\robot\\\\v16\\\\garde_essai.json'",
+   "heure": "2026-11-17T11:25:43Z"
+  },
+  "derniere_erreur": null,
+  "plantages_10_min": 0,
+  "interface": "copy_sim/forex/ROBOT_INTERFACE.md"
+ }
+}
