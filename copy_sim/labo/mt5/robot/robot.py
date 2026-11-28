@@ -22,7 +22,7 @@ import encaisse
 
 NOM_PARI_T = pari_tendance.NOM
 
-VERSION = 30
+VERSION = 31
 SYMBOLE = "XAUUSD"
 LOTS = 0.01
 SPREAD_MAX = 0.60          # en dollars : pas d'ouverture si le spread depasse (normal ~0,19)
@@ -85,6 +85,7 @@ _NOTES = sorted(set(HYPOTHESES_NOMS := ["hasard_m1", "elan_m1", "retour_m1", "ex
                 | {b + x for b in ("midi_agite", "midi_calme") for x in ("", "_f", "_c")})
 _NOTES = _NOTES + ["retour_court_ar", "retour_strict_ar"]    # v14 : ajoutes A LA FIN (codes v13 inchanges)
 _NOTES = _NOTES + ["elan_m15_opt", "cassure_m15_opt"]          # v15 : a la fin aussi
+_NOTES = _NOTES + ["cassure_m15_o15_opt", "retour_court_ar_sens_opt"]   # v31 : a la fin aussi (codes stables)
 HYPOTHESES_NOMS = HYPOTHESES_NOMS + ["retour_court_ar", "retour_strict_ar"]
 CODE = {n: c for n, c in zip(_NOTES, [c for c in range(100) if c % 10 != 7])}
 NOTE_DU_CODE = {c: n for n, c in CODE.items()}
@@ -125,6 +126,15 @@ RETOUR_AR = {"retour_court_ar", "retour_strict_ar"}
 # la variante fait moins bien que sa regle d'origine sur la meme periode.
 OPT_FOND = {}   # filtre de fond RETIRE avant publication (banc_famille_wf.py, 17/11 : piste 4 en walk-forward
 # -152 $, t -0,2 : ne tient pas). Les noms restent dans _NOTES (codes stables) ; la mecanique _opt sert aux suivantes.
+# v31 (28/11, accord écrit de Baptiste « Oui lance les trois », lot N ajout, banc_lotn_courtes.py, « presque ») :
+#  cassure_m15_o15_opt      : même signal que cassure_m15 (sans pause au calme, comme au banc) ; objectif +1,5 ATR jour,
+#                             stop 1 ATR jour, tenue au plus 4 x 3 h = 12 h ;
+#  retour_court_ar_sens_opt : retour_court_ar (même stop, même objectif, 3 h) seulement dans le sens de bt_or
+#                             (clôture M5 au-dessus / en dessous de l'EMA 576 M5).
+# Hors totaux (_opt), 0,01 lot. REGLE D'ARRET (écrite avant) : arrêt si somme < -60 $ ou si, après 60 trades, la
+# variante fait moins bien que sa règle d'origine sur la même période.
+OPT_NOUVEAUX = {"cassure_m15_o15_opt": "cassure_m15", "retour_court_ar_sens_opt": "retour_court_ar"}
+TENUE_X = {"cassure_m15_o15_opt": 4}
 HEURES = {"ecart_midi_m5": (12, 13, 14)}              # heures du serveur (Paris + 1 h) ou l'hypothese a le droit d'ouvrir
 
 
@@ -257,7 +267,8 @@ class Robot:
             with open(self.fichier, encoding="utf-8") as f:
                 d = json.load(f)
             base = lambda k: k[:-len(SUFFIXE_CALME)] if k.endswith(SUFFIXE_CALME) else (k[:-4] if k.endswith("_opt") else k)
-            self.ouvert = {k: v for k, v in d.get("ouvert", {}).items() if base(k) in HYPOTHESES}
+            self.ouvert = {k: v for k, v in d.get("ouvert", {}).items()
+                           if base(k) in HYPOTHESES or OPT_NOUVEAUX.get(k) in HYPOTHESES}   # v31
         except (OSError, ValueError):
             self.ouvert = {}
 
@@ -352,11 +363,12 @@ class Robot:
                 continue
             cle = cle_de_note(note)
             nom = cle[:-len(SUFFIXE_CALME)] if cle.endswith(SUFFIXE_CALME) else cle
-            nom = nom[:-4] if nom.endswith("_opt") else nom
+            nom = OPT_NOUVEAUX.get(cle) or (nom[:-4] if nom.endswith("_opt") else nom)
             if cle in self.ouvert or nom not in HYPOTHESES:
                 continue
             self.ouvert[cle] = {"ticket": t, "sens": 1 if p["sens"] == "achat" else -1,
-                                "sortie": p["heure_serveur"] + HYPOTHESES[nom][1] - 2, "entree": p.get("prix_entree"),
+                                "sortie": p["heure_serveur"] + HYPOTHESES[nom][1] * TENUE_X.get(cle, 1) - 2,
+                                "entree": p.get("prix_entree"),
                                 "profit": p.get("profit") or 0.0, "note": note}
             connus.add(t)
             self.pont.noter(evenement="reprise", hypothese=note, ticket=t, stop=p["stop"])
@@ -418,11 +430,22 @@ class Robot:
             if nom == "retour_court_ar":                 # stop court : juste au-dela de l'exces
                 ext = max(x[2] for x in b[-2:]) + 0.5 if sens < 0 else min(x[3] for x in b[-2:]) - 0.5
                 stop = round(min(ext, px["bid"] - mini) if sens > 0 else max(ext, px["ask"] + mini), ch)
+        if cle == "cassure_m15_o15_opt":                 # v31 : objectif +1,5 ATR jour, stop 1 ATR jour
+            try:
+                a = bt_or.atr_jour(self.pont.bougies(SYMBOLE, "D1", 30)[:-1])
+            except Exception:
+                a = None
+            if not a or a <= 0:
+                return None
+            ds, do = max(a, mini), max(1.5 * a, mini)    # jamais plus près que le stop minimal des autres règles
+            objectif = round(px["ask"] + do, ch) if sens > 0 else round(px["bid"] - do, ch)
+            stop = round(px["bid"] - ds, ch) if sens > 0 else round(px["ask"] + ds, ch)
         nom_note = self.etiquette(nom, sens) if cle == nom else cle
         stop = coder(stop, sens, nom_note, ch)           # v13 : le nom voyage dans les centimes du stop
         r = self.pont.ouvrir(SYMBOLE, "achat" if sens > 0 else "vente", LOTS, stop=stop, objectif=objectif, id=nom_note)
         if r.get("ok") and r.get("ticket"):
-            self.ouvert[cle] = {"ticket": r["ticket"], "sens": sens, "sortie": maintenant + HYPOTHESES[nom][1] - 2,
+            self.ouvert[cle] = {"ticket": r["ticket"], "sens": sens,
+                                "sortie": maintenant + HYPOTHESES[nom][1] * TENUE_X.get(cle, 1) - 2,
                                 "entree": r.get("prix_obtenu"), "profit": 0.0, "note": nom_note}
             self.sauver()
         self.pont.noter(evenement="ouverture", hypothese=nom_note, sens=sens, ok=bool(r.get("ok")), refus=r.get("refus"),
@@ -430,6 +453,18 @@ class Robot:
                         h_serveur=time.gmtime(maintenant).tm_hour,
                         prix_obtenu=r.get("prix_obtenu"), essai="non prouve")
         return r
+
+    def sens_bt(self, bougies=None):
+        """v31 : sens de bt_or (clôture M5 contre l'EMA 576 M5), 0 si inconnu."""
+        try:
+            m5 = bougies.get("M5long") if bougies else self.pont.bougies(SYMBOLE, "M5", 3000)
+            c = [x[4] for x in m5[:-1]]
+            if len(c) < bt_or.EMA_N:
+                return 0
+            e = bt_or.ema(c[-2880:], bt_or.EMA_N)
+            return 1 if c[-1] > e else (-1 if c[-1] < e else 0)
+        except Exception:
+            return 0
 
     def regime(self, maintenant, bougies=None):
         """Met a jour self.calme au plus une fois par quart d'heure et note chaque changement."""
@@ -597,6 +632,12 @@ class Robot:
                     if fond * s > 0 and nom + "_opt" not in self.ouvert and len(ps) < PLAFOND_POSITIONS - RESERVE_TEST:
                         self.ouvrir(nom, s, b, maintenant, nom + "_opt")
                 if s:
+                    for v, base_ in OPT_NOUVEAUX.items():        # v31 : variantes du lot N, hors totaux
+                        if base_ != nom or v in self.ouvert or len(ps) >= PLAFOND_POSITIONS - RESERVE_TEST:
+                            continue
+                        if v == "retour_court_ar_sens_opt" and self.sens_bt(bougies) != s:
+                            continue
+                        self.ouvrir(nom, s, b, maintenant, v)
                     self.ouvrir(nom, s, b, maintenant, cle)
 
 

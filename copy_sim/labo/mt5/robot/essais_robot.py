@@ -93,7 +93,7 @@ assert "retour_court_ar" in r.ouvert and "retour_strict_ar" not in r.ouvert, "v1
 oc = [o for o in faux_mt5.ordres_recus if o.get("comment", "").endswith("retour_court_ar")]
 assert oc and oc[0]["sl"] > 0, oc
 assert "ecart_midi_m5" not in r.ouvert, "hors de ses heures"
-assert {k[:-4] if k.endswith("_opt") else k for k in r.ouvert} <= set(robot.HYPOTHESES)
+assert {robot.OPT_NOUVEAUX.get(k) or (k[:-4] if k.endswith("_opt") else k) for k in r.ouvert} <= set(robot.HYPOTHESES)
 for o in faux_mt5.ordres_recus:
     assert o["volume"] == 0.01 and o["sl"] > 0 and o["symbol"] == "XAUUSD", o
 for p in ps:
@@ -102,6 +102,23 @@ for p in ps:
 n = len(faux_mt5.ordres_recus)
 r.tour({"M1": m1b, "M5": m5b, "M15": m15b})
 assert len(faux_mt5.ordres_recus) == n, "pas de double ouverture sur la meme bougie"
+# v31 : variantes du lot N (hors totaux) : cassure_m15_o15_opt (objectif +1,5 ATR, stop 1 ATR, 12 h) et
+# retour_court_ar_sens_opt (seulement dans le sens de bt_or) ; codes stables, reprise par le code du stop
+assert robot.VERSION == 31 and set(robot.OPT_NOUVEAUX) <= set(robot.CODE)
+assert len(set(robot.CODE.values())) == len(robot.CODE) and robot.CODE["cassure_m15_opt"] == 25
+if "cassure_m15" in r.ouvert:
+    assert "cassure_m15_o15_opt" in r.ouvert, sorted(r.ouvert)
+    o = r.ouvert["cassure_m15_o15_opt"]; ob = r.ouvert["cassure_m15"]
+    assert o["sortie"] - ob["sortie"] == 3 * 10800, "tenue 4 x 3 h"
+    q = [x for x in pont.positions() if x["ticket"] == o["ticket"]][0]
+    sq = 1 if q["sens"] == "achat" else -1
+    assert q["objectif"] and sq * (q["objectif"] - q["prix_entree"]) >= 2.9 and sq * (q["prix_entree"] - q["stop"]) >= 2.9, q
+    assert robot.NOTE_DU_CODE[int(round(q["stop"] * 100)) % 100] == "cassure_m15_o15_opt"
+sb = r.sens_bt({"M5long": [[i * 300, 0, 0, 0, 2600.0 + 0.01 * i, 1, 19] for i in range(3000)]})
+assert sb == 1 and r.sens_bt({"M5long": [[0, 0, 0, 0, 1.0, 1, 1]] * 10}) == 0
+# retour_court_ar_sens_opt : ouvert seulement si le sens de bt_or (EMA 576 M5) est celui du signal
+if "retour_court_ar" in r.ouvert:
+    assert ("retour_court_ar_sens_opt" in r.ouvert) == (r.sens_bt(None) == r.ouvert["retour_court_ar"]["sens"])
 
 # 3) reprise apres redemarrage : la memoire revient du fichier, rien n'est ferme a tort
 r2 = robot.Robot(pont, fichier="etat_essai.json")
@@ -140,6 +157,9 @@ t0[0] += 120
 r.sorties(t0[0], r.reconcilier())
 assert not {"hasard_m1", "elan_m1", "retour_m1"} & set(r.ouvert) and len(pont.positions()) == len(ps) - 4
 t0[0] += 10800
+r.sorties(t0[0], r.reconcilier())
+assert set(r.ouvert) <= {"cassure_m15_o15_opt"}, sorted(r.ouvert)     # v31 : tenue 12 h
+t0[0] += 3 * 10800
 r.sorties(t0[0], r.reconcilier())
 assert not r.ouvert and not pont.positions()
 
@@ -1188,7 +1208,7 @@ for f in ("etat_enc29_essai.json", "etat_bp29_essai.json"):
     if os.path.exists(f):
         os.remove(f)
 # v30 (27/11) : bt_or_plus_opt a la sortie « point mort + paliers +2/+4 R » du réel v4 ; bt_or et le reste inchangés
-assert robot.VERSION == 30
+assert robot.VERSION >= 30
 for f in ("etat_v30_essai.json",):
     if os.path.exists(f):
         os.remove(f)
