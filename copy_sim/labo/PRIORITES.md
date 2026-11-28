@@ -1241,3 +1241,20 @@ cassure Asie à Londres +681 $ / réserve +147 / arrêt −0,7 pt, placebo 0,11 
 variantes) : « presque » cassure_m15 objectif +1,5 ATR (+2 519 contre +447 $, réserve +201 contre −60, placebo 0,010,
 Holm 0,38, arrêt −1,6 pt), cassure_m15 stop suiveur (p 0,036), retour_court_ar dans le sens de bt_or (+411 contre
 −886, p 0,022, Holm 0,88) ; exces_m1 non jugeable (M1 depuis le 12/08/2026). Rien en démo sans accord de Baptiste.
+
+## 28/11 — Trois changements (accord écrit de Baptiste : « Oui lance les trois ») + lot O
+1. **Robot réel v5 : budget de risque d'Astra q = 1/2** (lot M, exactement comme testé) : avant chaque entrée ou
+   renfort, D = equity − 0,66 × sommet d'equity ; autoriser si le recul jusqu'aux stops de secours de toutes les jambes
+   + l'ordre envisagé reste sous D/2 ; sinon descendre la base au pas de 0,01 jusqu'au premier volume admissible, ou
+   sauter ; renfort inabordable sauté ; base figée à l'ouverture. Tout le reste de la v4 inchangé. Essais soignés,
+   VERSION 5 (installation automatique, mode auto). À publier avant la réouverture du marché (dimanche 23 h).
+2. **Démo : `cassure_m15_o15_opt`** (objectif +1,5 ATR, tenue max 4×) et **`retour_court_ar_sens_opt`** (seulement
+   dans le sens de bt_or), hors totaux, version démo suivante, essais OK.
+3. **Lot O (Baptiste) : « à partir de tant de % par jour, on coupe les paniers pour encaisser et on rouvre
+   directement »** : quand la valeur du compte (ou le latent du panier bt_or_plus) atteint +X % sur la journée (X =
+   1 / 2 / 3 / 5 %), fermer le panier (et/ou toutes les positions), encaisser, et rouvrir immédiatement un panier
+   dans le même sens à la base du moment (pyramide repartie de zéro). Variantes : une seule fois par jour / à chaque
+   palier de X % ; référence = solde de début de journée. Jugement 2025-26 + réserve, en USC sur 20 000 USC avec
+   budget q = 1/2, spread et swap, risque d'arrêt, placebo (coupure à des heures tirées au hasard), Holm. Rappel :
+   lot L « réentrée immédiate après sortie ≥ +2 R » n'avait rien donné ; ici le déclencheur est le % du compte.
+   Rejouer la semaine du 23-27/11. Rien en réel sans accord. Résumé à @parent.
