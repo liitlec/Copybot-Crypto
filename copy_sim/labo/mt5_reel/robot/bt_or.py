@@ -203,7 +203,8 @@ class PanierBT:
                 self.pont.fermer(t)
             else:
                 total += p["profits"].get(str(t), 0.0)
-        r = total / (p["stop"] * self.taille * (self.lots or 0)) if p["stop"] > 0 and self.lots else 0.0
+        k = getattr(self, "k_devise", 1.0)              # v5 : compte cent (USC) : profit x 100 -> R juste
+        r = total / (p["stop"] * self.taille * (self.lots or 0) * k) if p["stop"] > 0 and self.lots else 0.0
         self.cumul_r += r
         self.n_paniers += 1
         self.pont.noter(evenement="sortie panier", hypothese=self.nom, raison=raison, sens=int(cle),
@@ -251,7 +252,7 @@ class PanierBT:
         raison = "recul depuis le meilleur prix" + ("" if not palier else " (palier +%d R)" % (2 * palier))
         pm = False
         lots = sum((q.get("lots") or 0) for q in pos)
-        if len(pos) >= 4 and lots > 0:
+        if max(len(pos), p.get("rang", 0)) >= 4 and lots > 0:   # v5 : pyramide virtuelle (renfort sauté compris)
             moyen = sum(q["prix_entree"] * (q.get("lots") or 0) for q in pos) / lots
             point_mort = moyen + s * max(px["ask"] - px["bid"], 0.0)
             if s * (point_mort - niveau) > 0:
@@ -303,9 +304,9 @@ class PanierBT:
                 for t in p["tickets"]:
                     self.pont.modifier(t, secours)
                 p["secours"] = secours
-            while spread_ok and len(p["tickets"]) < self.max_pos and s * (c - p["prochain"]) >= 0:
-                if s * (c - p["prochain"]) <= 0.5 * p["pas"]:
-                    self._ouvre(p, s, len(p["tickets"]) + 1, chiffres)
+            while spread_ok and p.get("rang", len(p["tickets"])) < self.max_pos and s * (c - p["prochain"]) >= 0:
+                if s * (c - p["prochain"]) <= 0.5 * p["pas"]:   # v5 : rang virtuel (renfort sauté par le budget)
+                    self._ouvre(p, s, p.get("rang", len(p["tickets"])) + 1, chiffres)
                 p["prochain"] += s * p["pas"]
         t = time.gmtime(m5[-1][0])
         if (t.tm_hour, t.tm_min) in HEURES and spread_ok and not self.arrete() and len(m5) >= 2500:

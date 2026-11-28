@@ -1,6 +1,7 @@
 """Essais hors ligne du robot RÉEL sur le faux terminal en compte réel cent (USC). Doit finir par « ESSAIS OK ».
 Le mode réel du pont (pont_reel.py) est activé dans CE processus ; l'autorisation d'essai est écrite dans le dossier
 du robot (jamais ailleurs), avec le numéro factice du faux terminal."""
+import json
 import os
 
 import faux_mt5
@@ -191,8 +192,11 @@ class FauxPontC(FauxPont):
         self.solde, self.lm = 20000.0, 0.25
 
     def compte(self):
-        return {"ordres_autorises": True, "solde": self.solde, "valeur": self.solde, "lots_max": self.lm,
-                "symbole_or": "XAUUSD.c", "devise": "USC"}
+        return {"ordres_autorises": True, "solde": self.solde, "valeur": getattr(self, "valeur", None) or self.solde,
+                "lots_max": self.lm, "symbole_or": "XAUUSD.c", "devise": "USC"}
+
+    def symbole(self, s):                      # comme le vrai compte cent : 1 lot = 1 once, profit en USC (x 100)
+        return {"lot_min": 0.01, "pas_lot": 0.01, "taille_contrat": 1.0, "chiffres": 2, "point": 0.01}
 
     def ouvrir(self, s, sens, lots, stop, objectif=None, id="robot"):
         assert s == "XAUUSD.c" and stop > 0 and id.startswith("bt_or_plus_") and lots <= self.lm + 1e-9, (lots, self.lm)
@@ -206,8 +210,9 @@ class FauxPontC(FauxPont):
         return list(self.pos.values())
 
 
-if os.path.exists("etat_bt_plus.json"):
-    os.remove("etat_bt_plus.json")
+for f in ("etat_bt_plus.json", robot.FICHIER_SOMMET_ROBOT):
+    if os.path.exists(f):
+        os.remove(f)
 fc = FauxPontC()
 rc = robot.Robot(fc, fichier="etat_robot_c.json")
 assert rc.preparer() and isinstance(rc.btp, robot.PanierProp)
@@ -232,7 +237,7 @@ rc2.btp.completer({x["ticket"]: x for x in fc.pos.values()})
 assert rc2.btp.paniers["1"]["lots0"] == 0.05
 # clôture : R compté sur la base du panier (0,05), pas sur la base du moment
 for x in fc.pos.values():
-    x["profit"] = -0.05 * 100.0 * rc2.btp.paniers["1"]["stop"] * (x["lots"] / 0.05) / 3
+    x["profit"] = -0.05 * 1.0 * 100.0 * rc2.btp.paniers["1"]["stop"] * (x["lots"] / 0.05) / 3   # USC : x 100
 total = sum(x["profit"] for x in fc.pos.values())
 rc2.btp.lots = 0.10
 rc2.btp._cloture("1", "essai", {x["ticket"]: x for x in fc.pos.values()})
@@ -255,7 +260,7 @@ for f in ("etat_robot_plafond.json",):
         os.remove(f)
 
 # 11) v4 : sortie « point mort après le 3e renfort + paliers +2 / +4 R » (lot J), le panier en cours y passe
-assert robot.VERSION == 4 and rc.btp.protege, "v4 : bt_or_plus protege"
+assert robot.VERSION >= 4 and rc.btp.protege, "v4 : bt_or_plus protege"
 assert any(n.get("evenement") == "sortie v4" for n in fc.notes), "passage noté au démarrage"
 def panier_test(fpx, entrees, s=1, c0=4000.0, stop=40.0, meilleur=None):
     """Panier dans un PanierProp neuf, positions (prix, lots) chez le faux pont ; rend (panier, cle)."""
@@ -334,6 +339,69 @@ bn.paniers["1"]["tickets"] = [fv.n]
 bn.surveiller({fv.n: fv.pos[fv.n]}, {"bid": 4045.0, "ask": 4045.2})
 assert "1" in bn.paniers, "sans protege : sortie seulement a 4040"
 for f in ("etat_bt_v4.json", "etat_bt_v4n.json"):
+    if os.path.exists(f):
+        os.remove(f)
+
+# 12) v5 : budget de risque d'Astra q = 1/2 (lot M) ; R juste en compte cent
+assert robot.VERSION == 5 and robot.BUDGET_Q == 0.5 and robot.BUDGET_ARRET == 0.34
+assert rc.btp.k_devise == 100.0 and any(n.get("evenement") == "budget v5" for n in fc.notes)
+assert abs(rc2.btp.cumul_r - (-1.0)) < 1e-6, "R d'un panier perdant 1 x stop x base x 100 USC = -1 (et non -100)"
+def neuf(fb, nom="etat_bt_v5.json"):
+    if os.path.exists(nom):
+        os.remove(nom)
+    rb = robot.Robot(fb, fichier="etat_robot_v5.json")
+    assert rb.preparer()
+    return rb
+for f in (robot.FICHIER_SOMMET_ROBOT,):
+    if os.path.exists(f):
+        os.remove(f)
+fb = FauxPontC(); fb.lm = 0.25; fb.bid = 4000.0
+rb = neuf(fb)
+pn = lambda: {"tickets": [], "profits": {}, "meilleur": 4000.0, "stop": 40.0, "pas": 10.0, "prochain": 4010.0,
+              "debut": 0, "c0": 4000.0}
+# ordre de 1 lot : recul = 100 x (4000,2 - (4000 - 1,25 x 40)) = 5 020 USC par lot
+# a) valeur 20 000 = plus haut : D = 6 800, limite 3 400 -> base 0,05 entière (251)
+p = pn(); assert rb.btp._ouvre(p, 1, 1, 2) and p["lots0"] == 0.05 and p["rang"] == 1
+assert json.load(open(robot.FICHIER_SOMMET_ROBOT))["plus_haut"] == 20000.0
+# b) valeur 13 600 (plus haut gardé à 20 000) : D = 400, limite 200 ; la position 0,05 ouverte reculerait de
+#    5 x 50,2 = 251 -> renfort 2 (0,10) inabordable : sauté pour toujours, rang virtuel 2, rien d'envoyé
+fb.valeur = 13600.0
+t1 = list(fb.pos)[-1]; fb.pos[t1]["prix_actuel"] = 4000.0
+p["tickets"] = [t1]
+n_av = len(fb.pos)
+assert not rb.btp._ouvre(p, 1, 2, 2) and p["rang"] == 2 and len(fb.pos) == n_av
+assert any(n.get("evenement") == "budget" and n.get("decision") == "renfort saute" and n.get("niveau") == 2 for n in fb.notes)
+assert json.load(open(robot.FICHIER_SOMMET_ROBOT))["plus_haut"] == 20000.0, "le plus haut ne baisse jamais"
+# la boucle des renforts compte le rang virtuel : le suivant est le niveau 3 (3 x base), pas un 2e « niveau 2 »
+vus = []
+rb.btp._ouvre_av = rb.btp._ouvre
+rb.btp._ouvre = lambda pp, ss, nv, ch: vus.append(nv) or False
+rb.btp.paniers = {"1": dict(p, prochain=4010.0, secours=3950.0)}
+rb.btp.vu = None
+rb.btp.bougie(m5_jusqua(9, 0, 4012.0), d1, True)
+assert vus and vus[0] == 3, vus
+rb.btp._ouvre = rb.btp._ouvre_av
+# c) panier neuf, valeur 13 600 : D = 400, limite 200 -> base descendue 0,05 -> 0,03 (150,6), notée
+fb.pos.clear()
+p2 = pn(); assert rb.btp._ouvre(p2, 1, 1, 2) and p2["lots0"] == 0.03
+assert any(n.get("evenement") == "budget" and n.get("decision") == "base reduite" and n.get("base") == 0.03 for n in fb.notes)
+# d) valeur 13 300 : D = 100, limite 50 -> même 0,01 (50,2) ne passe pas : panier sauté
+fb.pos.clear(); fb.valeur = 13300.0
+p3 = pn(); assert not rb.btp._ouvre(p3, 1, 1, 2) and not fb.pos and not p3.get("lots0")
+assert any(n.get("evenement") == "budget" and n.get("decision") == "panier saute" for n in fb.notes)
+# e) valeur sous 66 % du plus haut (D <= 0) : rien
+fb.valeur = 13000.0
+assert not rb.btp._ouvre(pn(), 1, 1, 2) and not fb.pos
+# f) vente symétrique : valeur revenue à 20 000 ; secours au-dessus, recul = bid - ... (ask pour un rachat)
+fb.valeur = 20000.0
+pv = dict(pn(), prochain=3990.0); assert rb.btp._ouvre(pv, -1, 1, 2) and pv["lots0"] == 0.05
+assert rb.budget_info["recul_ordre"] == round(0.05 * 100.0 * (4050.0 - 4000.0), 2), rb.budget_info
+# g) point mort de la v4 compté sur la pyramide virtuelle (renfort sauté) : rang 4 avec 3 positions -> actif
+fv2 = FauxPontC(); fv2.lm = 0.50
+bx, k = panier_test(fv2, e4[:3], meilleur=4040.0)
+bx.paniers[k]["rang"] = 4
+tour_px(bx, fv2, 4015.0); assert bx.paniers[k]["protection"][1] is True
+for f in ("etat_bt_v5.json", "etat_robot_v5.json", "etat_bt_v4.json", robot.FICHIER_SOMMET_ROBOT):
     if os.path.exists(f):
         os.remove(f)
 for f in ("etat_robot.json", "etat_bt_plus.json", "sommet_reel.json", "garde_essai.json", "journal_essai.jsonl",

@@ -1,4 +1,7 @@
-"""Robot RÉEL du labo (compte STARTRADER cent), version 4 (27/11, accord écrit de Baptiste « Mets-le en place » :
+"""Robot RÉEL du labo (compte STARTRADER cent), version 5 (28/11, accord écrit de Baptiste « Oui lance les trois » :
+BUDGET DE RISQUE d'Astra q = 1/2, lot M : avant chaque entrée ou renfort bt_or_plus, recul jusqu'aux stops de secours
+de toutes les jambes + l'ordre <= 1/2 x (valeur - 0,66 x plus haut de la valeur) ; sinon base descendue au pas de lot,
+ou panier sauté ; renfort inabordable sauté pour toujours (rang virtuel) ; reste de la v4 inchangé). Version 4 (27/11, accord écrit de Baptiste « Mets-le en place » :
 sortie de bt_or_plus « point mort après le 3e renfort + paliers +2 / +4 R » du lot J, voir bt_or.niveau_protege ;
 le panier ouvert à l'installation passe sous ces règles). Version 3 (26/11 soir, Lot H point A, demande écrite de Baptiste :
 MISE PROPORTIONNELLE AU SOLDE). v2 : base bt_or_plus 0,05.
@@ -24,11 +27,13 @@ import time
 
 import bt_or
 
-VERSION = 4
+VERSION = 5
 SOLDE_REF = 20000.0                # USC : à ce solde, base 0,05 et règles courtes 0,01
 FICHIER_ETAT = "etat_robot.json"
 PAUSE = 1.0
 PERIODES = ("M1", "M5", "M15")
+BUDGET_Q, BUDGET_ARRET = 0.5, 0.34   # v5 : budget de risque d'Astra (lot M) : recul jusqu'aux secours <= q x (E - 0,66 x sommet)
+FICHIER_SOMMET_ROBOT = "sommet_robot.json"
 BASE_BT, LOTS_COURTES, LOTS_MAX = 0.05, 0.01, 0.50   # v3 : LOTS_MAX = borne dure du pont ; le vrai plafond est lots_max local
 SPREAD_MAX = 0.60                # en dollars (prix de l'or) : pas d'ouverture au-delà
 PLAFOND_COURTES = 8
@@ -142,18 +147,41 @@ class PanierProp(bt_or.PanierBT):
         self.robot = robot
 
     def _ouvre(self, p, s, niveau, chiffres):
+        c = self.pont.compte()
         if not p.get("lots0"):
-            c = self.pont.compte()
             base = self.robot.base_bt(c)
             if base is None:
                 self.robot._une_fois("base", evenement="attente", hypothese=self.nom,
                                      raison="base sous le lot minimum ou solde inconnu : pas de nouveau panier")
                 return False
+            b0 = base
+            if BUDGET_Q:                                   # v5 : base descendue au pas jusqu'au premier volume admissible
+                pas = self.robot.info["pas_lot"] or 0.01
+                while base is not None and not self.robot.budget_ok(c, p, s, niveau, base):
+                    base = sur_grille(base - pas, self.robot.info["lot_min"], pas)
+                if base is None:
+                    self.pont.noter(evenement="budget", hypothese=self.nom, sens=s, niveau=1, decision="panier saute",
+                                    base_v3=b0, **self.robot.budget_info)
+                    return False
+                if base < b0 - 1e-9:
+                    self.pont.noter(evenement="budget", hypothese=self.nom, sens=s, niveau=1, decision="base reduite",
+                                    base_v3=b0, base=base, **self.robot.budget_info)
             p["lots0"] = base
             self.pont.noter(evenement="base", hypothese=self.nom, sens=s, base=base, solde=c.get("solde"),
                             plafond=self.robot.plafond(c), lots_max_panier=round(5 * base, 2))
+        elif BUDGET_Q and not self.robot.budget_ok(c, p, s, niveau, p["lots0"]):
+            p["rang"] = niveau                             # v5 : renfort inabordable sauté pour toujours
+            self.pont.noter(evenement="budget", hypothese=self.nom, sens=s, niveau=niveau, decision="renfort saute",
+                            lots=round(p["lots0"] * niveau, 2), **self.robot.budget_info)
+            self.sauver()
+            return False
         self.lots = p["lots0"]
-        return super()._ouvre(p, s, niveau, chiffres)
+        ok = super()._ouvre(p, s, niveau, chiffres)
+        if ok:
+            p["rang"] = niveau
+        else:
+            self.lots = p["lots0"]
+        return ok
 
     def _cloture(self, cle, raison, ps):
         self.lots = self.paniers[cle].get("lots0") or self.lots
@@ -184,6 +212,7 @@ class Robot:
         self.vu, self.ouvert, self.essais_orph = {}, {}, {}
         self.sym, self.info, self.btp, self.lots_c = None, None, None, None
         self.calme, self.calme_vu, self.muet = None, 0, set()
+        self.budget_info = {}
         try:
             with open(self.fichier, encoding="utf-8") as f:
                 self.ouvert = {k: v for k, v in json.load(f).get("ouvert", {}).items() if k in HYPOTHESES}
@@ -217,6 +246,10 @@ class Robot:
         bt_or.SYMBOLE = sym
         self.btp = PanierProp(self.pont, self, fichier="etat_bt_plus.json", symbole=sym, nom="bt_or_plus",
                               lots=None, taille=info["taille_contrat"], max_pos=5, croissant=True, protege=True)
+        self.btp.k_devise = 100.0 if str(c.get("devise", "")).upper() in ("USC", "EUC") else 1.0   # v5 : R juste en cent
+        self.pont.noter(evenement="budget v5", hypothese="bt_or_plus", q=BUDGET_Q, arret=BUDGET_ARRET,
+                        regle="recul jusqu'aux secours + ordre <= q x (valeur - 0,66 x plus haut) ; sinon base reduite, "
+                              "panier ou renfort saute", k_devise=self.btp.k_devise)
         self.pont.noter(evenement="sortie v4", hypothese="bt_or_plus", regle="point mort des 4 positions + paliers +2/+4 R "
                         "(recul 0,6667 -> 0,5 -> 0,35 ATR)", paniers_en_cours=len(self.btp.paniers),
                         note="les paniers en cours (ou repris au premier tour) passent sous ces regles")
@@ -233,6 +266,47 @@ class Robot:
         if isinstance(lm, (int, float)) and not isinstance(lm, bool) and lm > 0:
             return min(float(lm), LOTS_MAX)
         return 0.10                                        # pont sans plafond annoncé : prudence
+
+    def sommet(self, valeur):
+        """v5 : plus haut de la valeur du compte vu par le robot (fichier du robot, jamais celui du pont)."""
+        try:
+            with open(FICHIER_SOMMET_ROBOT, encoding="utf-8") as f:
+                h = float(json.load(f).get("plus_haut"))
+        except (OSError, ValueError, TypeError, AttributeError):
+            h = None
+        if h is None or valeur > h:
+            h = valeur
+            try:
+                with open(FICHIER_SOMMET_ROBOT, "w", encoding="utf-8") as f:
+                    json.dump({"plus_haut": h}, f)
+            except OSError:
+                pass
+        return h
+
+    def budget_ok(self, c, p, s, niveau, base):
+        """v5 : vrai si le recul jusqu'aux stops de secours de toutes les jambes bt_or_plus ouvertes + l'ordre envisagé
+        reste sous q x D, D = valeur - (1 - 0,34) x plus haut de la valeur. Le détail va dans self.budget_info."""
+        valeur = c.get("valeur")
+        if not isinstance(valeur, (int, float)) or isinstance(valeur, bool) or valeur <= 0:
+            self.budget_info = {"raison": "valeur du compte inconnue"}
+            return False
+        haut = self.sommet(float(valeur))
+        D = float(valeur) - (1 - BUDGET_ARRET) * haut
+        k = (self.info.get("taille_contrat") or 1.0) * (100.0 if str(c.get("devise", "")).upper() in ("USC", "EUC") else 1.0)
+        tickets = set(self.btp.tickets()) if self.btp else set()
+        recul = 0.0
+        for q in self.pont.positions():
+            if q.get("ticket") in tickets and q.get("stop") and q.get("prix_actuel") is not None:
+                sq = 1 if q.get("sens") == "achat" else -1
+                recul += (q.get("lots") or 0) * k * max(sq * (q["prix_actuel"] - q["stop"]), 0.0)
+        px = self.pont.prix(self.sym)
+        x = px["ask"] if s > 0 else px["bid"]
+        secours = p["meilleur"] - s * bt_or.SECOURS_K * p["stop"]
+        ordre = round(base * niveau, 2) * k * max(s * (x - secours), 0.0)
+        ok = D > 0 and recul + ordre <= BUDGET_Q * D + 1e-9
+        self.budget_info = {"valeur": round(float(valeur), 2), "plus_haut": round(haut, 2), "D": round(D, 2),
+                            "recul_ouvert": round(recul, 2), "recul_ordre": round(ordre, 2), "limite": round(BUDGET_Q * D, 2)}
+        return ok
 
     def _solde(self, c):
         s = c.get("solde")
