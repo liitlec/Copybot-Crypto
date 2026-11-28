@@ -8240,3 +8240,4 @@
 {"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or", "sens": 1, "positions": 3, "tickets": [520598979, 520969426, 526105807], "meilleur": 3685.21, "distance_stop": 73.47}
 {"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "protection", "hypothese": "bt_or_plus_opt", "sens": 1, "palier_R": 0, "point_mort": false, "niveau_sortie": 3582.71, "positions": 1}
 {"heure": "2026-11-28T12:54:24Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
+{"heure": "2026-11-28T17:04:20Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
