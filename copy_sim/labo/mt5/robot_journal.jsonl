@@ -8228,3 +8228,4 @@
 {"heure": "2026-11-27T19:41:00Z", "type": "ordre", "action": "ouverture", "symbole": "XAUUSD", "sens": "achat", "lots": 0.01, "stop": 3644.13, "id": "hasard_m1", "prix_demande": 3648.76, "spread_points": 21.0, "objectif": null, "ok": true, "retcode": 10009, "prix_obtenu": 3648.79, "ticket": 527931808}
 {"heure": "2026-11-27T19:41:00Z", "type": "note", "evenement": "ouverture", "hypothese": "hasard_m1", "sens": 1, "ok": true, "refus": null, "bid": 3648.55, "ask": 3648.76, "spread": 0.21, "stop": 3644.13, "h_serveur": 21, "prix_obtenu": 3648.79, "essai": "non prouve"}
 {"heure": "2026-11-27T23:08:31Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
+{"heure": "2026-11-28T02:39:04Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
