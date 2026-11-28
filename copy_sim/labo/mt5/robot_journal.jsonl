@@ -8229,3 +8229,14 @@
 {"heure": "2026-11-27T19:41:00Z", "type": "note", "evenement": "ouverture", "hypothese": "hasard_m1", "sens": 1, "ok": true, "refus": null, "bid": 3648.55, "ask": 3648.76, "spread": 0.21, "stop": 3644.13, "h_serveur": 21, "prix_obtenu": 3648.79, "essai": "non prouve"}
 {"heure": "2026-11-27T23:08:31Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
 {"heure": "2026-11-28T02:39:04Z", "type": "note", "evenement": "erreur", "texte": "RuntimeError: PermissionError: [WinError 5] Accès refusé: ", "suite": 1}
+{"heure": "2026-11-28T12:54:23Z", "type": "lanceur", "evenement": "arrete", "version": 30, "raison": "nouvelle version"}
+{"heure": "2026-11-28T12:54:23Z", "type": "lanceur", "evenement": "installee", "version": 31}
+{"heure": "2026-11-28T12:54:23Z", "type": "lanceur", "evenement": "demarre", "version": 31}
+{"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "demarrage", "version": 31, "hypotheses": ["cassure_m15", "ecart_midi_m5", "elan_m1", "elan_m15", "exces_m1", "exces_m5", "fcassure_m1", "hasard_m1", "retour_court_ar", "retour_m1", "retour_strict_ar"], "lots": 0.01, "repris": []}
+{"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "reprise", "hypothese": "elan_m15", "ticket": 527590045, "stop": 3673.04}
+{"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "reprise", "hypothese": "hasard_m1", "ticket": 527931808, "stop": 3644.13}
+{"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "reprise", "hypothese": "achat_or_pyr_opt", "sens": 1, "positions": 3, "tickets": [517676176, 518853503, 519024866], "meilleur": 3685.21, "distance_stop": 69.97}
+{"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or_plus_opt", "sens": 1, "positions": 1, "tickets": [527186587], "meilleur": 3655.91, "distance_stop": 73.2}
+{"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "reprise", "hypothese": "bt_or", "sens": 1, "positions": 3, "tickets": [520598979, 520969426, 526105807], "meilleur": 3685.21, "distance_stop": 73.47}
+{"heure": "2026-11-28T12:54:23Z", "type": "note", "evenement": "protection", "hypothese": "bt_or_plus_opt", "sens": 1, "palier_R": 0, "point_mort": false, "niveau_sortie": 3582.71, "positions": 1}
+{"heure": "2026-11-28T12:54:24Z", "type": "note", "evenement": "regime", "calme": false, "en_pause": []}
