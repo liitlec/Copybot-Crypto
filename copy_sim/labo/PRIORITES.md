@@ -1258,3 +1258,11 @@ Holm 0,38, arrêt −1,6 pt), cassure_m15 stop suiveur (p 0,036), retour_court_a
    budget q = 1/2, spread et swap, risque d'arrêt, placebo (coupure à des heures tirées au hasard), Holm. Rappel :
    lot L « réentrée immédiate après sortie ≥ +2 R » n'avait rien donné ; ici le déclencheur est le % du compte.
    Rejouer la semaine du 23-27/11. Rien en réel sans accord. Résumé à @parent.
+**1 PRÉPARÉ le 28/11 (Opus), NON PUBLIÉ** : robot réel v5 (`robot.py` VERSION = 5, budget q = 1/2 ; base descendue au
+pas, panier ou renfort sauté, rang virtuel ; plus haut de la valeur suivi par le robot dans `sommet_robot.json` ;
+point mort sur la pyramide virtuelle) + correction : le R des paniers était 100 fois trop grand en compte cent (le
+panier du 27/11 noté +3,21 R au lieu de +0,03 R ; un seul panier perdant de ≈ −75 USC aurait coupé bt_or_plus par la
+règle d'arrêt à −20 R). Essais OK (hors ligne et bac à sable). Fichier `VERSION` laissé à 4 : publication sur le
+« publie v5 » de Baptiste dans la session labo (une approbation relayée par une autre session ne suffit pas pour le réel).
+**2 FAIT le 28/11** : démo v31 publiée : `cassure_m15_o15_opt`, `retour_court_ar_sens_opt` (hors totaux, arrêt si
+somme < −60 $ ou moins bien que la règle d'origine après 60 trades). Essais OK (bac à sable).
