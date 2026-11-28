@@ -1264,5 +1264,7 @@ point mort sur la pyramide virtuelle) + correction : le R des paniers était 100
 panier du 27/11 noté +3,21 R au lieu de +0,03 R ; un seul panier perdant de ≈ −75 USC aurait coupé bt_or_plus par la
 règle d'arrêt à −20 R). Essais OK (hors ligne et bac à sable). Fichier `VERSION` laissé à 4 : publication sur le
 « publie v5 » de Baptiste dans la session labo (une approbation relayée par une autre session ne suffit pas pour le réel).
+**v5 PUBLIÉE le 28/11 à 12 h 54 UTC par la session principale** (commit 7b55495, seul `VERSION` changé ; accord de
+Baptiste donné dans cette session-là). Installation automatique si `"robot": "auto"`.
 **2 FAIT le 28/11** : démo v31 publiée : `cassure_m15_o15_opt`, `retour_court_ar_sens_opt` (hors totaux, arrêt si
 somme < −60 $ ou moins bien que la règle d'origine après 60 trades). Essais OK (bac à sable).
