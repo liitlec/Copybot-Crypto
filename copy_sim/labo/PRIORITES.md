@@ -1266,5 +1266,8 @@ règle d'arrêt à −20 R). Essais OK (hors ligne et bac à sable). Fichier `VE
 « publie v5 » de Baptiste dans la session labo (une approbation relayée par une autre session ne suffit pas pour le réel).
 **v5 PUBLIÉE le 28/11 à 12 h 54 UTC par la session principale** (commit 7b55495, seul `VERSION` changé ; accord de
 Baptiste donné dans cette session-là). Installation automatique si `"robot": "auto"`.
+**Lot O FAIT le 28/11 (Opus)** : `banc_loto.py` (contrat figé avant) : aucune des 16 variantes adoptée (Holm 1,00) ;
+gain rejoué +4 000 à +61 500 USC contre +95 400 (v5), réserve négative sauf P1U / P2K, compte médian 22 800-43 700
+contre 53 900 ; arrêt 21-38 % contre 32 %. Conseil : garder la v5.
 **2 FAIT le 28/11** : démo v31 publiée : `cassure_m15_o15_opt`, `retour_court_ar_sens_opt` (hors totaux, arrêt si
 somme < −60 $ ou moins bien que la règle d'origine après 60 trades). Essais OK (bac à sable).

@@ -1,3 +1,24 @@
+# Avis pour Baptiste — 28/11/2026 (Lot O : couper à +X % par jour et rouvrir)
+
+**Réponse courte : non. Les 16 façons de couper puis rouvrir font toutes moins bien que la v5 sans coupure : le gain rejoué tombe de +95 000 à +4 000 / +61 000 USC, la réserve devient négative (sauf 2 cas), et le compte médian à 12 mois baisse dans tous les cas. Le risque d'arrêt baisse parfois, mais seulement parce qu'on gagne moins.** Banc `banc_loto.py` (contrat figé avant), référence = v5 (v4 + budget 1/2), 20 000 USC, règles courtes, 2 000 parcours de 12 mois.
+
+| Coupure | Coupures en 15 mois | Gain rejoué 08/25-08/26 | Gain÷creux | Réserve | Arrêt −34 % | Compte médian 12 mois | Placebo |
+|---|---|---|---|---|---|---|---|
+| **v5 sans coupure** | — | **+95 400** | **5,7** | +690 | 32 % | **53 900** | — |
+| compte +1 %, 1 fois/jour | 162 | +46 300 | 4,1 | −1 700 | 21 % | 41 500 | 0,41 |
+| compte +2 %, 1 fois/jour | 126 | +27 500 | 2,9 | −1 620 | 26 % | 38 400 | 0,80 |
+| compte +5 %, 1 fois/jour | 69 | +49 400 | 5,4 | −4 370 | 32 % | 34 200 | 0,32 |
+| panier +1 %, 1 fois/jour | 197 | +32 600 | 2,3 | +3 660 | 21 % | 40 400 | 0,83 |
+| panier +2 %, 1 fois/jour | 124 | +48 300 | 4,9 | −1 890 | 23 % | 43 700 | 0,40 |
+| panier +5 %, à chaque palier | 71 | +61 500 | 6,9 | −180 | 31 % | 42 100 | 0,11 |
+| les 10 autres (paliers, 3 %) | 84-353 | +4 000 à +26 000 | 0,5-2,6 | négatives | 22-38 % | 22 800-38 000 | ≥ 0,8 |
+
+Pourquoi : couper encaisse bien (environ +300 à +2 700 USC par coupure), mais le panier rouvert repart avec un stop proche et une pyramide vide ; dans les grandes tendances, il reprend moins de terrain que le panier coupé n'en aurait fait, et dans les allers-retours il se fait sortir. Même des coupures à des heures tirées au hasard dégradent le résultat (gain÷creux médian des placebos ≈ 4 contre 5,7). Le seul cas un peu meilleur sur l'historique (panier +5 % par palier : gain÷creux 6,9) gagne moins, a une réserve négative et un compte médian plus bas.
+
+Sur ton panier du 25-27/11 (0,20 lot, prix moyen 3 641,4 $, compte ≈ 20 000 USC), une fois les 4 positions en place : +1 % du compte = 200 USC de latent vers 3 651 $, +2 % vers 3 661 $, +3 % vers 3 671 $, +5 % jamais atteint (maximum 3 685 $). Une coupure à 2-3 % aurait encaissé 400-600 USC au lieu de +4,72 ; mais sur 15 mois, ces coupures coûtent bien plus qu'elles ne rapportent (approximation : le détail heure par heure de la semaine n'est pas rejoué, faute de bougies du courtier après le 11/11).
+
+**Conseil : garder la v5 telle quelle.** Pour protéger un panier comme celui du 27/11, le seul compromis vu au banc reste le point mort + 0,10 ATR (lot M, −6 % de gain, non prouvé).
+
 # Avis pour Baptiste — 27/11/2026, fin d'après-midi (Lot N : d'autres stratégies + améliorer les règles courtes)
 
 **Réponse courte : aucune nouvelle stratégie ne tient. Deux améliorations des règles courtes sont « presque » (gagnent partout, mais pas assez nettes après correction pour 40 essais) : `cassure_m15` avec un objectif à +1,5 ATR au lieu de la tenue fixe, et `retour_court_ar` seulement dans le sens de bt_or. Rien en démo sans ton feu vert.** Bancs `banc_lotn.py` (contrat d822294) et `banc_lotn_courtes.py` (contrat figé avant), or M5 du courtier, principal 08/2025-08/2026, réserve 09-11/2026, spread réel puis doublé, placebo, Holm ; arrêt = risque −34 % en 12 mois du compte réel simulé (v4 base 0,05 : 68 %).
